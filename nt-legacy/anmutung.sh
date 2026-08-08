@@ -28,6 +28,16 @@ SICHERUNG="$DATEN/nt-legacy/anmutung-vorher.conf"
 # fremdes Programm und muss sich rechtfertigen lassen.
 EINSTELLUNGEN=(
   "dolphinrc:General:ShowStatusBar:FullWidth:durchgehende Statusleiste statt schwebendem Kaestchen"
+  # PCManFM-Qt als Dateimanager. Gruende, gemessen in der Test-VM:
+  #   - Qt6, also greift der Widget-Stil vollstaendig
+  #   - echte Menueleiste statt Hamburger-Knopf
+  #   - freier Speicherplatz als Text ueber die volle Breite; Dolphin
+  #     zeichnet dort eine KCapacityBar, die sich selbst zeichnet und
+  #     weder Palette noch Widget-Stil folgt (silberne Kapsel)
+  "mimeapps.list:Default Applications:inode/directory:pcmanfm-qt.desktop:PCManFM-Qt als Dateimanager"
+  # Ohne diesen Eintrag findet pcmanfm-qt das Icon-Thema nicht und faellt
+  # auf oxygen zurueck - mitten im NT-Theme.
+  "pcmanfm-qt/default/settings.conf:System:FallbackIconThemeName:NTLegacy:Icon-Thema fuer PCManFM-Qt"
 )
 
 zeigen() {
