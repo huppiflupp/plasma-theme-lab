@@ -133,13 +133,28 @@ class Aurorae:
                 + "\n".join(teile) + '\n</svg>\n')
 
     def button(self, art):
-        """Ein Button je Zustand. Quadratisch mit 3D-Kante, wie NT.
+        """Ein Knopf je Zustand - ausschliesslich als "center"-Element.
 
-        Das Symbol (X, Kasten, Strich) wird als Pfad in Textfarbe
-        darueber gezeichnet.
+        Die Aurorae-Dokumentation ist hier eindeutig:
+        "Each button has to provide the center element. Borders are not
+        supported." (develop.kde.org/docs/plasma/aurorae/)
+
+        Ein Versuch mit vollem 9-Patch waere naheliegend gewesen, weil
+        AuroraeButton.qml ein KSvg.FrameSvgItem verwendet - technisch
+        haette es vielleicht funktioniert, dokumentiert ist es nicht.
+        Und das Symbol muss ohnehin IM center liegen: FrameSvgItem
+        zeichnet nur die Rasterfelder, ein separates Symbol-Element
+        waere nie gezeichnet worden.
+
+        Folge davon: KWin streckt die Grafik auf die eingestellte
+        Knopfgroesse (Fensterdekorations-KCM, Zahnrad). Bei stark
+        abweichenden Groessen werden die 1px-Kanten weich. Das ist eine
+        Eigenheit von Aurorae, kein Fehler dieses Themes - deshalb sind
+        die Knoepfe hier grosszuegig gezeichnet, damit beim Verkleinern
+        genug Substanz bleibt.
         """
         g, a, b = self.bg, self.aussen, self.bevel
-        luft = 4
+        luft = 6
         teile = []
 
         for i, zustand in enumerate(BUTTON_ZUSTAENDE):
@@ -151,48 +166,33 @@ class Aurorae:
                 grund = self.f("dunkel")
             hell = self.f("dunkel" if gedrueckt else "hell")
             dunkel = self.f("hell" if gedrueckt else "dunkel")
+            rahmen = self.f("rahmen")
             strich = self.f("text")
 
             teile.append(f'  <g id="{zustand}-center">')
-            teile.append(f'    <rect x="{ox}" y="{oy}" width="{g}" height="{g}" fill="{grund}"/>')
+            teile.append(f'    <rect x="{ox}" y="{oy}" width="{g}" height="{g}" '
+                         f'fill="{grund}"/>')
             # Aussenrahmen
-            teile.append(f'    <rect x="{ox}" y="{oy}" width="{g}" height="{a}" fill="{self.f("rahmen")}"/>')
-            teile.append(f'    <rect x="{ox}" y="{oy+g-a}" width="{g}" height="{a}" fill="{self.f("rahmen")}"/>')
-            teile.append(f'    <rect x="{ox}" y="{oy}" width="{a}" height="{g}" fill="{self.f("rahmen")}"/>')
-            teile.append(f'    <rect x="{ox+g-a}" y="{oy}" width="{a}" height="{g}" fill="{self.f("rahmen")}"/>')
-            # 3D-Kante
-            teile.append(f'    <rect x="{ox+a}" y="{oy+a}" width="{g-2*a}" height="{b}" fill="{hell}"/>')
-            teile.append(f'    <rect x="{ox+a}" y="{oy+a}" width="{b}" height="{g-2*a}" fill="{hell}"/>')
-            teile.append(f'    <rect x="{ox+a}" y="{oy+g-a-b}" width="{g-2*a}" height="{b}" fill="{dunkel}"/>')
-            teile.append(f'    <rect x="{ox+g-a-b}" y="{oy+a}" width="{b}" height="{g-2*a}" fill="{dunkel}"/>')
+            for x, y, w, h in [(ox, oy, g, a), (ox, oy + g - a, g, a),
+                               (ox, oy, a, g), (ox + g - a, oy, a, g)]:
+                teile.append(f'    <rect x="{x:g}" y="{y:g}" width="{w:g}" '
+                             f'height="{h:g}" fill="{rahmen}"/>')
+            # 3D-Kante innen davon
+            teile.append(f'    <rect x="{ox+a}" y="{oy+a}" width="{g-2*a}" '
+                         f'height="{b}" fill="{hell}"/>')
+            teile.append(f'    <rect x="{ox+a}" y="{oy+a}" width="{b}" '
+                         f'height="{g-2*a}" fill="{hell}"/>')
+            teile.append(f'    <rect x="{ox+a}" y="{oy+g-a-b}" width="{g-2*a}" '
+                         f'height="{b}" fill="{dunkel}"/>')
+            teile.append(f'    <rect x="{ox+g-a-b}" y="{oy+a}" width="{b}" '
+                         f'height="{g-2*a}" fill="{dunkel}"/>')
 
-            # Symbol, um einen Pixel versetzt wenn gedrueckt
+            # Das Symbol liegt im selben Element - siehe oben.
             v = 1 if gedrueckt else 0
-            m = ox + g / 2 + v
-            n = oy + g / 2 + v
-            # Symbolgroesse an der Buttonflaeche ausgerichtet statt
-            # fest: bei 18px-Buttons war ein fester Wert von 2.5 zu
-            # klein, das X war kaum zu erkennen. 0.72 laesst genug Rand
-            # zum 3D-Rahmen.
+            cx, cy = ox + g / 2 + v, oy + g / 2 + v
             s = (g - 2 * (a + b)) * 0.72 / 2
-            if art == "close":
-                teile.append(f'    <path d="M{m-s},{n-s} L{m+s},{n+s} M{m+s},{n-s} '
-                             f'L{m-s},{n+s}" stroke="{strich}" stroke-width="1.5"/>')
-            elif art == "maximize":
-                teile.append(f'    <rect x="{m-s}" y="{n-s}" width="{2*s}" height="{2*s}" '
-                             f'fill="none" stroke="{strich}" stroke-width="1.5"/>')
-            elif art == "minimize":
-                teile.append(f'    <rect x="{m-s}" y="{n+s-1.5}" width="{2*s}" height="1.5" '
-                             f'fill="{strich}"/>')
-            elif art == "restore":
-                teile.append(f'    <rect x="{m-s}" y="{n-s+1.5}" width="{2*s-1.5}" '
-                             f'height="{2*s-1.5}" fill="none" stroke="{strich}" stroke-width="1.2"/>')
-                teile.append(f'    <path d="M{m-s+1.5},{n-s+1.5} L{m-s+1.5},{n-s} '
-                             f'L{m+s},{n-s} L{m+s},{n+s-1.5}" fill="none" '
-                             f'stroke="{strich}" stroke-width="1.2"/>')
-            elif art in ("keepabove", "keepbelow", "alldesktops", "shade", "help", "menu"):
-                teile.append(f'    <rect x="{m-s}" y="{n-1}" width="{2*s}" height="2" '
-                             f'fill="{strich}"/>')
+            sw = max(1.5, g * 0.09)
+            teile.append(self._symbol(art, cx, cy, s, sw, strich))
             teile.append('  </g>')
 
         breite = luft + len(BUTTON_ZUSTAENDE) * (g + luft)
@@ -200,6 +200,63 @@ class Aurorae:
                 f'<svg xmlns="http://www.w3.org/2000/svg" width="{breite}" '
                 f'height="{g + 2*luft}" viewBox="0 0 {breite} {g + 2*luft}">\n'
                 + "\n".join(teile) + '\n</svg>\n')
+
+    def _symbol(self, art, m, n, s, sw, farbe):
+        """Das Zeichen im Knopf. Jede Funktion braucht ihr eigenes -
+        sechs Knoepfe mit demselben Balken sind nicht unterscheidbar."""
+        if art == "close":
+            return (f'    <path d="M{m-s:g},{n-s:g} L{m+s:g},{n+s:g} '
+                    f'M{m+s:g},{n-s:g} L{m-s:g},{n+s:g}" stroke="{farbe}" '
+                    f'stroke-width="{sw:g}"/>')
+        if art == "maximize":
+            return (f'    <rect x="{m-s:g}" y="{n-s:g}" width="{2*s:g}" '
+                    f'height="{2*s:g}" fill="none" stroke="{farbe}" '
+                    f'stroke-width="{sw:g}"/>')
+        if art == "minimize":
+            return (f'    <rect x="{m-s:g}" y="{n+s-sw:g}" width="{2*s:g}" '
+                    f'height="{sw:g}" fill="{farbe}"/>')
+        if art == "restore":
+            return (f'    <rect x="{m-s:g}" y="{n-s+sw:g}" width="{2*s-sw:g}" '
+                    f'height="{2*s-sw:g}" fill="none" stroke="{farbe}" '
+                    f'stroke-width="{sw*0.8:g}"/>\n'
+                    f'    <path d="M{m-s+sw:g},{n-s+sw:g} L{m-s+sw:g},{n-s:g} '
+                    f'L{m+s:g},{n-s:g} L{m+s:g},{n+s-sw:g}" fill="none" '
+                    f'stroke="{farbe}" stroke-width="{sw*0.8:g}"/>')
+        if art == "shade":
+            # Einklappen: Balken oben plus Pfeil nach oben
+            return (f'    <rect x="{m-s:g}" y="{n-s:g}" width="{2*s:g}" '
+                    f'height="{sw:g}" fill="{farbe}"/>\n'
+                    f'    <path d="M{m:g},{n+s:g} L{m-s*0.6:g},{n:g} '
+                    f'L{m+s*0.6:g},{n:g} Z" fill="{farbe}"/>')
+        if art == "keepabove":
+            return (f'    <path d="M{m:g},{n-s:g} L{m-s:g},{n+s*0.3:g} '
+                    f'L{m+s:g},{n+s*0.3:g} Z" fill="{farbe}"/>\n'
+                    f'    <rect x="{m-s:g}" y="{n+s*0.6:g}" width="{2*s:g}" '
+                    f'height="{sw:g}" fill="{farbe}"/>')
+        if art == "keepbelow":
+            return (f'    <path d="M{m:g},{n+s:g} L{m-s:g},{n-s*0.3:g} '
+                    f'L{m+s:g},{n-s*0.3:g} Z" fill="{farbe}"/>\n'
+                    f'    <rect x="{m-s:g}" y="{n-s:g}" width="{2*s:g}" '
+                    f'height="{sw:g}" fill="{farbe}"/>')
+        if art == "alldesktops":
+            # Vier kleine Felder = mehrere Arbeitsflaechen
+            q = s * 0.8
+            return "\n".join(
+                f'    <rect x="{m + dx*q - q*0.85:g}" y="{n + dy*q - q*0.85:g}" '
+                f'width="{q*0.7:g}" height="{q*0.7:g}" fill="{farbe}"/>'
+                for dx in (0, 1) for dy in (0, 1))
+        if art == "help":
+            return (f'    <text x="{m:g}" y="{n+s*0.8:g}" font-size="{2.2*s:g}" '
+                    f'font-family="sans-serif" font-weight="bold" '
+                    f'text-anchor="middle" fill="{farbe}">?</text>')
+        if art == "menu":
+            # Drei Striche
+            return "\n".join(
+                f'    <rect x="{m-s:g}" y="{n + (k-1)*s*0.75 - sw/2:g}" '
+                f'width="{2*s:g}" height="{sw:g}" fill="{farbe}"/>'
+                for k in range(3))
+        return (f'    <rect x="{m-s:g}" y="{n-sw/2:g}" width="{2*s:g}" '
+                f'height="{sw:g}" fill="{farbe}"/>')
 
     def rc(self, name):
         def rgb(h):
@@ -239,6 +296,100 @@ PaddingTop=0
 PaddingBottom=0
 PaddingLeft=0
 PaddingRight=0
+"""
+
+    def config_main_xml(self):
+        """KConfigXT-Beschreibung der einstellbaren Werte.
+
+        Das Fensterdekorations-KCM (kcm_auroraedecoration.so) laedt
+        contents/config/main.xml und contents/ui/config.ui, wenn ein
+        Aurorae-Thema sie mitbringt - die Strings stehen im Plugin, und
+        es benutzt QUiLoader. Gespeichert wird in ~/.config/auroraerc.
+
+        ACHTUNG: Es gibt systemweit kein einziges Aurorae-Thema mit
+        Konfigurationsseite, und die Dokumentation beschreibt das Format
+        nicht. Der Aufbau folgt hier den ueblichen KConfigXT-Regeln
+        (Widget "kcfg_<Name>" wird an den Eintrag "<Name>" gebunden).
+        Ob das KCM die Seite tatsaechlich anzeigt, ist damit nicht
+        garantiert - im Zweifel bleibt das Thema bei seinen rc-Werten,
+        kaputt geht nichts.
+        """
+        return f"""<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+                          http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+  <kcfgfile name=""/>
+  <group name="General">
+    <entry name="TitleHeight" type="Int">
+      <label>Hoehe der Titelleiste</label>
+      <default>{self.th}</default>
+      <min>16</min>
+      <max>48</max>
+    </entry>
+    <entry name="ButtonHeight" type="Int">
+      <label>Groesse der Knoepfe</label>
+      <default>{self.bg}</default>
+      <min>10</min>
+      <max>40</max>
+    </entry>
+    <entry name="BorderLeft" type="Int">
+      <label>Rahmenbreite</label>
+      <default>{self.rahmen}</default>
+      <min>0</min>
+      <max>12</max>
+    </entry>
+    <entry name="TitleAlignment" type="String">
+      <label>Ausrichtung des Titels</label>
+      <default>Left</default>
+    </entry>
+  </group>
+</kcfg>
+"""
+
+    def config_ui(self):
+        """Die Oberflaeche dazu. Widgetnamen "kcfg_<Eintrag>" binden an
+        die Eintraege aus main.xml - das macht KConfigDialogManager."""
+        def spin(name, label, mini, maxi, wert, suffix=" px"):
+            return f"""   <item row="{spin.zeile}" column="0">
+    <widget class="QLabel" name="label_{name}">
+     <property name="text"><string>{label}</string></property>
+    </widget>
+   </item>
+   <item row="{spin.zeile}" column="1">
+    <widget class="QSpinBox" name="kcfg_{name}">
+     <property name="minimum"><number>{mini}</number></property>
+     <property name="maximum"><number>{maxi}</number></property>
+     <property name="value"><number>{wert}</number></property>
+     <property name="suffix"><string>{suffix}</string></property>
+    </widget>
+   </item>
+"""
+        spin.zeile = 0
+        teile = []
+        for name, label, mini, maxi, wert in [
+            ("TitleHeight", "Titelleiste:", 16, 48, self.th),
+            ("ButtonHeight", "Knoepfe:", 10, 40, self.bg),
+            ("BorderLeft", "Rahmen:", 0, 12, self.rahmen),
+        ]:
+            teile.append(spin(name, label, mini, maxi, wert))
+            spin.zeile += 1
+
+        return """<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>NTLegacyConfig</class>
+ <widget class="QWidget" name="NTLegacyConfig">
+  <layout class="QGridLayout" name="gridLayout">
+""" + "".join(teile) + """   <item row="3" column="0" colspan="2">
+    <spacer name="spacer">
+     <property name="orientation"><enum>Qt::Vertical</enum></property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
 """
 
     def metadata(self, name, anzeige, beschreibung, autor, lizenz, version):
@@ -289,6 +440,12 @@ def main():
     for btn in BUTTONS:
         (ziel / f"{btn}.svg").write_text(a.button(btn))
     print(f"  {ziel.name}/*.svg ({len(BUTTONS)} Buttons)")
+    (ziel / "contents" / "config").mkdir(parents=True, exist_ok=True)
+    (ziel / "contents" / "ui").mkdir(parents=True, exist_ok=True)
+    (ziel / "contents" / "config" / "main.xml").write_text(a.config_main_xml())
+    (ziel / "contents" / "ui" / "config.ui").write_text(a.config_ui())
+    print(f"  {ziel.name}/contents/  (Konfigurationsseite)")
+
     (ziel / f"{args.name}rc").write_text(a.rc(args.name))
     print(f"  {ziel.name}/{args.name}rc")
     (ziel / "metadata.desktop").write_text(a.metadata(

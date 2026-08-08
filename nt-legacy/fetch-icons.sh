@@ -65,5 +65,11 @@ PY2
 "$HIER/../tools/fix-index-theme.py" "$ZIEL"
 "$HIER/../tools/gen-symbolic-aliase.py" "$ZIEL"
 
+# Chicago95 traegt GNOME-Namen (view-grid, view-list), Dolphin fordert
+# aber view-list-icons, view-list-details, view-file-columns an. Ohne
+# diese Verweise sind die Ansichtsmodi in der Werkzeugleiste Breeze-
+# Symbole mitten in der Pixelart.
+"$HIER/../tools/gen-icon-aliase.py" "$ZIEL"
+
 echo
 echo "Fertig. Danach: ./build.py && ./install.sh"
