@@ -111,6 +111,33 @@ plasma-apply-lookandfeel --apply com.example.meintheme   # ohne --resetLayout!
 /usr/libexec/plasma-apply-aurorae MeinTheme
 ```
 
+### Der Designwechsel über die Systemeinstellungen lässt Schlüssel leer
+
+Wer das globale Design über *Systemeinstellungen → Globales Design* wechselt
+statt über ein Skript, bekommt einen halb gesetzten Zustand. Gemessen nach
+einem solchen Wechsel:
+
+```console
+$ kreadconfig6 --file plasmarc --group Theme --key name
+              # leer
+$ kreadconfig6 --file kdeglobals --group Icons --key Theme
+              # leer - die Gruppe [Icons] fehlt ganz
+$ kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme
+              # leer
+```
+
+**Das Tückische daran:** KDE-Programme kommen über die Vorgabenkaskade
+trotzdem an die richtigen Icons, weil `contents/defaults` sie liefert.
+Dolphin sieht also korrekt aus. Reine Qt-Programme — pcmanfm-qt, viele
+Fremdanwendungen — lesen nur `kdeglobals` und landen bei Breeze. Der Fehler
+zeigt sich ausgerechnet dort nicht, wo man zuerst hinschaut.
+
+`nt-legacy/pruefe.sh --system` prüft das inzwischen mit.
+
+Ebenfalls beachten: In der Designauswahl sitzt neben jeder Kachel ein
+Entfernen-Knopf. Ein versehentlicher Klick löscht den installierten Stil,
+und die Shell fällt still auf Breeze zurück — ohne Meldung.
+
 ### `plasma-apply-colorscheme` lädt ein *geändertes* Schema nicht neu
 
 Ein Fallstrick, der viel Verwirrung stiftet: Wer die `.colors`-Datei

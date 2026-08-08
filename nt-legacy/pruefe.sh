@@ -75,6 +75,22 @@ if $SYSTEM; then
         [ -d "$DATEN/icons/$z" ] || meld "installiert: $z"
     done
     [ -d "$DATEN/icons/NTLegacy" ] || meld "installiert: Icon-Theme NTLegacy"
+
+    # Steht das Icon-Thema wirklich in kdeglobals?
+    #
+    # Es genuegt nicht, dass es in contents/defaults steht. KDE-Programme
+    # kommen ueber die Vorgabenkaskade auch dann an die richtigen Icons,
+    # wenn der Schluessel in kdeglobals fehlt - reine Qt-Programme
+    # (pcmanfm-qt, viele Fremdanwendungen) lesen aber nur die Datei und
+    # landen sonst bei Breeze. Man sieht den Fehler also ausgerechnet in
+    # Dolphin nicht.
+    #
+    # Passiert regelmaessig: Ein Designwechsel ueber Systemeinstellungen >
+    # Globales Design schreibt die Gruppe neu und laesst sie leer.
+    if [ -z "$(kreadconfig6 --file kdeglobals --group Icons --key Theme 2>/dev/null)" ]; then
+        meld "kdeglobals [Icons] Theme ist leer - reine Qt-Programme zeigen Breeze-Icons"
+        echo "         Beheben:  kwriteconfig6 --file kdeglobals --group Icons --key Theme NTLegacy"
+    fi
 fi
 
 echo
