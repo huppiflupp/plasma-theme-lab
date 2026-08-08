@@ -106,6 +106,64 @@ ZUORDNUNG = {
     1001: ("dialog-information",        "status"),
     1004: ("dialog-question",           "status"),
     11:   ("network-offline",           "status"),
+
+    # ── Zweiter Durchgang ─────────────────────────────────────────────
+    # Am Uebersichtsbogen einzeln geprueft. Was sich nicht eindeutig
+    # zuordnen liess, steht bewusst nicht hier - ein falsch benanntes
+    # Symbol ist schlimmer als gar keines, weil der Breeze-Rueckfall
+    # wenigstens das Richtige zeigt.
+    2:    ("x-office-document",         "mimetypes"),
+    249:  ("x-office-presentation",     "mimetypes"),
+    210:  ("application-x-archive",     "mimetypes"),
+    154:  ("application-x-executable",  "mimetypes"),
+    157:  ("font-x-generic",            "mimetypes"),
+    171:  ("image-x-generic",           "mimetypes"),
+    291:  ("video-x-generic",           "mimetypes"),
+
+    6:    ("media-floppy",              "devices"),
+    13:   ("drive-harddisk-solidstate", "devices"),
+    27:   ("drive-removable-media-usb", "devices"),
+    233:  ("drive-removable-media",     "devices"),
+    271:  ("drive-optical",             "devices"),
+    295:  ("media-optical-recordable",  "devices"),
+    296:  ("media-optical-rewritable",  "devices"),
+    304:  ("media-optical-dvd",         "devices"),
+    307:  ("media-flash-sd",            "devices"),
+    309:  ("camera-photo",              "devices"),
+    310:  ("phone",                     "devices"),
+    316:  ("camera-video",              "devices"),
+    277:  ("audio-input-microphone",    "devices"),
+    300:  ("network-server",            "devices"),
+    140:  ("printer",                   "devices"),
+    196:  ("printer-fax",               "devices"),
+
+    10:   ("folder-remote",             "places"),
+    22:   ("folder-system",             "places"),
+    37:   ("folder-applications",       "places"),
+    39:   ("preferences-desktop-font",  "places"),
+    138:  ("folder-network",            "places"),
+    147:  ("folder-edit",               "places"),
+    165:  ("folder-download",           "places"),
+    319:  ("folder-pictures",           "places"),
+    267:  ("folder-publicshare",        "places"),
+
+    268:  ("preferences-desktop-accessibility", "apps"),
+    258:  ("preferences-desktop-wallpaper",     "apps"),
+    250:  ("preferences-desktop-theme", "apps"),
+    276:  ("office-calendar",           "apps"),
+    172:  ("preferences-desktop-display", "apps"),
+    327:  ("applications-internet",     "apps"),
+    328:  ("applications-system",       "apps"),
+    289:  ("help-contents",             "apps"),
+    282:  ("applications-development",  "apps"),
+
+    141:  ("document-print",            "actions"),
+    134:  ("document-preview",          "actions"),
+    151:  ("document-properties",       "actions"),
+    146:  ("view-refresh",              "actions"),
+    256:  ("folder-sync",               "actions"),
+    254:  ("process-stop",              "actions"),
+    244:  ("go-home",                   "actions"),
 }
 
 

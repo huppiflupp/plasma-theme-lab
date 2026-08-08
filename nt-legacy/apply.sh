@@ -87,7 +87,7 @@ plasma-apply-lookandfeel --apply "$LNF" >/dev/null 2>&1 || true
 kwriteconfig6 --file plasmarc   --group Theme   --key name          "$STYLE"
 kwriteconfig6 --file kdeglobals --group General --key ColorScheme   "$KURZ"
 kwriteconfig6 --file kdeglobals --group KDE     --key widgetStyle   Windows
-kwriteconfig6 --file kdeglobals --group Icons   --key Theme         NTLegacy
+kwriteconfig6 --file kdeglobals --group Icons   --key Theme         NTLegacyOS
 kwriteconfig6 --file kdeglobals --group KDE     --key LookAndFeelPackage "$LNF"
 [ -n "$ZEIGER" ] && kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme "$ZEIGER"
 # Den eigenen Startbildschirm aktivieren. Weder plasma-apply-lookandfeel

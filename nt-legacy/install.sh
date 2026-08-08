@@ -95,12 +95,24 @@ echo "Farbschema …"
 install -Dm644 "$HIER/color-schemes/"*.colors -t "$DATEN/color-schemes/"
 
 if [ -d "$HIER/icons" ]; then
-    echo "Symbole …"
+    echo "Symbole (Chicago95, optional) …"
     mkdir -p "$DATEN/icons"
     cp -r "$HIER/icons/"* "$DATEN/icons/"
     # Ohne aktualisierten Cache zeigt Plasma teils noch die alten Symbole
     command -v gtk-update-icon-cache >/dev/null && \
         gtk-update-icon-cache -q -t -f "$DATEN/icons/NTLegacy" 2>/dev/null || true
+fi
+
+# Das mitgelieferte Symbolset. Anders als Chicago95 liegt es im Repo,
+# weil seine Herkunft geklaert ist: ReactOS (GPL-2.0, clean-room) plus
+# selbst gezeichnete Werkzeugleisten-Symbole. Es ist die Vorgabe;
+# Chicago95 bleibt daneben waehlbar, wenn es installiert wurde.
+if [ -d "$HIER/icons-reactos" ]; then
+    echo "Symbole (NTLegacyOS) …"
+    mkdir -p "$DATEN/icons"
+    cp -r "$HIER/icons-reactos/"* "$DATEN/icons/"
+    command -v gtk-update-icon-cache >/dev/null && \
+        gtk-update-icon-cache -q -t -f "$DATEN/icons/NTLegacyOS" 2>/dev/null || true
 fi
 
 if [ -d "$HIER/cursors" ]; then
@@ -132,8 +144,8 @@ done
 # Vorgaben aus contents/defaults zur Laufzeit (Plasma Style, Farbschema,
 # Anwendungsstil greifen so), beim Icon-Theme aber nicht - gemessen: mit
 # Fallback blieben Breeze-Icons stehen, erst kwriteconfig6 brachte die
-# Chicago95-Symbole. Die alten Werte liegen in der Sicherung oben.
-kwriteconfig6 --file kdeglobals --group Icons --key Theme NTLegacy
+# Symbolset. Die alten Werte liegen in der Sicherung oben.
+kwriteconfig6 --file kdeglobals --group Icons --key Theme NTLegacyOS
 
 # Der Render-Cache traegt die Themeversion im Namen. Ohne Loeschen sieht
 # man nach einem Update das alte Theme und sucht den Fehler woanders.

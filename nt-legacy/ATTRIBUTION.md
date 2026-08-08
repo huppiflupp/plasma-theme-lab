@@ -1,44 +1,58 @@
 # Herkunft und Lizenzen
 
-Das Theme selbst steht unter **GPL-2.0-or-later** (siehe `LICENSE`).
-Erzeugt wird es vollständig von `build.py`; die SVGs, Farbschemata,
-Fensterdekorationen, Mauszeiger und Hintergrundbilder sind
-Eigenerzeugnisse aus den Paletten in diesem Skript.
+Das Theme steht unter **GPL-2.0-or-later** (siehe `LICENSE`). Erzeugt wird
+es von `build.py`; die SVGs, Farbschemata, Fensterdekorationen, Mauszeiger
+und Hintergrundbilder sind Eigenerzeugnisse aus den Paletten in diesem
+Skript.
 
-## Übernommene Bestandteile
+## Symbole (`icons-reactos/NTLegacyOS`)
 
-| Bestandteil | Herkunft | Lizenz |
+Das mitgelieferte Symbolset hat zwei Quellen, beide weitergebbar:
+
+| Teil | Herkunft | Lizenz |
 |---|---|---|
-| `icons/NTLegacy/` | [Chicago95](https://github.com/grassmunk/Chicago95), Verzeichnis `Icons/Chicago95` | siehe unten |
+| Shell-Symbole (Ordner, Laufwerke, Papierkorb, Dateitypen) | [ReactOS](https://github.com/reactos/reactos), `dll/win32/shell32/res/icons` | **GPL-2.0** (`COPYING` im Repository) |
+| Werkzeugleisten-Symbole (Navigation, Ansichtsmodi, Bearbeiten) | Eigenerzeugnis, `tools/gen-icons-aktionen.py` | GPL-2.0-or-later, wie das Theme |
 
-### Zum Icon-Set
+ReactOS ist **clean-room** entwickelt — die Symbole sind Neuschöpfungen,
+keine Kopien von Microsoft-Material. Das ist der Grund, warum dieses Set
+und nicht Chicago95 mitgeliefert wird.
 
-Chicago95 führt im README `License: GPL-3.0+/MIT`, hat aber **keine
-LICENSE-Datei im Repository**; GitHub erkennt entsprechend keine Lizenz.
-Die Icons stammen laut Chicago95-README ihrerseits aus *Classic95*
-(gnome-look.org 1012363), dessen Lizenz sich nicht ermitteln ließ.
+Erzeugt wird es mit:
 
-Ein Unterprojekt im selben Repository (`Extras/libreoffice-chicago95-iconset`)
-beschreibt sein Material ausdrücklich als *„Screenscrapes of original
-assets"* aus MS Office 95. Das betrifft **nicht** den hier verwendeten
-Ordner `Icons/Chicago95`, zeigt aber, dass im Projekt mit
-Original-Microsoft-Material gearbeitet wurde.
+```bash
+git clone --depth 1 --filter=blob:none --sparse \
+    https://github.com/reactos/reactos.git
+tools/gen-icons-reactos.py --quelle reactos/dll/win32/shell32/res/icons \
+                           --ziel nt-legacy/icons-reactos/NTLegacyOS
+tools/gen-icons-aktionen.py nt-legacy/icons-reactos/NTLegacyOS
+tools/gen-icon-aliase.py    nt-legacy/icons-reactos/NTLegacyOS
+```
 
-**Daraus folgt:** Die Lizenzlage des Icon-Sets ist nicht abschließend
-geklärt. Wer dieses Theme weitergibt oder in den KDE Store stellt, sollte
-das vorher klären — etwa durch Nachfrage im Chicago95-Issue-Tracker nach
-der Herkunft der Bitmaps.
+## Chicago95 — bewusst *nicht* enthalten
 
-Lizenzsichere Alternativen, falls nötig:
+`fetch-icons.sh` kann [Chicago95](https://github.com/grassmunk/Chicago95)
+nachinstallieren. Es ist **nicht Teil dieses Repositorys** und steht in
+`.gitignore`.
 
-- **SE98** (github.com/nestoris/Win98SE) — echte GPL-2.0-Datei, größerer
-  Umfang, aber Windows-98/2000-Stil statt NT 4.0
-- **ReactOS** (github.com/reactos/reactos) — GPL-2.0, clean-room
-  entwickelt, lizenzrechtlich unbedenklich; liegt als `.ico` vor und
-  müsste umgesetzt werden
+Grund: Chicago95 führt im README `License: GPL-3.0+/MIT`, hat aber (Stand
+August 2026, erneut geprüft) **keine LICENSE-Datei** — nur eine `CREDITS`
+mit drei Namen. Die Symbole stammen laut selbem README aus *Classic95*
+(gnome-look.org 1012363), dessen Lizenz sich nicht ermitteln ließ. Ein
+Unterprojekt im selben Repository beschreibt sein Material ausdrücklich als
+*„Screenscrapes of original assets"* aus MS Office 95.
+
+Wer Chicago95 lokal installiert hat, kann es weiterhin auswählen — es
+liegt dann als eigenes Symbolthema `NTLegacy` neben `NTLegacyOS`. Für die
+Weitergabe des Themes ist es ungeeignet.
+
+## Optischer Unterschied
+
+Die ReactOS-Symbole sind moderner als die von Chicago95: blaue Ordner mit
+Verläufen statt gelber 16-Farben-Pixelart. Die 4-Bit-Ebenen der
+`.ico`-Dateien wären klassischer, sind aber durchgehend mit
+Dithering-Artefakten unbrauchbar — geprüft, nicht vermutet.
 
 ## Nicht enthalten
 
-Original-Grafiken, -Schriften oder -Zeiger aus Windows NT oder Windows 95
-sind **nicht** Bestandteil dieses Themes. Die Mauszeiger sind als
-Pixelmuster in `tools/gen-cursor.py` neu gezeichnet.
+Schriften. Das Theme setzt keine mit; es verwendet, was das System bietet.
