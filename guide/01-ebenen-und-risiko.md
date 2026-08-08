@@ -66,6 +66,47 @@ fehlt, landet der Nutzer bei einem ungestylten Fallback. **Als optionale
 Zusatzkomponente sinnvoll, als Pflichtbestandteil nicht.** WhiteSur und
 Colloid machen es genau so: Kvantum liegt bei, wird aber separat installiert.
 
+### Bevor du zu Kvantum greifst: miss nach, was wirklich nicht passt
+
+Ein einzelnes schlecht aussehendes Widget verleitet dazu, gleich den ganzen
+Widget-Stil ersetzen zu wollen. Meistens lohnt das nicht — und man tauscht
+ein Ärgernis gegen zwanzig neue ein, weil dann *alle* Widgets neu gezeichnet
+werden müssen.
+
+`tools/widget-testfenster.py` zeigt alle Qt-Standardwidgets in einem Fenster
+und speichert es als Bild:
+
+```bash
+./widget-testfenster.py --stil Windows --bild /tmp/win.png
+./widget-testfenster.py --stil Breeze  --bild /tmp/breeze.png
+```
+
+Unterscheiden sich die Bilder an einer Stelle, entscheidet dort der
+Widget-Stil. Sehen sie gleich aus, zeichnet die Anwendung selbst — dann
+hilft auch ein Stilwechsel nicht.
+
+Für NT Legacy war das Ergebnis eindeutig: Der Stil „MS Windows 9x"
+(`widgetStyle=Windows`) zeichnet **alles** passend — eckige Knöpfe mit
+3D-Kante, eckige Ankreuzfelder, versenkte Eingabefelder, gestreifte
+Bildlaufleisten. Fortschrittsbalken sogar als klassische Blöcke in der
+Selektionsfarbe, also genau richtig.
+
+### Der Ausreißer: Widgets, die sich selbst zeichnen
+
+Dolphins Speicheranzeige („21,0 GiB frei") sieht trotzdem falsch aus — eine
+silberne Kapsel mit weichem Verlauf. Sie ist **kein** `QProgressBar`,
+sondern `KCapacityBar` aus KWidgetsAddons, und die zeichnet ihre Form selbst
+statt über den Stil.
+
+Der Test, der das beweist: Selektionsfarbe testweise auf Knallrot setzen.
+Listenauswahl und markierte Icons werden rot, der Balken bleibt silbern —
+er ignoriert die Palette. Solche Widgets erreicht **keine** Theme-Ebene;
+dagegen hilft nur ein Patch der Bibliothek.
+
+**Merke:** „Sieht falsch aus" hat drei mögliche Ursachen, und sie brauchen
+verschiedene Werkzeuge — Plasma Style (Shell), Widget-Stil (Qt-Widgets),
+oder die Anwendung selbst. Erst zuordnen, dann arbeiten.
+
 ---
 
 ## 1.3 Risikoklassen — die wichtigste Tabelle im ganzen Leitfaden

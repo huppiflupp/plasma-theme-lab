@@ -111,6 +111,40 @@ plasma-apply-lookandfeel --apply com.example.meintheme   # ohne --resetLayout!
 /usr/libexec/plasma-apply-aurorae MeinTheme
 ```
 
+### `plasma-apply-colorscheme` lädt ein *geändertes* Schema nicht neu
+
+Ein Fallstrick, der viel Verwirrung stiftet: Wer die `.colors`-Datei
+bearbeitet und danach
+
+```bash
+plasma-apply-colorscheme MeinSchema
+```
+
+aufruft, sieht **keine Änderung** — das Schema ist ja bereits aktiv, also
+tut der Befehl nichts. Die alten Farben stehen weiterhin in `kdeglobals`.
+
+Besonders tückisch beim Zurücksetzen nach einem Test: Die `.colors`-Datei
+sieht wieder richtig aus, das System zeigt aber weiter die Testfarben.
+
+Der Umweg über ein anderes Schema erzwingt das Neuladen:
+
+```bash
+plasma-apply-colorscheme BreezeLight
+plasma-apply-colorscheme MeinSchema
+```
+
+Kontrollieren lässt sich der tatsächliche Zustand nur in `kdeglobals`, nicht
+in der Schemadatei:
+
+```bash
+kreadconfig6 --file kdeglobals --group "Colors:Selection" --key BackgroundNormal
+```
+
+**Dasselbe Muster bei der Fensterdekoration:** `BorderSize` wirkt weder über
+`plasma-apply-*` noch über `qdbus org.kde.KWin /KWin reconfigure` — KWin
+übernimmt die Rahmengröße erst beim Sitzungsstart. Ein Testlauf über alle
+acht Größen ohne Neuanmeldung misst achtmal denselben Zustand.
+
 ## 5.4 Stufe 4 — Vollinstallation in der VM
 
 **Alles, was `sudo` braucht, gehört hierhin.** Login-Manager, Plymouth und
