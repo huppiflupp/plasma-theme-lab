@@ -1,0 +1,30 @@
+# Geklonte KDE-Referenzen. Sie gehoeren nicht ins Repo - wer sie braucht,
+# holt sie mit den Kommandos aus der README (jeweils --depth 1).
+reference/
+
+# Das zu ueberarbeitende Theme hat ein eigenes Repository.
+niceos9/
+
+# SSH-Schluessel der Test-VM. Wird von build-vm.sh erzeugt und darf
+# niemals ins Repo - er gibt Zugang zur VM.
+vm/id_lab
+vm/id_lab.pub
+vm/.plasma-lab.rendered.ks
+vm/*.log
+vm/console.log
+
+# Testlaeufe: Berichte und Screenshots entstehen bei jedem Durchlauf neu.
+tests/laeufe/
+
+# Erzeugte Zwischenstaende
+__pycache__/
+*.pyc
+
+# Das Icon-Set (Chicago95-Ableger, ~76 MB) liegt bewusst NICHT im Repo,
+# solange seine Lizenzlage ungeklaert ist - siehe nt-legacy/ATTRIBUTION.md.
+# Chicago95 hat keine LICENSE-Datei, und die Herkunft seiner Bitmaps liess
+# sich nicht abschliessend klaeren. Fremdmaterial mit offener Lizenzfrage
+# gehoert nicht in ein Repository, das jemand weitergibt.
+#
+# Holen mit:  nt-legacy/fetch-icons.sh
+nt-legacy/icons/
