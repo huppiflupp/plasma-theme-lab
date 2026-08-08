@@ -16,7 +16,8 @@
       .ColorScheme-ButtonBackground { color:#d8d0c0; stop-color:#d8d0c0; }
       .ColorScheme-ButtonHover { color:#c87922; stop-color:#c87922; }
       .ColorScheme-ButtonFocus { color:#96703a; stop-color:#96703a; }
-      .ColorScheme-Frame { color:#202628; stop-color:#202628; }
+      .ColorScheme-HighlightedText { color:#f0ece0; stop-color:#f0ece0; }
+      .ColorScheme-ComplementaryBackground { color:#c8bca4; stop-color:#c8bca4; }
       .ColorScheme-NegativeText { color:#a83232; stop-color:#a83232; }
       .ColorScheme-NeutralText { color:#c87922; stop-color:#c87922; }
       .ColorScheme-PositiveText { color:#39734a; stop-color:#39734a; }
@@ -74,10 +75,10 @@
       <rect x="43" y="38" width="1" height="6" fill="#202628"/>
       <rect x="42" y="38" width="1" height="5" fill="#8a8272"/>
     </g>
-    <rect id="header-hint-top-margin" x="28" y="12" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="header-hint-bottom-margin" x="28" y="42" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="header-hint-left-margin" x="12" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="header-hint-right-margin" x="42" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="header-hint-top-margin" x="28" y="12" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="header-hint-bottom-margin" x="28" y="40" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="header-hint-left-margin" x="12" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="header-hint-right-margin" x="40" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
   <!-- footer -->
     <g id="footer-topleft">
       <rect x="56" y="12" width="6" height="6" class="ColorScheme-Background" style="fill:currentColor;fill-opacity:1;stroke:none"/>
@@ -130,8 +131,8 @@
       <rect x="87" y="38" width="1" height="6" fill="#202628"/>
       <rect x="86" y="38" width="1" height="5" fill="#8a8272"/>
     </g>
-    <rect id="footer-hint-top-margin" x="72" y="12" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="footer-hint-bottom-margin" x="72" y="42" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="footer-hint-left-margin" x="56" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="footer-hint-right-margin" x="86" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="footer-hint-top-margin" x="72" y="12" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="footer-hint-bottom-margin" x="72" y="40" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="footer-hint-left-margin" x="56" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="footer-hint-right-margin" x="84" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
 </svg>

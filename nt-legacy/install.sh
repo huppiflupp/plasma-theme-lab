@@ -17,18 +17,51 @@ STYLE_ID="nt-legacy"
 # ── Sicherung ────────────────────────────────────────────────────────────
 BACKUP="$DATEN/nt-legacy/backup-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$BACKUP"
-for f in plasma-org.kde.plasma.desktop-appletsrc plasmarc kdeglobals kwinrc ksplashrc; do
-    [ -f "$HOME/.config/$f" ] && cp -a "$HOME/.config/$f" "$BACKUP/"
+# kcminputrc gehoert dazu - sonst bleibt der Mauszeiger nach dem
+# Zuruecksetzen auf NT Legacy stehen.
+for f in plasma-org.kde.plasma.desktop-appletsrc plasmarc kdeglobals \
+         kwinrc ksplashrc kcminputrc; do
+    if [ -f "$HOME/.config/$f" ]; then
+        cp -a "$HOME/.config/$f" "$BACKUP/"
+    else
+        # Datei gibt es noch nicht - der haeufige Fall auf einem frischen
+        # Konto. Ohne Vermerk wuesste restore.sh nicht, dass sie hinterher
+        # wieder verschwinden muss, und unsere Werte blieben darin stehen.
+        echo "$f" >> "$BACKUP/.war-nicht-vorhanden"
+    fi
 done
 cat > "$BACKUP/restore.sh" <<'EOF'
 #!/usr/bin/env bash
 set -e
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 for f in "$HERE"/*; do
-    n="$(basename "$f")"; [ "$n" = "restore.sh" ] && continue
+    n="$(basename "$f")"
+    case "$n" in restore.sh|README|.war-nicht-vorhanden) continue ;; esac
     cp -a "$f" "$HOME/.config/$n"; echo "  $n"
 done
+
+# Dateien, die es vor der Installation nicht gab, muessen wieder weg -
+# sonst bleiben unsere Werte darin stehen. Genau so ueberlebten frueher
+# Plasma-Stil und Mauszeiger ein restore.sh.
+if [ -f "$HERE/.war-nicht-vorhanden" ]; then
+    while read -r n; do
+        [ -n "$n" ] && [ -f "$HOME/.config/$n" ] && {
+            rm -f "$HOME/.config/$n"
+            echo "  $n entfernt (gab es vorher nicht)"
+        }
+    done < "$HERE/.war-nicht-vorhanden"
+fi
+
+# Fensterdekoration ausdruecklich zuruecksetzen. Zeigt kwinrc auf ein
+# geloeschtes Aurorae-Thema, zeichnet KWin GAR KEINE Titelleiste - kein
+# Fallback, kein Schliessknopf. In der Test-VM belegt.
+kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 \
+    --key library org.kde.breeze 2>/dev/null || true
+kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 \
+    --key theme Breeze 2>/dev/null || true
+
 rm -f "$HOME/.cache/plasma_theme_"*.kcache "$HOME/.cache/ksvg-elements"
+echo ""
 echo "Wiederhergestellt. Ab- und wieder anmelden."
 EOF
 chmod +x "$BACKUP/restore.sh"

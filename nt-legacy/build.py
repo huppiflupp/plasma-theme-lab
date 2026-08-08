@@ -98,6 +98,59 @@ VARIANTEN = {
             "dunkel":       "#8a8272",
         },
     },
+    # Windows 98: das klassische Systemgrau #C0C0C0 mit dem
+    # marineblauen Titelbalken. Die 16-Farben-VGA-Palette von damals -
+    # deshalb keine Zwischentoene, sondern die reinen Werte.
+    "win98": {
+        "kurz": "NTLegacyWin98",
+        "anzeige": "NT Legacy 98",
+        "beschreibung": "Systemgrau und Marineblau - Windows 98",
+        "farben": {
+            "flaeche":      "#c0c0c0",
+            "fenster":      "#ffffff",
+            "panel":        "#c0c0c0",
+            "kopf_aktiv":   "#000080",   # das Marineblau
+            "kopf_inaktiv": "#808080",
+            "text":         "#000000",
+            "text2":        "#404040",
+            "auswahl":      "#000080",
+            "hover":        "#dcdcdc",
+            "warnung":      "#808000",
+            "fehler":       "#800000",
+            "positiv":      "#008000",
+            "desktop":      "#008080",   # das Teal des Standard-Desktops
+            "hell":         "#ffffff",
+            "dunkel":       "#808080",
+            "rahmen":       "#000000",
+        },
+    },
+    # Windows 2000: dieselbe Formensprache, aber weichere Toene und der
+    # charakteristische Farbverlauf im Titelbalken. Den Verlauf koennen
+    # wir mit Volltonflaechen nicht nachbauen - stattdessen der mittlere
+    # Ton, der dem Gesamteindruck am naechsten kommt.
+    "win2k": {
+        "kurz": "NTLegacyWin2k",
+        "anzeige": "NT Legacy 2000",
+        "beschreibung": "Weicheres Grau, Blauverlauf - Windows 2000",
+        "farben": {
+            "flaeche":      "#d4d0c8",
+            "fenster":      "#ffffff",
+            "panel":        "#d4d0c8",
+            "kopf_aktiv":   "#0a246a",
+            "kopf_inaktiv": "#808080",
+            "text":         "#000000",
+            "text2":        "#4a4a4a",
+            "auswahl":      "#0a246a",
+            "hover":        "#316ac5",
+            "warnung":      "#c87922",
+            "fehler":       "#a83232",
+            "positiv":      "#39734a",
+            "desktop":      "#3a6ea5",
+            "hell":         "#ffffff",
+            "dunkel":       "#808080",
+            "rahmen":       "#000000",
+        },
+    },
 }
 
 # --------------------------------------------------------------------------
@@ -129,7 +182,7 @@ NACHT_BASIS = {
     "rahmen":       "#0a1012",
 }
 
-for _k, _v in [("teal", {}),
+for _k, _v in [("teal", {}), ("win98", {}), ("win2k", {}),
                ("lilac", {"panel": "#2b2833", "kopf_inaktiv": "#443e52",
                           "desktop": "#1e1a26", "text2": "#9a92a6"}),
                ("desert", {"flaeche": "#32302a", "fenster": "#26241e",
@@ -340,7 +393,7 @@ ColorScheme={k['schema']}
 Theme=NTLegacy
 
 [kcminputrc][Mouse]
-cursorTheme={k['cursor']}
+cursorTheme=NTLegacy_cursors
 
 [Wallpaper]
 Image={k['wallpaper']}
@@ -350,7 +403,6 @@ name={k['style']}
 
 [kdeglobals][WM]
 activeFont={SCHRIFT},10,-1,5,75,0,0,0,0,0
-inactiveFont={SCHRIFT},10,-1,5,50,0,0,0,0,0
 
 [ksplashrc][KSplash]
 Theme={k['lnf']}
@@ -687,22 +739,6 @@ def baue(variante, pruefen=False):
     print(f"  wallpapers/{k['wallpaper']}/"
           + ("" if r.returncode == 0 else "   (PNG uebersprungen)"))
 
-    # Mauszeiger: eine Standardfassung und eine mit farbigem Zeiger
-    for zname, fuell, anz in [
-        (f"{k['schema']}_cursors", "#ffffff", anzeige),
-        (f"{k['schema']}Rot_cursors", "#c03028", f"{anzeige} (roter Zeiger)"),
-    ]:
-        r = subprocess.run(
-            [sys.executable, str(LAB / "tools" / "gen-cursor.py"),
-             "-o", str(HIER / "cursors"), "--name", zname,
-             "--anzeige", anz, "--fuellung", fuell],
-            capture_output=True, text=True)
-        if r.returncode != 0:
-            print("  Mauszeiger uebersprungen:", r.stderr.strip().splitlines()[0]
-                  if r.stderr.strip() else "unbekannter Fehler")
-            break
-        print(r.stdout.rstrip())
-
     lnf = HIER / "look-and-feel" / k["lnf"]
     schreibe(lnf / "metadata.json", metadata_lnf(k, anzeige, beschreibung), still=True)
     schreibe(lnf / "contents" / "defaults", defaults(k), still=True)
@@ -746,6 +782,22 @@ def main():
     for v in welche:
         if not baue(v, args.pruefen):
             return 1
+
+    # Zeiger einmal fuer alle Varianten. Sie unterscheiden sich nur in
+    # weiss und rot - je Farbwelt ein eigenes Thema waere Ballast im
+    # Auswahldialog, ohne dass man einen Unterschied saehe.
+    print("\nMauszeiger:")
+    for zname, fuell, anz in [
+        ("NTLegacy_cursors", "#ffffff", "NT Legacy"),
+        ("NTLegacyRot_cursors", "#c03028", "NT Legacy (roter Zeiger)"),
+    ]:
+        r = subprocess.run(
+            [sys.executable, str(LAB / "tools" / "gen-cursor.py"),
+             "-o", str(HIER / "cursors"), "--name", zname,
+             "--anzeige", anz, "--fuellung", fuell],
+            capture_output=True, text=True)
+        print(r.stdout.rstrip() if r.returncode == 0
+              else "  uebersprungen: " + (r.stderr.strip().splitlines() or ["?"])[0])
 
     icons = HIER / "icons" / "NTLegacy"
     if icons.is_dir():

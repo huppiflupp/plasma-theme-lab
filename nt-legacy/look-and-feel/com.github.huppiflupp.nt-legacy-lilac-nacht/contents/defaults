@@ -8,7 +8,7 @@ ColorScheme=NTLegacyLilacNacht
 Theme=NTLegacy
 
 [kcminputrc][Mouse]
-cursorTheme=NTLegacyLilacNacht_cursors
+cursorTheme=NTLegacy_cursors
 
 [Wallpaper]
 Image=ntlegacy-lilac-nacht
@@ -18,7 +18,6 @@ name=nt-legacy-lilac-nacht
 
 [kdeglobals][WM]
 activeFont=Noto Sans,10,-1,5,75,0,0,0,0,0
-inactiveFont=Noto Sans,10,-1,5,50,0,0,0,0,0
 
 [ksplashrc][KSplash]
 Theme=com.github.huppiflupp.nt-legacy-lilac-nacht

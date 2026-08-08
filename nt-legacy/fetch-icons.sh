@@ -39,6 +39,29 @@ if "Inherits=" not in s:
 p.write_text(s)
 PY
 
+# In Chicago95 zeigen folder.svg, inode-directory.svg und
+# folder-symbolic.svg unter places/scalable auf folder_open.svg. Da
+# scalable bis 256px gewinnt, zeigt Dolphin ab 64px fuer JEDEN
+# geschlossenen Ordner einen offenen. Ohne die Symlinks greift
+# places/48/folder.png, darueber Breeze - weniger falsch.
+for f in folder.svg inode-directory.svg folder-symbolic.svg; do
+    z="$ZIEL/places/scalable/$f"
+    if [ -L "$z" ] && readlink "$z" | grep -q open; then rm -f "$z"; fi
+done
+
+# status/symbolic als Scalable 8..512 gewinnt gegen alle Fixed-Groessen
+# und liefert 16px-Bitmaps hochskaliert - besonders im Systemabschnitt.
+python3 - "$ZIEL" <<'PY2'
+import sys, re
+from pathlib import Path
+p = Path(sys.argv[1]) / "index.theme"
+s = p.read_text()
+m = re.search(r"\[status/symbolic\][^\[]*", s)
+if m:
+    p.write_text(s.replace(m.group(0),
+        "[status/symbolic]\nSize=16\nContext=Status\nType=Fixed\n\n"))
+PY2
+
 "$HIER/../tools/fix-index-theme.py" "$ZIEL"
 "$HIER/../tools/gen-symbolic-aliase.py" "$ZIEL"
 

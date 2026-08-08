@@ -30,18 +30,31 @@ from pathlib import Path
 # Abgeleitet aus dem Breeze-Quellbaum, nicht geraten.
 # --------------------------------------------------------------------------
 
+# Zum fehlenden "shadow"-Praefix:
+#
+# Breeze zeichnet unter shadow-* einen weichen, halbtransparenten
+# Verlauf. Wenn ein Generator dort dieselbe Volltonflaeche mit 3D-Kante
+# ablegt wie fuer den Normalzustand, malt Plasma sie versetzt unter das
+# Element - und man sieht die Kante zweimal. Am Panel war das ein
+# deutlicher Doppelstrich.
+#
+# Ein flaches NT-Theme braucht ohnehin keinen Schatten: Taskleiste,
+# Popups und Schaltflaechen lagen dort ohne Schlagschatten auf. Fehlt
+# der Praefix, zeichnet Plasma an der Stelle einfach nichts - das ist
+# hier das gewuenschte Ergebnis, kein Mangel.
+#
 # "" bedeutet: Elemente ohne Praefix (center, top, left ...)
 WIDGETS = {
     "button": {
         "beschreibung": "Schaltflaechen in Plasmoids",
-        "praefixe": ["normal", "hover", "pressed", "focus", "shadow",
+        "praefixe": ["normal", "hover", "pressed", "focus",
                      "toolbutton-hover", "toolbutton-pressed", "toolbutton-focus"],
         "hints": ["margin", "compose-over-border"],
         "masken": ["normal"],
     },
     "background": {
         "beschreibung": "Hintergrund von Plasmoids",
-        "praefixe": ["", "shadow"],
+        "praefixe": ["",],
         "hints": ["margin", "inset"],
         "masken": [""],
     },
@@ -54,7 +67,7 @@ WIDGETS = {
         # (192,192,192). Aussenrahmen plus 3D-Kante ergaeben zwei Linien.
         "aussenrahmen": 0,
         "beschreibung": "Panel / Taskleiste",
-        "praefixe": ["", "thick", "north", "south", "east", "west", "shadow"],
+        "praefixe": ["", "thick", "north", "south", "east", "west",],
         "hints": ["margin", "inset", "tile-center"],
         "masken": [""],
     },
@@ -67,23 +80,25 @@ WIDGETS = {
         # bliebe durchscheinend, obwohl die Datei vorhanden ist.
         "datei": "background",
         "ordner": "dialogs",
-        "praefixe": ["", "shadow"],
+        "praefixe": ["",],
         "hints": ["margin", "inset", "preferred-icon-size"],
         "masken": [""],
     },
     "tooltip": {
         "beschreibung": "Kurzinfos",
-        "praefixe": ["", "shadow"],
+        "praefixe": ["",],
         "hints": ["margin"],
         "masken": [""],
     },
     "frame": {
+        "ecke": 3,
         "beschreibung": "Rahmen, Gruppierungen",
         "praefixe": ["", "raised", "sunken", "plain"],
         "hints": ["margin"],
         "masken": [],
     },
     "listitem": {
+        "ecke": 2,
         "beschreibung": "Listeneintraege, u.a. im Anwendungsstarter",
         "praefixe": ["normal", "hover", "pressed", "selected", "selected+hover"],
         "hints": ["margin"],
@@ -101,6 +116,22 @@ WIDGETS = {
         "hints": ["margin", "focus-over-base"],
         "masken": [],
     },
+    "tasks": {
+        "beschreibung": "Fensterknoepfe in der Taskleiste",
+        # Wird von org.kde.plasma.taskmanager.so angefordert (per strings
+        # verifiziert). Ohne diese Datei kommt der zentrale Teil der
+        # Taskleiste aus Breeze - runde Ecken mitten im NT-Panel.
+        # Vier Zustaende je Panelkante - der Taskmanager waehlt nach
+        # Panelposition, wie beim panel-background.
+        "praefixe": [z for z in ["normal", "focus", "hover", "attention",
+                                 "minimized", "progress"]]
+                    + [f"{r}-{z}" for r in ("north", "west", "east")
+                       for z in ("normal", "focus", "hover", "attention",
+                                 "minimized", "progress")],
+        "hints": ["margin"],
+        "masken": [],
+        "margin": 4,
+    },
     "toolbar": {
         "farbe": "panel",
         "fest": True,
@@ -117,11 +148,15 @@ WIDGETS = {
     },
     "scrollbar": {
         "beschreibung": "Bildlaufleisten",
+        # ScrollBar.qml waehlt zwischen "slider" und "mouseover-slider".
+        # Mit slider-vertical/-horizontal findet es nichts, faellt auf den
+        # leeren Praefix zurueck - und der hat kein center. Ergebnis war
+        # ein unsichtbarer Griff in jeder Plasma-Bildlaufleiste.
         "praefixe": ["background-vertical", "background-horizontal",
-                     "slider-vertical", "slider-horizontal",
-                     "sunken-slider-vertical", "sunken-slider-horizontal"],
-        "hints": [],
+                     "slider", "mouseover-slider"],
+        "hints": ["scrollbar-size"],
         "masken": [],
+        "ecke": 3,
     },
     "switch": {
         "beschreibung": "Umschalter (Systemabschnitt, Benachrichtigungen)",
@@ -144,6 +179,7 @@ WIDGETS = {
         "masken": [],
     },
     "bar_meter_horizontal": {
+        "ecke": 3,
         "beschreibung": "Fortschritts- und Pegelbalken",
         "praefixe": ["bar-inactive", "bar-active"],
         "hints": ["margin"],
@@ -157,15 +193,18 @@ WIDGETS = {
     },
     "translucentbackground": {
         "beschreibung": "Miniprogramm im Bearbeitungsmodus",
-        "praefixe": ["", "shadow"],
+        "praefixe": ["",],
         "hints": ["margin"],
         "masken": [],
     },
     "slider": {
         "beschreibung": "Schieberegler",
+        # Der Griff kommt aus actionbutton.svg - Breeze macht das
+        # genauso. Hier steht nur die Rille plus die Groessenvorgabe.
         "praefixe": ["groove", "groove-highlight"],
-        "hints": [],
+        "hints": ["handle-size"],
         "masken": [],
+        "ecke": 3,
     },
 }
 
@@ -218,10 +257,16 @@ FORM_WIDGETS = {
     },
     "actionbutton": {
         "beschreibung": "Runde Knoepfe",
-        "formen": {f"{g}-{g}-{z}": ("kreis", f)
-                   for g in (16, 22, 24, 32)
-                   for z, f in [("normal", "flaeche"), ("hover", "hover"),
-                                ("pressed", "dunkel"), ("focus", "aktiv")]},
+        # Zusaetzlich zu den groessenbehafteten die nackten Namen:
+        # RoundButton.qml und der Schieberegler-Griff fordern "normal",
+        # "hover", "pressed", "focus" ohne Praefix an.
+        "formen": {**{f"{g}-{g}-{z}": ("kreis", f)
+                      for g in (16, 22, 24, 32)
+                      for z, f in [("normal", "flaeche"), ("hover", "hover"),
+                                   ("pressed", "dunkel"), ("focus", "aktiv")]},
+                   **{z: ("kreis", f)
+                      for z, f in [("normal", "flaeche"), ("hover", "hover"),
+                                   ("pressed", "dunkel"), ("focus", "aktiv")]}},
     },
     "action-overlays": {
         "beschreibung": "Ueberlagerungen in der Ordner-Ansicht",
@@ -294,15 +339,31 @@ PALETTEN = {
 # Zustaende, die anders eingefaerbt werden als der Normalzustand.
 # Ein Button muss sich beim Ueberfahren und Druecken sichtbar aendern -
 # sonst wirkt das Theme "tot", obwohl technisch alles stimmt.
+# Je Zustand: Ersatzfarbe, ob der 3D-Rahmen umgedreht wird, und die
+# Farbschema-Klasse.
+#
+# Die Klasse ist das Entscheidende. Traegt jeder Zustand dieselbe, sehen
+# alle gleich aus - dann ist der Auswahlbalken unsichtbar, Hover tot und
+# der Fortschrittsbalken zeigt keinen Fortschritt. Die Klassen sind die,
+# die KSvg tatsaechlich ersetzt (aus libKF6Svg extrahiert); ein
+# erfundener Name faellt still auf die Ersatzfarbe zurueck.
 ZUSTANDSFARBE = {
-    "hover":            ("aktiv",   False),
-    "toolbutton-hover": ("aktiv",   False),
-    "pressed":          ("dunkel",  True),    # True = 3D-Rahmen umdrehen
-    "toolbutton-pressed": ("dunkel", True),
-    "sunken-slider-vertical":   ("dunkel", True),
-    "sunken-slider-horizontal": ("dunkel", True),
-    "selected":         ("aktiv",   False),
-    "selected+hover":   ("aktiv",   False),
+    #                        Ersatzfarbe, Bevel umdrehen, Farbschema-Klasse
+    "hover":                ("hover",  False, "ColorScheme-ButtonHover"),
+    "toolbutton-hover":     ("hover",  False, "ColorScheme-ButtonHover"),
+    "focus":                ("aktiv",  False, "ColorScheme-ButtonFocus"),
+    "toolbutton-focus":     ("aktiv",  False, "ColorScheme-ButtonFocus"),
+    "pressed":              ("dunkel", True,  "ColorScheme-Background"),
+    "toolbutton-pressed":   ("dunkel", True,  "ColorScheme-Background"),
+    "selected":             ("aktiv",  False, "ColorScheme-Highlight"),
+    "selected+hover":       ("aktiv",  False, "ColorScheme-Highlight"),
+    "active":               ("aktiv",  False, "ColorScheme-Highlight"),
+    "bar-active":           ("aktiv",  False, "ColorScheme-Highlight"),
+    "groove-highlight":     ("aktiv",  False, "ColorScheme-Highlight"),
+    "sunken":               ("dunkel", True,  "ColorScheme-Background"),
+    "sunken-slider-vertical":   ("dunkel", True, "ColorScheme-Background"),
+    "sunken-slider-horizontal": ("dunkel", True, "ColorScheme-Background"),
+    "mouseover-slider":     ("hover",  False, "ColorScheme-ButtonHover"),
 }
 
 # Zuordnung Farbklasse -> Palettenschluessel, mit Ersatzkette.
@@ -320,7 +381,8 @@ STYLESHEET_KLASSEN = [
     ("ColorScheme-ButtonBackground", ["flaeche"]),
     ("ColorScheme-ButtonHover",      ["hover", "aktiv"]),
     ("ColorScheme-ButtonFocus",      ["aktiv"]),
-    ("ColorScheme-Frame",            ["rahmen", "dunkel"]),
+    ("ColorScheme-HighlightedText",  ["auswahl_text", "fenster"]),
+    ("ColorScheme-ComplementaryBackground", ["panel", "flaeche"]),
     ("ColorScheme-NegativeText",     ["fehler", "text"]),
     ("ColorScheme-NeutralText",      ["warnung", "text"]),
     ("ColorScheme-PositiveText",     ["positiv", "text"]),
@@ -444,6 +506,10 @@ class Generator:
             # Die Ersatzfarbe steht weiterhin im Stylesheet-Block oben,
             # greift also, solange KSvg nichts ersetzt.
             if klasse:
+                # Die Ersatzfarbe steht im style-Block oben je Klasse.
+                # Damit sich die Zustaende auch dann unterscheiden, wenn
+                # KSvg nichts ersetzt, bekommt jede Klasse ihren eigenen
+                # Wert - siehe stylesheet_fuer().
                 self.teile.append(
                     f'      <rect x="{x:g}" y="{y:g}" width="{fw:g}" '
                     f'height="{fh:g}" class="{klasse}" '
@@ -491,7 +557,11 @@ class Generator:
             return f"{praefix}-{teil}" if praefix else teil
 
         z, e, b = self.zelle, self.ecke, self.rahmen
-        rand = max(b, 2)
+        # Innenabstand. Unser Rahmen ist selbst 2px (Aussenrahmen +
+        # Bevel) - bei margin=2 begaenne der Text exakt am ersten freien
+        # Pixel und klebte am Rand. Breeze nimmt 4 fuer Rahmen und
+        # Panels, 6 fuer Listen, Knoepfe und Eingabefelder.
+        rand = self._margin
 
         if "margin" in arten:
             # Innenabstand: wieviel Platz der Inhalt vom Rand haelt
@@ -503,18 +573,30 @@ class Generator:
         if "inset" in arten:
             # Insets trennen gezeichnete Flaeche von beanspruchtem Platz -
             # noetig fuer Schatten und schwebende Panels (Plasma 6).
-            for seite, (hx, hy, hw, hh) in {
-                "top":    (ox + z / 4, oy, 2, 1),
-                "bottom": (ox + z / 4, oy + z - 1, 2, 1),
-                "left":   (ox, oy + z / 4, 1, 2),
-                "right":  (ox + z - 1, oy + z / 4, 1, 2),
+            # Inset = 0, weil wir keinen Schatten in die Flaeche zeichnen.
+            # Ein Inset von 1 wuerde einen Pixel als "nicht gezeichnet"
+            # beanspruchen - sichtbar als toter Rand um Panel und Popups.
+            # Breeze setzt hier 1e-8 (praktisch 0); nur background.svg hat
+            # echte 8px, weil dort ein Schatten liegt.
+            iw = 0.00000001
+            for seite, (hx, hy) in {
+                "top":    (ox + z / 4, oy),
+                "bottom": (ox + z / 4, oy + z),
+                "left":   (ox, oy + z / 4),
+                "right":  (ox + z, oy + z / 4),
             }.items():
-                self._hint(n(f"hint-{seite}-inset"), hx, hy, hw, hh)
+                self._hint(n(f"hint-{seite}-inset"), hx, hy, iw, iw)
 
         if "tile-center" in arten:
             self._hint(n("hint-tile-center"), ox + 1, oy + 1, 1, 1, "#00ff00")
         if "compose-over-border" in arten:
             self._hint(n("hint-compose-over-border"), ox + 3, oy + 1, 1, 1, "#00ff00")
+        if "scrollbar-size" in arten:
+            # Breeze: 6x6 - die Breite der Bildlaufleiste
+            self._hint(n("hint-scrollbar-size"), ox + 1, oy + 3, 6, 6, "#00ff00")
+        if "handle-size" in arten:
+            # Breeze: 20x20 - die Groesse des Schieberegler-Griffs
+            self._hint(n("hint-handle-size"), ox + 1, oy + 3, 20, 20, "#00ff00")
         if "preferred-icon-size" in arten:
             # Die Breite dieses Markers transportiert die gewuenschte
             # Symbolgroesse in Pixeln. 26 statt der Plasma-Vorgabe (32)
@@ -581,6 +663,12 @@ class Generator:
     def erzeuge(self, name, spec):
         self.teile = []
         self._aussen_override = spec.get("aussenrahmen")
+        # Eckgroesse je Widget: eine 6px-Ecke in einem 6px hohen
+        # Fortschrittsbalken laesst oben und unten nichts uebrig, KSvg
+        # staucht dann die Raender und die 1px-Linien verschmieren.
+        self._ecke_original = self.ecke
+        self.ecke = spec.get("ecke", self.ecke)
+        self._margin = spec.get("margin", 4)
         praefixe = spec["praefixe"]
         masken = spec.get("masken", [])
         hints = spec.get("hints", [])
@@ -619,14 +707,15 @@ class Generator:
 
             basis = praefix[5:] if praefix.startswith("mask-") else praefix
             standard = spec.get("farbe", "flaeche")
-            farb_key, invertiert = ZUSTANDSFARBE.get(basis, (standard, False))
+            farb_key, invertiert, zustandsklasse = ZUSTANDSFARBE.get(
+                basis, (standard, False, "ColorScheme-Background"))
             # Das Panel bekommt seine Farbe fest, nicht ueber das
             # Farbschema. Grund: Plasma faerbt Shell-Elemente aus der
             # Gruppe Colors:Window ein, nicht aus Complementary - ein
             # Panel, das sich von den Plasmoid-Flaechen abheben soll,
             # laesst sich darueber nicht getrennt steuern. Gemessen:
             # mit Klasse wurde das Panel #d8d8d0 statt #b8c4c4.
-            klasse_hier = None if spec.get("fest") else "ColorScheme-Background"
+            klasse_hier = None if spec.get("fest") else zustandsklasse
 
             self.teile.append(f'  <!-- {praefix or "(Standardzustand)"} -->')
             if ist_maske:
@@ -649,6 +738,7 @@ class Generator:
             oy = self.abstand + (i // spalten) * schritt
             self._form(fid, art, self.farbe(farbkey, "text"), ox, oy, self.zelle)
 
+        self.ecke = self._ecke_original
         return "\n".join(kopf + self.teile + ['</svg>', ''])
 
 

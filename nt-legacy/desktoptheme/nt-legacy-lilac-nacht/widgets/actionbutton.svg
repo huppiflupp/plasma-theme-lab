@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="188" height="188" viewBox="0 0 188 188">
+<svg xmlns="http://www.w3.org/2000/svg" width="188" height="232" viewBox="0 0 188 232">
   <!-- actionbutton.svg — Runde Knoepfe -->
   <!-- Erzeugt von tools/gen-plasma-svg.py. Die Element-IDs sind
        die Schnittstelle zu Plasma: bitte nicht umbenennen. -->
@@ -16,7 +16,8 @@
       .ColorScheme-ButtonBackground { color:#2a3234; stop-color:#2a3234; }
       .ColorScheme-ButtonHover { color:#c8a83a; stop-color:#c8a83a; }
       .ColorScheme-ButtonFocus { color:#6b5590; stop-color:#6b5590; }
-      .ColorScheme-Frame { color:#0a1012; stop-color:#0a1012; }
+      .ColorScheme-HighlightedText { color:#1e2628; stop-color:#1e2628; }
+      .ColorScheme-ComplementaryBackground { color:#2b2833; stop-color:#2b2833; }
       .ColorScheme-NegativeText { color:#a83232; stop-color:#a83232; }
       .ColorScheme-NeutralText { color:#c87922; stop-color:#c87922; }
       .ColorScheme-PositiveText { color:#39734a; stop-color:#39734a; }
@@ -69,5 +70,17 @@
     </g>
     <g id="32-32-focus">
       <circle cx="160" cy="160" r="10.88" fill="#6b5590" stroke="#0a1012" stroke-width="1"/>
+    </g>
+    <g id="normal">
+      <circle cx="28" cy="204" r="10.88" fill="#2a3234" stroke="#0a1012" stroke-width="1"/>
+    </g>
+    <g id="hover">
+      <circle cx="72" cy="204" r="10.88" fill="#c8a83a" stroke="#0a1012" stroke-width="1"/>
+    </g>
+    <g id="pressed">
+      <circle cx="116" cy="204" r="10.88" fill="#0e1416" stroke="#0a1012" stroke-width="1"/>
+    </g>
+    <g id="focus">
+      <circle cx="160" cy="204" r="10.88" fill="#6b5590" stroke="#0a1012" stroke-width="1"/>
     </g>
 </svg>

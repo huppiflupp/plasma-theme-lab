@@ -243,7 +243,7 @@ Formal keine — alles fällt auf Breeze zurück. Praktisch nach Sichtbarkeit:
 | 2 | `widgets/button.svg`, `lineedit.svg` | Bedienelemente in Plasmoids |
 | 2 | `widgets/checkmarks.svg`, `radiobutton.svg`, `switch.svg` | Auswahlelemente |
 | 2 | `widgets/scrollbar.svg`, `slider.svg` | Regler |
-| 3 | `widgets/tasks.svg` | Fensterleiste |
+| **1** | `widgets/tasks.svg` | Fensterknöpfe in der Taskleiste — von `taskmanager.so` angefordert, per `strings` verifiziert |
 | 3 | `widgets/plasmoidheading.svg`, `toolbar.svg`, `frame.svg` | Rahmen, Kopfzeilen |
 | 3 | `widgets/clock.svg`, `analog_meter.svg`, `pager.svg` | spezielle Widgets |
 | — | `icons/*.svg` | **veraltet** — weglassen |

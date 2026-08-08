@@ -75,7 +75,7 @@ Colloid machen es genau so: Kvantum liegt bei, wird aber separat installiert.
 | Plasma Style | **niedrig** | Fallback auf `default` ist fest im Code verdrahtet |
 | Farbschema | **niedrig** | schlimmstenfalls unleserlich, per CLI umkehrbar |
 | Anwendungsstil | niedrig | fehlendes Plugin → Fusion |
-| Fensterdekoration | niedrig | KWin fällt auf Breeze zurück |
+| Fensterdekoration | **mittel** | nur bei ungültiger `library`; ein ins Leere zeigender *Themename* lässt Fenster **ganz ohne Titelleiste** — s. u. |
 | Symbole / Mauszeiger | niedrig | Fallback über `Inherits` bzw. `hicolor` |
 | Look-and-Feel | **mittel** | schreibt in `kdeglobals`/`kwinrc`; ein Layout-Skript löscht Panels |
 | **Login-Manager** | **hoch** | systemweit, greift *vor* dem Login → schwarzer Bildschirm ohne GUI-Rettung |

@@ -16,7 +16,8 @@
       .ColorScheme-ButtonBackground { color:#d8d8d0; stop-color:#d8d8d0; }
       .ColorScheme-ButtonHover { color:#c8a83a; stop-color:#c8a83a; }
       .ColorScheme-ButtonFocus { color:#6b5590; stop-color:#6b5590; }
-      .ColorScheme-Frame { color:#202628; stop-color:#202628; }
+      .ColorScheme-HighlightedText { color:#f0f0e8; stop-color:#f0f0e8; }
+      .ColorScheme-ComplementaryBackground { color:#c4bcc8; stop-color:#c4bcc8; }
       .ColorScheme-NegativeText { color:#a83232; stop-color:#a83232; }
       .ColorScheme-NeutralText { color:#c87922; stop-color:#c87922; }
       .ColorScheme-PositiveText { color:#39734a; stop-color:#39734a; }
@@ -74,10 +75,10 @@
       <rect x="43" y="38" width="1" height="6" fill="#202628"/>
       <rect x="42" y="38" width="1" height="5" fill="#8a8a82"/>
     </g>
-    <rect id="hint-top-margin" x="28" y="12" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="hint-bottom-margin" x="28" y="42" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="hint-left-margin" x="12" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="hint-right-margin" x="42" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="hint-top-margin" x="28" y="12" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="hint-bottom-margin" x="28" y="40" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="hint-left-margin" x="12" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="hint-right-margin" x="40" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
   <!-- north -->
     <g id="north-topleft">
       <rect x="56" y="12" width="6" height="6" fill="#c4bcc8"/>
@@ -130,10 +131,10 @@
       <rect x="87" y="38" width="1" height="6" fill="#202628"/>
       <rect x="86" y="38" width="1" height="5" fill="#8a8a82"/>
     </g>
-    <rect id="north-hint-top-margin" x="72" y="12" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="north-hint-bottom-margin" x="72" y="42" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="north-hint-left-margin" x="56" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="north-hint-right-margin" x="86" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="north-hint-top-margin" x="72" y="12" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="north-hint-bottom-margin" x="72" y="40" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="north-hint-left-margin" x="56" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="north-hint-right-margin" x="84" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
   <!-- south -->
     <g id="south-topleft">
       <rect x="100" y="12" width="6" height="6" fill="#c4bcc8"/>
@@ -186,10 +187,10 @@
       <rect x="131" y="38" width="1" height="6" fill="#202628"/>
       <rect x="130" y="38" width="1" height="5" fill="#8a8a82"/>
     </g>
-    <rect id="south-hint-top-margin" x="116" y="12" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="south-hint-bottom-margin" x="116" y="42" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="south-hint-left-margin" x="100" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="south-hint-right-margin" x="130" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="south-hint-top-margin" x="116" y="12" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="south-hint-bottom-margin" x="116" y="40" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="south-hint-left-margin" x="100" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="south-hint-right-margin" x="128" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
   <!-- east -->
     <g id="east-topleft">
       <rect x="144" y="12" width="6" height="6" fill="#c4bcc8"/>
@@ -242,10 +243,10 @@
       <rect x="175" y="38" width="1" height="6" fill="#202628"/>
       <rect x="174" y="38" width="1" height="5" fill="#8a8a82"/>
     </g>
-    <rect id="east-hint-top-margin" x="160" y="12" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="east-hint-bottom-margin" x="160" y="42" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="east-hint-left-margin" x="144" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="east-hint-right-margin" x="174" y="28" width="2" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="east-hint-top-margin" x="160" y="12" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="east-hint-bottom-margin" x="160" y="40" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="east-hint-left-margin" x="144" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="east-hint-right-margin" x="172" y="28" width="4" height="2" fill="#ff00ff" opacity="0"/>
   <!-- west -->
     <g id="west-topleft">
       <rect x="12" y="56" width="6" height="6" fill="#c4bcc8"/>
@@ -298,8 +299,8 @@
       <rect x="43" y="82" width="1" height="6" fill="#202628"/>
       <rect x="42" y="82" width="1" height="5" fill="#8a8a82"/>
     </g>
-    <rect id="west-hint-top-margin" x="28" y="56" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="west-hint-bottom-margin" x="28" y="86" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="west-hint-left-margin" x="12" y="72" width="2" height="2" fill="#ff00ff" opacity="0"/>
-    <rect id="west-hint-right-margin" x="42" y="72" width="2" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="west-hint-top-margin" x="28" y="56" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="west-hint-bottom-margin" x="28" y="84" width="2" height="4" fill="#ff00ff" opacity="0"/>
+    <rect id="west-hint-left-margin" x="12" y="72" width="4" height="2" fill="#ff00ff" opacity="0"/>
+    <rect id="west-hint-right-margin" x="40" y="72" width="4" height="2" fill="#ff00ff" opacity="0"/>
 </svg>

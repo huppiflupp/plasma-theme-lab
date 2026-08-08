@@ -16,7 +16,8 @@
       .ColorScheme-ButtonBackground { color:#d8d0c0; stop-color:#d8d0c0; }
       .ColorScheme-ButtonHover { color:#c87922; stop-color:#c87922; }
       .ColorScheme-ButtonFocus { color:#96703a; stop-color:#96703a; }
-      .ColorScheme-Frame { color:#202628; stop-color:#202628; }
+      .ColorScheme-HighlightedText { color:#f0ece0; stop-color:#f0ece0; }
+      .ColorScheme-ComplementaryBackground { color:#c8bca4; stop-color:#c8bca4; }
       .ColorScheme-NegativeText { color:#a83232; stop-color:#a83232; }
       .ColorScheme-NeutralText { color:#c87922; stop-color:#c87922; }
       .ColorScheme-PositiveText { color:#39734a; stop-color:#39734a; }
