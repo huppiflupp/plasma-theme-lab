@@ -749,8 +749,16 @@ def baue(variante, pruefen=False):
              splash_qml(p, anzeige), still=True)
     schreibe(lnf / "contents" / "logout" / "Logout.qml", logout_qml(p), still=True)
 
-    # Vorschaubilder fuer die Design-Auswahl
+    # Vorschaubilder fuer die Design-Auswahl.
+    #
+    # Nur erzeugen, wenn noch keine da sind: tools/gen-vorschau.sh
+    # ersetzt sie durch echte Bildschirmfotos aus der Test-VM, und die
+    # wuerde ein Neubau sonst jedes Mal durch die schematische Fassung
+    # ueberschreiben. Wer sie neu will, loescht sie vorher.
     vs = lnf / "contents" / "previews"
+    if (vs / "preview.png").exists():
+        print(f"  look-and-feel/{k['lnf']}/  (Vorschau beibehalten)")
+        return True
     svg_v = vs / "preview.svg"
     schreibe(svg_v, vorschau_svg(p, k), still=True)
     # 600x337 wie Breeze - die Kachel im Auswahldialog ist 16:9.
