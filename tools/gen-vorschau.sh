@@ -74,10 +74,17 @@ for v in "${varianten[@]}"; do
         # 16:9, damit die Kachel im Auswahldialog nicht beschneidet
         kscreen-doctor output.1.mode.${BREITE}x${HOEHE}@60 >/dev/null 2>&1
         sleep 4
-        # Zwei Fenster, versetzt: eines aktiv, eines inaktiv - so sieht
-        # man beide Titelleistenfarben auf einem Bild.
-        (setsid dolphin >/dev/null 2>&1 &); sleep 12
-        (setsid kcalc   >/dev/null 2>&1 &); sleep 10
+        # Vier Fenster, versetzt gestapelt: das oberste ist aktiv, die
+        # anderen inaktiv - so sieht man beide Titelleistenfarben und
+        # gleich mehrere Programme auf einem Bild.
+        #
+        # Reihenfolge von hinten nach vorn. PCManFM-Qt kommt zuletzt,
+        # weil es das Symbolset und die Statusleiste zeigt - das ist das
+        # Aushaengeschild.
+        (setsid konsole     >/dev/null 2>&1 &); sleep 9
+        (setsid kolourpaint >/dev/null 2>&1 &); sleep 9
+        (setsid dragon      >/dev/null 2>&1 &); sleep 9
+        (setsid pcmanfm-qt  >/dev/null 2>&1 &); sleep 12
     " >/dev/null 2>&1
 
     virsh -c qemu:///system send-key plasma-lab KEY_LEFTSHIFT >/dev/null 2>&1
@@ -108,7 +115,7 @@ for v in "${varianten[@]}"; do
     rm -f "$roh"
 
     echo "  $(basename "$ziel")/preview.png  (aus echtem Bildschirmfoto)"
-    "$VMCTL" ssh 'pkill dolphin; pkill kcalc' >/dev/null 2>&1
+    "$VMCTL" ssh 'pkill pcmanfm-qt; pkill dragon; pkill kolourpaint; pkill konsole' >/dev/null 2>&1
 done
 
 echo
