@@ -1,57 +1,65 @@
 # Herkunft und Lizenzen
 
-Das Theme steht unter **GPL-2.0-or-later** (siehe `LICENSE`). Erzeugt wird
-es von `build.py`; die SVGs, Farbschemata, Fensterdekorationen, Mauszeiger
-und Hintergrundbilder sind Eigenerzeugnisse aus den Paletten in diesem
-Skript.
+Das Theme steht unter **GPL-2.0-or-later** (siehe `LICENSE`).
 
-## Symbole (`icons-reactos/NTLegacyOS`)
+## Alles darin ist Eigenerzeugnis
 
-Das mitgelieferte Symbolset hat zwei Quellen, beide weitergebbar:
+| Bestandteil | Erzeugt von |
+|---|---|
+| Plasma-Stil, Farbschemata, Fensterdekoration, Mauszeiger, Hintergründe | `build.py` mit `tools/gen-plasma-svg.py`, `gen-aurorae.py`, `gen-cursor.py` |
+| Symbole — Ordner, Laufwerke, Dateitypen, Werkzeugleiste | `tools/gen-icons.py` |
 
-| Teil | Herkunft | Lizenz |
-|---|---|---|
-| Shell-Symbole (Ordner, Laufwerke, Papierkorb, Dateitypen) | [ReactOS](https://github.com/reactos/reactos), `dll/win32/shell32/res/icons` | **GPL-2.0** (`COPYING` im Repository) |
-| Werkzeugleisten-Symbole (Navigation, Ansichtsmodi, Bearbeiten) | Eigenerzeugnis, `tools/gen-icons-aktionen.py` | GPL-2.0-or-later, wie das Theme |
+**Kein übernommenes Fremdmaterial.** Das Theme kann uneingeschränkt
+weitergegeben werden, auch über den KDE Store.
 
-ReactOS ist **clean-room** entwickelt — die Symbole sind Neuschöpfungen,
-keine Kopien von Microsoft-Material. Das ist der Grund, warum dieses Set
-und nicht Chicago95 mitgeliefert wird.
+## Warum die Symbole selbst gezeichnet sind
 
-Erzeugt wird es mit:
+Der erste Ansatz war [Chicago95](https://github.com/grassmunk/Chicago95).
+Es führt im README `License: GPL-3.0+/MIT`, hat aber (Stand August 2026,
+zweimal geprüft) **keine LICENSE-Datei** — nur eine `CREDITS` mit drei
+Namen. Die Symbole stammen laut selbem README aus *Classic95*
+(gnome-look.org 1012363), dessen Lizenz sich nicht ermitteln ließ. Ein
+Unterprojekt im selben Repository beschreibt sein Material ausdrücklich
+als *„Screenscrapes of original assets"* aus MS Office 95.
+
+Der zweite Ansatz waren die Symbolressourcen von
+[ReactOS](https://github.com/reactos/reactos) — GPL-2.0 und clean-room
+entwickelt, also einwandfrei. Zwei Gründe sprachen am Ende dagegen:
+
+1. **Optik.** Die ReactOS-Symbole sind moderner als NT 4.0: blaue Ordner
+   mit Farbverläufen statt gelber Flächen. Die 4-Bit-Ebenen der
+   `.ico`-Dateien wären klassischer, sind aber durchgehend mit
+   Dithering-Artefakten unbrauchbar.
+2. **Deckung.** Werkzeugleisten-Symbole — Kopieren, Einfügen, Zurück,
+   Ansichtsmodi — liegen dort als Bitmap-Streifen in Programmressourcen
+   oder gar nicht vor. Sie hätten ohnehin gezeichnet werden müssen.
+
+Wenn ohnehin die Hälfte selbst entsteht, ist es konsequenter, alles selbst
+zu zeichnen: einheitlicher Stil, eine Lizenz, keine Fremdquelle zu pflegen.
+
+## Das Symbolset
 
 ```bash
-git clone --depth 1 --filter=blob:none --sparse \
-    https://github.com/reactos/reactos.git
-tools/gen-icons-reactos.py --quelle reactos/dll/win32/shell32/res/icons \
-                           --ziel nt-legacy/icons-reactos/NTLegacyOS
-tools/gen-icons-aktionen.py nt-legacy/icons-reactos/NTLegacyOS
-tools/gen-icon-aliase.py    nt-legacy/icons-reactos/NTLegacyOS
+tools/gen-icons.py nt-legacy/icons-nt/NTLegacyIcons
+tools/gen-icon-aliase.py     nt-legacy/icons-nt/NTLegacyIcons
+tools/gen-symbolic-aliase.py nt-legacy/icons-nt/NTLegacyIcons
 ```
 
-## Chicago95 — bewusst *nicht* enthalten
+136 gezeichnete Symbole in 16/22/32/48 px, dazu Verweise für weitere
+Namen. Von den Namen, die Dolphin und PCManFM-Qt anfordern, fällt keiner
+mehr auf Breeze zurück.
 
-`fetch-icons.sh` kann [Chicago95](https://github.com/grassmunk/Chicago95)
-nachinstallieren. Es ist **nicht Teil dieses Repositorys** und steht in
-`.gitignore`.
+Die Gegenstandsfarben folgen bewusst **nicht** dem Farbschema: Unter
+Windows NT blieb der Ordner gelb und das Laufwerk grau, egal welche
+Farbwelt eingestellt war. Nur Linien- und Akzentfarbe richten sich nach
+der Variante.
 
-Grund: Chicago95 führt im README `License: GPL-3.0+/MIT`, hat aber (Stand
-August 2026, erneut geprüft) **keine LICENSE-Datei** — nur eine `CREDITS`
-mit drei Namen. Die Symbole stammen laut selbem README aus *Classic95*
-(gnome-look.org 1012363), dessen Lizenz sich nicht ermitteln ließ. Ein
-Unterprojekt im selben Repository beschreibt sein Material ausdrücklich als
-*„Screenscrapes of original assets"* aus MS Office 95.
+## Chicago95 weiterhin nutzbar
 
-Wer Chicago95 lokal installiert hat, kann es weiterhin auswählen — es
-liegt dann als eigenes Symbolthema `NTLegacy` neben `NTLegacyOS`. Für die
-Weitergabe des Themes ist es ungeeignet.
-
-## Optischer Unterschied
-
-Die ReactOS-Symbole sind moderner als die von Chicago95: blaue Ordner mit
-Verläufen statt gelber 16-Farben-Pixelart. Die 4-Bit-Ebenen der
-`.ico`-Dateien wären klassischer, sind aber durchgehend mit
-Dithering-Artefakten unbrauchbar — geprüft, nicht vermutet.
+`fetch-icons.sh` installiert Chicago95 lokal als eigenes Symbolthema
+`NTLegacy`. Es liegt **nicht** im Repository (steht in `.gitignore`) und
+ist nicht Teil der Weitergabe — wer es installiert hat, kann es in den
+Systemeinstellungen auswählen.
 
 ## Nicht enthalten
 

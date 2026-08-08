@@ -107,12 +107,12 @@ fi
 # weil seine Herkunft geklaert ist: ReactOS (GPL-2.0, clean-room) plus
 # selbst gezeichnete Werkzeugleisten-Symbole. Es ist die Vorgabe;
 # Chicago95 bleibt daneben waehlbar, wenn es installiert wurde.
-if [ -d "$HIER/icons-reactos" ]; then
-    echo "Symbole (NTLegacyOS) …"
+if [ -d "$HIER/icons-nt" ]; then
+    echo "Symbole (NTLegacyIcons) …"
     mkdir -p "$DATEN/icons"
-    cp -r "$HIER/icons-reactos/"* "$DATEN/icons/"
+    cp -r "$HIER/icons-nt/"* "$DATEN/icons/"
     command -v gtk-update-icon-cache >/dev/null && \
-        gtk-update-icon-cache -q -t -f "$DATEN/icons/NTLegacyOS" 2>/dev/null || true
+        gtk-update-icon-cache -q -t -f "$DATEN/icons/NTLegacyIcons" 2>/dev/null || true
 fi
 
 if [ -d "$HIER/cursors" ]; then
@@ -145,7 +145,7 @@ done
 # Anwendungsstil greifen so), beim Icon-Theme aber nicht - gemessen: mit
 # Fallback blieben Breeze-Icons stehen, erst kwriteconfig6 brachte die
 # Symbolset. Die alten Werte liegen in der Sicherung oben.
-kwriteconfig6 --file kdeglobals --group Icons --key Theme NTLegacyOS
+kwriteconfig6 --file kdeglobals --group Icons --key Theme NTLegacyIcons
 
 # Der Render-Cache traegt die Themeversion im Namen. Ohne Loeschen sieht
 # man nach einem Update das alte Theme und sucht den Fehler woanders.
