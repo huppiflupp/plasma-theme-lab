@@ -99,6 +99,27 @@ theme/
 Ein `install.sh`, das nach `sudo` fragt und im selben Durchlauf GRUB
 anfasst, ist unabhängig von seiner Codequalität ein Konstruktionsfehler.
 
+### Und: ein Theme setzt kein Aussehen fremder Programme
+
+Manches, was man dem Theme anlasten würde, ist eine Einstellung der
+Anwendung. Dolphins Statusleiste etwa erscheint seit einiger Zeit als
+schwebendes Kästchen unten links statt als durchgehende Leiste — das sieht
+neben einem eckigen Retro-Theme nach Fehler aus, ist aber die Vorgabe
+`ShowStatusBar=Small` aus `dolphinrc`. Mit Breeze sieht es identisch aus.
+
+**Der Test, der solche Verwechslungen auflöst:** denselben Screenshot einmal
+mit `widgetStyle=Breeze` machen. Sieht es dort genauso aus, liegt es nicht
+am Theme.
+
+Die Versuchung ist dann, den Wert einfach in `apply.sh` mitzusetzen. Genau
+das nicht: Wer ein Design ausprobiert, rechnet nicht damit, dass hinterher
+seine Dolphin-Konfiguration eine andere ist — und findet den Zusammenhang
+später nie. Solche Eingriffe gehören in ein **eigenes, ausdrücklich
+aufgerufenes Skript mit vollständigem Rückweg** (in diesem Projekt:
+`nt-legacy/anmutung.sh`). Dabei muss die Sicherung zwischen „war nicht
+gesetzt" und „war auf den Vorgabewert gesetzt" unterscheiden — sonst steht
+nach dem Zurücksetzen ein Wert dort, den der Nutzer nie gewählt hat.
+
 ---
 
 ## 1.4 Plasma ist robuster als sein Ruf — vier Sicherheitsnetze
@@ -240,6 +261,45 @@ X-KDE-PluginInfo-Version=1.0
 ```
 
 Der Präfix `__aurorae__svg__` ist Pflicht und muss dem Ordnernamen folgen.
+
+### Das `center`-Feld der `decoration.svg` darf nicht transparent sein
+
+Die naheliegende Annahme: Die Mitte der Dekoration liegt vollständig unter
+dem Fensterinhalt, also kann sie leer bleiben. Das stimmt genau so lange,
+wie der Nutzer die Rahmengröße nicht anfasst.
+
+Stellt er sie in *Systemeinstellungen → Fensterdekorationen → Rahmengröße*
+hoch, meldet KWin einen breiteren Rand, als die Elemente
+`left`/`right`/`bottom` zeichnen — diese behalten ihre natürliche Breite
+aus der SVG. Die Differenz fällt ins `center`-Feld. Die Aurorae-Doku sagt
+das ausdrücklich:
+
+> „the borders may extend into the center element if the border size is
+> changed"
+> — [develop.kde.org/docs/plasma/aurorae](https://develop.kde.org/docs/plasma/aurorae/)
+
+War `center` transparent, sieht man dort den **Desktop durchscheinen** —
+eine Lücke zwischen Rahmen und Fensterinhalt. Gemessen bei `BorderSize=Large`
+und 4 px Rahmenbreite:
+
+```
+x=76      schwarz     Außenkante
+x=77      weiß        Hellkante
+x=78..79  grau 192    Rahmenfläche   ← nur 4 px gezeichnet
+x=80..81  türkis      LÜCKE          ← KWin reserviert 6 px
+x=82+     weiß        Fensterinhalt
+```
+
+Also: `center` mit der Rahmenfläche füllen. Der Preis ist, dass man bei
+einem durchscheinenden Fenster diese Fläche statt des Desktops sieht — für
+ein deckendes Theme der richtige Tausch.
+
+**Zum Testen:** `BorderSize` wirkt **nicht** über
+`qdbus org.kde.KWin /KWin reconfigure`. KWin übernimmt die Rahmengröße erst
+beim Laden der Dekoration, also beim Sitzungsstart. Wer ohne Neuanmeldung
+misst, prüft achtmal denselben Zustand und hält das Ergebnis für Erfolg.
+`tools/pruefe-rahmen.py` misst die Farbfolge quer durchs Fenster und meldet
+jede Stelle, an der die Desktopfarbe innerhalb des Fensters wieder auftaucht.
 
 ---
 

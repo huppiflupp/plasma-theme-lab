@@ -87,11 +87,26 @@ class Aurorae:
         feld("topleft",     ox,               oy,      r,             th, titel, "tl")
         feld("top",         ox + r,           oy,      breite - 2*r,  th, titel, "t")
         feld("topright",    ox + breite - r,  oy,      r,             th, titel, "tr")
-        # Fensterinhalt - die Mitte bleibt leer, dort liegt das Fenster
+        # Fensterinhalt. Die Mitte traegt die Rahmenfarbe, obwohl das
+        # Fenster sie normalerweise vollstaendig verdeckt.
+        #
+        # Grund: Stellt der Nutzer die Rahmengroesse hoch (Systemein-
+        # stellungen > Fensterdekorationen > Rahmengroesse), meldet KWin
+        # einen breiteren Rand als unsere Grafik zeichnet - Large ist
+        # Faktor 1.5, aus 4 px werden 6. Die Elemente left/right/bottom
+        # behalten dabei ihre natuerliche Breite; die Differenz faellt in
+        # das center-Feld. Die Aurorae-Doku sagt das ausdruecklich:
+        # "the borders may extend into the center element if the border
+        # size is changed". War center transparent, schien dort der
+        # Desktop durch - eine Luecke zwischen Rahmen und Fensterinhalt.
+        #
+        # Preis: Bei einem Fenster, das selbst durchscheinend ist, sieht
+        # man hinter ihm diese Flaeche statt des Desktops. Fuer ein
+        # deckendes NT-Theme ist das der richtige Tausch.
         feld("left",        ox,               oy + th, r,             mitte_h, flaeche, "l")
         t.append(f'  <g id="{praefix}-center">')
         t.append(f'    <rect x="{ox + r:g}" y="{oy + th:g}" '
-                 f'width="{breite - 2*r:g}" height="{mitte_h:g}" fill="none"/>')
+                 f'width="{breite - 2*r:g}" height="{mitte_h:g}" fill="{flaeche}"/>')
         t.append('  </g>')
         feld("right",       ox + breite - r,  oy + th, r,             mitte_h, flaeche, "r")
         # Unterkante

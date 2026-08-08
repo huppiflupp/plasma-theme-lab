@@ -27,7 +27,7 @@
     <rect x="21" y="44" width="1" height="92" fill="#ffffff"/>
   </g>
   <g id="decoration-center">
-    <rect x="24" y="44" width="192" height="92" fill="none"/>
+    <rect x="24" y="44" width="192" height="92" fill="#c0c0c0"/>
   </g>
   <g id="decoration-right">
     <rect x="216" y="44" width="4" height="92" fill="#c0c0c0"/>
@@ -78,7 +78,7 @@
     <rect x="21" y="184" width="1" height="92" fill="#ffffff"/>
   </g>
   <g id="decoration-inactive-center">
-    <rect x="24" y="184" width="192" height="92" fill="none"/>
+    <rect x="24" y="184" width="192" height="92" fill="#c0c0c0"/>
   </g>
   <g id="decoration-inactive-right">
     <rect x="216" y="184" width="4" height="92" fill="#c0c0c0"/>
