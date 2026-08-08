@@ -61,11 +61,13 @@ BASIS = {
 
 VARIANTEN = {
     "teal": {
+        "kurz": "NTLegacy",
         "anzeige": "NT Legacy",
         "beschreibung": "Petrol und warmes Grau - die Grundfassung",
         "farben": {},
     },
     "lilac": {
+        "kurz": "NTLegacyLilac",
         "anzeige": "NT Legacy Flieder",
         "beschreibung": "Flieder statt Petrol, nach NTs Schema Lilac",
         "farben": {
@@ -79,6 +81,7 @@ VARIANTEN = {
         },
     },
     "desert": {
+        "kurz": "NTLegacyDesert",
         "anzeige": "NT Legacy Wueste",
         "beschreibung": "Sand und Terrakotta, nach NTs Schema Desert",
         "farben": {
@@ -97,6 +100,51 @@ VARIANTEN = {
     },
 }
 
+# --------------------------------------------------------------------------
+# Nachtfassungen
+#
+# Die Vorgabe fuer die hellen Varianten lautete: keine schwarzen Flaechen,
+# dunkel wird nur Text, Rahmen und die aktive Titelleiste. Fuer die Nacht
+# kehrt sich das um - aber der Gedanke dahinter bleibt: auch hier kein
+# Schwarz, sondern dunkles Blaugrau. Reines Schwarz neben hellem Text
+# erzeugt harte Kanten, die bei langer Nutzung anstrengen.
+#
+# Der 3D-Bevel dreht sich mit: oben/links wird ein aufgehelltes Grau,
+# unten/rechts fast schwarz. Ohne das saehen die Rahmen umgekehrt
+# beleuchtet aus und die Flaechen wirkten eingedrueckt statt erhaben.
+#
+# Die Akzente - Petrol, Flieder, Sand und das NT-Gold - bleiben
+# unveraendert. Sie tragen den Charakter, nicht die Flaechen.
+NACHT_BASIS = {
+    "flaeche":      "#2a3234",
+    "fenster":      "#1e2628",
+    "panel":        "#232b2d",
+    "kopf_inaktiv": "#3c4648",
+    "text":         "#dae0e0",
+    "text2":        "#94a2a4",
+    "auswahl_text": "#ffffff",
+    "desktop":      "#1a2224",
+    "hell":         "#4a5456",   # 3D-Kante oben/links, aufgehellt
+    "dunkel":       "#0e1416",   # unten/rechts, fast schwarz
+    "rahmen":       "#0a1012",
+}
+
+for _k, _v in [("teal", {}),
+               ("lilac", {"panel": "#2b2833", "kopf_inaktiv": "#443e52",
+                          "desktop": "#1e1a26", "text2": "#9a92a6"}),
+               ("desert", {"flaeche": "#32302a", "fenster": "#26241e",
+                           "panel": "#2b2822", "kopf_inaktiv": "#4a4438",
+                           "desktop": "#221f1a", "text2": "#a49a86",
+                           "hell": "#544e42", "dunkel": "#16130e"})]:
+    VARIANTEN[f"{_k}-nacht"] = {
+        "kurz": VARIANTEN[_k]["kurz"] + "Nacht",
+        "anzeige": VARIANTEN[_k]["anzeige"] + " Nacht",
+        "beschreibung": VARIANTEN[_k]["beschreibung"].split(" - ")[0].split(", nach")[0]
+                        + " als Nachtfassung - dunkle Flaechen, gleiche Akzente",
+        # Akzentfarben der hellen Fassung uebernehmen, Flaechen ersetzen
+        "farben": {**VARIANTEN[_k]["farben"], **NACHT_BASIS, **_v},
+    }
+
 
 def palette(variante):
     return {**BASIS, **VARIANTEN[variante]["farben"]}
@@ -108,15 +156,18 @@ def ids(variante):
     Der Farbschema-Name ist der DATEINAME ohne Endung, nicht das
     Name=-Feld - ein Farbschema "NT Legacy" liefe in contents/defaults
     ins Leere.
+
+    Die Kennung steht in VARIANTEN und wird nicht aus dem Schluessel
+    abgeleitet: aus "teal-nacht" wuerde sonst "NTLegacyTeal-nacht".
     """
-    kurz = "NTLegacy" if variante == "teal" else f"NTLegacy{variante.capitalize()}"
+    kurz = VARIANTEN[variante]["kurz"]
+    endung = "" if variante == "teal" else f"-{variante}"
     return {
-        "style":     "nt-legacy" if variante == "teal" else f"nt-legacy-{variante}",
+        "style":     "nt-legacy" + endung,
         "schema":    kurz,
         "aurorae":   kurz,
-        "lnf":       "com.github.huppiflupp.nt-legacy"
-                     + ("" if variante == "teal" else f"-{variante}"),
-        "wallpaper": "ntlegacy" if variante == "teal" else f"ntlegacy-{variante}",
+        "lnf":       "com.github.huppiflupp.nt-legacy" + endung,
+        "wallpaper": "ntlegacy" + endung.replace("-", "-"),
         # Suffix _cursors wie bei breeze_cursors. Ohne ihn landen
         # Icon- und Zeigerthema beide unter ~/.local/share/icons/NTLegacy
         # und ihre index.theme-Dateien ueberschreiben sich gegenseitig -

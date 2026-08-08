@@ -1,0 +1,29 @@
+[kdeglobals][KDE]
+widgetStyle=Windows
+
+[kdeglobals][General]
+ColorScheme=NTLegacyDesertNacht
+
+[kdeglobals][Icons]
+Theme=NTLegacy
+
+[kcminputrc][Mouse]
+cursorTheme=NTLegacyDesertNacht_cursors
+
+[Wallpaper]
+Image=ntlegacy-desert-nacht
+
+[plasmarc][Theme]
+name=nt-legacy-desert-nacht
+
+[kdeglobals][WM]
+activeFont=Noto Sans,10,-1,5,75,0,0,0,0,0
+inactiveFont=Noto Sans,10,-1,5,50,0,0,0,0,0
+
+[ksplashrc][KSplash]
+Theme=com.github.huppiflupp.nt-legacy-desert-nacht
+Engine=KSplashQML
+
+[kwinrc][org.kde.kdecoration2]
+library=org.kde.kwin.aurorae.v2
+theme=__aurorae__svg__NTLegacyDesertNacht

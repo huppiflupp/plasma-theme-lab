@@ -1,0 +1,19 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "huppiflupp",
+                "Email": "huppiflupp@users.noreply.github.com"
+            }
+        ],
+        "Category": "",
+        "Description": "Petrol und warmes Grau als Nachtfassung - dunkle Flaechen, gleiche Akzente",
+        "EnabledByDefault": true,
+        "Id": "nt-legacy-teal-nacht",
+        "License": "GPL-2.0-or-later",
+        "Name": "NT Legacy Nacht",
+        "Version": "0.2.0",
+        "Website": "https://github.com/huppiflupp/NiceOS9-theme"
+    },
+    "X-Plasma-API": "5.0"
+}

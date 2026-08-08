@@ -4,6 +4,7 @@
 #   ./apply.sh              # Grundfassung (Petrol)
 #   ./apply.sh lilac        # Flieder
 #   ./apply.sh desert       # Wueste
+#   ./apply.sh teal-nacht   # Nachtfassung (auch lilac-nacht, desert-nacht)
 #   ./apply.sh teal --rot   # mit rotem Mauszeiger
 #
 # Warum es dieses Skript gibt:
@@ -28,12 +29,24 @@ ROT=false
 [[ "$VARIANTE" == "--rot" ]] && VARIANTE="teal"
 
 case "$VARIANTE" in
-    teal)   KURZ="NTLegacy";        STYLE="nt-legacy";        LNF_SUFFIX="" ;;
-    lilac)  KURZ="NTLegacyLilac";   STYLE="nt-legacy-lilac";  LNF_SUFFIX="-lilac" ;;
-    desert) KURZ="NTLegacyDesert";  STYLE="nt-legacy-desert"; LNF_SUFFIX="-desert" ;;
-    *) echo "Unbekannte Variante '$VARIANTE'. Moeglich: teal, lilac, desert" >&2
+    teal)         KURZ="NTLegacy"            ;;
+    lilac)        KURZ="NTLegacyLilac"       ;;
+    desert)       KURZ="NTLegacyDesert"      ;;
+    teal-nacht)   KURZ="NTLegacyNacht"       ;;
+    lilac-nacht)  KURZ="NTLegacyLilacNacht"  ;;
+    desert-nacht) KURZ="NTLegacyDesertNacht" ;;
+    *) echo "Unbekannte Variante '$VARIANTE'." >&2
+       echo "Moeglich: teal, lilac, desert und je -nacht" >&2
        exit 1 ;;
 esac
+
+# Style- und Paketnamen folgen dem Variantennamen; nur die Grundfassung
+# traegt kein Suffix.
+if [ "$VARIANTE" = "teal" ]; then
+    STYLE="nt-legacy"; LNF_SUFFIX=""
+else
+    STYLE="nt-legacy-$VARIANTE"; LNF_SUFFIX="-$VARIANTE"
+fi
 
 LNF="com.github.huppiflupp.nt-legacy${LNF_SUFFIX}"
 ZEIGER="${KURZ}_cursors"
