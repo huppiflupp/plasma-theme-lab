@@ -28,3 +28,7 @@ __pycache__/
 #
 # Holen mit:  nt-legacy/fetch-icons.sh
 nt-legacy/icons/
+
+# Fertige Archive fuer den KDE Store. Sie entstehen reproduzierbar aus
+# dem Baum mit tools/mach-paket.sh - Binaerdaten gehoeren nicht ins Repo.
+dist/
