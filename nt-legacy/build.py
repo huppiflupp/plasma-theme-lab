@@ -383,7 +383,7 @@ Theme={k['lnf']}
 Engine=KSplashQML
 
 [kwinrc][org.kde.kdecoration2]
-library=org.kde.kwin.aurorae.v2
+library=org.kde.kwin.aurorae
 theme=__aurorae__svg__{k['aurorae']}
 """
 

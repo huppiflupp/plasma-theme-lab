@@ -284,9 +284,39 @@ $ kreadconfig6 --file kwinrc --group org.kde.kdecoration3 --key library
 erreicht nichts.** Die Gruppe muss `org.kde.kdecoration2` heißen — auch
 2026, auch unter KDecoration3.
 
-Es gibt zwei Aurorae-Engines: die klassische (`org.kde.kwin.aurorae`) und
-die KDecoration3-native (`org.kde.kwin.aurorae.v2`). Für neue Themes ist
-`.v2` richtig.
+### Welche Aurorae-Engine gehört in `defaults`? — `org.kde.kwin.aurorae`, nicht `.v2`
+
+Es gibt zwei: die klassische (`org.kde.kwin.aurorae`) und die
+KDecoration3-native (`org.kde.kwin.aurorae.v2`). Die naheliegende Wahl für
+ein neues Theme wäre `.v2`. **Sie ist falsch.**
+
+`.v2` gibt es erst ab **Plasma 6.6**. Auf 6.0 bis 6.5 schlägt das Laden
+fehl, und KWin greift auf seine Fallback-Kette zurück
+(`decorations/decorationbridge.cpp`):
+
+```cpp
+if (!initPlugin(pluginId)) {
+    if (s_defaultPlugin != pluginId) initPlugin(s_defaultPlugin);  // "org.kde.breeze"
+```
+
+Der Nutzer bekommt also **Breeze-Fensterrahmen — ohne Fehlermeldung**. Auf
+dem eigenen aktuellen System sieht man das nie.
+
+Umgekehrt kostet die v1-Angabe auf neuen Systemen nichts: KWin schreibt
+die Zeile beim Sitzungsstart selbst hoch (`migrateAuroraeTheme`, vorhanden
+ab Plasma 6.6). In der Test-VM nachgeprüft, Plasma 6.7:
+
+```console
+$ kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 \
+      --key library org.kde.kwin.aurorae
+$ # ... Neustart ...
+$ kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key library
+org.kde.kwin.aurorae.v2
+```
+
+**Also `org.kde.kwin.aurorae` eintragen und KWin die Migration überlassen.**
+Das ist auf jeder Version richtig — auf alten funktioniert es, auf neuen
+wird es automatisch zu `.v2`.
 
 Aurorae-Themes nutzen weiterhin `metadata.desktop`. Das ist hier **kein**
 Legacy, sondern das vorgesehene Format:

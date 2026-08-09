@@ -719,6 +719,58 @@ WEITERE_NAMEN = {
 }
 
 
+# Verzeichnisname -> Context-Wert der index.theme.
+#
+# Die beiden stimmen NICHT durchgehend ueberein, und ein einfaches
+# capitalize() erzeugt zwei spezifikationswidrige Werte: aus apps wird
+# "Apps" statt "Applications", aus mimetypes "Mimetypes" statt
+# "MimeTypes" - mit grossem T. Nachgeprueft an Breeze
+# (/usr/share/icons/breeze/index.theme): dort heissen die Verzeichnisse
+# apps/ und mimetypes/, die Kontexte aber Applications und MimeTypes.
+#
+# Gueltig sind laut Icon Theme Specification nur: Actions, Animations,
+# Applications, Categories, Devices, Emblems, Emotes, International,
+# MimeTypes, Places, Status.
+KONTEXT_NAME = {
+    "actions":   "Actions",
+    "apps":      "Applications",
+    "devices":   "Devices",
+    "mimetypes": "MimeTypes",
+    "places":    "Places",
+    "status":    "Status",
+    "emblems":   "Emblems",
+    "categories": "Categories",
+}
+
+
+def index_theme(theme: Path, name="NT Legacy Icons"):
+    """Schreibt die index.theme. Ohne sie ist das Verzeichnis kein Theme."""
+    kontexte = sorted(d.name for d in theme.iterdir() if d.is_dir())
+    verzeichnisse = [f"{k}/{g}" for k in kontexte for g in GROESSEN
+                     if (theme / k / str(g)).is_dir()]
+    zeilen = ["[Icon Theme]",
+              f"Name={name}",
+              "Comment=Symbole im Stil von Windows NT 4.0, vollstaendig erzeugt",
+              # Breeze als Rueckfallebene: was fehlt, landet ohnehin dort -
+              # so steht es wenigstens ausdruecklich da.
+              "Inherits=breeze,hicolor",
+              f"Directories={','.join(verzeichnisse)}", ""]
+    unbekannt = []
+    for v in verzeichnisse:
+        kontext, groesse = v.split("/")
+        ctx = KONTEXT_NAME.get(kontext)
+        if ctx is None:
+            unbekannt.append(kontext)
+            ctx = kontext.capitalize()
+        zeilen += [f"[{v}]", f"Size={groesse}", f"Context={ctx}",
+                   "Type=Fixed", ""]
+    (theme / "index.theme").write_text("\n".join(zeilen))
+    if unbekannt:
+        print(f"  WARNUNG: unbekannter Kontext {sorted(set(unbekannt))} - "
+              f"bitte in KONTEXT_NAME eintragen")
+    return len(verzeichnisse)
+
+
 def weitere_namen(theme: Path):
     """Legt die Zusatznamen als Verweise an - in derselben Groesse und
     demselben Kontext wie die Quelle."""
@@ -794,8 +846,10 @@ def main():
                 tmp.unlink(missing_ok=True)
 
     verweise = weitere_namen(args.theme)
+    verz = index_theme(args.theme)
     print(f"  {len(alle)} Symbole, {geschrieben} Dateien, "
           f"{verweise} Zusatznamen ({args.palette}) nach {args.theme}/")
+    print(f"  index.theme mit {verz} Verzeichnissen")
     return 0
 
 

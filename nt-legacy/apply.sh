@@ -94,7 +94,17 @@ kwriteconfig6 --file kdeglobals --group KDE     --key LookAndFeelPackage "$LNF"
 # noch die defaults setzen ihn - ohne diese Zeile laeuft Splash.qml nie.
 kwriteconfig6 --file ksplashrc  --group KSplash --key Theme  "$LNF"
 kwriteconfig6 --file ksplashrc  --group KSplash --key Engine KSplashQML
-kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.kwin.aurorae.v2
+# Bewusst die v1-Bibliothek, nicht org.kde.kwin.aurorae.v2:
+#
+# Das Plugin v2 gibt es erst ab Plasma 6.6. Auf 6.0 bis 6.5 schlaegt das
+# Laden fehl und KWin faellt still auf Breeze zurueck - der Nutzer sieht
+# Breeze-Fensterrahmen und keine Fehlermeldung.
+#
+# Umgekehrt kostet v1 auf neuen Systemen nichts: KWin schreibt die Zeile
+# beim Sitzungsstart selbst auf .v2 hoch (migrateAuroraeTheme in
+# decorations/decorationbridge.cpp). In der Test-VM mit Plasma 6.7
+# nachgeprueft - nach einem Neustart stand dort .v2.
+kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.kwin.aurorae
 kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme "__aurorae__svg__$KURZ"
 
 # Die Titelschrift wird hier bewusst NICHT geschrieben.
