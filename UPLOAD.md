@@ -19,7 +19,7 @@ dist/
 ├── nt-legacy-window-decorations-0.2.0.tar.xz    12 KB
 ├── nt-legacy-cursors-0.2.0.tar.xz               12 KB
 ├── nt-legacy-color-schemes-0.2.0.tar.xz        4,0 KB
-├── screenshots/                                 10 Vollbilder
+├── screenshots/                                 11 Bilder (10 + Übersicht)
 └── SHA256SUMS
 ```
 
