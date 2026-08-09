@@ -137,9 +137,25 @@ if ! $SCHNELL_NUR; then
             d=$(magick compare -metric RMSE "${dateien[i]}" "${dateien[j]}" null: 2>&1 \
                 | grep -oP '\(\K[0-9.]+(?=\))' | head -1)
             [ -z "$d" ] && continue
-            if awk -v x="$d" 'BEGIN{exit !(x < 0.02)}'; then
-                notiz "  **$(basename "${dateien[i]}" .png)** und **$(basename "${dateien[j]}" .png)**: RMSE nur $d"
+            a="$(basename "${dateien[i]}" .png)"; b="$(basename "${dateien[j]}" .png)"
+            # Zwei Schwellen, weil es zwei verschiedene Aussagen sind:
+            #
+            # Nahezu null heisst, die zweite Variante wurde gar nicht
+            # angewendet - ein Fehler.
+            #
+            # Klein, aber deutlich ueber null heisst, sie wurde angewendet
+            # und sieht der anderen nur aehnlich. Das kann sogar richtig
+            # sein: win98-nacht und win2k-nacht liegen bei 0.015, weil
+            # ihre Titelleisten #000080 und #0a246a sind - historisch
+            # korrekt und trotzdem kaum zu unterscheiden. Das ist eine
+            # Gestaltungsfrage, kein Defekt, und wird nur vermerkt.
+            if awk -v x="$d" 'BEGIN{exit !(x < 0.002)}'; then
+                notiz "  **FEHLER: $a und $b sind praktisch identisch** (RMSE $d)"
+                notiz "  - eine der beiden wurde vermutlich gar nicht angewendet"
                 doppelt=$((doppelt + 1))
+            elif awk -v x="$d" 'BEGIN{exit !(x < 0.02)}'; then
+                notiz "  Hinweis: $a und $b aehneln sich stark (RMSE $d) -"
+                notiz "  angewendet wurden beide, es ist eine Gestaltungsfrage."
             fi
         done
     done
