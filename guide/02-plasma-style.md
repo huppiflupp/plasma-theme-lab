@@ -268,6 +268,50 @@ Ausgeliefert wird die komprimierte Fassung. Plasma liest beide.
 Wie man das ohne CMake macht, steht in
 [Kapitel 4](04-bauen-und-installieren.md).
 
+## 2.9 Die `colors`-Datei im Plasma Style — besser weglassen
+
+Ein Plasma Style darf eine Datei `colors` enthalten. Sie sieht aus wie ein
+Farbschema und legt die Farben der Shell fest. Die Versuchung ist groß:
+Man hat dann die Panelfarbe fest im Griff.
+
+**Der Preis ist hoch.** Liegt dort eine `colors`, gewinnt sie gegen das
+Farbschema des Nutzers. Gemessen in der Test-VM am Anwendungsstarter,
+Farbschema *Desert* bei Plasma-Stil *Teal*:
+
+| | Flächenfarbe |
+|---|---|
+| mit `colors`-Datei | `#D8D8D0` — die Theme-Farbe, Teal |
+| ohne `colors`-Datei | `#D8D0C0` — das Farbschema, Desert |
+
+Der Nutzer kann das Farbschema wechseln, so viel er will: Die Shell bleibt
+auf den Theme-Farben stehen. **Breeze liefert aus genau diesem Grund keine
+`colors`-Datei** — nachgeprüft in `/usr/share/plasma/desktoptheme/default/`.
+
+Die Farben gehen ohne sie nicht verloren. Sie gehören ins Farbschema
+(`color-schemes/<Name>.colors`), und das Installationsskript setzt beides
+zusammen.
+
+### Was die Akzentfarbe angeht
+
+Ein verwandter, aber anderer Punkt: Die Akzentfarbe des Nutzers erreicht
+ein Theme auch dann nicht, wenn das **Farbschema** `Colors:Selection`
+ausdrücklich setzt — was jedes Schema mit eigener Farbwelt tut. Geprüft:
+`AccentColor=200,40,40` gesetzt, die Auswahl blieb Petrol.
+
+Das ist kein Fehler, sondern die Folge einer bewussten Entscheidung. Wer
+die Akzentfarbe durchreichen will, darf `Colors:Selection` nicht
+festlegen — und gibt damit die eigene Auswahlfarbe auf. Für ein Theme, das
+eine bestimmte Farbwelt nachbildet, ist das der falsche Tausch.
+
+### Einzelne Elemente dürfen fest bleiben
+
+`panel-background.svg` behält in diesem Projekt bewusst feste Farben.
+Grund: Plasma färbt Shell-Elemente aus `Colors:Window` ein, nicht aus
+`Colors:Complementary`. Ein Panel, das sich von den Plasmoid-Flächen
+abheben soll, lässt sich darüber nicht getrennt steuern — mit Klasse wurde
+es `#d8d8d0` statt `#b8c4c4`. Das ist die Ausnahme, nicht die Regel:
+25 der 37 SVGs folgen dem Farbschema.
+
 ---
 
 **Weiter:** [Kapitel 3 — Look-and-Feel-Paket](03-look-and-feel.md)

@@ -311,32 +311,6 @@ def farbschema(p, anzeige):
     return "\n".join(z)
 
 
-def style_colors(p, anzeige):
-    """Die colors-Datei IM Plasma Style - faerbt nur die Shell."""
-    z = [f"# {anzeige} - Farben der Plasma-Shell",
-         "# Complementary steuert Panel und Taskleiste.", ""]
-    for gruppe, bg, fg in [
-        ("Colors:Complementary", p["panel"],   p["text"]),
-        ("Colors:Window",        p["flaeche"], p["text"]),
-        ("Colors:View",          p["fenster"], p["text"]),
-        ("Colors:Button",        p["flaeche"], p["text"]),
-        ("Colors:Selection",     p["auswahl"], p["auswahl_text"]),
-        ("Colors:Tooltip",       p["fenster"], p["text"]),
-    ]:
-        z += [f"[{gruppe}]",
-              f"BackgroundNormal={rgb(bg)}",
-              f"BackgroundAlternate={rgb(p['flaeche'])}",
-              f"ForegroundNormal={rgb(fg)}",
-              f"ForegroundInactive={rgb(p['text2'])}",
-              f"ForegroundActive={rgb(p['auswahl'])}",
-              f"ForegroundNegative={rgb(p['fehler'])}",
-              f"ForegroundNeutral={rgb(p['warnung'])}",
-              f"ForegroundPositive={rgb(p['positiv'])}",
-              f"DecorationFocus={rgb(p['auswahl'])}",
-              f"DecorationHover={rgb(p['hover'])}", ""]
-    return "\n".join(z)
-
-
 def metadata_style(k, anzeige, beschreibung):
     return json.dumps({
         "KPlugin": {
@@ -678,7 +652,21 @@ def baue(variante, pruefen=False):
     style = HIER / "desktoptheme" / k["style"]
     schreibe(style / "metadata.json", metadata_style(k, anzeige, beschreibung), still=True)
     schreibe(style / "plasmarc", plasmarc(), still=True)
-    schreibe(style / "colors", style_colors(p, anzeige), still=True)
+    # Bewusst KEINE colors-Datei im Plasma-Stil.
+    #
+    # Liegt dort eine, gewinnt sie gegen das Farbschema des Nutzers: Die
+    # Shell zeigt dann die Theme-Farben, egal was in kdeglobals steht.
+    # Gemessen in der Test-VM am Anwendungsstarter, Farbschema Desert bei
+    # Plasma-Stil Teal:
+    #
+    #   mit colors-Datei    Flaeche #D8D8D0  (Theme-Farbe, Teal)
+    #   ohne colors-Datei   Flaeche #D8D0C0  (Farbschema, Desert)
+    #
+    # Damit erreichten weder ein Farbschemawechsel noch die Akzentfarbe
+    # des Nutzers die Shell. Breeze liefert aus demselben Grund keine.
+    #
+    # Die Farben gehen dadurch nicht verloren - sie stehen im Farbschema
+    # color-schemes/<Variante>.colors, und apply.sh setzt beides zusammen.
 
     r = subprocess.run(
         [sys.executable, str(LAB / "tools" / "gen-plasma-svg.py"),
