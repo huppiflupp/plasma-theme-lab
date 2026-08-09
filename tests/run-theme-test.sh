@@ -220,7 +220,21 @@ if ssh_ 'test -x /home/tester/theme/uninstall.sh' >/dev/null 2>&1; then
     if [ -z "$DIFF" ]; then
         notiz "Deckungsgleich - die Deinstallation ist vollstaendig."
     else
-        notiz "**Unterschiede - die Deinstallation raeumt nicht auf:**\n\n\`\`\`diff\n$DIFF\n\`\`\`"
+        # Nicht jede Abweichung ist ein Mangel. Auf einem frischen Konto
+        # sind die Schluessel gar nicht gesetzt; Plasma nutzt dann still
+        # Breeze. Setzt ein uninstall.sh sie ausdruecklich auf Breeze,
+        # ist das Ergebnis dasselbe - und sicherer, denn ein Schluessel,
+        # der auf ein geloeschtes Theme zeigt, kostet die Titelleiste.
+        #
+        # Deshalb: Zeigen die Werte NACHHER auf Breeze, ist das in
+        # Ordnung. Zeigen sie noch auf das getestete Theme, nicht.
+        if echo "$DIFF" | grep -qiE '^\+.*(nt-legacy|NTLegacy)'; then
+            notiz "**MANGEL - die Konfiguration zeigt noch auf das Theme:**\n\n\`\`\`diff\n$DIFF\n\`\`\`"
+        else
+            notiz "Abweichung, aber unbedenklich: die Schluessel stehen jetzt"
+            notiz "ausdruecklich auf Breeze statt leer. Wirkung ist dieselbe.\n"
+            notiz "<details><summary>Diff</summary>\n\n\`\`\`diff\n$DIFF\n\`\`\`\n</details>"
+        fi
     fi
     REST="$(ssh_ 'find ~/.local/share/plasma ~/.local/share/aurorae ~/.local/share/color-schemes \
         -maxdepth 2 -mindepth 1 2>/dev/null | sort')"

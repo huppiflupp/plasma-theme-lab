@@ -41,6 +41,14 @@ for d in "$DATEN"/plasma/look-and-feel/com.github.huppiflupp.nt-legacy*; do
 done
 
 rm -rf "$DATEN"/aurorae/themes/NTLegacy*      && echo "  Fensterdekorationen"
+
+# Leere Huellen aufraeumen. rmdir statt rm -rf: schlaegt fehl, wenn noch
+# etwas drin ist - genau das ist hier die Sicherung. Wer neben NT Legacy
+# ein zweites Theme installiert hat, soll es behalten.
+for d in "$DATEN"/plasma/desktoptheme "$DATEN"/plasma/look-and-feel \
+         "$DATEN"/aurorae/themes "$DATEN"/aurorae; do
+    rmdir "$d" 2>/dev/null && echo "  leeres Verzeichnis $d entfernt"
+done
 rm -rf "$DATEN"/icons/NTLegacy                 && echo "  Symbole"
 rm -rf "$DATEN"/icons/NTLegacy*_cursors         2>/dev/null || true
 rm -rf "$DATEN"/wallpapers/ntlegacy*           && echo "  Hintergrundbilder"
