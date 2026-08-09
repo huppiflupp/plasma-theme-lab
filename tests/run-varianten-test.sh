@@ -99,6 +99,16 @@ if ! $SCHNELL_NUR; then
             if [ -d "$HOME/.local/share/aurorae/themes/$d" ]; then echo "ok"
             else echo "FEHLT:$d"; fi' | tr -d '\r')
 
+        # Ein Fenster oeffnen, BEVOR das Bild entsteht.
+        #
+        # Ohne Fenster zeigt das Bildschirmfoto nur Schreibtisch und
+        # Panel - und ausgerechnet die Titelleiste fehlt, also das
+        # Merkmal, an dem sich die Varianten am staerksten unterscheiden.
+        # Der erste Lauf meldete deshalb teal-nacht, win98-nacht und
+        # win2k-nacht als praktisch identisch, obwohl ihre Titelleisten
+        # #176b78, #000080 und #0a246a sind.
+        ssh_ 'pkill dolphin 2>/dev/null; (setsid dolphin >/dev/null 2>&1 &)' >/dev/null 2>&1
+        sleep 12
         bild="$OUT/screenshots/$v.png"
         "$VMCTL" shot "$bild" >/dev/null 2>&1
         farbe=$(magick "$bild" -format "%[pixel:p{960,1050}]" info: 2>/dev/null \
