@@ -248,7 +248,67 @@ sinnvoll. KDE selbst meidet ihn bewusst und nutzt stattdessen
 [selenium-webdriver-at-spi](https://invent.kde.org/sdk/selenium-webdriver-at-spi)
 über AT-SPI2 — für ein Theme-Projekt ist das überdimensioniert.
 
-## 5.6 Was KDE selbst macht
+## 5.6 Wie andere es machen — recherchiert, nicht vermutet
+
+Die ernüchternde Erkenntnis vorweg: **Plasma-Themes werden nirgends
+visuell getestet — auch von KDE nicht.**
+
+KDE betreibt seit April 2026 eine eigene openQA-Instanz für KDE Linux
+([os-autoinst-distri-kdelinux](https://invent.kde.org/kde-linux/os-autoinst-distri-kdelinux)).
+Deren 168 Needles dienen ausschließlich der Ablaufsteuerung — UEFI-Screen,
+Plymouth, Anmeldung, „Kickoff-Symbol sichtbar". Kein einziger Test prüft
+das Erscheinungsbild eines Themes. Bei openSUSE dasselbe: eine Suche über
+`os-autoinst-distri-opensuse` nach `breeze|lookandfeel|desktoptheme|colorscheme`
+ergibt null Treffer.
+
+Auch `plasma-workspace/appiumtests/kcms/` führt in die Irre. Dateien wie
+`kcm_desktoptheme_test.py` klingen einschlägig, prüfen aber das
+Einstellungsmodul, nicht das Theme — der Desktoptheme-Test besteht im
+Kern aus zwei Zeilen, die nachsehen, ob „All themes" und „Breeze Light"
+in der Liste stehen.
+
+**Was daraus folgt:** Wer ein Theme in einer VM installiert, neu anmeldet
+und nachsieht, tut bereits mehr als die Referenzimplementierung. Die
+Messlatte liegt niedriger als erwartet — das ist kein Grund, es sich
+bequem zu machen, aber es relativiert die Frage „reicht das?".
+
+### Der eine Pixelvergleich, den KDE fährt
+
+`breeze-icons/optimize-svg.sh` rendert jedes Icon **vor und nach** der
+SVGO-Optimierung und verwirft das Ergebnis bei `compare -metric MAE > 100`.
+
+Das ist bemerkenswert, weil es kein eingechecktes Referenzbild ist,
+sondern ein Vorher/Nachher-Vergleich im selben Lauf. Damit fällt die
+Abhängigkeit von Schriftarten, Kantenglättung und Bildschirmauflösung weg
+— genau die Gründe, aus denen Golden-Image-Tests bei Oberflächen so
+zuverlässig nerven. Für ein Theme-Projekt ist das das bessere Muster.
+
+### Eine Warnung zu SVG-Optimierern
+
+SVGOs `cleanupIds` läuft in `preset-default` mit und entfernt IDs, die
+nicht intern referenziert werden. In einem Plasma-Theme sind `center`,
+`hint-tile-center` und Konsorten **nie** intern referenziert — Plasma
+sucht sie von außen. **Ein unbedachtes `svgo` über den Theme-Ordner
+zerstört das Theme vollständig.** Dieses Projekt setzt weder `svgo` noch
+`scour` ein; wer es tut, muss `cleanupIds` ausdrücklich abschalten.
+
+### Zwei Werkzeuge, die sich lohnen
+
+`plasmathemeexplorer` aus `plasma-sdk` zeigt alle Theme-Elemente als
+Raster und markiert je Element, ob es aus dem eigenen Theme kommt oder
+aus dem Breeze-Rückfall. Für die Frage „was fehlt noch?" gibt es nichts
+Besseres.
+
+Und eine Qt-Gegenprobe: Qt SVG unterstützt `<clipPath>` **nicht**
+([doc.qt.io](https://doc.qt.io/qt-6/svgextensions.html)) — der klassische
+Fall „in Inkscape schön, in Plasma kaputt". Dieselbe Datei einmal normal
+und einmal mit `QtSvg::Option::Tiny12FeaturesOnly` zu rendern und die
+Parserwarnungen mitzuschreiben, fängt eine Fehlerklasse ab, die weder
+`xmllint` noch ein eigener Linter sehen kann.
+
+---
+
+## 5.7 Was KDE selbst macht
 
 Zur Einordnung: Die CI-Konfiguration ist zentral in
 `sysadmin/ci-utilities`; die Repos binden nur Vorlagen ein. `plasma/breeze`
