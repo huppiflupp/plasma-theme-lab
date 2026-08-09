@@ -120,6 +120,45 @@ tar -caf "$DIST/nt-legacy-color-schemes-$VERSION.tar.xz" \
 printf '  %-42s %6s   (%s)\n' "nt-legacy-color-schemes-$VERSION.tar.xz" \
     "$(du -h "$DIST/nt-legacy-color-schemes-$VERSION.tar.xz" | cut -f1)" "Farbschemata, 10 Varianten"
 
+# ── Bildschirmfotos fuer die Store-Galerie ───────────────────────────────
+#
+# Sie werden hier miterzeugt und nicht von Hand hineinkopiert. Grund: Das
+# Skript raeumt dist/ zu Beginn ab. Wer die Bilder nebenher hineinlegt,
+# verliert sie beim naechsten Lauf - genau das ist einmal passiert.
+mkdir -p "$DIST/screenshots"
+anzahl=0
+for d in "$THEME"/look-and-feel/*/; do
+    n="$(basename "$d" | sed 's/com.github.huppiflupp.//')"
+    voll="$d/contents/previews/fullscreenpreview.jpg"
+    [ -f "$voll" ] || continue
+    cp "$voll" "$DIST/screenshots/$n.jpg"
+    anzahl=$((anzahl + 1))
+done
+
+# Dazu ein Uebersichtsbild: alle Varianten auf einer Kachel. Das ist in
+# einer Galerie meist das erste, was jemand ansieht - eine Reihe fast
+# gleicher Vollbilder sagt weniger als ein Bild, das die Bandbreite zeigt.
+if command -v magick >/dev/null && [ "$anzahl" -gt 0 ]; then
+    # Ausschnitt statt Vollbild: Bei zehn verkleinerten Vollbildern sind
+    # die Fenster briefmarkengross und man erkennt weder Titelleiste noch
+    # Symbole - also gerade das, was die Varianten unterscheidet. Der
+    # Ausschnitt sitzt dort, wo die Fenster stehen.
+    #
+    # Raster 5x2 statt 4x: bei zehn Bildern bliebe sonst eine Reihe zur
+    # Haelfte leer.
+    tmp="$(mktemp -d)"
+    for b in "$DIST"/screenshots/*.jpg; do
+        magick "$b" -gravity center -crop 58%x58%+0-30 +repage \
+               -resize 560x315^ -gravity center -extent 560x315 \
+               "$tmp/$(basename "$b")" 2>/dev/null
+    done
+    magick montage "$tmp"/*.jpg -tile 5x2 -geometry +6+6 \
+        -background "#3a4446" "$DIST/screenshots/00-uebersicht.jpg" 2>/dev/null \
+        && anzahl=$((anzahl + 1))
+    rm -rf "$tmp"
+fi
+echo "  screenshots/                               $(du -sh "$DIST/screenshots" | cut -f1)   ($anzahl Bilder)"
+
 # ── Pruefsummen ──────────────────────────────────────────────────────────
 (cd "$DIST" && sha256sum *.tar.xz > SHA256SUMS)
 

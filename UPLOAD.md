@@ -66,12 +66,21 @@ Fensterdekoration, Mauszeiger und Hintergründe sind vollständig erzeugt
 `gen-cursor.py`). Details in `nt-legacy/ATTRIBUTION.md`. Chicago95 ist
 ausdrücklich **nicht** enthalten — dessen Lizenzlage ist ungeklärt.
 
-**Screenshots:** liegen in `dist/screenshots/`, zehn Vollbilder in
-1920×1080, je Variante eines. Jedes zeigt vier Programme (Konsole,
-KolourPaint, Dragon Player, PCManFM-Qt), englische Oberfläche.
+**Screenshots:** liegen in `dist/screenshots/` und werden von
+`mach-paket.sh` miterzeugt:
 
-Für die Übersicht am besten `nt-legacy.jpg` (Petrol) als erstes Bild —
-das ist die Grundfassung.
+| Datei | Maße | Zweck |
+|---|---|---|
+| `00-uebersicht.jpg` | 2860×654 | alle zehn Varianten auf einem Bild |
+| `nt-legacy.jpg` | 1920×1080 | Petrol — die Grundfassung |
+| `nt-legacy-*.jpg` | 1920×1080 | je eine Variante |
+
+Jedes Vollbild zeigt vier Programme (Konsole, KolourPaint, Dragon Player,
+PCManFM-Qt) mit englischer Oberfläche.
+
+**Reihenfolge in der Galerie:** `00-uebersicht.jpg` zuerst — es zeigt die
+Bandbreite auf einen Blick, und danach entscheidet sich, ob jemand
+weiterklickt. Dann `nt-legacy.jpg` als Grundfassung, dann die übrigen.
 
 **Abhängigkeiten**, die in die Beschreibung gehören:
 
