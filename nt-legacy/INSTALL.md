@@ -29,7 +29,7 @@ The archive `nt-legacy-<version>.tar.xz` contains all six layers of the
 theme at once.
 
 ```bash
-tar -xf nt-legacy-0.2.3.tar.xz
+tar -xf nt-legacy-0.2.4.tar.xz
 cd nt-legacy
 ./install.sh
 ```
@@ -63,8 +63,8 @@ can unpack the archive by hand:
 
 | Archive | Destination |
 |---|---|
-| `…-global-themes-…` | `~/.local/share/plasma/look-and-feel/` |
-| `…-plasma-styles-…` | `~/.local/share/plasma/desktoptheme/` |
+| `…-global-theme-<palette>-…` | `~/.local/share/plasma/look-and-feel/` |
+| `…-plasma-style-<palette>-…` | `~/.local/share/plasma/desktoptheme/` |
 | `…-window-decorations-…` | `~/.local/share/aurorae/themes/` |
 | `…-icons-…` | `~/.local/share/icons/` |
 | `…-cursors-…` | `~/.local/share/icons/` |

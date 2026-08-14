@@ -12,13 +12,13 @@ Historie nur auf.
 
 ```
 dist/
-├── nt-legacy-0.2.3.tar.xz                      2,3 MB   Gesamtpaket
-├── nt-legacy-global-theme-<farbwelt>-0.2.3.tar.xz       10 Stück
-├── nt-legacy-plasma-style-<farbwelt>-0.2.3.tar.xz       10 Stück
-├── nt-legacy-icons-0.2.3.tar.xz                184 KB
-├── nt-legacy-window-decorations-0.2.3.tar.xz    12 KB
-├── nt-legacy-cursors-0.2.3.tar.xz               12 KB
-├── nt-legacy-color-schemes-0.2.3.tar.xz        4,0 KB
+├── nt-legacy-0.2.4.tar.xz                      2,3 MB   Gesamtpaket
+├── nt-legacy-global-theme-<farbwelt>-0.2.4.tar.xz       10 Stück
+├── nt-legacy-plasma-style-<farbwelt>-0.2.4.tar.xz       10 Stück
+├── nt-legacy-icons-0.2.4.tar.xz                200 KB   (hell und Nachtfassung)
+├── nt-legacy-window-decorations-0.2.4.tar.xz    12 KB
+├── nt-legacy-cursors-0.2.4.tar.xz               12 KB
+├── nt-legacy-color-schemes-0.2.4.tar.xz        4,0 KB
 ├── screenshots/                                 16 Bilder (10 + 5 Tag/Nacht + Übersicht)
 └── SHA256SUMS
 ```
@@ -76,7 +76,7 @@ Verweisen — ein ZIP würde daraus Kopien machen.
 
 | Datei | Kategorie im Store | Systemeinstellungen |
 |---|---|---|
-| `nt-legacy-0.2.3.tar.xz` | **Global Themes** | (manuell, mit `install.sh`) |
+| `nt-legacy-0.2.4.tar.xz` | **Global Themes** | (manuell, mit `install.sh`) |
 | `nt-legacy-global-theme-<farbwelt>-…` (10×) | Global Themes | Erscheinungsbild → Globales Design |
 | `nt-legacy-plasma-style-<farbwelt>-…` (10×) | Plasma Themes | Erscheinungsbild → Plasma-Stil |
 | `nt-legacy-window-decorations-…` | Window Decorations | Erscheinungsbild → Fensterdekorationen |
