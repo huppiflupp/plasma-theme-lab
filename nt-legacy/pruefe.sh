@@ -74,7 +74,16 @@ if $SYSTEM; then
     for z in NTLegacy_cursors NTLegacyRot_cursors; do
         [ -d "$DATEN/icons/$z" ] || meld "installiert: $z"
     done
-    [ -d "$DATEN/icons/NTLegacy" ] || meld "installiert: Icon-Theme NTLegacy"
+    # Beide Symbolsaetze. Der Nachtsatz traegt dieselben Bilder, erbt aber
+    # von breeze-dark - fehlt er, faellt jede Nachtfassung auf den hellen
+    # Satz zurueck und der halbe Systemabschnitt wird unsichtbar.
+    for satz in NTLegacyIcons NTLegacyIconsNacht; do
+        [ -d "$DATEN/icons/$satz" ] || meld "installiert: Icon-Theme $satz"
+    done
+    if [ -f "$DATEN/icons/NTLegacyIconsNacht/index.theme" ] && \
+       ! grep -q '^Inherits=breeze-dark' "$DATEN/icons/NTLegacyIconsNacht/index.theme"; then
+        meld "NTLegacyIconsNacht erbt nicht von breeze-dark"
+    fi
 
     # Steht das Icon-Thema wirklich in kdeglobals?
     #

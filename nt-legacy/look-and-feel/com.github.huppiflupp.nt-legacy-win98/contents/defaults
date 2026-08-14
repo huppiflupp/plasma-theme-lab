@@ -5,7 +5,7 @@ widgetStyle=Windows
 ColorScheme=NTLegacyWin98
 
 [kdeglobals][Icons]
-Theme=NTLegacy
+Theme=NTLegacyIcons
 
 [kcminputrc][Mouse]
 cursorTheme=NTLegacy_cursors

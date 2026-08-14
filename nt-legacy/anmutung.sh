@@ -38,6 +38,11 @@ EINSTELLUNGEN=(
   # Ohne diesen Eintrag findet pcmanfm-qt das Icon-Thema nicht und faellt
   # auf oxygen zurueck - mitten im NT-Theme.
   "pcmanfm-qt/default/settings.conf:System:FallbackIconThemeName:NTLegacy:Icon-Thema fuer PCManFM-Qt"
+  # Konsole auf das mitgelieferte Profil: Liberation Mono und ein
+  # Farbschema aus den Farben der jeweiligen Fassung. install.sh legt
+  # beides nur ab, aktiviert wird es erst hier. Das eigene Profil des
+  # Nutzers bleibt bestehen und ist im Menue weiter waehlbar.
+  "konsolerc:Desktop Entry:DefaultProfile:NT Legacy.profile:Konsole nutzt das NT-Profil"
 )
 
 zeigen() {

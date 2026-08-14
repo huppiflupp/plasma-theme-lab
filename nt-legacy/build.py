@@ -33,7 +33,7 @@ EMAIL = "huppiflupp@users.noreply.github.com"
 WEBSITE = "https://github.com/huppiflupp/NiceOS9-theme"
 LIZENZ = "GPL-2.0-or-later"
 SCHRIFT = "Noto Sans"
-VERSION = "0.2.0"
+VERSION = "0.2.3"
 
 # --------------------------------------------------------------------------
 # Farben. Einzige Stelle, an der sie stehen.
@@ -226,6 +226,23 @@ def ids(variante):
         # und ihre index.theme-Dateien ueberschreiben sich gegenseitig -
         # danach findet Plasma keine Icons mehr.
         "cursor":    kurz + "_cursors",
+        # Zwei Symbolsaetze mit denselben Bildern, aber verschiedener
+        # Rueckfallkette.
+        #
+        # Unser Satz deckt 146 Namen ab; alles andere im Panel kommt aus
+        # dem geerbten Theme - Aktualisierung, Zwischenablage,
+        # Helligkeit, Netzwerk, Akku. Breeze zeichnet die in #232629.
+        # Auf dem hellen NT-Panel ist das richtig, auf dem dunklen der
+        # Nachtfassungen stand damit Dunkelgrau auf Dunkelgrau: gemessen
+        # #2C3233 auf #151A1B, also 1,3:1. In der Test-VM war der halbe
+        # Systemabschnitt schlicht nicht zu sehen.
+        #
+        # Die Nachtfassungen erben deshalb von breeze-dark. Die Bilder
+        # sind in beiden Saetzen dieselben - nur die Kette dahinter
+        # unterscheidet sich. Ein zweites Theme statt eines geaenderten
+        # Inherits, weil ein Icon-Theme seine Kette nicht je nach
+        # Farbschema wechseln kann.
+        "icons":     "NTLegacyIcons" + ("Nacht" if variante.endswith("-nacht") else ""),
     }
 
 
@@ -311,6 +328,185 @@ def farbschema(p, anzeige):
     return "\n".join(z)
 
 
+def _kanaele(hexwert):
+    h = hexwert.lstrip("#")
+    return [int(h[i:i + 2], 16) for i in (0, 2, 4)]
+
+
+def luminanz(hexwert):
+    """Relative Helligkeit nach WCAG - Grundlage jeder Kontrastrechnung."""
+    def lin(c):
+        c /= 255
+        return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (lin(c) for c in _kanaele(hexwert))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def kontrast(a, b):
+    """Kontrastverhaeltnis zweier Farben, 1:1 bis 21:1."""
+    la, lb = luminanz(a), luminanz(b)
+    hell, dunkel = max(la, lb), min(la, lb)
+    return (hell + 0.05) / (dunkel + 0.05)
+
+
+def _hsl(hexwert):
+    r, g, b = (c / 255 for c in _kanaele(hexwert))
+    hoch, tief = max(r, g, b), min(r, g, b)
+    l = (hoch + tief) / 2
+    if hoch == tief:
+        return 0.0, 0.0, l
+    d = hoch - tief
+    s = d / (2 - hoch - tief) if l > 0.5 else d / (hoch + tief)
+    if hoch == r:
+        h = ((g - b) / d) % 6
+    elif hoch == g:
+        h = (b - r) / d + 2
+    else:
+        h = (r - g) / d + 4
+    return h / 6, s, l
+
+
+def _hex(h, s, l):
+    def kanal(p, q, t):
+        t %= 1
+        if t < 1 / 6:
+            return p + (q - p) * 6 * t
+        if t < 1 / 2:
+            return q
+        if t < 2 / 3:
+            return p + (q - p) * (2 / 3 - t) * 6
+        return p
+    if s == 0:
+        r = g = b = l
+    else:
+        q = l * (1 + s) if l < 0.5 else l + s - l * s
+        p = 2 * l - q
+        r, g, b = kanal(p, q, h + 1 / 3), kanal(p, q, h), kanal(p, q, h - 1 / 3)
+    return "#" + "".join(f"{round(c * 255):02x}" for c in (r, g, b))
+
+
+def fuer_dunkel(hexwert, grund, ziel):
+    """Hebt eine Farbe an, bis sie auf 'grund' das Kontrastziel erreicht.
+
+    Der Grund, warum es diese Funktion gibt: Die Akzentfarben des Themes
+    sind fuer HELLE Flaechen gemacht - dunkles Marineblau auf Systemgrau.
+    Im Terminal sitzen sie auf dunklem Grund, und dort verschwinden sie.
+    Der erste Anlauf hatte genau dieses Problem: #000080 auf #1e2628 ist
+    ein Kontrast von 1,1:1, also praktisch unsichtbar.
+
+    Angehoben wird die Helligkeit in HSL, nicht Richtung Weiss gemischt.
+    Mischen entsaettigt: aus Petrol wuerde Graublau. So bleibt der
+    Farbton erhalten, und die Farbwelt bleibt erkennbar.
+
+    4,5:1 ist die WCAG-Schwelle fuer Fliesstext, 7:1 die strengere. Sie
+    hier anzuwenden ist kein Formalismus - Terminalausgabe IST Fliesstext,
+    und sie wird stundenlang gelesen.
+    """
+    h, s, l = _hsl(hexwert)
+    # Untergrenze fuer die Saettigung: sonst wird aus einem ohnehin
+    # blassen Ton beim Aufhellen ein weisser Fleck ohne Farbe.
+    #
+    # Nur fuer Farben, die ueberhaupt einen Ton haben. Sonst bekaeme das
+    # fast neutrale Schwarz des Themes beim Anheben einen Blaustich und
+    # aus Color0 wuerde ein blaugrauer Fleck statt eines Graus.
+    if s > 0.12:
+        s = max(s, 0.35)
+    for schritt in range(101):
+        kandidat = _hex(h, s, min(1.0, l + schritt / 100))
+        if kontrast(kandidat, grund) >= ziel:
+            return kandidat
+    return "#ffffff"
+
+
+def konsole_schema(p_nacht, p, anzeige):
+    """Ein Konsole-Farbschema je Farbwelt.
+
+    Grund und Text kommen aus der NACHTfassung, auch fuer die hellen
+    Varianten: ein Terminal ist dunkel, das war unter NT nicht anders.
+    Die acht ANSI-Farben kommen aus den Akzenten der Farbwelt - und die
+    sind zwischen Tag und Nacht identisch (siehe NACHT_BASIS oben).
+    Deshalb gibt es fuenf Schemata und nicht zehn: Tag- und Nachtfassung
+    derselben Farbwelt ergaeben Zeichen fuer Zeichen dieselbe Datei.
+
+    Color0 bis Color7 sind die klassische Reihe: schwarz, rot, gruen,
+    gelb, blau, magenta, cyan, weiss. Diese Bedeutungen sind nicht
+    verhandelbar - `ls` faerbt Verzeichnisse blau und Verweise cyan, und
+    wer dort die Akzentfarbe des Themes einsetzt, macht aus einem
+    Verweis einen goldenen Fleck. Deshalb nur dort eine Themefarbe, wo
+    sie auch semantisch passt: rot, gruen, gelb und blau. Magenta und
+    Cyan behalten ihren Ton.
+
+    Jede Farbe wird anschliessend so weit angehoben, dass sie auf dem
+    Terminalgrund lesbar ist - siehe fuer_dunkel().
+    """
+    grund = p_nacht["fenster"]
+    reihe = [
+        # Schwarz bleibt dunkel, muss aber vom Grund unterscheidbar sein:
+        # manche Programme setzen damit abgeblendeten Text. Bei 1,1:1
+        # waere er schlicht weg.
+        ("Color0", p_nacht["dunkel"], 2.2),
+        ("Color1", p["fehler"], 4.5),
+        ("Color2", p["positiv"], 4.5),
+        ("Color3", p["warnung"], 4.5),
+        ("Color4", p["kopf_aktiv"], 4.5),
+        ("Color5", "#800080", 4.5),   # VGA-Magenta, nur angehoben
+        ("Color6", "#008080", 4.5),   # VGA-Cyan
+        ("Color7", p_nacht["text"], 4.5),
+    ]
+    teile = [
+        f"[Background]\nColor={rgb(grund)}\n",
+        f"[BackgroundIntense]\nColor={rgb(p_nacht['flaeche'])}\n",
+        f"[Foreground]\nColor={rgb(p_nacht['text'])}\n",
+        f"[ForegroundIntense]\nColor={rgb(fuer_dunkel(p_nacht['text'], grund, 10))}\n",
+    ]
+    for name, wert, ziel in reihe:
+        teile.append(f"[{name}]\nColor={rgb(fuer_dunkel(wert, grund, ziel))}\n")
+        # Die Intense-Reihe eine Stufe heller. 7:1 ist die strengere
+        # WCAG-Schwelle; bei Schwarz waere sie sinnlos, dort reicht es,
+        # dass der Ton ueberhaupt als Grau erkennbar wird.
+        teile.append(f"[{name}Intense]\n"
+                     f"Color={rgb(fuer_dunkel(wert, grund, 4.5 if ziel < 4.5 else 7))}\n")
+    teile.append(
+        "[General]\n"
+        "Blur=false\n"
+        "ColorRandomization=false\n"
+        f"Description={anzeige}\n"
+        "Opacity=1\n"
+        "Wallpaper=\n"
+    )
+    return "\n".join(teile)
+
+
+def konsole_profil(schema):
+    """Das Konsole-Profil - eines fuer alle Fassungen.
+
+    Zehn Profile waeren zehn Eintraege im Auswahlmenue, die sich nur in
+    einer Zeile unterscheiden. Stattdessen ein Profil, dessen
+    ColorScheme apply.sh auf die gewaehlte Farbwelt umstellt.
+
+    Liberation Mono, nicht die huebschere Programmiererschrift: sie ist
+    metrisch Courier-kompatibel und auf praktisch jedem Linux vorhanden.
+    Ein Theme darf keine Schrift voraussetzen, die es nicht mitbringt -
+    fehlt sie, ersetzt Qt sie stillschweigend, und der Nutzer sieht ein
+    Terminal, das nicht nach NT aussieht, ohne zu wissen warum.
+    """
+    return (
+        "[Appearance]\n"
+        f"ColorScheme={schema}\n"
+        "Font=Liberation Mono,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1\n"
+        "\n"
+        "[General]\n"
+        "Name=NT Legacy\n"
+        "Parent=FALLBACK/\n"
+        "TerminalColumns=90\n"
+        "TerminalRows=28\n"
+        "\n"
+        "[Scrolling]\n"
+        "HistoryMode=2\n"
+        "ScrollBarPosition=1\n"
+    )
+
+
 def metadata_style(k, anzeige, beschreibung):
     return json.dumps({
         "KPlugin": {
@@ -356,6 +552,13 @@ def defaults(k):
     Achtung: Das Icon-Theme wirkt ueber diesen Weg NICHT zuverlaessig -
     install.sh setzt es zusaetzlich hart. Plasma Style, Farbschema und
     Anwendungsstil greifen dagegen wie erwartet. Gemessen in der Test-VM.
+
+    Der Name muss trotzdem stimmen. Hier stand lange NTLegacy - das ist
+    das optionale Chicago95-Set, das gar nicht ausgeliefert wird.
+    Ausgeliefert wird NTLegacyIcons. Wer das Design ueber die
+    Systemeinstellungen wechselte statt ueber apply.sh, bekam damit ein
+    Icon-Theme gesetzt, das es auf seinem Rechner nicht gibt - und sah
+    weiter die alten Symbole. Auf dem Hostsystem belegt.
     """
     return f"""[kdeglobals][KDE]
 widgetStyle=Windows
@@ -364,7 +567,7 @@ widgetStyle=Windows
 ColorScheme={k['schema']}
 
 [kdeglobals][Icons]
-Theme=NTLegacy
+Theme={k['icons']}
 
 [kcminputrc][Mouse]
 cursorTheme=NTLegacy_cursors
@@ -695,6 +898,15 @@ def baue(variante, pruefen=False):
              farbschema(p, anzeige), still=True)
     print(f"  color-schemes/{k['schema']}.colors")
 
+    # Konsole-Farbschema - nur einmal je Farbwelt, an der hellen Fassung.
+    # Siehe konsole_schema(): Tag und Nacht ergaeben dieselbe Datei.
+    if not variante.endswith("-nacht"):
+        nacht = f"{variante}-nacht"
+        if nacht in VARIANTEN:
+            schreibe(HIER / "konsole" / f"{k['schema']}.colorscheme",
+                     konsole_schema(palette(nacht), p, anzeige), still=True)
+            print(f"  konsole/{k['schema']}.colorscheme")
+
     r = subprocess.run(
         [sys.executable, str(LAB / "tools" / "gen-aurorae.py"),
          "--name", k["aurorae"], "--anzeige", anzeige,
@@ -779,6 +991,12 @@ def main():
         if not baue(v, args.pruefen):
             return 1
 
+    # Das Konsole-Profil, eines fuer alle. Die Vorgabe zeigt auf die
+    # Grundfassung; apply.sh stellt die Zeile auf die gewaehlte Farbwelt
+    # um, sobald anmutung.sh das Profil aktiviert hat.
+    schreibe(HIER / "konsole" / "NT Legacy.profile",
+             konsole_profil(VARIANTEN["teal"]["kurz"]))
+
     # Zeiger einmal fuer alle Varianten. Sie unterscheiden sich nur in
     # weiss und rot - je Farbwelt ein eigenes Thema waere Ballast im
     # Auswahldialog, ohne dass man einen Unterschied saehe.
@@ -802,6 +1020,18 @@ def main():
              str(icons)], capture_output=True, text=True)
         zeile = r.stdout.strip().splitlines()
         print(f"\nSymbolische Aliase: {zeile[0] if zeile else '—'}")
+
+    # Die Nachtfassung des Symbolsatzes. Reine Ableitung aus dem hellen
+    # Satz - dieselben Bilder, nur breeze-dark als Rueckfall. Deshalb
+    # steht sie nicht im Repo, sondern entsteht bei jedem Bau neu.
+    hell = HIER / "icons-nt" / "NTLegacyIcons"
+    if hell.is_dir():
+        r = subprocess.run(
+            [sys.executable, str(LAB / "tools" / "mach-nacht-symbole.py"),
+             str(hell)], capture_output=True, text=True)
+        print("\nSymbole fuer die Nachtfassungen:")
+        print(r.stdout.rstrip() if r.returncode == 0
+              else "  FEHLER: " + (r.stderr.strip().splitlines() or ["?"])[-1])
 
     print(f"\nFertig ({len(welche)} Varianten). Installieren: ./install.sh")
     return 0

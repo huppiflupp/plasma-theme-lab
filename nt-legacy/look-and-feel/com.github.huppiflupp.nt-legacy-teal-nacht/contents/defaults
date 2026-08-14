@@ -5,7 +5,7 @@ widgetStyle=Windows
 ColorScheme=NTLegacyNacht
 
 [kdeglobals][Icons]
-Theme=NTLegacy
+Theme=NTLegacyIconsNacht
 
 [kcminputrc][Mouse]
 cursorTheme=NTLegacy_cursors

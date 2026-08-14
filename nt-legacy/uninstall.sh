@@ -54,6 +54,17 @@ rm -rf "$DATEN"/icons/NTLegacy*_cursors         2>/dev/null || true
 rm -rf "$DATEN"/wallpapers/ntlegacy*           && echo "  Hintergrundbilder"
 rm -f  "$DATEN"/color-schemes/NTLegacy*.colors && echo "  Farbschemata"
 
+# Konsole: erst konsolerc zuruecksetzen, dann die Dateien loeschen.
+# Zeigt DefaultProfile auf ein geloeschtes Profil, startet Konsole zwar,
+# faellt aber auf ein leeres Standardprofil zurueck - inklusive
+# verlorener Fenstergroesse und Verlaufslaenge.
+if [ "$(kreadconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile 2>/dev/null)" = "NT Legacy.profile" ]; then
+    kwriteconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile --delete
+    echo "  Konsole zurueck auf ihr Standardprofil"
+fi
+rm -f "$DATEN"/konsole/NTLegacy*.colorscheme "$DATEN/konsole/NT Legacy.profile" \
+    && echo "  Konsole-Profil und -Farbschemata"
+
 rm -f "$HOME/.cache/plasma_theme_"*.kcache "$HOME/.cache/ksvg-elements"
 
 cat <<TEXT

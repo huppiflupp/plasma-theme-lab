@@ -97,7 +97,8 @@ install -Dm644 "$HIER/color-schemes/"*.colors -t "$DATEN/color-schemes/"
 if [ -d "$HIER/icons" ]; then
     echo "Symbole (Chicago95, optional) …"
     mkdir -p "$DATEN/icons"
-    cp -r "$HIER/icons/"* "$DATEN/icons/"
+    rm -rf "$DATEN/icons/NTLegacy"
+    cp -a "$HIER/icons/"* "$DATEN/icons/"
     # Ohne aktualisierten Cache zeigt Plasma teils noch die alten Symbole
     command -v gtk-update-icon-cache >/dev/null && \
         gtk-update-icon-cache -q -t -f "$DATEN/icons/NTLegacy" 2>/dev/null || true
@@ -109,16 +110,51 @@ fi
 # Chicago95 bleibt daneben waehlbar, wenn es installiert wurde.
 if [ -d "$HIER/icons-nt" ]; then
     echo "Symbole (NTLegacyIcons) …"
+    # Die Nachtfassung steht nicht im Repo - sie ist eine Ableitung und
+    # entsteht sonst in build.py. Wer direkt aus einem Klon installiert,
+    # hat sie noch nicht; ohne sie zeigen die Nachtvarianten auf ein
+    # Symbolthema, das es auf dem Rechner nicht gibt.
+    if [ ! -d "$HIER/icons-nt/NTLegacyIconsNacht" ] && \
+       [ -f "$HIER/../tools/mach-nacht-symbole.py" ]; then
+        python3 "$HIER/../tools/mach-nacht-symbole.py" \
+            "$HIER/icons-nt/NTLegacyIcons" >/dev/null 2>&1 || true
+    fi
     mkdir -p "$DATEN/icons"
-    cp -r "$HIER/icons-nt/"* "$DATEN/icons/"
-    command -v gtk-update-icon-cache >/dev/null && \
-        gtk-update-icon-cache -q -t -f "$DATEN/icons/NTLegacyIcons" 2>/dev/null || true
+    # Erst das alte Verzeichnis weg, dann kopieren.
+    #
+    # Ein blosses "cp -r" darueber folgt den Verweisen der vorherigen
+    # Installation: Fast die Haelfte des Satzes besteht aus Symlinks, und
+    # cp schreibt DURCH sie hindurch in die Zieldatei. So hat ein neues
+    # start-here.png das Zahnrad von applications-system ueberschrieben -
+    # danach zeigten Starter und Systemeinstellungen wieder dasselbe
+    # Symbol, nur diesmal beide das falsche.
+    rm -rf "$DATEN/icons/NTLegacyIcons" "$DATEN/icons/NTLegacyIconsNacht"
+    cp -a "$HIER/icons-nt/"* "$DATEN/icons/"
+    for satz in NTLegacyIcons NTLegacyIconsNacht; do
+        [ -d "$DATEN/icons/$satz" ] || continue
+        command -v gtk-update-icon-cache >/dev/null && \
+            gtk-update-icon-cache -q -t -f "$DATEN/icons/$satz" 2>/dev/null || true
+    done
 fi
 
 if [ -d "$HIER/cursors" ]; then
     echo "Mauszeiger …"
     mkdir -p "$DATEN/icons"
-    cp -r "$HIER/cursors/"* "$DATEN/icons/"
+    # Auch hier erst raeumen: Ein Zeigerthema besteht zur Haelfte aus
+    # Verweisen (left_ptr -> default und so weiter), und cp -r schriebe
+    # durch sie hindurch. Siehe die Begruendung bei den Symbolen oben.
+    rm -rf "$DATEN"/icons/NTLegacy_cursors "$DATEN"/icons/NTLegacyRot_cursors
+    cp -a "$HIER/cursors/"* "$DATEN/icons/"
+fi
+
+if [ -d "$HIER/konsole" ]; then
+    # Nur ablegen, nicht aktivieren. Konsole zeigt Profil und Schemata
+    # danach zur Auswahl an; umgestellt wird erst durch anmutung.sh -
+    # Konsole ist ein fremdes Programm, und wer ein Design ausprobiert,
+    # rechnet nicht damit, dass hinterher sein Terminal anders aussieht.
+    echo "Konsole-Profil und -Farbschemata (nur ablegen) …"
+    mkdir -p "$DATEN/konsole"
+    cp -r "$HIER/konsole/"* "$DATEN/konsole/"
 fi
 
 if [ -d "$HIER/wallpapers" ]; then
@@ -145,7 +181,16 @@ done
 # Anwendungsstil greifen so), beim Icon-Theme aber nicht - gemessen: mit
 # Fallback blieben Breeze-Icons stehen, erst kwriteconfig6 brachte die
 # Symbolset. Die alten Werte liegen in der Sicherung oben.
-kwriteconfig6 --file kdeglobals --group Icons --key Theme NTLegacyIcons
+#
+# Wer schon eine Nachtfassung faehrt, behaelt ihren Satz. Sonst wuerfe ein
+# blosses Update ihn auf den hellen zurueck - und im Panel staende danach
+# wieder Dunkelgrau auf Dunkelgrau, ohne dass jemand etwas geaendert haette.
+AKTUELL=$(kreadconfig6 --file kdeglobals --group Icons --key Theme 2>/dev/null)
+case "$AKTUELL" in
+    NTLegacyIconsNacht) SATZ=NTLegacyIconsNacht ;;
+    *)                  SATZ=NTLegacyIcons ;;
+esac
+kwriteconfig6 --file kdeglobals --group Icons --key Theme "$SATZ"
 
 # Der Render-Cache traegt die Themeversion im Namen. Ohne Loeschen sieht
 # man nach einem Update das alte Theme und sucht den Fehler woanders.

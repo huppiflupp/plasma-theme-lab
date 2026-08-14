@@ -6,19 +6,39 @@
 #   ./apply.sh desert       # Wueste
 #   ./apply.sh teal-nacht   # Nachtfassung (auch lilac-nacht, desert-nacht)
 #   ./apply.sh teal --rot   # mit rotem Mauszeiger
+#   ./apply.sh teal --panel # dazu das NT-Panel (ersetzt das vorhandene)
 #
 # Warum es dieses Skript gibt:
 #
-# Ein Look-and-Feel-Paket bringt seine Vorgaben in contents/defaults mit,
-# und in der Theorie zieht Plasma sie daraus. In der Praxis - gemessen in
-# der Test-VM ueber mehrere Sitzungsneustarts - greift davon nichts
-# zuverlaessig: plasmarc/Theme, kdeglobals/ColorScheme, widgetStyle und
-# Icons/Theme blieben leer, obwohl LookAndFeelPackage korrekt gesetzt war
-# und die defaults-Datei die richtigen Werte enthielt.
+# Hier stand lange, Plasma ziehe die Vorgaben aus contents/defaults nicht
+# zuverlaessig - "gemessen in der Test-VM, alle Schluessel blieben leer".
+# Das war ein MESSFEHLER, nachgeprueft am 9.8.2026:
 #
-# Deshalb setzt dieses Skript jede Ebene ausdruecklich. Das ist
-# unschoen, aber es ist der Unterschied zwischen "Theme wirkt" und
-# "Theme wirkt nicht".
+# Plasma stellt der Konfigurationskaskade beim Sitzungsstart
+# ~/.config/kdedefaults voran (XDG_CONFIG_DIRS). Beim Anwenden eines
+# Globalen Designs landen die Werte genau dort - als Vorgaben, nicht als
+# Nutzerwerte (libklookandfeel/klookandfeelmanager.cpp, writeNewDefaults:
+# Vorgabe schreiben, dann revertToDefault auf den Nutzerwert).
+#
+# Wer per SSH misst, hat dieses Verzeichnis NICHT in der Kaskade. Dann
+# liefert kreadconfig6 leere Werte, obwohl alles korrekt gesetzt ist.
+# Genau so ist die falsche Diagnose entstanden.
+#
+# Mit richtiger Kaskade gemessen setzt "plasma-apply-lookandfeel --apply"
+# allein jede Ebene: ColorScheme, widgetStyle, plasmarc/Theme, Icons,
+# Mauszeiger, Fensterdekoration, Startbildschirm - und die Farbwerte
+# landen in kdeglobals.
+#
+# Zweite Folgerung daraus: Die kwriteconfig6-Aufrufe unten schreiben
+# NICHTS, solange der Wert der Vorgabe entspricht - KConfig speichert
+# keinen Eintrag, der dem kaskadierten Default gleicht. In der Test-VM
+# nachgewiesen: nach 'kwriteconfig6 ... widgetStyle Windows' stand der
+# Schluessel weiterhin nur in kdedefaults, nicht in kdeglobals.
+#
+# Sie bleiben trotzdem stehen, weil sie greifen, wenn die Vorgabe fehlt
+# oder abweicht - etwa nach einer Installation ueber "Neue holen …",
+# bei der es gar kein Globales Design gibt. Schaden koennen sie nicht:
+# was gleich ist, wird nicht geschrieben.
 
 set -euo pipefail
 
@@ -26,9 +46,11 @@ HIER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VARIANTE="${1:-teal}"
 ROT=false
 SCHRIFT=false
+PANEL=false
 for arg in "$@"; do
     [[ "$arg" == "--rot" ]] && ROT=true
     [[ "$arg" == "--schrift" ]] && SCHRIFT=true
+    [[ "$arg" == "--panel" ]] && PANEL=true
 done
 [[ "$VARIANTE" == --* ]] && VARIANTE="teal"
 
@@ -36,6 +58,14 @@ done
 # Frueher standen sie doppelt - beim Hinzufuegen von win98/win2k wurde nur
 # build.py gepflegt, und die neuen Varianten waren ueber apply.sh gar
 # nicht erreichbar. Eine Wahrheit, kein Abgleich noetig.
+#
+# Mitgeliefert wird auch das Tag/Nacht-Gegenstueck derselben Farbwelt.
+# Plasma hat seit 6 einen eingebauten Umschalter (kded-Modul
+# lookandfeelautoswitcher), der nach Sonnenauf- und -untergang zwischen
+# DefaultLightLookAndFeel und DefaultDarkLookAndFeel wechselt. Traegt man
+# dort ein gemischtes Paar ein, springt der Rechner abends von einer
+# Farbwelt in eine andere - auf dem Entwicklungsrechner stand so
+# 'desert' als helle und 'teal-nacht' als dunkle Fassung.
 KENNUNG=$(cd "$HIER" && python3 -c "
 import importlib.util, sys
 s = importlib.util.spec_from_file_location('b', 'build.py')
@@ -45,7 +75,15 @@ if v not in m.VARIANTEN:
     print('UNBEKANNT ' + ' '.join(sorted(m.VARIANTEN)))
 else:
     i = m.ids(v)
-    print(i['schema'], i['style'], i['lnf'])
+    # Das Paar: Grundlage ist die Farbwelt ohne '-nacht'.
+    basis = v[:-len('-nacht')] if v.endswith('-nacht') else v
+    hell = m.ids(basis)['lnf'] if basis in m.VARIANTEN else ''
+    dunkel = m.ids(basis + '-nacht')['lnf'] if basis + '-nacht' in m.VARIANTEN else ''
+    # Das Konsole-Farbschema gibt es je Farbwelt, nicht je Fassung -
+    # deshalb der Kurzname der hellen Fassung, auch fuer die Nacht.
+    konsole = m.ids(basis)['schema'] if basis in m.VARIANTEN else ''
+    print(i['schema'], i['style'], i['lnf'], hell or '-', dunkel or '-',
+          konsole or '-', i['icons'])
 " "$VARIANTE")
 
 if [ "${KENNUNG%% *}" = "UNBEKANNT" ]; then
@@ -53,7 +91,7 @@ if [ "${KENNUNG%% *}" = "UNBEKANNT" ]; then
     echo "Moeglich: ${KENNUNG#UNBEKANNT }" >&2
     exit 1
 fi
-read -r KURZ STYLE LNF <<< "$KENNUNG"
+read -r KURZ STYLE LNF LNF_HELL LNF_DUNKEL KONSOLE SYMBOLE <<< "$KENNUNG"
 
 # Trockenlauf: nur pruefen, ob die Variante existiert, nichts anwenden.
 # Wird von pruefe.sh genutzt.
@@ -81,14 +119,107 @@ fi
 
 if $ROT; then echo "Wende an: $KURZ (roter Zeiger)"; else echo "Wende an: $KURZ"; fi
 
-# Globales Design zuerst - es setzt den Rahmen, den Rest praezisieren wir
-plasma-apply-lookandfeel --apply "$LNF" >/dev/null 2>&1 || true
+# ── Panel sichern ────────────────────────────────────────────────────────
+#
+# Jedes Look-and-Feel-Paket bringt ein Panel-Layout mit
+# (contents/layouts/org.kde.plasma.desktop-layout.js), das ALLE
+# bestehenden Panels entfernt und das NT-Panel neu aufbaut.
+#
+# Angewendet wird es in zwei Faellen: mit --panel hier, und wenn jemand
+# in den Systemeinstellungen beim Designwechsel das Arbeitsflaechen-Layout
+# mit auswaehlt. Der zweite Fall ist der haeufigere, und er trifft den
+# Nutzer ohne Vorwarnung - deshalb wird hier immer gesichert, auch ohne
+# --panel. Eine Kopie kostet nichts, ein verlorenes Panel schon.
+#
+# install.sh sichert appletsrc nur einmal, vor der Installation. Das hilft
+# beim zehnten Variantenwechsel nicht mehr.
+APPLETSRC="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
+PANELKOPIE=""
+if [ -f "$APPLETSRC" ]; then
+    mkdir -p "$DATEN/nt-legacy/panel"
+    PANELKOPIE="$DATEN/nt-legacy/panel/appletsrc-$(date +%Y%m%d-%H%M%S)"
+    cp -a "$APPLETSRC" "$PANELKOPIE"
+    # Nur die letzten zehn behalten. Ohne das waechst das Verzeichnis bei
+    # jedem Wechsel um eine weitere Kopie - und wer Varianten vergleicht,
+    # wechselt oft.
+    ls -1t "$DATEN/nt-legacy/panel"/appletsrc-* 2>/dev/null \
+        | tail -n +11 | xargs -r rm -f || true
+fi
+
+# Globales Design zuerst - es setzt den Rahmen, den Rest praezisieren wir.
+#
+# Ohne --resetLayout bleiben Panel und Hintergrundbild des Nutzers stehen.
+# Das ist die Vorgabe, weil ein Theme das Panel nicht ungefragt abraeumen
+# soll - aber es hat eine Nebenwirkung, die lange niemand bemerkt hat:
+#
+# Fedoras Standardpanel schwebt (floating). Ein schwebendes Panel zeichnet
+# Plasma mit den abgerundeten Varianten aus translucent/, und NT Legacy
+# sieht darin dunkel und fremd aus - nichts davon erinnert an NT. Erst
+# mit dem eigenen Layout (Panel am Rand, 30 Pixel, nicht schwebend) sieht
+# es aus wie auf den Bildschirmfotos.
+#
+# In der Test-VM auf 'clean' nachgewiesen: derselbe Plasma-Stil, einmal
+# ohne und einmal mit --resetLayout - erst mit Layout stimmt das Bild.
+if $PANEL; then
+    echo "  Panel wird durch das NT-Layout ersetzt (Sicherung siehe unten)."
+    plasma-apply-lookandfeel --apply "$LNF" --resetLayout >/dev/null 2>&1 || true
+else
+    plasma-apply-lookandfeel --apply "$LNF" >/dev/null 2>&1 || true
+fi
 
 kwriteconfig6 --file plasmarc   --group Theme   --key name          "$STYLE"
 kwriteconfig6 --file kdeglobals --group General --key ColorScheme   "$KURZ"
 kwriteconfig6 --file kdeglobals --group KDE     --key widgetStyle   Windows
-kwriteconfig6 --file kdeglobals --group Icons   --key Theme         NTLegacyIcons
+
+# Der Anwendungsstil braucht eine Sonderbehandlung.
+#
+# Als Vorgabe in ~/.config/kdedefaults/kdeglobals wird er von
+# Qt-Anwendungen NICHT gelesen - in der Test-VM belegt: nach dem Anmelden
+# stand dort 'Windows', und trotzdem startete jede Anwendung mit Breeze.
+# Erst ein Eintrag in der Nutzerdatei wirkt.
+#
+# Genau den kann kwriteconfig6 aber nicht schreiben: KConfig speichert
+# keinen Wert, der dem kaskadierten Vorgabewert gleicht - die Zeile
+# darueber ist also wirkungslos, sobald ein Globales Design dasselbe
+# vorgibt. Deshalb hier ausdruecklich an KConfig vorbei.
+python3 - <<'PY' || true
+import re, pathlib
+p = pathlib.Path.home() / ".config" / "kdeglobals"
+if p.exists():
+    t = p.read_text()
+    if re.search(r"^widgetStyle=", t, re.M):
+        t = re.sub(r"^widgetStyle=.*$", "widgetStyle=Windows", t, flags=re.M)
+    elif re.search(r"^\[KDE\]$", t, re.M):
+        t = re.sub(r"^\[KDE\]$", "[KDE]\nwidgetStyle=Windows", t, count=1, flags=re.M)
+    else:
+        t = t.rstrip("\n") + "\n\n[KDE]\nwidgetStyle=Windows\n"
+    p.write_text(t)
+PY
+# Der Symbolsatz haengt an der Fassung, nicht an der Farbwelt: die
+# Nachtvarianten bekommen NTLegacyIconsNacht. Dieselben Bilder, aber
+# breeze-dark als Rueckfall - sonst zeichnet Breeze die Symbole, die wir
+# nicht selbst liefern, in Dunkelgrau auf das dunkle Panel.
+kwriteconfig6 --file kdeglobals --group Icons   --key Theme         "$SYMBOLE"
 kwriteconfig6 --file kdeglobals --group KDE     --key LookAndFeelPackage "$LNF"
+
+# Konsole: das Farbschema der Farbwelt im mitgelieferten Profil
+# nachziehen. Das ist KEIN Eingriff in fremde Konfiguration - die Datei
+# gehoert zum Theme. Ob Konsole sie ueberhaupt benutzt, entscheidet
+# allein konsolerc, und das setzt nur anmutung.sh.
+PROFIL="$DATEN/konsole/NT Legacy.profile"
+if [ "$KONSOLE" != "-" ] && [ -f "$PROFIL" ]; then
+    kwriteconfig6 --file "$PROFIL" --group Appearance --key ColorScheme "$KONSOLE"
+fi
+
+# Das Tag/Nacht-Paar derselben Farbwelt hinterlegen. Wer den
+# automatischen Wechsel in den Systemeinstellungen einschaltet, bleibt
+# damit in der gewaehlten Farbwelt und wechselt nur zwischen hell und
+# dunkel. Der Umschalter selbst wird NICHT eingeschaltet - das ist die
+# Entscheidung des Nutzers, nicht die des Designs.
+if [ "$LNF_HELL" != "-" ] && [ "$LNF_DUNKEL" != "-" ]; then
+    kwriteconfig6 --file kdeglobals --group KDE --key DefaultLightLookAndFeel "$LNF_HELL"
+    kwriteconfig6 --file kdeglobals --group KDE --key DefaultDarkLookAndFeel  "$LNF_DUNKEL"
+fi
 [ -n "$ZEIGER" ] && kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme "$ZEIGER"
 # Den eigenen Startbildschirm aktivieren. Weder plasma-apply-lookandfeel
 # noch die defaults setzen ihn - ohne diese Zeile laeuft Splash.qml nie.
@@ -179,3 +310,26 @@ Angewendet.
 
   Zurueck:   ~/.local/share/nt-legacy/backup-*/restore.sh
 EOF
+
+if ! $PANEL; then
+    cat <<EOF
+  Dein Panel bleibt unveraendert. Fedoras Standardpanel schwebt und sieht
+  im NT-Stil dunkel und fremd aus - wie auf den Bildschirmfotos wird es
+  erst mit dem eigenen Panel:
+
+    ./apply.sh $VARIANTE --panel
+
+EOF
+fi
+
+# Der Hinweis steht bewusst hier und nicht im Heredoc oben: er gilt nur,
+# wenn wirklich eine Kopie entstanden ist.
+if [ -n "$PANELKOPIE" ]; then
+    cat <<EOF
+  Panel war vorher anders? Das Design hat es ersetzt. Zurueck mit:
+
+    cp "$PANELKOPIE" "$APPLETSRC"
+    systemctl --user restart plasma-plasmashell.service
+
+EOF
+fi

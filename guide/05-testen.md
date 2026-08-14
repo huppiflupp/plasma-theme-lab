@@ -47,6 +47,37 @@ Dringlichkeit sortiert, mit den abgekündigten `icons/` herausgerechnet.
 durch. Das ist die Gegenprobe, die jeder Linter braucht — ein Werkzeug, das
 die Referenzimplementierung anmeckert, meckert falsch.
 
+### Symbolnamen, die der eigene Satz abfängt
+
+Ein unvollständiger Symbolsatz ist schlechter als gar keiner. Er
+überschreibt den Rückfall auf Breeze, ohne Ersatz zu liefern — und zwar
+über zwei Wege, beide mit `kiconfinder6` nachgemessen:
+
+```
+audio-volume-high  →  audio-volume  →  audio  →  audio-x-generic
+```
+
+Die Suche kürzt an den Bindestrichen und fällt am Ende auf das
+Klassensymbol `<klasse>-x-generic` zurück. Wer `audio-x-generic` mitliefert
+und `audio-volume-high` nicht, bekommt im Lautstärkeregler ein Blatt Papier
+mit einer Note — genau das wurde für 0.2.2 aus der Community gemeldet. Und
+weil der Treffer aus dem eigenen Satz kommt, wird Breeze nie gefragt.
+
+```bash
+tools/pruefe-symbolfalle.py nt-legacy/icons-nt/NTLegacyIcons
+tools/pruefe-symbolfalle.py <verz> --alle    # auch die harmlosen Fälle
+```
+
+Das Werkzeug dreht die Frage um: Für jedes Klassensymbol im eigenen Satz
+sucht es in Breeze alle Namen derselben Klasse, die man **nicht** selbst
+liefert. Dateityp-Namen rechnet es heraus — dass `text-css` auf
+`text-x-generic` fällt, ist ja gerade der Zweck. Übrig bleibt, was im
+Betrieb ein falsches Bild zeigt: `application-exit` als Blatt Papier,
+`audio-card` als Notenblatt.
+
+Entweder die fehlenden Namen mitzeichnen oder das Klassensymbol weglassen.
+Beides ist vertretbar, nur der Zwischenzustand nicht.
+
 ### Metadaten gegen KDEs eigenes Schema
 
 KDE liefert ein JSON-Schema für `KPluginMetaData` aus und nutzt es in der
@@ -111,28 +142,94 @@ plasma-apply-lookandfeel --apply com.example.meintheme   # ohne --resetLayout!
 /usr/libexec/plasma-apply-aurorae MeinTheme
 ```
 
-### Der Designwechsel über die Systemeinstellungen lässt Schlüssel leer
+### Leere Schlüssel nach dem Designwechsel — fast immer ein Messfehler
 
-Wer das globale Design über *Systemeinstellungen → Globales Design* wechselt
-statt über ein Skript, bekommt einen halb gesetzten Zustand. Gemessen nach
-einem solchen Wechsel:
+Hier stand bis zum 9.8.2026 das Gegenteil: dass ein Wechsel über
+*Systemeinstellungen → Globales Design* einen halb gesetzten Zustand
+hinterlasse, weil `plasmarc/Theme`, `Icons/Theme` und `kwinrc` leer bleiben.
+Diese Messung war falsch, und sie hat ein ganzes Skript begründet, das es so
+nicht gebraucht hätte.
 
-```console
-$ kreadconfig6 --file plasmarc --group Theme --key name
-              # leer
-$ kreadconfig6 --file kdeglobals --group Icons --key Theme
-              # leer - die Gruppe [Icons] fehlt ganz
-$ kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme
-              # leer
+**Was wirklich passiert:** Plasma schreibt die Werte eines globalen Designs
+nicht als Nutzerwerte, sondern als *Vorgaben* nach `~/.config/kdedefaults/`
+— und löscht dabei den Nutzerwert
+(`libklookandfeel/klookandfeelmanager.cpp`, `writeNewDefaults`):
+
+```cpp
+defaultGroup.writeEntry(key, value, writeFlags);   // Vorgabe schreiben
+if (m_mode == Mode::Apply) {
+    group.revertToDefault(key, writeFlags);        // Nutzerwert löschen
+}
 ```
 
-**Das Tückische daran:** KDE-Programme kommen über die Vorgabenkaskade
-trotzdem an die richtigen Icons, weil `contents/defaults` sie liefert.
-Dolphin sieht also korrekt aus. Reine Qt-Programme — pcmanfm-qt, viele
-Fremdanwendungen — lesen nur `kdeglobals` und landen bei Breeze. Der Fehler
-zeigt sich ausgerechnet dort nicht, wo man zuerst hinschaut.
+Damit die Vorgaben gelesen werden, stellt Plasma sie beim Sitzungsstart der
+Kaskade voran:
 
-`nt-legacy/pruefe.sh --system` prüft das inzwischen mit.
+```console
+$ echo $XDG_CONFIG_DIRS
+/home/du/.config/kdedefaults:/etc/xdg:/usr/share/kde-settings/…
+```
+
+**Über SSH fehlt diese Variable.** `kreadconfig6` liest dann nur
+`~/.config`, findet nichts und meldet leer — obwohl alles korrekt gesetzt
+ist. Wer in einer Test-VM per `ssh` misst, misst genau daneben.
+
+Richtig messen heißt: die Kaskade der echten Sitzung übernehmen.
+
+```console
+$ export XDG_CONFIG_DIRS="$HOME/.config/kdedefaults:/etc/xdg:/usr/share/kde-settings/kde-profile/default/xdg"
+$ kreadconfig6 --file plasmarc --group Theme --key name
+nt-legacy-win98
+```
+
+Oder gleich aus dem laufenden Prozess:
+
+```console
+$ tr '\0' '\n' < /proc/$(pgrep plasmashell)/environ | grep XDG_CONFIG_DIRS
+```
+
+**Folge für eigene Skripte:** `kwriteconfig6` schreibt *nichts*, wenn der
+Wert dem kaskadierten Default entspricht — KConfig speichert keinen
+Eintrag, der dem Vorgabewert gleicht. In der Test-VM nachgewiesen: nach
+`kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle Windows`
+stand der Schlüssel weiterhin nur in `kdedefaults`. Ein Skript, das mit
+`kwriteconfig6` „sichergehen" will, ist deshalb oft ein aufwendiger
+Leerlauf.
+
+### Der Anwendungsstil ist die Ausnahme — er greift als Vorgabe nicht
+
+Alles andere greift aus `kdedefaults`: Farbschema, Plasma-Stil, Symbole,
+Mauszeiger, Fensterdekoration, Startbildschirm. Der Anwendungsstil nicht.
+
+Gemessen in der Test-VM auf einem sauberen Snapshot, nach Anmeldung:
+
+```console
+$ kreadconfig6 --file kdeglobals --group KDE --key widgetStyle
+Windows                       # korrekt gesetzt - als Vorgabe
+```
+
+und trotzdem startete jede Qt-Anwendung mit Breeze. Erst ein Eintrag in
+`~/.config/kdeglobals` selbst wirkt — und den kann `kwriteconfig6` nicht
+schreiben, solange er dem Vorgabewert gleicht. Wer den Stil ausliefern
+will, muss ihn an KConfig vorbei in die Nutzerdatei schreiben.
+
+### Ein fremdes Panel macht jedes Theme kaputt
+
+`plasma-apply-lookandfeel --apply X` wendet nur das *Erscheinungsbild* an,
+nicht das Arbeitsflächen-Layout. Das Panel des Nutzers bleibt also stehen —
+und die meisten Distributionen liefern ein **schwebendes** Panel aus.
+
+Schwebende Panels zeichnet Plasma mit den abgerundeten Varianten aus
+`translucent/`. Ein Theme, das für ein randbündiges Panel gebaut ist, sieht
+darin fremd aus — beim NT-Nachbau dunkel statt hellgrau, mit runden Ecken
+statt Kanten. Dieselbe Installation, einmal ohne und einmal mit
+`--resetLayout`, ergibt zwei völlig verschiedene Bilder.
+
+**Für Vorschaubilder heißt das:** Wer sie in einer VM erzeugt, in der das
+Layout irgendwann einmal angewendet wurde, fotografiert einen Zustand, den
+eine frische Installation nicht herstellt. Die Bilder versprechen dann
+mehr, als das Paket liefert. Deshalb: Vorschaubilder immer nach einem
+`vmctl.sh reset` erzeugen, nie auf gewachsenem Zustand.
 
 Ebenfalls beachten: In der Designauswahl sitzt neben jeder Kachel ein
 Entfernen-Knopf. Ein versehentlicher Klick löscht den installierten Stil,

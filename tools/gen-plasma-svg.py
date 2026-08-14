@@ -131,6 +131,23 @@ WIDGETS = {
         "hints": ["margin"],
         "masken": [],
         "margin": 4,
+        # Der aktive Fensterknopf traegt die Titelleistenfarbe - und
+        # darauf steht der Fenstertitel in der normalen Textfarbe, denn
+        # den Text zeichnet der Taskmanager aus dem Farbschema, nicht
+        # aus dem SVG. Gemessen: 1,47:1 bei win2k, 1,31:1 bei win98,
+        # unter 4,5:1 in allen zehn Varianten. Aus der Community kam
+        # genau das zurueck ("way too dark, text unreadable").
+        #
+        # Deshalb wie in Windows selbst: der aktive Knopf ist kein
+        # farbiges Feld, sondern ein eingedrueckter Knopf in der
+        # Flaechenfarbe. Der Text steht dann auf demselben Grund wie
+        # ueberall - lesbar in jeder Variante und jedem Farbschema.
+        "zustaende": {
+            "focus":       ("flaeche", True, "ColorScheme-Background"),
+            "north-focus": ("flaeche", True, "ColorScheme-Background"),
+            "west-focus":  ("flaeche", True, "ColorScheme-Background"),
+            "east-focus":  ("flaeche", True, "ColorScheme-Background"),
+        },
     },
     "toolbar": {
         "farbe": "panel",
@@ -177,6 +194,19 @@ WIDGETS = {
                      "east-active-tab", "west-active-tab"],
         "hints": ["margin"],
         "masken": [],
+        # Nur der Rahmen, keine Flaeche. Das ist keine Geschmacksfrage:
+        # Plasma legt dieses FrameSvg UEBER den Inhalt eines aktiven
+        # Panel-Miniprogramms. Eine deckende Flaeche verschluckt dessen
+        # Symbol - beim "Peek at Desktop" blieb ein leeres Quadrat
+        # zurueck, das aus der Community als fehlende Textur gemeldet
+        # wurde. Per Bisektion auf diese Datei eingegrenzt: nimmt man
+        # sie weg, ist das Symbol wieder da.
+        #
+        # Breeze loest dasselbe Problem mit opacity:0.01 auf allen neun
+        # Feldern, zeichnet dort also gar nichts. Wir behalten den
+        # 3D-Rahmen - er markiert den gedrueckten Knopf wie in Windows -
+        # und lassen nur die Flaeche weg.
+        "nur_rahmen": True,
     },
     "bar_meter_horizontal": {
         "ecke": 3,
@@ -434,7 +464,8 @@ class Generator:
         )
 
     def _neun_patch(self, praefix, ox, oy, flaeche_key="flaeche",
-                    invertiert=False, klasse="ColorScheme-Background"):
+                    invertiert=False, klasse="ColorScheme-Background",
+                    nur_rahmen=False):
         """Erzeugt einen vollstaendigen 9-Patch-Satz an Position (ox, oy).
 
         Ein 9-Patch teilt die Flaeche restlos auf: alle neun Felder sind
@@ -505,7 +536,17 @@ class Generator:
             #
             # Die Ersatzfarbe steht weiterhin im Stylesheet-Block oben,
             # greift also, solange KSvg nichts ersetzt.
-            if klasse:
+            if nur_rahmen:
+                # Die Flaeche bleibt unsichtbar, das Rechteck aber steht
+                # da. Ein leeres <g> haette eine Bounding Box von 0x0,
+                # und KSvg berechnet die Feldgroessen des 9-Patch genau
+                # daraus - der Rahmen skalierte dann falsch. Deshalb
+                # opacity:0.01 statt nichts, wie Breeze es im selben
+                # Element auch macht.
+                self.teile.append(
+                    f'      <rect x="{x:g}" y="{y:g}" width="{fw:g}" '
+                    f'height="{fh:g}" fill="{flaeche}" opacity="0.01"/>')
+            elif klasse:
                 # Die Ersatzfarbe steht im style-Block oben je Klasse.
                 # Damit sich die Zustaende auch dann unterscheiden, wenn
                 # KSvg nichts ersetzt, bekommt jede Klasse ihren eigenen
@@ -707,7 +748,12 @@ class Generator:
 
             basis = praefix[5:] if praefix.startswith("mask-") else praefix
             standard = spec.get("farbe", "flaeche")
-            farb_key, invertiert, zustandsklasse = ZUSTANDSFARBE.get(
+            # Ein Widget darf einzelne Zustaende anders faerben als die
+            # allgemeine Tabelle. Die Taskleiste braucht das: dort waere
+            # die Akzentfarbe des Fokuszustands zwar richtig gemeint,
+            # aber der Fenstertitel darauf nicht mehr lesbar.
+            farb_key, invertiert, zustandsklasse = spec.get(
+                "zustaende", {}).get(basis) or ZUSTANDSFARBE.get(
                 basis, (standard, False, "ColorScheme-Background"))
             # Das Panel bekommt seine Farbe fest, nicht ueber das
             # Farbschema. Grund: Plasma faerbt Shell-Elemente aus der
@@ -729,7 +775,8 @@ class Generator:
                 self.stil = alt_stil
             else:
                 self._neun_patch(praefix, ox, oy, farb_key, invertiert,
-                                 klasse=klasse_hier)
+                                 klasse=klasse_hier,
+                                 nur_rahmen=spec.get("nur_rahmen", False))
                 self._hints(praefix, ox, oy, hints)
 
         for j, (fid, (art, farbkey)) in enumerate(formen):

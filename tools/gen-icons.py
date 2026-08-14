@@ -345,6 +345,19 @@ def symbole(z: Zeichner):
     # --- Fenster und Dialoge
     s["window-close"] = z.kreuz(farbe="#A83232")
     s["dialog-close"] = s["window-close"]
+    # Der Menuepunkt "Beenden" in jedem Programm. Ohne dieses Symbol
+    # kuerzt die Suche application-exit auf die Klasse und liefert unser
+    # Dateisymbol - im Datei-Menue stand ein Blatt Papier neben
+    # "Beenden". Tuer mit Pfeil hinaus, wie es KDE seit jeher zeigt.
+    s["application-exit"] = (
+        z.kasten(6, 3, 13, 26, p["m_mitte"]) +
+        f'<circle cx="16" cy="16" r="1.5" fill="{p["linie"]}"/>' +
+        f'<line x1="20" y1="16" x2="29" y2="16" stroke="{p["gut"]}" '
+        f'stroke-width="3" stroke-linecap="round"/>'
+        f'<polyline points="25,11 30,16 25,21" fill="none" '
+        f'stroke="{p["gut"]}" stroke-width="3" stroke-linecap="round" '
+        f'stroke-linejoin="round"/>')
+    s["application-quit"] = s["application-exit"]
     s["dialog-ok"] = (
         f'<polyline points="6,17 13,24 26,8" fill="none" '
         f'stroke="{p["gut"]}" stroke-width="4" stroke-linecap="round" '
@@ -359,12 +372,24 @@ def symbole(z: Zeichner):
         f'fill="{p["linie"]}"/>' for i in range(3))
     s["open-menu"] = s["application-menu"]
     s["show-menu"] = s["application-menu"]
+    # Zahnrad, nicht Sonne. Vorher standen acht schmale Striche mit 2 px
+    # Abstand um einen Kreis - aus der Community kam dafuer "looks more
+    # like a gray sun". Zwei Dinge machen den Unterschied: die Zaehne
+    # muessen den Kranz beruehren (hier ueberlappen sie ihn um 1 px), und
+    # sie muessen breiter als der Zwischenraum sein. Dazu eine helle Nabe,
+    # damit in der Mitte ein Loch sitzt und keine Scheibe.
     s["configure"] = (
-        f'<circle cx="16" cy="16" r="6" fill="{p["flaeche"]}" '
+        f'<circle cx="16" cy="16" r="8" fill="{p["m_mitte"]}" '
         f'stroke="{p["linie"]}" stroke-width="2"/>' +
-        "".join(f'<rect x="15" y="2" width="2.5" height="6" '
-                f'fill="{p["linie"]}" transform="rotate({a},16,16)"/>'
-                for a in range(0, 360, 45)))
+        "".join(f'<rect x="13.5" y="1.5" width="5" height="7" '
+                f'fill="{p["m_mitte"]}" stroke="{p["linie"]}" '
+                f'stroke-width="1.5" stroke-linejoin="round" '
+                f'transform="rotate({a},16,16)"/>'
+                for a in range(0, 360, 60)) +
+        f'<circle cx="16" cy="16" r="8" fill="none" '
+        f'stroke="{p["linie"]}" stroke-width="2"/>'
+        f'<circle cx="16" cy="16" r="3" fill="{p["flaeche"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1.5"/>')
     s["settings-configure"] = s["configure"]
     s["configure-toolbars"] = s["configure"]
 
@@ -446,6 +471,59 @@ def shell_symbole(z: Zeichner):
         f'<polygon points="16,4 20,13 29,13 22,19 25,28 16,22 7,28 10,19 '
         f'3,13 12,13" fill="{p["o_hell"]}" stroke="{p["linie"]}" '
         f'stroke-width="2" stroke-linejoin="round"/>')
+
+    # Die uebrigen Ordner der Seitenleiste.
+    #
+    # Dolphin fragt fuer jeden XDG-Benutzerordner einen eigenen Namen an -
+    # folder-desktop fuer ~/Schreibtisch, folder-templates fuer ~/Vorlagen
+    # und so fort. Fehlt der Name, kuerzt die Symbolsuche ihn am
+    # Bindestrich, findet unser schlichtes "folder" und hoert auf zu
+    # suchen: alle Benutzerordner sehen dann gleich aus, und weil der
+    # Treffer aus dem eigenen Satz kommt, wird Breeze gar nicht erst
+    # gefragt. Die Marken sind deshalb bewusst massive Flaechen statt
+    # feiner Linien - im Kreis bleiben bei 16 px nur rund sechs Pixel
+    # uebrig, und darin ueberlebt nur eine Silhouette.
+    s["folder-desktop"] = z.nt_ordner() + z.marke(
+        f'<rect x="3" y="5" width="26" height="18" fill="{p["linie"]}"/>'
+        f'<rect x="6" y="8" width="20" height="12" fill="{p["glas"]}"/>'
+        f'<rect x="12" y="23" width="8" height="4" fill="{p["linie"]}"/>'
+        f'<rect x="6" y="27" width="20" height="4" fill="{p["linie"]}"/>')
+    # Vorlagen sind Blaetter zum Abpausen: ein zweites, farbiges Blatt
+    # hinter dem weissen. Der Versatz ist das, was bei 16 px von
+    # folder-documents unterscheidet - Zeilen taeten es dort nicht.
+    s["folder-templates"] = z.nt_ordner() + z.marke(
+        f'<rect x="2" y="2" width="18" height="24" fill="{p["akzent"]}" '
+        f'stroke="{p["linie"]}" stroke-width="2"/>'
+        f'<rect x="12" y="8" width="18" height="24" fill="{p["papier"]}" '
+        f'stroke="{p["linie"]}" stroke-width="2"/>')
+    # Wichtiges bekommt ein Ausrufezeichen statt eines zweiten Sterns:
+    # neben folder-favorites waere ein Stern nicht mehr zu unterscheiden,
+    # und der rote Balken ist die kraeftigste Form, die in die Marke passt.
+    s["folder-important"] = z.nt_ordner() + z.marke(
+        f'<rect x="12" y="2" width="9" height="18" fill="{p["rot"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1.5"/>'
+        f'<rect x="12" y="23" width="9" height="8" fill="{p["rot"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1.5"/>')
+    # Spitze Klammern wie bei applications-development, aber als dicke
+    # Linien gezogen: der Schriftzug "</>" faellt in der Marke auseinander.
+    # Der Abstand zwischen beiden Klammern ist das eigentliche Zeichen -
+    # beruehren sie sich, wird bei 16 px ein schwarzer Klumpen daraus.
+    s["folder-development"] = z.nt_ordner() + z.marke(
+        f'<polyline points="10,4 2,16 10,28" fill="none" '
+        f'stroke="{p["linie"]}" stroke-width="6" stroke-linecap="round" '
+        f'stroke-linejoin="round"/>'
+        f'<polyline points="22,4 30,16 22,28" fill="none" '
+        f'stroke="{p["linie"]}" stroke-width="6" stroke-linecap="round" '
+        f'stroke-linejoin="round"/>')
+    # Spielkarte statt Joystick: ein Knauf auf einem Sockel hat dieselbe
+    # Silhouette wie die Person auf folder-publicshare und ist bei 16 px
+    # nur an der Farbe zu unterscheiden. Das rote Karo auf Weiss hat im
+    # ganzen Satz keinen Zwilling - und Solitaer war das Spiel, das jedes
+    # Windows dabei hatte.
+    s["folder-games"] = z.nt_ordner() + z.marke(
+        f'<rect x="6" y="2" width="21" height="28" fill="{p["papier"]}" '
+        f'stroke="{p["linie"]}" stroke-width="2.5"/>'
+        f'<polygon points="16,8 23,16 16,24 9,16" fill="{p["rot"]}"/>')
 
     # Papierkorb: bei NT ein Drahtkorb, keine Tonne
     korb = (f'<path d="M9,10 l2,18 h10 l2,-18 z" fill="{p["m_mitte"]}" '
@@ -570,6 +648,68 @@ def shell_symbole(z: Zeichner):
         f'stroke-width="2"/>'
         f'<line x1="16" y1="23" x2="16" y2="28" stroke="{p["linie"]}" '
         f'stroke-width="2"/>')
+
+    # ── Lautstaerke ────────────────────────────────────────────────────
+    #
+    # Diese vier Namen fehlten, und ihr Fehlen war schlimmer als eine
+    # Luecke. Die Symbolsuche kuerzt einen unbekannten Namen an den
+    # Bindestrichen, bis etwas passt: audio-volume-high wurde zu
+    # audio-volume, dann zu audio - und landete auf unserem
+    # audio-x-generic. Im Panel stand deshalb ein Blatt Papier mit einer
+    # Note statt eines Lautsprechers, und weil der Treffer aus unserem
+    # eigenen Satz kam, wurde Breeze nie gefragt. Mit kiconfinder6
+    # nachgestellt.
+    #
+    # Merksatz fuer neue Symbole: ein kurzer Name faengt alle laengeren
+    # ab, die mit ihm beginnen. Wer audio-x-generic mitliefert, muss die
+    # audio-volume-Reihe mitliefern.
+    def _lautsprecher(bogen, zusatz=""):
+        # Kasten und Trichter in einem Zug, damit an der Naht keine
+        # Linie durchs Symbol laeuft.
+        korpus = (
+            f'<path d="M4,12 h5 l7,-6 v20 l-7,-6 h-5 z" '
+            f'fill="{p["m_mitte"]}" stroke="{p["linie"]}" '
+            f'stroke-width="1.5" stroke-linejoin="round"/>')
+        wellen = "".join(
+            f'<path d="M{18 + i*4},{13 - i*2.5} a{5 + i*4},{5 + i*4} 0 0 1 '
+            f'0,{10 + i*5}" fill="none" stroke="{p["linie"]}" '
+            f'stroke-width="2" stroke-linecap="round"/>'
+            for i in range(bogen))
+        return korpus + wellen + zusatz
+
+    # Dieselbe Falle, andere Namen: das Lautstaerkemenue und die
+    # Systemeinstellungen fragen nach Geraeten, und auch die landeten
+    # bisher auf audio-x-generic. Gefunden mit
+    # tools/pruefe-symbolfalle.py.
+    s["audio-card"] = (
+        z.kasten(4, 10, 24, 14, p["m_mitte"]) +
+        f'<rect x="7" y="24" width="4" height="5" fill="{p["m_dunkel"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1"/>'
+        f'<rect x="21" y="24" width="4" height="5" fill="{p["m_dunkel"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1"/>'
+        f'<circle cx="12" cy="17" r="3.5" fill="{p["m_dunkel"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1.5"/>'
+        f'<circle cx="22" cy="17" r="2.5" fill="{p["m_dunkel"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1.5"/>')
+    s["audio-headphones"] = (
+        f'<path d="M5,20 v-4 a11,11 0 0 1 22,0 v4" fill="none" '
+        f'stroke="{p["linie"]}" stroke-width="2.5"/>' +
+        z.kasten(2, 18, 6, 10, p["m_mitte"]) +
+        z.kasten(24, 18, 6, 10, p["m_mitte"]))
+    s["audio-headset"] = (
+        s["audio-headphones"] +
+        f'<path d="M8,26 q-4,4 0,4 h5" fill="none" stroke="{p["linie"]}" '
+        f'stroke-width="2"/>')
+
+    s["audio-volume-high"] = _lautsprecher(3)
+    s["audio-volume-medium"] = _lautsprecher(2)
+    s["audio-volume-low"] = _lautsprecher(1)
+    s["audio-volume-muted"] = _lautsprecher(
+        0,
+        f'<line x1="19" y1="11" x2="29" y2="21" stroke="{p["rot"]}" '
+        f'stroke-width="3" stroke-linecap="round"/>'
+        f'<line x1="29" y1="11" x2="19" y2="21" stroke="{p["rot"]}" '
+        f'stroke-width="3" stroke-linecap="round"/>')
     s["pda"] = (
         z.kasten(8, 2, 16, 28, p["m_mitte"]) +
         f'<rect x="11" y="5" width="10" height="16" fill="{p["glas"]}" '
@@ -579,14 +719,54 @@ def shell_symbole(z: Zeichner):
     s["phone"] = s["pda"]
 
     # ── Programme und Einstellungen ────────────────────────────────────
+    # Dasselbe Zahnrad wie bei "configure", nur einen Tick groesser -
+    # aus demselben Grund: Zaehne am Kranz, Nabe in der Mitte. Vorher
+    # standen die Zaehne als einzelne dunkle Bloecke davor.
     s["applications-system"] = (
-        f'<circle cx="16" cy="16" r="7" fill="{p["m_mitte"]}" '
+        f'<circle cx="16" cy="16" r="9" fill="{p["m_mitte"]}" '
         f'stroke="{p["linie"]}" stroke-width="2"/>' +
-        "".join(f'<rect x="14" y="1" width="4" height="7" '
-                f'fill="{p["m_dunkel"]}" stroke="{p["linie"]}" '
-                f'stroke-width="1" transform="rotate({a},16,16)"/>'
-                for a in range(0, 360, 60)))
+        "".join(f'<rect x="13" y="0.5" width="6" height="8" '
+                f'fill="{p["m_mitte"]}" stroke="{p["linie"]}" '
+                f'stroke-width="1.5" stroke-linejoin="round" '
+                f'transform="rotate({a},16,16)"/>'
+                for a in range(0, 360, 60)) +
+        f'<circle cx="16" cy="16" r="9" fill="none" '
+        f'stroke="{p["linie"]}" stroke-width="2"/>'
+        f'<circle cx="16" cy="16" r="3.5" fill="{p["flaeche"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1.5"/>')
     s["preferences-system"] = s["applications-system"]
+
+    # ── Der Anwendungsstarter ──────────────────────────────────────────
+    #
+    # Frueher zeigte "start-here" auf applications-system - dasselbe
+    # Zahnrad wie die Systemeinstellungen. Im Panel standen damit zwei
+    # identische Symbole nebeneinander, und der Starter, das am
+    # haeufigsten geklickte Element ueberhaupt, war nicht auf einen Blick
+    # zu finden.
+    #
+    # Stattdessen ein Sprossenfenster: Aussenrahmen, Kreuzsprosse, und in
+    # jedem der vier Felder ein eigener Titelbalken - vier kleine Fenster
+    # in einem grossen. Das sagt "alle Programme", ohne ein fremdes Logo
+    # zu bemuehen, und bleibt bis 16 px als Fensterkreuz lesbar.
+    def _feld(fx, fy, fb, fh):
+        # Titelbalken oben, Scheibe darunter. Zwei Rechtecke statt eines
+        # mit Rahmen: bei 16 px verschmelzen sonst Balken und Rahmen.
+        return (f'<rect x="{fx}" y="{fy}" width="{fb}" height="{fh}" '
+                f'fill="{p["papier"]}"/>'
+                f'<rect x="{fx}" y="{fy}" width="{fb}" height="3" '
+                f'fill="{p["akzent"]}"/>')
+
+    s["start-here"] = (
+        # Rahmen und Flaeche des grossen Fensters
+        z.kasten(3, 3, 26, 26, p["flaeche"]) +
+        # Die vier Scheiben
+        _feld(6, 6, 9, 9) + _feld(17, 6, 9, 9) +
+        _feld(6, 17, 9, 9) + _feld(17, 17, 9, 9) +
+        # Die Kreuzsprosse zuletzt, damit sie ueber den Scheiben liegt
+        f'<line x1="16" y1="4" x2="16" y2="28" stroke="{p["linie"]}" '
+        f'stroke-width="2"/>'
+        f'<line x1="4" y1="16" x2="28" y2="16" stroke="{p["linie"]}" '
+        f'stroke-width="2"/>')
     s["applications-other"] = (
         z.kasten(3, 5, 26, 22, p["flaeche"]) +
         z.kasten(3, 5, 26, 5, p["akzent"]) +
@@ -693,6 +873,22 @@ WEITERE_NAMEN = {
     "inode-directory":        "folder",
     "folder-blue":            "folder",
     "folder-orange":          "folder",
+    # Fuer dieselbe Sache sind zwei bis drei Namen im Umlauf - Breeze legt
+    # sie ebenfalls auf ein Bild. Einmal zeichnen genuegt, sonst pflegt man
+    # dasselbe Symbol dreifach.
+    "folder-downloads":       "folder-download",
+    "folder-text":            "folder-documents",
+    "folder-txt":             "folder-documents",
+    "folder-image":           "folder-pictures",
+    "folder-images":          "folder-pictures",
+    # folder-image faengt sonst folder-image-people ab, ohne es zu
+    # bedienen - der Ordner mit den Personenfotos ist ein Bilderordner,
+    # also bekommt er dasselbe Bild statt eines halben Treffers.
+    "folder-image-people":    "folder-pictures",
+    "folder-picture":         "folder-pictures",
+    "folder-sound":           "folder-music",
+    "folder-video":           "folder-videos",
+    "folder-public":          "folder-publicshare",
     "unknown":                "application-x-generic",
     "application-octet-stream": "application-x-generic",
     "text-plain":             "text-x-generic",
@@ -706,13 +902,32 @@ WEITERE_NAMEN = {
     "application-x-gzip":     "application-x-archive",
     "package-x-generic":      "application-x-archive",
     "audio-mpeg":             "audio-x-generic",
+    # Damit die Klasse audio- vollstaendig ist und audio-x-generic nichts
+    # mehr abfaengt, was kein Dateityp ist - siehe
+    # tools/pruefe-symbolfalle.py.
+    "audio-speakers":         "audio-volume-high",
+    "audio-on":               "audio-volume-high",
+    "audio-ready":            "audio-volume-high",
+    "audio-off":              "audio-volume-muted",
+    "audio-volume-high-danger":  "audio-volume-muted",
+    "audio-volume-high-warning": "audio-volume-medium",
     "video-mp4":              "video-x-generic",
     "image-png":              "image-x-generic",
     "image-jpeg":             "image-x-generic",
     "user-desktop":           "video-display",
+    # Der Menueeintrag "Systemeinstellungen" fragt unter diesem Namen an
+    # und bekam bisher das Breeze-Symbol - mit kiconfinder6 geprueft.
+    # Neben unserem Zahnrad fiel das auf.
+    "systemsettings":         "applications-system",
     "user-trash-symbolic":    "user-trash",
     "emblem-favorite":        "folder-favorites",
-    "start-here":             "applications-system",
+    # Kickoff und seine Geschwister fragen unter mehreren Namen nach dem
+    # Starter-Symbol - je nach Plasma-Fassung und Distribution. Fehlt
+    # einer davon, zeigt das Panel wieder das Zahnrad des Fallbacks.
+    "start-here-kde":         "start-here",
+    "start-here-kde-plasma":  "start-here",
+    "start-here-kde-symbolic": "start-here",
+    "distributor-logo":       "start-here",
     "system-file-manager":    "folder-open",
     "system-run":             "application-x-executable",
     "utilities-terminal":     "applications-development",
@@ -819,6 +1034,14 @@ def main():
     KONTEXT["computer-laptop"] = "devices"
     KONTEXT["video-display"] = "devices"
     KONTEXT["network-offline"] = "status"
+    # Die Lautstaerke ist Zustand, kein Geraet - Breeze legt sie ebenso
+    # unter status/. Im Kontext devices wuerde das Panel sie nicht finden.
+    for _n in ("audio-volume-high", "audio-volume-medium",
+               "audio-volume-low", "audio-volume-muted"):
+        KONTEXT[_n] = "status"
+    # Die Wiedergabegeraete dagegen schon - dort liegen sie auch in Breeze.
+    for _n in ("audio-card", "audio-headphones", "audio-headset"):
+        KONTEXT[_n] = "devices"
 
     alle = dict(symbole(z))
     alle.update(sh)
@@ -832,6 +1055,14 @@ def main():
         for g in GROESSEN:
             ziel = args.theme / KONTEXT[name] / str(g) / f"{name}.png"
             ziel.parent.mkdir(parents=True, exist_ok=True)
+            # Liegt am Zielort ein Verweis aus einem frueheren Lauf,
+            # schreibt magick DURCH ihn hindurch - und beschaedigt die
+            # Datei, auf die er zeigt. Genau so hat ein neu gezeichnetes
+            # start-here das Zahnrad von applications-system ueberschrieben,
+            # auf das es vorher selbst verwiesen hatte. Der Verweis muss
+            # weg, bevor hier ein echtes Symbol entsteht.
+            if ziel.is_symlink():
+                ziel.unlink()
             tmp = ziel.with_suffix(".svg")
             tmp.write_text(svg)
             try:

@@ -32,3 +32,9 @@ nt-legacy/icons/
 # Fertige Archive fuer den KDE Store. Sie entstehen reproduzierbar aus
 # dem Baum mit tools/mach-paket.sh - Binaerdaten gehoeren nicht ins Repo.
 dist/
+
+# Nachtfassung des Symbolsatzes. Reine Ableitung aus NTLegacyIcons -
+# dieselben Bilder, nur breeze-dark als Rueckfallkette. Entsteht in
+# build.py (und in install.sh, falls sie dort noch fehlt); im Repo waere
+# sie ein 184 KB grosses Duplikat ohne eigenen Inhalt.
+nt-legacy/icons-nt/NTLegacyIconsNacht/

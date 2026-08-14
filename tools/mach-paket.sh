@@ -89,24 +89,81 @@ einzeln() {
         "$(du -h "$ziel" | cut -f1)" "$name"
 }
 
-# Plasma-Stile: alle zehn in ein Archiv, sonst muesste der Nutzer
-# zehnmal herunterladen
-tar -caf "$DIST/nt-legacy-plasma-styles-$VERSION.tar.xz" "${AUSSCHLUSS[@]}" \
-    -C "$THEME/desktoptheme" .
-printf '  %-42s %6s   (%s)\n' "nt-legacy-plasma-styles-$VERSION.tar.xz" \
-    "$(du -h "$DIST/nt-legacy-plasma-styles-$VERSION.tar.xz" | cut -f1)" "Plasma Style, 10 Varianten"
+# ── Ein Paket je Archiv, wo KNewStuff es so verlangt ─────────────────────
+#
+# Aus der Community: wer das Global Theme ueber "Neue holen" installiert,
+# bekommt fuenf bis sechs namenlose Eintraege und kein einziges NT-Design.
+# Nachgestellt und bestaetigt.
+#
+# Der Grund steht in den knsrc-Dateien von Plasma. Zwei Sorten:
+#
+#   Uncompress=archive   entpackt stumpf ins Zielverzeichnis. Zehn
+#                        Ordner nebeneinander sind hier richtig -
+#                        Aurorae, Symbole, Zeiger, Farbschemata.
+#   Uncompress=kpackage  reicht das Archiv an kpackagetool weiter, und
+#                        das erwartet GENAU EIN Paket, dessen
+#                        metadata.json an der Archivwurzel liegt.
+#                        So arbeiten Global Themes und Plasma-Stile.
+#
+# Unser Buendelarchiv hatte zehn Paketordner an der Wurzel und keine
+# metadata.json daneben. kpackagetool nimmt dann das Archiv selbst fuer
+# das Paket, benennt es nach der Datei und haengt eine Nummer an:
+#
+#   $ kpackagetool6 -t Plasma/LookAndFeel -i nt-legacy-global-themes.tar.xz
+#   Erfolgreich installiert: .../look-and-feel/nt-legacy-global-themes-0/
+#
+# Ein Ordner ohne metadata.json - das Design fehlt, der Eintrag bleibt
+# namenlos, und jeder neue Versuch legt den naechsten daneben. Bei den
+# Plasma-Stilen schlaegt schon die Installation fehl ("Das Paket wird
+# als ungueltig betrachtet").
+#
+# Deshalb je Variante ein eigenes Archiv. Im Store werden daraus zehn
+# Dateien an einem Eintrag, aus denen sich der Nutzer eine aussucht -
+# das ist dort die uebliche Form fuer Designs mit mehreren Fassungen.
+# Der Dateiname traegt die Farbwelt, nicht die volle Paketkennung. Im
+# Store steht der Nutzer vor einer Liste von zwanzig Dateien; dort hilft
+# "desert-nacht" und nicht "com.github.huppiflupp.nt-legacy-desert-nacht".
+kurzname() {
+    local b="$1"
+    b="${b#com.github.huppiflupp.}"
+    b="${b#nt-legacy}"
+    b="${b#-}"
+    echo "${b:-teal}"
+}
 
-tar -caf "$DIST/nt-legacy-global-themes-$VERSION.tar.xz" "${AUSSCHLUSS[@]}" \
-    -C "$THEME/look-and-feel" .
-printf '  %-42s %6s   (%s)\n' "nt-legacy-global-themes-$VERSION.tar.xz" \
-    "$(du -h "$DIST/nt-legacy-global-themes-$VERSION.tar.xz" | cut -f1)" "Global Theme, 10 Varianten"
+paket_je_variante() {
+    local name="$1" quelle="$2" praefix="$3"
+    local n=0
+    for d in "$quelle"/*/; do
+        [ -d "$d" ] || continue
+        local b; b="$(basename "$d")"
+        tar -caf "$DIST/$praefix-$(kurzname "$b")-$VERSION.tar.xz" \
+            "${AUSSCHLUSS[@]}" -C "$quelle" "$b"
+        n=$((n + 1))
+    done
+    printf '  %-42s %6s   (%s)\n' "$praefix-*-$VERSION.tar.xz" "$n Stk" "$name"
+}
 
+paket_je_variante "Plasma Style, je Variante ein Archiv" \
+    "$THEME/desktoptheme" "nt-legacy-plasma-style"
+paket_je_variante "Global Theme, je Variante ein Archiv" \
+    "$THEME/look-and-feel" "nt-legacy-global-theme"
+
+# Aurorae laeuft ueber Uncompress=archive - hier ist ein Buendel richtig.
 tar -caf "$DIST/nt-legacy-window-decorations-$VERSION.tar.xz" "${AUSSCHLUSS[@]}" \
     -C "$THEME/aurorae" .
 printf '  %-42s %6s   (%s)\n' "nt-legacy-window-decorations-$VERSION.tar.xz" \
     "$(du -h "$DIST/nt-legacy-window-decorations-$VERSION.tar.xz" | cut -f1)" "Aurorae, 10 Varianten"
 
-einzeln "Symbole" "$THEME/icons-nt/NTLegacyIcons" "nt-legacy-icons-$VERSION.tar.xz"
+# Beide Symbolsaetze in ein Archiv. Der Symbol-Downloader laeuft ueber
+# Uncompress=true, entpackt also stumpf nach ~/.local/share/icons/ - zwei
+# Ordner nebeneinander sind dort richtig. Und wer nur den hellen zieht,
+# steht mit jeder Nachtfassung wieder vor dem dunklen Systemabschnitt.
+tar -caf "$DIST/nt-legacy-icons-$VERSION.tar.xz" "${AUSSCHLUSS[@]}" \
+    -C "$THEME/icons-nt" .
+printf '  %-42s %6s   (%s)\n' "nt-legacy-icons-$VERSION.tar.xz" \
+    "$(du -h "$DIST/nt-legacy-icons-$VERSION.tar.xz" | cut -f1)" \
+    "Symbole, hell und Nachtfassung"
 
 tar -caf "$DIST/nt-legacy-cursors-$VERSION.tar.xz" "${AUSSCHLUSS[@]}" \
     -C "$THEME/cursors" .
@@ -135,26 +192,118 @@ for d in "$THEME"/look-and-feel/*/; do
     anzahl=$((anzahl + 1))
 done
 
-# Dazu ein Uebersichtsbild: alle Varianten auf einer Kachel. Das ist in
-# einer Galerie meist das erste, was jemand ansieht - eine Reihe fast
-# gleicher Vollbilder sagt weniger als ein Bild, das die Bandbreite zeigt.
+# ── Tag/Nacht in einem Bild ──────────────────────────────────────────────
+#
+# Jede Farbwelt gibt es in einer Tag- und einer Nachtfassung. Nebeneinander
+# in der Galerie sagt das wenig: zwei fast gleiche Bilder, und wer nicht
+# genau hinsieht, haelt das zweite fuer eine Wiederholung. Deshalb ein
+# Bild je Farbwelt, diagonal von oben rechts nach unten links geteilt -
+# oben links Tag, unten rechts Nacht. Im Store ist das die uebliche
+# Darstellung fuer Themes mit zwei Fassungen.
+#
+# Das funktioniert nur, weil gen-vorschau.sh die Fenster fuer jede
+# Variante an dieselbe Stelle setzt: gleiche Programme, gleiche
+# Reihenfolge, gleiche Aufloesung. Die Fensterkanten laufen ueber den
+# Schnitt hinweg durch, und man sieht denselben Bildschirm zweimal
+# eingefaerbt statt zwei verschiedene Aufnahmen.
+diagonal() {
+    local tag="$1" nacht="$2" ziel="$3"
+    local b h
+    # Das \n ist Pflicht: ohne Zeilenende liefert read einen Fehlerstatus,
+    # und set -e beendet das Skript wortlos mitten im Lauf.
+    read -r b h < <(magick identify -format '%w %h\n' "$tag")
+
+    # Der Umweg ueber CopyOpacity statt einer Maske als drittes Bild bei
+    # -composite: Letzteres wertet die Maske nicht zuverlaessig aus, das
+    # Ergebnis war einfarbig das Tagbild. So ist die Maske ausdruecklich
+    # der Alphakanal des Tagbilds, und darueber gibt es nichts zu raten.
+    magick "$tag" \
+        \( -size "${b}x${h}" xc:black -fill white \
+           -draw "polygon 0,0 ${b},0 0,${h}" \) \
+        -alpha off -compose CopyOpacity -composite "$tmp/oben.png"
+
+    # Die helle Linie auf der Schnittkante ist nicht Zierrat: ohne sie
+    # wirkt der Uebergang bei den dunkleren Farbwelten wie ein
+    # Bildfehler, weil Tag- und Nachtflaeche dort aehnlich hell sind.
+    magick "$nacht" "$tmp/oben.png" -compose Over -composite \
+        -stroke "#e8e8e8" -strokewidth 3 -draw "line ${b},0 0,${h}" \
+        -quality 88 "$ziel"
+}
+
+# Zu welchem Tagbild gehoert welche Nacht? Die Grundfassung heisst
+# nt-legacy.jpg, ihre Nachtfassung aber nt-legacy-teal-nacht.jpg - der
+# Name traegt die Farbwelt, den die Grundfassung im Namen weglaesst.
+nachtbild_zu() {
+    local tag="$1"
+    case "$(basename "$tag")" in
+        nt-legacy.jpg) echo "$(dirname "$tag")/nt-legacy-teal-nacht.jpg" ;;
+        *)             echo "${tag%.jpg}-nacht.jpg" ;;
+    esac
+}
+
 if command -v magick >/dev/null && [ "$anzahl" -gt 0 ]; then
-    # Ausschnitt statt Vollbild: Bei zehn verkleinerten Vollbildern sind
-    # die Fenster briefmarkengross und man erkennt weder Titelleiste noch
-    # Symbole - also gerade das, was die Varianten unterscheidet. Der
-    # Ausschnitt sitzt dort, wo die Fenster stehen.
-    #
-    # Raster 5x2 statt 4x: bei zehn Bildern bliebe sonst eine Reihe zur
-    # Haelfte leer.
     tmp="$(mktemp -d)"
-    for b in "$DIST"/screenshots/*.jpg; do
-        magick "$b" -gravity center -crop 58%x58%+0-30 +repage \
-               -resize 560x315^ -gravity center -extent 560x315 \
-               "$tmp/$(basename "$b")" 2>/dev/null
+    paare=0
+    kacheln=()
+
+    # Grundfassung zuerst, der Rest alphabetisch - dieselbe Reihenfolge
+    # wie spaeter in der Galerie.
+    tagbilder=("$DIST/screenshots/nt-legacy.jpg")
+    for b in "$DIST"/screenshots/nt-legacy-*.jpg; do
+        case "$b" in *-nacht.jpg) continue ;; esac
+        tagbilder+=("$b")
     done
-    magick montage "$tmp"/*.jpg -tile 5x2 -geometry +6+6 \
-        -background "#3a4446" "$DIST/screenshots/00-uebersicht.jpg" 2>/dev/null \
-        && anzahl=$((anzahl + 1))
+
+    for tag in "${tagbilder[@]}"; do
+        [ -f "$tag" ] || continue
+        nacht="$(nachtbild_zu "$tag")"
+        [ -f "$nacht" ] || continue
+        paare=$((paare + 1))
+        name="$(basename "${tag%.jpg}" | sed 's/^nt-legacy-*//')"
+        [ -z "$name" ] && name="teal"
+
+        diagonal "$tag" "$nacht" \
+            "$(printf '%s/screenshots/%02d-tag-nacht-%s.jpg' "$DIST" "$paare" "$name")"
+        anzahl=$((anzahl + 1))
+
+        # Fuer die Uebersichtskachel wird nicht das fertige Vollbild
+        # verkleinert, sondern erst zugeschnitten und dann geteilt. Sonst
+        # laeuft die Schnittkante schraeg durch die Kachel statt von Ecke
+        # zu Ecke, und der Effekt geht verloren.
+        for seite in tag nacht; do
+            [ "$seite" = tag ] && q="$tag" || q="$nacht"
+            magick "$q" -gravity center -crop 68%x68%+0-30 +repage \
+                   -resize 640x360^ -gravity center -extent 640x360 \
+                   "$tmp/kachel-$seite.png" 2>/dev/null
+        done
+        diagonal "$tmp/kachel-tag.png" "$tmp/kachel-nacht.png" \
+                 "$tmp/kachel-$paare.jpg"
+        kacheln+=("$tmp/kachel-$paare.jpg")
+    done
+
+    # Dazu ein Uebersichtsbild: alle Farbwelten auf einer Kachel. Das ist
+    # in einer Galerie meist das erste, was jemand ansieht - eine Reihe
+    # fast gleicher Vollbilder sagt weniger als ein Bild, das die
+    # Bandbreite zeigt.
+    #
+    # Fuenf geteilte Kacheln statt zehn ganzer: jede ist doppelt so
+    # gross, und die zehn Fassungen sind trotzdem alle darauf.
+    #
+    # Raster 3x2, nicht 5x1: nebeneinander ergaebe das einen 2860 Pixel
+    # breiten, 430 hohen Streifen - in der Galerieuebersicht ist davon
+    # nichts mehr zu erkennen. Der sechste Platz bleibt dabei uebrig und
+    # bekommt eine Beschriftung, sonst sieht die Luecke nach Fehler aus.
+    if [ ${#kacheln[@]} -gt 0 ]; then
+        magick -size 640x360 xc:"#3a4446" -gravity center \
+            -fill "#dfe6e6" -pointsize 46 -annotate +0-30 "NT Legacy" \
+            -fill "#9fb0b0" -pointsize 24 -annotate +0+30 "five palettes, day and night" \
+            "$tmp/kachel-text.jpg" 2>/dev/null \
+            && kacheln+=("$tmp/kachel-text.jpg")
+
+        magick montage "${kacheln[@]}" -tile 3x2 -geometry +6+6 \
+            -background "#3a4446" "$DIST/screenshots/00-uebersicht.jpg" 2>/dev/null \
+            && anzahl=$((anzahl + 1))
+    fi
     rm -rf "$tmp"
 fi
 echo "  screenshots/                               $(du -sh "$DIST/screenshots" | cut -f1)   ($anzahl Bilder)"
