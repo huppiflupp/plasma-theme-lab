@@ -33,7 +33,7 @@ EMAIL = "huppiflupp@users.noreply.github.com"
 WEBSITE = "https://github.com/huppiflupp/NiceOS9-theme"
 LIZENZ = "GPL-2.0-or-later"
 SCHRIFT = "Noto Sans"
-VERSION = "0.2.4"
+VERSION = "0.2.5"
 
 # --------------------------------------------------------------------------
 # Farben. Einzige Stelle, an der sie stehen.

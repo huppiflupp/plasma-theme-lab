@@ -73,7 +73,21 @@ rm -rf "$DIST"
 mkdir -p "$DIST"
 
 # ── 1. Gesamtarchiv ──────────────────────────────────────────────────────
-GESAMT="$DIST/nt-legacy-$VERSION.tar.xz"
+# Der Zweck steht im Dateinamen, und das ist kein Schoenheitsfehler.
+#
+# Aus der Community kam zweimal dieselbe Meldung: "Neue holen" erzeuge
+# Breeze-Duplikate. Beim zweiten Mal lag es nicht mehr an den Archiven -
+# der Nutzer hatte im Store auf das GESAMTpaket geklickt. Das ist ein
+# Abzug des Arbeitsverzeichnisses mit install.sh, kein kpackage-Paket;
+# kpackagetool6 macht daraus denselben namenlosen Ordner wie frueher aus
+# dem Buendel.
+#
+# Im Downloader steht neben jeder Datei ein Knopf, und die
+# Kategorie-Ansicht sagt nicht dazu, welche gemeint ist. "full-manual-
+# install" im Namen ist das Einzige, was an dieser Stelle noch warnt.
+# Sicher wird es erst, wenn diese Datei gar nicht im Store-Eintrag
+# liegt - siehe UPLOAD.md.
+GESAMT="$DIST/nt-legacy-full-manual-install-$VERSION.tar.xz"
 tar -caf "$GESAMT" "${AUSSCHLUSS[@]}" -C "$LAB" nt-legacy
 echo "  $(basename "$GESAMT")  $(du -h "$GESAMT" | cut -f1)   (Gesamtpaket mit install.sh)"
 

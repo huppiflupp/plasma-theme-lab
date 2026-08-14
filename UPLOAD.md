@@ -12,13 +12,13 @@ Historie nur auf.
 
 ```
 dist/
-├── nt-legacy-0.2.4.tar.xz                      2,3 MB   Gesamtpaket
-├── nt-legacy-global-theme-<farbwelt>-0.2.4.tar.xz       10 Stück
-├── nt-legacy-plasma-style-<farbwelt>-0.2.4.tar.xz       10 Stück
-├── nt-legacy-icons-0.2.4.tar.xz                200 KB   (hell und Nachtfassung)
-├── nt-legacy-window-decorations-0.2.4.tar.xz    12 KB
-├── nt-legacy-cursors-0.2.4.tar.xz               12 KB
-├── nt-legacy-color-schemes-0.2.4.tar.xz        4,0 KB
+├── nt-legacy-full-manual-install-0.2.5.tar.xz   2,4 MB   Gesamtpaket
+├── nt-legacy-global-theme-<farbwelt>-0.2.5.tar.xz       10 Stück
+├── nt-legacy-plasma-style-<farbwelt>-0.2.5.tar.xz       10 Stück
+├── nt-legacy-icons-0.2.5.tar.xz                200 KB   (hell und Nachtfassung)
+├── nt-legacy-window-decorations-0.2.5.tar.xz    12 KB
+├── nt-legacy-cursors-0.2.5.tar.xz               12 KB
+├── nt-legacy-color-schemes-0.2.5.tar.xz        4,0 KB
 ├── screenshots/                                 16 Bilder (10 + 5 Tag/Nacht + Übersicht)
 └── SHA256SUMS
 ```
@@ -29,7 +29,9 @@ Der Store kennt je Eintrag genau **eine** Kategorie. Ein Theme wie dieses
 besteht aber aus sechs Ebenen. Deshalb gibt es beides:
 
 - **Das Gesamtpaket** mit `install.sh` — für Leute, die alles auf einmal
-  wollen. Das ist der Weg, den die meisten größeren Themes gehen.
+  wollen. Es gehört ins GitHub-Release, **nicht** in den Store: Es ist ein
+  Abzug des Arbeitsverzeichnisses, und der Downloader kann damit nichts
+  anfangen. Warum das wichtig ist, steht weiter unten.
 - **Einzelarchive je Ebene** — nur damit funktioniert *Neue holen …*
   direkt in den Systemeinstellungen.
 
@@ -68,6 +70,63 @@ Bündel.
 nur die neuen daneben legen. Wer die alte Datei zieht, bekommt weiter die
 kaputten Einträge.
 
+## Das Gesamtpaket gehört nicht in den Global-Themes-Eintrag
+
+Nach 0.2.3 kam dieselbe Meldung ein zweites Mal — diesmal ohne unser
+Zutun: Der Nutzer hatte im Downloader auf `nt-legacy-0.2.3.tar.xz`
+geklickt, also auf das **Gesamtpaket**. Das ist ein Abzug des
+Arbeitsverzeichnisses mit `install.sh`, kein kpackage-Paket:
+
+```
+$ kpackagetool6 -t Plasma/LookAndFeel -i nt-legacy-0.2.4.tar.xz
+Erfolgreich installiert: …/plasma/look-and-feel/nt-legacy-0/
+```
+
+Derselbe namenlose Ordner wie beim alten Bündel. Die Archive sind in
+Ordnung — der Store-Eintrag ist es nicht.
+
+Der Downloader setzt neben **jede** Datei eines Eintrags einen Knopf und
+sagt nicht dazu, welche zur Kategorie passt. Solange das Gesamtpaket im
+Global-Themes-Eintrag liegt, wird jemand darauf klicken.
+
+**Also:**
+
+1. Im Eintrag unter *Global Themes* liegen **nur** die zehn
+   `nt-legacy-global-theme-<farbwelt>-…tar.xz`.
+2. Das Gesamtpaket kommt in ein **GitHub-Release** (der Tag ist gesetzt)
+   und wird im Beschreibungstext verlinkt — nicht als Store-Datei.
+
+Der Dateiname `nt-legacy-full-manual-install-…` warnt zusätzlich, falls es
+doch einmal dort landet. Verlassen sollte man sich darauf nicht.
+
+### Ein kaputtes Paket verdirbt die ganze Liste
+
+In der Test-VM nachgestellt, und das erklärt die Meldung erst wirklich.
+Ausgangslage: ein Nutzerverzeichnis mit genau zwei Paketen — einem
+gültigen NT-Design und dem Ordner ohne `metadata.json`, den das
+Gesamtpaket hinterlässt.
+
+| Zustand | Was *Globales Design* zeigt |
+|---|---|
+| mit dem kaputten Ordner | **neun** Kacheln, alle „Breeze", alle mit demselben Vorschaubild |
+| ohne ihn | Breeze, Breeze Dämmerung, Fedora, Fedora Dark, Fedora Light, **NT Legacy 2000** — jedes mit Namen und eigener Vorschau |
+
+Ein einziges Paket ohne `metadata.json` reicht also, damit das Modul
+**alle** Einträge als „Breeze" darstellt — auch die von Fedora und KDE
+mitgelieferten, die damit nichts zu tun haben. Wer das sieht, denkt
+zwangsläufig, die Installation habe Breeze-Kopien angelegt. Tatsächlich
+sind es die vorhandenen Designs, nur falsch beschriftet.
+
+Praktisch heißt das: Der Ordner muss weg, dann ist die Liste sofort
+wieder in Ordnung. Für Betroffene:
+
+```bash
+rm -rf ~/.local/share/plasma/look-and-feel/nt-legacy-*
+```
+
+(Die eigenen Pakete heißen `com.github.huppiflupp.nt-legacy-…` und
+bleiben.)
+
 Format ist `tar.xz`: kleiner als ZIP, unter Linux überall auspackbar, und
 es erhält symbolische Verweise. Das Symbolset besteht fast zur Hälfte aus
 Verweisen — ein ZIP würde daraus Kopien machen.
@@ -76,7 +135,7 @@ Verweisen — ein ZIP würde daraus Kopien machen.
 
 | Datei | Kategorie im Store | Systemeinstellungen |
 |---|---|---|
-| `nt-legacy-0.2.4.tar.xz` | **Global Themes** | (manuell, mit `install.sh`) |
+| `nt-legacy-full-manual-install-…` | **nicht in den Store** | GitHub-Release, manuell mit `install.sh` |
 | `nt-legacy-global-theme-<farbwelt>-…` (10×) | Global Themes | Erscheinungsbild → Globales Design |
 | `nt-legacy-plasma-style-<farbwelt>-…` (10×) | Plasma Themes | Erscheinungsbild → Plasma-Stil |
 | `nt-legacy-window-decorations-…` | Window Decorations | Erscheinungsbild → Fensterdekorationen |
@@ -84,11 +143,12 @@ Verweisen — ein ZIP würde daraus Kopien machen.
 | `nt-legacy-cursors-…` | Cursors | Erscheinungsbild → Mauszeiger |
 | `nt-legacy-color-schemes-…` | Color Schemes | Erscheinungsbild → Farben |
 
-**Empfehlung für den Anfang:** Einen Eintrag unter *Global Themes* mit dem
-Gesamtpaket. Das ist am wenigsten Pflegeaufwand und deckt den Fall ab, für
-den das Theme gedacht ist — jemand will die NT-Anmutung komplett. Die
-Einzelarchive kannst du später als weitere Dateien im selben Eintrag
-anhängen oder als eigene Einträge nachreichen.
+**Empfehlung:** Ein Eintrag unter *Global Themes* mit den zehn
+Einzelarchiven, und das Gesamtpaket im GitHub-Release daneben. Hier stand
+früher das Gegenteil — Gesamtpaket in den Store, Einzelarchive später —,
+und genau daraus ist die zweite Fehlermeldung entstanden: Der Downloader
+zieht, worauf geklickt wird, und das Gesamtpaket ist kein
+kpackage-Paket.
 
 ## Angaben für den Eintrag
 

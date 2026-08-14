@@ -670,8 +670,14 @@ def shell_symbole(z: Zeichner):
             f'<path d="M4,12 h5 l7,-6 v20 l-7,-6 h-5 z" '
             f'fill="{p["m_mitte"]}" stroke="{p["linie"]}" '
             f'stroke-width="1.5" stroke-linejoin="round"/>')
+        # Die Boegen muessen auf der Mittelachse des Korpus sitzen, also
+        # auf y=16. Sie standen 2 px zu tief, was aus der Community
+        # gemeldet wurde: Der Anfangspunkt war 13-2,5i und die Bogenhoehe
+        # 10+5i, macht eine Mitte bei 13-2,5i+(10+5i)/2 = 18. Der
+        # Startpunkt muss um dieselben 2 px hoeher, dann hebt sich das i
+        # wieder weg und jeder Bogen ist um 16 zentriert.
         wellen = "".join(
-            f'<path d="M{18 + i*4},{13 - i*2.5} a{5 + i*4},{5 + i*4} 0 0 1 '
+            f'<path d="M{18 + i*4},{11 - i*2.5} a{5 + i*4},{5 + i*4} 0 0 1 '
             f'0,{10 + i*5}" fill="none" stroke="{p["linie"]}" '
             f'stroke-width="2" stroke-linecap="round"/>'
             for i in range(bogen))
@@ -735,6 +741,89 @@ def shell_symbole(z: Zeichner):
         f'<circle cx="16" cy="16" r="3.5" fill="{p["flaeche"]}" '
         f'stroke="{p["linie"]}" stroke-width="1.5"/>')
     s["preferences-system"] = s["applications-system"]
+
+    # ── Die Kategorien der Systemeinstellungen ─────────────────────────
+    #
+    # Aus der Community: In der Seitenleiste der Systemeinstellungen trug
+    # ein Dutzend Kategorien dasselbe Zahnrad - Sitzung, Benutzer,
+    # Energie, Datum, Anmeldebildschirm, Fensterverwaltung, Netzwerk,
+    # Laufwerke, Bluetooth. Ursache ist die Namenskuerzung: Alle heissen
+    # preferences-system-<etwas>, keiner davon war gezeichnet, und die
+    # Suche fiel auf unser preferences-system zurueck. Ein Symbolsatz,
+    # der nur den Oberbegriff liefert, macht aus zwoelf Kategorien
+    # zwoelfmal dasselbe Bild.
+    #
+    # Deshalb hier die Namen, die Plasmas eigene KCMs anfordern -
+    # ermittelt aus /usr/share/applications/kcm_*.desktop, nicht geraten.
+    s["preferences-system-time"] = (
+        f'<circle cx="16" cy="16" r="12" fill="{p["papier"]}" '
+        f'stroke="{p["linie"]}" stroke-width="2"/>'
+        f'<line x1="16" y1="16" x2="16" y2="8" stroke="{p["linie"]}" '
+        f'stroke-width="2.5" stroke-linecap="round"/>'
+        f'<line x1="16" y1="16" x2="22" y2="19" stroke="{p["linie"]}" '
+        f'stroke-width="2.5" stroke-linecap="round"/>')
+    s["preferences-system-users"] = (
+        z.person(cx=12, cy=17, s=0.8, farbe=p["m_mitte"]) +
+        z.person(cx=21, cy=15, s=0.85))
+    s["preferences-system-power-management"] = (
+        # Batterie liegend, mit Blitz. Der Stecker waere bei 16 px ein
+        # Fleck; der Blitz bleibt als Silhouette lesbar.
+        z.kasten(3, 10, 22, 13, p["m_mitte"]) +
+        z.kasten(25, 14, 4, 5, p["m_dunkel"]) +
+        f'<polygon points="15,11 9,17 13,17 11,22 18,15 14,15" '
+        f'fill="{p["warn"]}" stroke="{p["linie"]}" stroke-width="1.2" '
+        f'stroke-linejoin="round"/>')
+    s["preferences-system-bluetooth"] = (
+        f'<circle cx="16" cy="16" r="12" fill="{p["akzent"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1.5"/>'
+        # Die Bluetooth-Rune: Mittelachse mit zwei Dreiecken.
+        f'<path d="M13,10 L20,15 L13,21 L13,10 M13,21 L20,17 L13,11" '
+        f'fill="none" stroke="{p["papier"]}" stroke-width="2" '
+        f'stroke-linejoin="round" stroke-linecap="round"/>'
+        f'<line x1="13" y1="16" x2="9" y2="13" stroke="{p["papier"]}" '
+        f'stroke-width="2" stroke-linecap="round"/>'
+        f'<line x1="13" y1="16" x2="9" y2="19" stroke="{p["papier"]}" '
+        f'stroke-width="2" stroke-linecap="round"/>')
+    s["preferences-system-network"] = (
+        # Weltkugel mit Laengen- und Breitenkreis.
+        f'<circle cx="16" cy="16" r="12" fill="{p["glas"]}" '
+        f'stroke="{p["linie"]}" stroke-width="2"/>'
+        f'<ellipse cx="16" cy="16" rx="5" ry="12" fill="none" '
+        f'stroke="{p["linie"]}" stroke-width="1.5"/>'
+        f'<line x1="4" y1="16" x2="28" y2="16" stroke="{p["linie"]}" '
+        f'stroke-width="1.5"/>'
+        f'<path d="M6.5,9.5 h19 M6.5,22.5 h19" fill="none" '
+        f'stroke="{p["linie"]}" stroke-width="1.2"/>')
+    s["preferences-system-login"] = (
+        # Anmeldebildschirm: Monitor mit Person darauf.
+        z.kasten(2, 4, 28, 20, p["m_mitte"]) +
+        z.kasten(5, 7, 22, 14, p["akzent"]) +
+        z.person(cx=16, cy=15, s=0.55, farbe=p["papier"]) +
+        z.kasten(11, 25, 10, 3, p["m_dunkel"]))
+    s["preferences-system-windows"] = (
+        # Zwei versetzte Fenster mit Titelbalken - Fensterverwaltung.
+        z.kasten(3, 6, 18, 15, p["papier"]) +
+        f'<rect x="3" y="6" width="18" height="4" fill="{p["m_dunkel"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1"/>' +
+        z.kasten(11, 13, 18, 15, p["papier"]) +
+        f'<rect x="11" y="13" width="18" height="4" fill="{p["akzent"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1"/>')
+    s["preferences-system-session-services"] = (
+        # Dienste: gestapelte Riegel mit Statuspunkt.
+        "".join(z.kasten(4, 5 + i * 8, 24, 6, p["m_mitte"]) +
+                f'<circle cx="8.5" cy="{8 + i * 8}" r="1.8" '
+                f'fill="{p["gut"]}"/>'
+                for i in range(3)))
+    s["preferences-system-splash"] = (
+        z.monitor() +
+        f'<circle cx="16" cy="14" r="4" fill="{p["gold"]}" '
+        f'stroke="{p["linie"]}" stroke-width="1.2"/>')
+
+    # Wo Plasma laengere Namen anfragt, reicht ein Verweis - siehe die
+    # ALIASE-Tabelle weiter unten. Hier nur die, die inhaltlich dasselbe
+    # meinen wie ein bereits gezeichnetes Symbol.
+    s["preferences-system-windows-actions"] = s["preferences-system-windows"]
+    s["preferences-system-tabbox"] = s["preferences-system-windows"]
 
     # ── Der Anwendungsstarter ──────────────────────────────────────────
     #
@@ -919,6 +1008,12 @@ WEITERE_NAMEN = {
     # und bekam bisher das Breeze-Symbol - mit kiconfinder6 geprueft.
     # Neben unserem Zahnrad fiel das auf.
     "systemsettings":         "applications-system",
+    # Die Netzwerk-Unterpunkte meinen alle dasselbe Bild. Ohne diese
+    # Verweise faengt preferences-system sie ab und sie bekaemen wieder
+    # das Zahnrad - genau das, was gemeldet wurde.
+    "preferences-system-network-connection": "preferences-system-network",
+    "preferences-system-network-proxy":      "preferences-system-network",
+    "preferences-system-network-remote":     "preferences-system-network",
     "user-trash-symbolic":    "user-trash",
     "emblem-favorite":        "folder-favorites",
     # Kickoff und seine Geschwister fragen unter mehreren Namen nach dem

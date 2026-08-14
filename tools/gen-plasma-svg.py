@@ -174,6 +174,21 @@ WIDGETS = {
         "hints": ["scrollbar-size"],
         "masken": [],
         "ecke": 3,
+        # Die Rinne bekommt das Karomuster, das Windows dort hatte: ein
+        # Schachbrett aus Buttongrau und Weiss, jede Zelle ein Pixel.
+        # Der Qt-Stil zeichnet es in Anwendungen von sich aus - in
+        # Plasma-Oberflaechen wie den Systemeinstellungen kommt die
+        # Bildlaufleiste aber aus diesem SVG, und dort fehlte es. Aus der
+        # Community gemeldet.
+        #
+        # Nur die Rinne, nicht der Griff: In Windows ist der Griff eine
+        # glatte Schaltflaeche, und das Muster ist gerade das, was ihn
+        # von der Rinne unterscheidet.
+        "dither": ("background-vertical", "background-horizontal"),
+        # Ohne diesen Hint streckt Plasma den Mittelteil, und aus dem
+        # Karo wuerden Streifen. Mit ihm kachelt es - so macht es Breeze
+        # in derselben Datei auch.
+        "tile_center": True,
     },
     "switch": {
         "beschreibung": "Umschalter (Systemabschnitt, Benachrichtigungen)",
@@ -465,7 +480,7 @@ class Generator:
 
     def _neun_patch(self, praefix, ox, oy, flaeche_key="flaeche",
                     invertiert=False, klasse="ColorScheme-Background",
-                    nur_rahmen=False):
+                    nur_rahmen=False, dither=False):
         """Erzeugt einen vollstaendigen 9-Patch-Satz an Position (ox, oy).
 
         Ein 9-Patch teilt die Flaeche restlos auf: alle neun Felder sind
@@ -559,6 +574,21 @@ class Generator:
                 self.teile.append(
                     f'      <rect x="{x:g}" y="{y:g}" width="{fw:g}" '
                     f'height="{fh:g}" fill="{flaeche}"/>')
+
+            # Das Karo der Rinne. Gezeichnet als gestrichelte Linien, eine
+            # je Bildzeile, nicht als einzelne Rechtecke: Ein Feld von
+            # 26x26 haette sonst 338 Rechtecke, so sind es 26 Linien.
+            # Ein SVG-<pattern> waere noch kuerzer, aber QtSvg kennt
+            # keine Patterns - es rendert sie ersatzlos weg.
+            if dither and teil == "center":
+                hell_farbe = self.p.get("hell", "#ffffff")
+                for zeile in range(int(fh)):
+                    versatz = zeile % 2
+                    self.teile.append(
+                        f'      <line x1="{x + versatz + 0.5:g}" '
+                        f'y1="{y + zeile + 0.5:g}" x2="{x + fw:g}" '
+                        f'y2="{y + zeile + 0.5:g}" stroke="{hell_farbe}" '
+                        f'stroke-width="1" stroke-dasharray="1 1"/>')
 
             def linie(seite, breite, farbe, versatz):
                 if breite <= 0:
@@ -776,7 +806,8 @@ class Generator:
             else:
                 self._neun_patch(praefix, ox, oy, farb_key, invertiert,
                                  klasse=klasse_hier,
-                                 nur_rahmen=spec.get("nur_rahmen", False))
+                                 nur_rahmen=spec.get("nur_rahmen", False),
+                                 dither=basis in spec.get("dither", ()))
                 self._hints(praefix, ox, oy, hints)
 
         for j, (fid, (art, farbkey)) in enumerate(formen):
@@ -784,6 +815,16 @@ class Generator:
             ox = self.abstand + (i % spalten) * schritt
             oy = self.abstand + (i // spalten) * schritt
             self._form(fid, art, self.farbe(farbkey, "text"), ox, oy, self.zelle)
+
+        # Der Kachel-Hinweis gilt fuer die ganze Datei, nicht je Zustand.
+        # Er liegt ausserhalb der sichtbaren Flaeche - KSvg fragt nur, ob
+        # das Element existiert, und zeichnet es nie. Breeze legt es in
+        # derselben Datei ebenso ins Negative.
+        if spec.get("tile_center"):
+            self.teile.append(
+                '  <!-- Mittelteil kacheln statt strecken -->\n'
+                '    <rect id="hint-tile-center" x="0" y="-4" '
+                'width="2" height="2" opacity="0"/>')
 
         self.ecke = self._ecke_original
         return "\n".join(kopf + self.teile + ['</svg>', ''])

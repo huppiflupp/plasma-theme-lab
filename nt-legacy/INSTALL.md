@@ -29,7 +29,7 @@ The archive `nt-legacy-<version>.tar.xz` contains all six layers of the
 theme at once.
 
 ```bash
-tar -xf nt-legacy-0.2.4.tar.xz
+tar -xf nt-legacy-full-manual-install-0.2.5.tar.xz
 cd nt-legacy
 ./install.sh
 ```
