@@ -124,8 +124,27 @@ ausdrücklich **nicht** enthalten — dessen Lizenzlage ist ungeklärt.
 | `nt-legacy.jpg` | 1920×1080 | Petrol — die Grundfassung |
 | `nt-legacy-*.jpg` | 1920×1080 | je eine einzelne Fassung |
 
-Jedes Vollbild zeigt vier Programme (Konsole, KolourPaint, Dragon Player,
-PCManFM-Qt) mit englischer Oberfläche.
+Jedes Vollbild zeigt drei Programme **nebeneinander**, mit englischer
+Oberfläche und englischen Ordnernamen:
+
+| Fenster | Was es zeigt |
+|---|---|
+| Dolphin | den persönlichen Ordner in Symbolansicht — acht Ordner, jeder mit seiner eigenen Marke |
+| KWrite | `INSTALL.md`, also eine eingefärbte Textansicht |
+| Konsole | ein farbiges `ls`, damit die auf Kontrast kalibrierten ANSI-Farben sichtbar sind |
+
+Vorher standen vier Fenster versetzt übereinander. Die Idee war, auf einem
+Bild eine aktive und mehrere inaktive Titelleisten zu zeigen — der Preis
+war, dass von den unteren Fenstern je ein Streifen übrig blieb und
+ausgerechnet der Dateimanager zur Hälfte verdeckt war. Nebeneinander ist
+jedes Fenster ganz zu sehen; Dolphin öffnet zuletzt und trägt damit
+weiterhin die aktive Titelleiste, die beiden anderen die inaktive.
+
+Die englische Oberfläche stellt `gen-vorschau.sh` nur für diese drei
+Programme her (`LANGUAGE=en_US`), nicht für die ganze Sitzung — Panel und
+Uhr bleiben deutsch, was im Bild nicht auffällt. Die Benutzerordner werden
+dabei mit umbenannt, sonst stünde eine englische Seitenleiste neben
+deutschen Ordnernamen.
 
 **Die geteilten Bilder** legen Tag- und Nachtfassung derselben Farbwelt in
 ein Bild: Schnitt diagonal von oben rechts nach unten links, oben links

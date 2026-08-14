@@ -74,17 +74,120 @@ for v in "${varianten[@]}"; do
         # 16:9, damit die Kachel im Auswahldialog nicht beschneidet
         kscreen-doctor output.1.mode.${BREITE}x${HOEHE}@60 >/dev/null 2>&1
         sleep 4
-        # Vier Fenster, versetzt gestapelt: das oberste ist aktiv, die
-        # anderen inaktiv - so sieht man beide Titelleistenfarben und
-        # gleich mehrere Programme auf einem Bild.
+
+        # Drei Fenster nebeneinander statt gestapelt.
         #
-        # Reihenfolge von hinten nach vorn. PCManFM-Qt kommt zuletzt,
-        # weil es das Symbolset und die Statusleiste zeigt - das ist das
-        # Aushaengeschild.
-        (setsid konsole     >/dev/null 2>&1 &); sleep 9
-        (setsid kolourpaint >/dev/null 2>&1 &); sleep 9
-        (setsid dragon      >/dev/null 2>&1 &); sleep 9
-        (setsid pcmanfm-qt  >/dev/null 2>&1 &); sleep 12
+        # Gestapelt war die Idee, auf einem Bild eine aktive und mehrere
+        # inaktive Titelleisten zu zeigen. Der Preis war hoch: Von den
+        # unteren Fenstern blieb je ein Streifen uebrig, und gerade der
+        # Dateimanager - das Aushaengeschild fuer den Symbolsatz - war
+        # zur Haelfte verdeckt. Nebeneinander ist jedes Fenster ganz zu
+        # sehen. Die inaktive Titelleiste zeigen die beiden Fenster, die
+        # nicht den Fokus haben, weiterhin.
+        #
+        # Dolphin bekommt den groessten Anteil und steht im persoenlichen
+        # Ordner: Bilder, Dokumente, Downloads, Musik, Videos - jeder mit
+        # seiner eigenen Ordnermarke. Das ist auf einen Blick mehr vom
+        # Symbolsatz zu sehen als in jeder Werkzeugleiste.
+        #
+        # Positioniert wird ueber KWin-Fensterregeln, nicht ueber
+        # xdotool: Unter Wayland kann kein fremder Prozess Fenster
+        # verschieben. Die Regeln stehen in der Wegwerf-VM, nicht beim
+        # Nutzer.
+        cat > ~/.config/kwinrulesrc <<'REGELN'
+[General]
+count=3
+rules=vorschau-dateien,vorschau-editor,vorschau-terminal
+
+[vorschau-dateien]
+Description=Vorschau: Dateimanager links
+wmclass=dolphin
+wmclassmatch=2
+position=16,36
+positionrule=3
+size=712,880
+sizerule=3
+
+[vorschau-editor]
+Description=Vorschau: Editor Mitte
+wmclass=kwrite
+wmclassmatch=2
+position=744,36
+positionrule=3
+size=560,880
+sizerule=3
+
+[vorschau-terminal]
+Description=Vorschau: Terminal rechts
+wmclass=konsole
+wmclassmatch=2
+position=1320,36
+positionrule=3
+size=584,880
+sizerule=3
+REGELN
+        qdbus-qt6 org.kde.KWin /KWin reconfigure >/dev/null 2>&1
+        sleep 2
+
+        # Dolphin auf Symbolansicht mit grossen Symbolen. Die Detailliste
+        # zeigt 16-px-Symbole - da ist von den Ordnermarken nichts mehr zu
+        # erkennen.
+        kwriteconfig6 --file dolphinrc --group General --key ViewMode 0
+        kwriteconfig6 --file dolphinrc --group IconsMode --key PreviewSize 64
+        kwriteconfig6 --file dolphinrc --group IconsMode --key IconSize 64
+        kwriteconfig6 --file dolphinrc --group General --key ShowFullPath false
+
+        # Was hier sonst herumliegt, gehoert nicht ins Bild. Das
+        # Arbeitsverzeichnis des Themes laesst sich nicht wegraeumen - es
+        # wird gebraucht -, aber .hidden nimmt es aus der Ansicht: KIO
+        # blendet jeden Namen aus, der dort steht.
+        mkdir -p ~/.vorschau-beiseite
+        mv ~/*.sh ~/*.py ~/.vorschau-beiseite/ 2>/dev/null
+        printf 'nt-legacy\n' > ~/.hidden
+
+        # Die Benutzerordner auf englische Namen. Ohne das steht im Bild
+        # eine englische Seitenleiste neben deutschen Ordnernamen -
+        # \"Home, Documents, Pictures\" links, \"Bilder, Dokumente,
+        # Schreibtisch\" rechts. Genau die Ordner sind hier aber das
+        # Motiv, weil sie die neuen Ordnermarken tragen.
+        #
+        # xdg-user-dirs-update taugt nicht: es legt die englischen Ordner
+        # neu an, statt die vorhandenen umzubenennen, und danach stehen
+        # beide da.
+        cd ~
+        while IFS=: read -r alt neu schluessel; do
+            [ -d \"\$alt\" ] && [ ! -e \"\$neu\" ] && mv \"\$alt\" \"\$neu\"
+            printf 'XDG_%s_DIR=\"\$HOME/%s\"\n' \"\$schluessel\" \"\$neu\"
+        done <<'ORDNER' > ~/.config/user-dirs.dirs
+Schreibtisch:Desktop:DESKTOP
+Dokumente:Documents:DOCUMENTS
+Downloads:Downloads:DOWNLOAD
+Musik:Music:MUSIC
+Bilder:Pictures:PICTURES
+Videos:Videos:VIDEOS
+Öffentlich:Public:PUBLICSHARE
+Vorlagen:Templates:TEMPLATES
+ORDNER
+
+        # Reihenfolge: das zuletzt geoeffnete Fenster hat den Fokus und
+        # zeigt die aktive Titelleiste. Das soll der Dateimanager sein.
+        #
+        # Die Konsole bekommt einen Befehl mit auf den Weg. Ein blosser
+        # Prompt zeigt vom Terminal nur den Hintergrund - die acht
+        # ANSI-Farben sind aber eigens auf gemessenen Kontrast gebracht
+        # worden (4,5:1 normal, 7:1 intense), und ein farbiges ls ist der
+        # einzige Ort, an dem man das sieht.
+        # Englische Oberflaeche, obwohl die VM auf Deutsch laeuft. Die
+        # Bilder gehen an store.kde.org, und der Eintrag ist englisch -
+        # deutsche Menuepunkte schliessen den groessten Teil der Leser
+        # aus. Nur die Programme werden umgestellt, nicht die Sitzung:
+        # Panel und Uhr bleiben deutsch, was im Bild nicht auffaellt, und
+        # ein Sprachwechsel der ganzen Sitzung braeuchte einen weiteren
+        # Neustart.
+        export LANGUAGE=en_US LANG=en_US.UTF-8 LC_ALL=
+        (setsid konsole -e bash -c 'ls --color=always -l /usr/share | head -22; exec bash' >/dev/null 2>&1 &); sleep 9
+        (setsid kwrite ~/nt-legacy/INSTALL.md >/dev/null 2>&1 &); sleep 10
+        (setsid dolphin ~ >/dev/null 2>&1 &); sleep 12
     " >/dev/null 2>&1
 
     virsh -c qemu:///system send-key plasma-lab KEY_LEFTSHIFT >/dev/null 2>&1
@@ -102,20 +205,23 @@ for v in "${varianten[@]}"; do
     magick "$roh" -resize "${BREITE}x${HOEHE}!" -quality 88 \
         "$ziel/fullscreenpreview.jpg"
 
-    # Fuer die Kachel einen Ausschnitt statt der ganzen Flaeche: bei
-    # 600x337 waeren die Fenster sonst unlesbar klein und die halbe
-    # Kachel leerer Schreibtisch. Der Ausschnitt sitzt mittig, wo die
-    # Fenster stehen, und zeigt Titelleiste, Fensterinhalt und ein
-    # Stueck Panel - also genau das, was die Variante ausmacht.
-    magick "$roh" -gravity center -crop 62%x62%+0-40 +repage \
-        -resize 600x337^ -gravity center -extent 600x337 \
-        "$ziel/preview.png"
+    # Die Kachel zeigt nur die linken zwei Fenster, nicht alle drei.
+    #
+    # Drei Fenster nebeneinander ergeben ein Motiv im Verhaeltnis 3:1.
+    # Die Kachel ist aber 16:9 - wer das hineinzwingt, bekommt entweder
+    # zwei leere Balken oder einen Bildausschnitt, in dem von den
+    # aeusseren Fenstern nichts mehr uebrig ist. Beides war schlechter
+    # als die einfache Loesung: Dolphin und der Editor, in ganzer Hoehe.
+    # Das sind ohnehin die beiden, die etwas zeigen - Ordnersymbole und
+    # eine eingefaerbte Textansicht. Das Terminal steht im Vollbild.
+    magick "$roh" -gravity northwest -crop 69%x69%+8+24 +repage \
+        -resize 600x337! "$ziel/preview.png"
     cp "$ziel/preview.png" "$ziel/lockscreen.png"
     cp "$ziel/preview.png" "$ziel/splash.png"
     rm -f "$roh"
 
     echo "  $(basename "$ziel")/preview.png  (aus echtem Bildschirmfoto)"
-    "$VMCTL" ssh 'pkill pcmanfm-qt; pkill dragon; pkill kolourpaint; pkill konsole' >/dev/null 2>&1
+    "$VMCTL" ssh 'pkill dolphin; pkill kwrite; pkill konsole' >/dev/null 2>&1
 done
 
 echo

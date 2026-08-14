@@ -270,11 +270,16 @@ if command -v magick >/dev/null && [ "$anzahl" -gt 0 ]; then
         # verkleinert, sondern erst zugeschnitten und dann geteilt. Sonst
         # laeuft die Schnittkante schraeg durch die Kachel statt von Ecke
         # zu Ecke, und der Effekt geht verloren.
+        #
+        # Derselbe Ausschnitt wie bei preview.png in gen-vorschau.sh:
+        # linke obere Ecke, die beiden linken Fenster. Ein mittiger
+        # Ausschnitt sass frueher richtig, als die Fenster gestapelt
+        # waren - seit sie nebeneinander stehen, trifft er den Editor und
+        # das Terminal, und von den Ordnersymbolen bleibt nichts.
         for seite in tag nacht; do
             [ "$seite" = tag ] && q="$tag" || q="$nacht"
-            magick "$q" -gravity center -crop 68%x68%+0-30 +repage \
-                   -resize 640x360^ -gravity center -extent 640x360 \
-                   "$tmp/kachel-$seite.png" 2>/dev/null
+            magick "$q" -gravity northwest -crop 69%x69%+8+24 +repage \
+                   -resize 640x360! "$tmp/kachel-$seite.png" 2>/dev/null
         done
         diagonal "$tmp/kachel-tag.png" "$tmp/kachel-nacht.png" \
                  "$tmp/kachel-$paare.jpg"
