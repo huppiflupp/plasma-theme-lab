@@ -33,7 +33,7 @@ EMAIL = "huppiflupp@users.noreply.github.com"
 WEBSITE = "https://github.com/huppiflupp/NiceOS9-theme"
 LIZENZ = "GPL-2.0-or-later"
 SCHRIFT = "Noto Sans"
-VERSION = "0.2.5"
+VERSION = "0.2.6"
 
 # --------------------------------------------------------------------------
 # Farben. Einzige Stelle, an der sie stehen.
@@ -57,6 +57,12 @@ BASIS = {
     "hell":         "#f4f4ee",   # 3D-Kante oben/links
     "dunkel":       "#8a8a82",   # 3D-Kante unten/rechts
     "rahmen":       "#202628",   # Aussenrahmen
+    # Der helle Punkt im Karo der Bildlaufleisten-Rinne. Bewusst nicht
+    # "hell": die Lichtkante ist gedaempft, das Karo braucht Kontrast.
+    # Und bewusst nicht #ffffff - die Farben werden ueber ihren Hexwert
+    # ersetzt, ein Wert, den auch auswahl_text traegt, wuerde beide
+    # zugleich umfaerben.
+    "karo":         "#fcfcfa",
 }
 
 VARIANTEN = {
@@ -95,6 +101,7 @@ VARIANTEN = {
             "desktop":      "#a89878",
             "text2":        "#6a5c46",
             "hell":         "#f4f0e6",
+            "karo":         "#fcfaf2",
             "dunkel":       "#8a8272",
         },
     },
@@ -120,6 +127,7 @@ VARIANTEN = {
             "positiv":      "#008000",
             "desktop":      "#008080",   # das Teal des Standard-Desktops
             "hell":         "#ffffff",
+            "karo":         "#ffffff",
             "dunkel":       "#808080",
             "rahmen":       "#000000",
         },
@@ -147,6 +155,7 @@ VARIANTEN = {
             "positiv":      "#39734a",
             "desktop":      "#3a6ea5",
             "hell":         "#ffffff",
+            "karo":         "#ffffff",
             "dunkel":       "#808080",
             "rahmen":       "#000000",
         },
@@ -180,6 +189,9 @@ NACHT_BASIS = {
     "hell":         "#4a5456",   # 3D-Kante oben/links, aufgehellt
     "dunkel":       "#0e1416",   # unten/rechts, fast schwarz
     "rahmen":       "#0a1012",
+    # Im Dunkeln war das Karo schon vorher gut zu sehen - dieser Wert
+    # ist derselbe, den die Nachtfassungen bisher ueber "hell" bekamen.
+    "karo":         "#4a5456",
 }
 
 for _k, _v in [("teal", {}), ("win98", {}), ("win2k", {}),
@@ -188,7 +200,8 @@ for _k, _v in [("teal", {}), ("win98", {}), ("win2k", {}),
                ("desert", {"flaeche": "#32302a", "fenster": "#26241e",
                            "panel": "#2b2822", "kopf_inaktiv": "#4a4438",
                            "desktop": "#221f1a", "text2": "#a49a86",
-                           "hell": "#544e42", "dunkel": "#16130e"})]:
+                           "hell": "#544e42", "karo": "#544e42",
+                           "dunkel": "#16130e"})]:
     VARIANTEN[f"{_k}-nacht"] = {
         "kurz": VARIANTEN[_k]["kurz"] + "Nacht",
         "anzeige": VARIANTEN[_k]["anzeige"] + " Nacht",
@@ -926,18 +939,50 @@ def baue(variante, pruefen=False):
             datei.write_text(s)
     print(f"  aurorae/{k['aurorae']}/")
 
+    # ── Hintergruende ────────────────────────────────────────────────────
+    #
+    # Zwei Pakete je Variante, und die Aufteilung hat einen Grund.
+    #
+    # Das Hauptpaket ist das, auf das contents/defaults zeigt. Dort liegt
+    # die Landschaft - ein 4K-Bild, das nicht aus Farbwerten entsteht,
+    # sondern aus einem Bildmodell. Es kommt ueber
+    # tools/mach-hintergruende.py ins Repository und wird hier NICHT
+    # angefasst: ein Neubau des Themes dauert Sekunden, ein Neubau der
+    # Bilder Stunden.
+    #
+    # Die erzeugte Verlaufsflaeche hat ihr eigenes Paket. Sie ist 95 KB
+    # gross und braucht kein Bildmodell - wer das Theme aus dem
+    # Quelltext baut, hat damit auch ohne die Bilder einen passenden
+    # Hintergrund. Und wer die schlichte Flaeche der Landschaft vorzieht,
+    # findet sie weiterhin in der Auswahl.
+    def flaechenpaket(kennung, name):
+        p_wp = HIER / "wallpapers" / kennung
+        schreibe(p_wp / "metadata.json", json.dumps({
+            "KPlugin": {"Authors": [{"Name": AUTOR}], "Id": kennung,
+                        "License": LIZENZ, "Name": name}},
+            indent=4, ensure_ascii=False) + "\n", still=True)
+        svg = p_wp / "contents" / "images" / "3840x2160.svg"
+        schreibe(svg, wallpaper_svg(p), still=True)
+        return subprocess.run(["magick", "-background", "none", str(svg),
+                               str(svg.with_suffix(".png"))],
+                              capture_output=True, text=True).returncode == 0
+
+    ok = flaechenpaket(k["wallpaper"] + "-flaeche", anzeige + " (Flaeche)")
+    print(f"  wallpapers/{k['wallpaper']}-flaeche/"
+          + ("" if ok else "   (PNG uebersprungen)"))
+
+    # Liegt keine Landschaft im Hauptpaket, springt die Flaeche ein -
+    # sonst zeigte das Global Theme auf ein leeres Paket.
     wp = HIER / "wallpapers" / k["wallpaper"]
-    schreibe(wp / "metadata.json", json.dumps({
-        "KPlugin": {"Authors": [{"Name": AUTOR}], "Id": k["wallpaper"],
-                    "License": LIZENZ, "Name": anzeige}},
-        indent=4, ensure_ascii=False) + "\n", still=True)
-    svg = wp / "contents" / "images" / "3840x2160.svg"
-    schreibe(svg, wallpaper_svg(p), still=True)
-    r = subprocess.run(["magick", "-background", "none", str(svg),
-                        str(svg.with_suffix(".png"))],
-                       capture_output=True, text=True)
-    print(f"  wallpapers/{k['wallpaper']}/"
-          + ("" if r.returncode == 0 else "   (PNG uebersprungen)"))
+    bilder = list((wp / "contents" / "images").glob("*.jpg")) \
+        if (wp / "contents" / "images").is_dir() else []
+    if bilder:
+        print(f"  wallpapers/{k['wallpaper']}/   "
+              f"(Landschaft, {bilder[0].stat().st_size // 1024} KB - beibehalten)")
+    else:
+        flaechenpaket(k["wallpaper"], anzeige)
+        print(f"  wallpapers/{k['wallpaper']}/   "
+              f"(keine Landschaft vorhanden, Flaeche eingesetzt)")
 
     lnf = HIER / "look-and-feel" / k["lnf"]
     schreibe(lnf / "metadata.json", metadata_lnf(k, anzeige, beschreibung), still=True)

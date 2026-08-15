@@ -87,9 +87,18 @@ mkdir -p "$DIST"
 # install" im Namen ist das Einzige, was an dieser Stelle noch warnt.
 # Sicher wird es erst, wenn diese Datei gar nicht im Store-Eintrag
 # liegt - siehe UPLOAD.md.
+#
+# Ohne Kacheln und Grossbilder. Mit ihnen waere diese Datei 72 MB statt
+# 10 - fuer 61 MB Bildmaterial, das mit dem Design nichts zu tun hat und
+# das niemand ungefragt herunterladen will. Die zehn Landschaften bleiben
+# drin: auf sie zeigt contents/defaults jeder Variante, ohne sie
+# installierte man ein Design, dessen Hintergrund fehlt.
 GESAMT="$DIST/nt-legacy-full-manual-install-$VERSION.tar.xz"
-tar -caf "$GESAMT" "${AUSSCHLUSS[@]}" -C "$LAB" nt-legacy
-echo "  $(basename "$GESAMT")  $(du -h "$GESAMT" | cut -f1)   (Gesamtpaket mit install.sh)"
+tar -caf "$GESAMT" "${AUSSCHLUSS[@]}" \
+    --exclude="wallpapers/ntlegacy-kachel-*" \
+    --exclude="wallpapers/ntlegacy-gross-*" \
+    -C "$LAB" nt-legacy
+echo "  $(basename "$GESAMT")  $(du -h "$GESAMT" | cut -f1)   (Gesamtpaket mit install.sh, ohne Kacheln)"
 
 # ── 2. Einzelarchive je Ebene ────────────────────────────────────────────
 #
@@ -190,6 +199,45 @@ tar -caf "$DIST/nt-legacy-color-schemes-$VERSION.tar.xz" \
     -C "$THEME/color-schemes" .
 printf '  %-42s %6s   (%s)\n' "nt-legacy-color-schemes-$VERSION.tar.xz" \
     "$(du -h "$DIST/nt-legacy-color-schemes-$VERSION.tar.xz" | cut -f1)" "Farbschemata, 10 Varianten"
+
+# ── Hintergruende ────────────────────────────────────────────────────────
+#
+# Je Paket ein Archiv, und das ist hier keine Geschmacksfrage.
+# wallpaper.knsrc sagt Uncompress=subdir-archive: KNewStuff erwartet im
+# Archiv genau EIN Verzeichnis und legt es nach ~/.local/share/wallpapers.
+# Liegen mehrere nebeneinander, packt es sie in einen Ordner mit dem
+# Namen des Archivs - die metadata.json steckt dann eine Ebene zu tief
+# und Plasma findet kein einziges Bild. Das ist derselbe Fehler, der in
+# 0.2.2 die namenlosen Eintraege erzeugt hat, nur eine Ebene weiter.
+#
+# Die Verlaufsflaechen (*-flaeche) bekommen kein eigenes Archiv. Sie sind
+# der Rueckfall fuer den, der aus dem Quelltext baut, und liegen im
+# Gesamtarchiv - im Store waeren sie 20 weitere Dateien fuer 95 KB Bild.
+wp_n=0
+for d in "$THEME"/wallpapers/*/; do
+    b="$(basename "$d")"
+    case "$b" in *-flaeche) continue;; esac
+    # "ntlegacy" ist die Grundvariante - im Dateinamen heisst sie "teal",
+    # wie ueberall sonst auch. Ohne diesen Fall hiesse das Archiv
+    # nt-legacy-wallpaper-ntlegacy-*.
+    kurz="${b#ntlegacy-}"
+    [ "$kurz" = "ntlegacy" ] && kurz="teal"
+    tar -caf "$DIST/nt-legacy-wallpaper-$kurz-$VERSION.tar.xz" \
+        "${AUSSCHLUSS[@]}" -C "$THEME/wallpapers" "$b"
+    wp_n=$((wp_n + 1))
+done
+printf '  %-42s %6s   (%s)\n' "nt-legacy-wallpaper-*-$VERSION.tar.xz" \
+    "$wp_n Stk" "Hintergruende, je Paket ein Archiv"
+
+# Dazu ein Sammelarchiv fuer den manuellen Weg: entpacken nach
+# ~/.local/share/wallpapers, fertig. Ueber "Neue holen" darf es NICHT
+# gehen - siehe oben. Der Name sagt es, wie beim Gesamtarchiv auch.
+tar -caf "$DIST/nt-legacy-wallpapers-manual-install-$VERSION.tar.xz" \
+    "${AUSSCHLUSS[@]}" -C "$THEME/wallpapers" .
+printf '  %-42s %6s   (%s)\n' \
+    "nt-legacy-wallpapers-manual-install-$VERSION.tar.xz" \
+    "$(du -h "$DIST/nt-legacy-wallpapers-manual-install-$VERSION.tar.xz" | cut -f1)" \
+    "alle Hintergruende, von Hand zu entpacken"
 
 # ── Bildschirmfotos fuer die Store-Galerie ───────────────────────────────
 #

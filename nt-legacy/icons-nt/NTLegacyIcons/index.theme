@@ -2,7 +2,7 @@
 Name=NT Legacy Icons
 Comment=Symbole im Stil von Windows NT 4.0, vollstaendig erzeugt
 Inherits=breeze,hicolor
-Directories=actions/16,actions/22,actions/32,actions/48,apps/16,apps/22,apps/32,apps/48,devices/16,devices/22,devices/32,devices/48,mimetypes/16,mimetypes/22,mimetypes/32,mimetypes/48,places/16,places/22,places/32,places/48,status/16,status/22,status/32,status/48
+Directories=actions/16,actions/22,actions/32,actions/48,apps/16,apps/22,apps/32,apps/48,devices/16,devices/22,devices/32,devices/48,mimetypes/16,mimetypes/22,mimetypes/32,mimetypes/48,places/16,places/22,places/32,places/48,status/16,status/22,status/32,status/48,actions/scalable,apps/scalable,devices/scalable,mimetypes/scalable,places/scalable,status/scalable
 
 [actions/16]
 Size=16
@@ -123,3 +123,45 @@ Type=Fixed
 Size=48
 Context=Status
 Type=Fixed
+
+[actions/scalable]
+Size=64
+Context=Actions
+Type=Scalable
+MinSize=64
+MaxSize=512
+
+[apps/scalable]
+Size=64
+Context=Applications
+Type=Scalable
+MinSize=64
+MaxSize=512
+
+[devices/scalable]
+Size=64
+Context=Devices
+Type=Scalable
+MinSize=64
+MaxSize=512
+
+[mimetypes/scalable]
+Size=64
+Context=MimeTypes
+Type=Scalable
+MinSize=64
+MaxSize=512
+
+[places/scalable]
+Size=64
+Context=Places
+Type=Scalable
+MinSize=64
+MaxSize=512
+
+[status/scalable]
+Size=64
+Context=Status
+Type=Scalable
+MinSize=64
+MaxSize=512

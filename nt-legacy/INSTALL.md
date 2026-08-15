@@ -29,7 +29,7 @@ The archive `nt-legacy-<version>.tar.xz` contains all six layers of the
 theme at once.
 
 ```bash
-tar -xf nt-legacy-full-manual-install-0.2.5.tar.xz
+tar -xf nt-legacy-full-manual-install-0.2.6.tar.xz
 cd nt-legacy
 ./install.sh
 ```
@@ -241,5 +241,6 @@ The backups under `~/.local/share/nt-legacy/` are left in place.
 ## Licence and provenance
 
 GPL-2.0-or-later. The theme contains **no third-party material**: icons,
-SVGs, window decoration, cursors and wallpapers are all generated. Details
-in `ATTRIBUTION.md`.
+SVGs, window decoration and cursors are all generated from colour values.
+The photographic wallpapers are rendered locally with FLUX.1-schnell
+(Apache-2.0). Details in `ATTRIBUTION.md`.

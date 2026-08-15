@@ -365,6 +365,12 @@ PALETTEN = {
         "fenster":   "#f0f0e8",   # Fensterinhalt, fast cremeweiss
         "panel":     "#b8c4c4",   # gedaempftes Petrol-Grau
         "hell":      "#f4f4ee",   # 3D-Kante oben/links
+        # Der helle Punkt im Karo der Bildlaufleiste. Eigener Wert, nicht
+        # die Lichtkante: er soll so hell sein wie moeglich, waehrend die
+        # Kante bewusst gedaempft bleibt. build.py ersetzt Farben ueber
+        # ihren Hexwert, deshalb darf er mit keinem anderen der Palette
+        # zusammenfallen - #fcfcfa statt reinem Weiss.
+        "karo":      "#fcfcfa",
         "dunkel":    "#8a8a82",   # 3D-Kante unten/rechts
         "rahmen":    "#202628",   # Aussenrahmen, sehr dunkles Blau-Grau
         "aktiv":     "#287f8c",   # Auswahl, Petrol
@@ -581,11 +587,39 @@ class Generator:
             # Ein SVG-<pattern> waere noch kuerzer, aber QtSvg kennt
             # keine Patterns - es rendert sie ersatzlos weg.
             if dither and teil == "center":
-                hell_farbe = self.p.get("hell", "#ffffff")
+                # Gezeichnet wurde das Karo zuerst in der 3D-Lichtkante
+                # ("hell"). In den Nachtfassungen war es damit deutlich zu
+                # sehen, in den hellen nicht - aus der Community gemeldet.
+                # Nachgerechnet: #f4f4ee auf #d8d8d0 sind 28 Stufen, also
+                # 13 Prozent ueber dem Grund. Nacht sind es 32 Stufen auf
+                # einem Grund von 42 - 76 Prozent. Dasselbe absolute Delta,
+                # der sechsfache wahrgenommene Unterschied. Windows selbst
+                # lag bei 33 Prozent (Weiss auf #c0c0c0).
+                #
+                # Zwei Aenderungen bringen die helle Fassung dorthin:
+                # ein eigener Palettenwert fuer die Karofarbe statt der
+                # Lichtkante, und eine leichte Abdunklung der Rinne. Die
+                # Abdunklung liegt als halbdurchlaessige Schicht ueber der
+                # Flaeche, nicht als feste Farbe - so bleibt die Rinne an
+                # das Farbschema des Nutzers gebunden.
+                self.teile.append(
+                    f'      <rect x="{x:g}" y="{y:g}" width="{fw:g}" '
+                    f'height="{fh:g}" fill="#000000" opacity="0.07"/>')
+                hell_farbe = self.p.get("karo", self.p.get("hell", "#ffffff"))
                 for zeile in range(int(fh)):
                     versatz = zeile % 2
+                    # In y die halbe Stufe, in x keine. Das ist kein
+                    # Schoenheitsfehler, sondern der Unterschied zwischen
+                    # Muster und Grauschleier: Die Strichstaerke misst
+                    # quer zur Linie, dort zentriert y+0.5 auf genau eine
+                    # Bildzeile. Der Strichel dagegen misst laengs, und
+                    # ein Start bei x+0.5 legt jeden Punkt haelftig auf
+                    # zwei Spalten. Gerendert (QtSvg, mit Kantenglaettung)
+                    # kamen so 227 statt 252 heraus - das Karo verwaschen
+                    # zu einer Flaeche. Mit ganzen x-Werten: 202/252 im
+                    # sauberen Wechsel, ueber das ganze Feld.
                     self.teile.append(
-                        f'      <line x1="{x + versatz + 0.5:g}" '
+                        f'      <line x1="{x + versatz:g}" '
                         f'y1="{y + zeile + 0.5:g}" x2="{x + fw:g}" '
                         f'y2="{y + zeile + 0.5:g}" stroke="{hell_farbe}" '
                         f'stroke-width="1" stroke-dasharray="1 1"/>')

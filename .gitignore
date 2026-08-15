@@ -38,3 +38,13 @@ dist/
 # build.py (und in install.sh, falls sie dort noch fehlt); im Repo waere
 # sie ein 184 KB grosses Duplikat ohne eigenen Inhalt.
 nt-legacy/icons-nt/NTLegacyIconsNacht/
+
+# Das Rohmaterial der Hintergruende: 378 MB PNG aus dem Bildmodell.
+# Ins Repository gehen die fertigen Pakete unter nt-legacy/wallpapers/ -
+# dieselben Bilder als JPEG, zusammen 69 MB. Der Weg von hier nach dort
+# ist tools/mach-hintergruende.py.
+wallpaper/
+
+# Arbeitsstand fuer das Terminal-Cockpit (Plan, Ereignisse, Hinweise).
+# Gehoert zur Sitzung, nicht zum Theme.
+.cockpit/

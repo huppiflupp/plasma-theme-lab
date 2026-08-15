@@ -26,6 +26,23 @@ from pathlib import Path
 
 GROESSEN = (16, 22, 32, 48)
 
+# Ueber 48 px hoert die Bitmapfassung auf. Dolphin bietet 64, 96, 128 und
+# 256 an, und weil unser Satz den Namen abfaengt, wird Breeze nie gefragt -
+# der Loader nimmt das 48er PNG und zieht es hoch. Aus der Community
+# gemeldet: "icons become pixelated when enlarging in Dolphin".
+#
+# Behoben ueber ein scalable-Verzeichnis mit genau der Quelle, aus der
+# auch die PNGs entstehen. Ab MinSize gewinnt es, darunter bleiben die
+# Bitmaps unangetastet - und das muessen sie: die Formen liegen auf einem
+# 32er Raster, bei 16 px ist jede Kante von Hand gesetzt. Ein
+# durchgehendes Scalable von 8 bis 512 haette genau das zerstoert.
+#
+# MinSize 64, nicht 49: zwischen 49 und 63 laege der Abstand zum
+# 48er-Bitmap naeher, der Loader wuerde ohnehin dieses waehlen. So steht
+# die Grenze dort, wo Dolphin seine naechste Stufe hat.
+SKALIERBAR_AB = 64
+SKALIERBAR_BIS = 512
+
 # Die Symbolfarben sind bewusst NICHT die Farben der Oberflaeche.
 #
 # Windows NT hat seine Symbole nicht mit dem Farbschema mitgefaerbt: der
@@ -1058,6 +1075,8 @@ def index_theme(theme: Path, name="NT Legacy Icons"):
     kontexte = sorted(d.name for d in theme.iterdir() if d.is_dir())
     verzeichnisse = [f"{k}/{g}" for k in kontexte for g in GROESSEN
                      if (theme / k / str(g)).is_dir()]
+    verzeichnisse += [f"{k}/scalable" for k in kontexte
+                      if (theme / k / "scalable").is_dir()]
     zeilen = ["[Icon Theme]",
               f"Name={name}",
               "Comment=Symbole im Stil von Windows NT 4.0, vollstaendig erzeugt",
@@ -1072,8 +1091,13 @@ def index_theme(theme: Path, name="NT Legacy Icons"):
         if ctx is None:
             unbekannt.append(kontext)
             ctx = kontext.capitalize()
-        zeilen += [f"[{v}]", f"Size={groesse}", f"Context={ctx}",
-                   "Type=Fixed", ""]
+        if groesse == "scalable":
+            zeilen += [f"[{v}]", f"Size={SKALIERBAR_AB}", f"Context={ctx}",
+                       "Type=Scalable", f"MinSize={SKALIERBAR_AB}",
+                       f"MaxSize={SKALIERBAR_BIS}", ""]
+        else:
+            zeilen += [f"[{v}]", f"Size={groesse}", f"Context={ctx}",
+                       "Type=Fixed", ""]
     (theme / "index.theme").write_text("\n".join(zeilen))
     if unbekannt:
         print(f"  WARNUNG: unbekannter Kontext {sorted(set(unbekannt))} - "
@@ -1086,12 +1110,15 @@ def weitere_namen(theme: Path):
     demselben Kontext wie die Quelle."""
     angelegt = 0
     for ziel, quelle in WEITERE_NAMEN.items():
-        for q in theme.rglob(f"{quelle}.png"):
-            z = q.with_name(f"{ziel}.png")
-            if z.exists() or z.is_symlink():
-                continue
-            z.symlink_to(q.name)
-            angelegt += 1
+        # Auch die Vektorfassung: ein Zusatzname, den es nur als Bitmap
+        # gibt, waere ueber 48 px wieder der pixelige Fall.
+        for endung in (".png", ".svg"):
+            for q in theme.rglob(f"{quelle}{endung}"):
+                z = q.with_name(f"{ziel}{endung}")
+                if z.exists() or z.is_symlink():
+                    continue
+                z.symlink_to(q.name)
+                angelegt += 1
     return angelegt
 
 
@@ -1170,6 +1197,17 @@ def main():
                 print(f"  {name} {g}px: {e.stderr.decode()[:80]}")
             finally:
                 tmp.unlink(missing_ok=True)
+
+        # Dieselbe Quelle noch einmal, unveraendert, fuer alles ueber
+        # 48 px. Kein zweites Zeichnen, keine zweite Palette - was
+        # Dolphin gross anzeigt, ist Zeichen fuer Zeichen dasselbe Bild
+        # wie das 16er, nur ohne Rasterung.
+        vek = args.theme / KONTEXT[name] / "scalable" / f"{name}.svg"
+        vek.parent.mkdir(parents=True, exist_ok=True)
+        if vek.is_symlink():
+            vek.unlink()
+        vek.write_text(svg)
+        geschrieben += 1
 
     verweise = weitere_namen(args.theme)
     verz = index_theme(args.theme)
