@@ -36,11 +36,23 @@ Die Landschaften stecken im Gesamtpaket — auf sie zeigt
 Hintergrund. Kacheln und Großbilder nicht: das sind 61 der 69 MB, und
 mit ihnen wäre das Gesamtpaket 72 statt 12 MB groß.
 
-**Je Paket ein Archiv, auch hier.** `wallpaper.knsrc` sagt
-`Uncompress=subdir-archive`. Liegen mehrere Verzeichnisse im Archiv,
-packt KNewStuff sie in einen Ordner mit dem Namen der Datei — die
-`metadata.json` steckt dann eine Ebene zu tief und Plasma findet kein
-einziges Bild. Derselbe Fehler wie 0.2.2, nur eine Ebene weiter.
+**Je Paket ein Archiv, auch hier** — aus zwei Gründen, und der erste
+ist der eigentliche.
+
+*Ein Hintergrundpaket ist ein Bild.* So ist das Format definiert: ein
+Verzeichnis, eine `metadata.json`, darin `contents/images/<breite>x<höhe>`
+— mehrere Dateien bedeuten mehrere **Auflösungen desselben Bildes**, nicht
+mehrere Bilder. Nachprüfbar an jedem der rund sechzig Pakete unter
+`/usr/share/wallpapers/`. 26 Bilder in einem Paket gäbe es also gar nicht;
+in der Auswahl stünde eine Kachel mit einem Namen, und Plasma zeigte
+davon eines.
+
+*Und mehrere Pakete in ein Archiv geht auch nicht.* `wallpaper.knsrc`
+sagt `Uncompress=subdir-archive` — KNewStuff erwartet im Archiv ein
+einzelnes Verzeichnis. Was es mit mehreren macht, ist hier nicht
+nachgestellt worden; nach dem Verlauf von 0.2.2, wo `kpackage` bei zehn
+Ordnern an der Wurzel das Archiv selbst für das Paket nahm, ist das
+Risiko nicht wert, getestet zu werden.
 
 Für den Store heißt das: die 26 Einzelarchive an den Eintrag hängen.
 `nt-legacy-wallpapers-manual-install` gehört ins GitHub-Release, nicht in
