@@ -158,8 +158,21 @@ if [ -d "$HIER/konsole" ]; then
 fi
 
 if [ -d "$HIER/wallpapers" ]; then
-    echo "Hintergrundbild …"
+    echo "Hintergrundbilder …"
     mkdir -p "$DATEN/wallpapers"
+    # Erst die eigenen Pakete wegraeumen, dann kopieren.
+    #
+    # cp -r legt nur darueber. Bis 0.2.5 lag in jedem Paket eine
+    # 3840x2160.png samt SVG, seit 0.2.6 eine 3840x2160.jpg - nach einer
+    # Aktualisierung lagen alle drei nebeneinander. Plasma sucht nach
+    # Aufloesung, findet drei Kandidaten fuer dieselbe und nimmt einen
+    # davon; welchen, haengt an der Reihenfolge im Verzeichnis. Auf
+    # einem Testrechner war es die alte Verlaufsflaeche - das neue Bild
+    # war installiert und blieb unsichtbar.
+    #
+    # Nur ntlegacy*: was der Nutzer sonst unter wallpapers/ liegen hat,
+    # geht uns nichts an.
+    rm -rf "$DATEN"/wallpapers/ntlegacy*
     cp -r "$HIER/wallpapers/"* "$DATEN/wallpapers/"
 fi
 
