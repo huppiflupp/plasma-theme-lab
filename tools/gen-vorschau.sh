@@ -63,6 +63,22 @@ for v in "${varianten[@]}"; do
     "$VMCTL" ssh "cd nt-legacy && ./apply.sh $v >/dev/null 2>&1" || {
         echo "  uebersprungen (apply.sh fehlgeschlagen)"; continue; }
 
+    # Den Hintergrund der Variante ausdruecklich setzen.
+    #
+    # Das Global Theme nennt ihn in contents/defaults, aber das greift
+    # nur bei einer frischen Sitzung - eine bestehende behaelt ihr Bild.
+    # Seit 0.2.6 ist das eine Landschaft und kein Farbverlauf mehr;
+    # ohne diese Zeile zeigten die Vorschaubilder weiter den alten
+    # Grund.
+    wp="$(cd "$THEME" && python3 -c "
+import importlib.util, sys
+s = importlib.util.spec_from_file_location('b', 'build.py')
+m = importlib.util.module_from_spec(s); s.loader.exec_module(m)
+print(m.ids(sys.argv[1])['wallpaper'])
+" "$v")"
+    "$VMCTL" ssh "plasma-apply-wallpaperimage \
+        ~/.local/share/wallpapers/$wp >/dev/null 2>&1" || true
+
     # Neu anmelden, damit die Fensterdekoration greift
     "$VMCTL" ssh 'sudo systemctl reboot' >/dev/null 2>&1
     sleep 45
@@ -94,36 +110,49 @@ for v in "${varianten[@]}"; do
         # xdotool: Unter Wayland kann kein fremder Prozess Fenster
         # verschieben. Die Regeln stehen in der Wegwerf-VM, nicht beim
         # Nutzer.
-        cat > ~/.config/kwinrulesrc <<'REGELN'
+        # Die Fenster sitzen mit Abstand zum Rand und lassen unten einen
+# Streifen frei. Seit 0.2.6 ist der Hintergrund je Variante eine eigene
+# Landschaft - vollflaechig verdeckt waere sie im Vorschaubild nicht zu
+# sehen, und sie ist einer der Gruende, ueberhaupt neue Bilder zu machen.
+cat > ~/.config/kwinrulesrc <<'REGELN'
 [General]
-count=3
-rules=vorschau-dateien,vorschau-editor,vorschau-terminal
+count=4
+rules=vorschau-dateien,vorschau-editor,vorschau-taskmanager,vorschau-terminal
 
 [vorschau-dateien]
 Description=Vorschau: Dateimanager links
 wmclass=dolphin
 wmclassmatch=2
-position=16,36
+position=40,40
 positionrule=3
-size=712,880
+size=660,790
 sizerule=3
 
 [vorschau-editor]
 Description=Vorschau: Editor Mitte
 wmclass=kwrite
 wmclassmatch=2
-position=744,36
+position=716,40
 positionrule=3
-size=560,880
+size=500,790
+sizerule=3
+
+[vorschau-taskmanager]
+Description=Vorschau: Taskmanager rechts oben
+wmclass=nt-taskmanager
+wmclassmatch=2
+position=1232,40
+positionrule=3
+size=648,420
 sizerule=3
 
 [vorschau-terminal]
-Description=Vorschau: Terminal rechts
+Description=Vorschau: Terminal rechts unten
 wmclass=konsole
 wmclassmatch=2
-position=1320,36
+position=1232,476
 positionrule=3
-size=584,880
+size=648,354
 sizerule=3
 REGELN
         qdbus-qt6 org.kde.KWin /KWin reconfigure >/dev/null 2>&1
@@ -187,6 +216,13 @@ ORDNER
         export LANGUAGE=en_US LANG=en_US.UTF-8 LC_ALL=
         (setsid konsole -e bash -c 'ls --color=always -l /usr/share | head -22; exec bash' >/dev/null 2>&1 &); sleep 9
         (setsid kwrite ~/nt-legacy/INSTALL.md >/dev/null 2>&1 &); sleep 10
+        # Der Taskmanager auf dem Reiter mit den Balken: Prozessliste und
+        # Dienste sind Tabellen wie im Dateimanager nebenan, die Balken
+        # und Verlaeufe sind das Einzige, was es sonst nirgends im Bild
+        # gibt. --on-top waere hier falsch - die Regel setzt ihn ohnehin
+        # an seinen Platz, und obenauf verdeckte er beim naechsten
+        # Fenster etwas.
+        (setsid nt-taskmanager --tab 2 >/dev/null 2>&1 &); sleep 8
         (setsid dolphin ~ >/dev/null 2>&1 &); sleep 12
     " >/dev/null 2>&1
 
@@ -205,16 +241,20 @@ ORDNER
     magick "$roh" -resize "${BREITE}x${HOEHE}!" -quality 88 \
         "$ziel/fullscreenpreview.jpg"
 
-    # Die Kachel zeigt nur die linken zwei Fenster, nicht alle drei.
+    # Die Kachel zeigt nur die linken zwei Fenster, nicht alle vier.
     #
-    # Drei Fenster nebeneinander ergeben ein Motiv im Verhaeltnis 3:1.
+    # Vier Fenster nebeneinander ergeben ein Motiv im Verhaeltnis 3:1.
     # Die Kachel ist aber 16:9 - wer das hineinzwingt, bekommt entweder
     # zwei leere Balken oder einen Bildausschnitt, in dem von den
     # aeusseren Fenstern nichts mehr uebrig ist. Beides war schlechter
     # als die einfache Loesung: Dolphin und der Editor, in ganzer Hoehe.
     # Das sind ohnehin die beiden, die etwas zeigen - Ordnersymbole und
     # eine eingefaerbte Textansicht. Das Terminal steht im Vollbild.
-    magick "$roh" -gravity northwest -crop 69%x69%+8+24 +repage \
+    # 64 statt 69 Prozent: Bei 69 endete der Ausschnitt mitten im
+    # Taskmanager, seit der als viertes Fenster dazugekommen ist. 64
+    # schneidet in der Luecke zwischen Editor und Taskmanager - kein
+    # angeschnittenes Fenster am Rand. Das Verhaeltnis bleibt 16:9.
+    magick "$roh" -gravity northwest -crop 64%x64%+8+24 +repage \
         -resize 600x337! "$ziel/preview.png"
     cp "$ziel/preview.png" "$ziel/lockscreen.png"
     cp "$ziel/preview.png" "$ziel/splash.png"
