@@ -24,7 +24,20 @@ import argparse
 import subprocess
 from pathlib import Path
 
-GROESSEN = (16, 22, 32, 48)
+# Die Groessen, die Dolphin in seinem Zoomregler anbietet - alle davon.
+#
+# Bis 0.2.6 endete die Reihe bei 48, und darueber sollte ein
+# scalable-Verzeichnis uebernehmen. Das tut es nicht: Gemessen an den
+# Zugriffszeiten der Dateien liest Dolphin bei 200 px das 48er-PNG und
+# zieht es hoch, waehrend die SVG im scalable-Ordner unberuehrt bleibt.
+# Mit QIcon war der Rueckfall korrekt - KDE-Programme laden Symbole aber
+# ueber KIconLoader, und der entscheidet anders. Aus der Community
+# zweimal gemeldet, hier nachgestellt.
+#
+# Deshalb jetzt echte Bitmaps in jeder Groesse. Das ist mehr Ballast
+# (rund 650 Dateien mehr), aber es haengt nicht davon ab, wie ein
+# Symbol-Lader Verzeichnisse gewichtet.
+GROESSEN = (16, 22, 32, 48, 64, 96, 128, 256)
 
 # Ueber 48 px hoert die Bitmapfassung auf. Dolphin bietet 64, 96, 128 und
 # 256 an, und weil unser Satz den Namen abfaengt, wird Breeze nie gefragt -

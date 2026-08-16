@@ -33,14 +33,26 @@ EMAIL = "huppiflupp@users.noreply.github.com"
 WEBSITE = "https://github.com/huppiflupp/NiceOS9-theme"
 LIZENZ = "GPL-2.0-or-later"
 SCHRIFT = "Noto Sans"
-VERSION = "0.2.6"
+VERSION = "0.2.7"
 
 # --------------------------------------------------------------------------
 # Farben. Einzige Stelle, an der sie stehen.
 # --------------------------------------------------------------------------
 
 BASIS = {
-    "flaeche":      "#d8d8d0",   # Hauptflaeche, helles neutrales Grau
+    # Hauptflaeche, helles neutrales Grau.
+    #
+    # Ein Versuch, sie abzudunkeln, ist wieder zurueckgenommen worden.
+    # Der Gedanke war, das Karo der Bildlaufleiste sichtbar zu machen -
+    # das zeichnet naemlich der Qt-Stil aus dieser Farbe und einer
+    # helleren, nicht unser SVG. In einer Qt-Messung ohne KDE sah das
+    # nach 18 -> 28 Prozent aus. In der Testmaschine gemessen waren es
+    # 18 -> 20: KDE leitet die helle Farbe nicht auf Weiss ab, sondern
+    # auf einen festen Abstand ueber der Flaeche (200 ergibt 240).
+    # Damit haette die Aenderung alle hellen Varianten verdunkelt und
+    # nichts eingebracht. Auch contrast=10 und eine weisse Fensterfarbe
+    # aendern daran nichts - beides nachgemessen.
+    "flaeche":      "#d8d8d0",
     "fenster":      "#f0f0e8",   # Fensterinhalt, fast cremeweiss
     "panel":        "#b8c4c4",   # gedaempftes Petrol-Grau
     "kopf_aktiv":   "#176b78",   # Fensterkopf aktiv, dunkles Petrol

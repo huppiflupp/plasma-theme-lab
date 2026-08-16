@@ -78,12 +78,30 @@ tools/gen-symbolic-aliase.py nt-legacy/icons-nt/NTLegacyIcons
 Namen. Von den Namen, die Dolphin und PCManFM-Qt anfordern, fällt keiner
 mehr auf Breeze zurück.
 
-Dazu liegt seit 0.2.6 dieselbe Zeichnung als SVG unter `scalable/`, gültig
-ab 64 px. Grund: Dolphin bietet Symbolgrößen bis 256 px an, und weil unser
-Satz den Namen abfängt, wurde bis dahin das 48-px-Bitmap hochgezogen. Die
-Bitmaps bis 48 px bleiben unangetastet — bei 16 px ist dort jede Kante von
-Hand gesetzt, und eine Vektorfassung, die auch diese Größen bedient, hätte
-genau das zerstört.
+Seit 0.2.7 in acht Größen: 16, 22, 32, 48, 64, 96, 128 und 256 px — alle,
+die Dolphin in seinem Zoomregler anbietet.
+
+Der Weg dahin ist eine Lehre wert. In 0.2.6 lag dort stattdessen dieselbe
+Zeichnung als SVG unter `scalable/`, gültig ab 64 px; nach der
+Freedesktop-Spezifikation müsste sie ab dieser Größe gewinnen, und mit
+`QIcon` gemessen tat sie das auch. Beim Melder blieb es trotzdem
+pixelig.
+
+Nachgestellt und gemessen: Dolphin liest bei 200 px die
+`places/48/folder.png` und zieht sie hoch — die SVG wird nicht einmal
+geöffnet. KDE-Programme laden Symbole über **KIconLoader**, nicht über
+Qts eigenen Lader, und der zieht `scalable`-Verzeichnisse hier nicht
+heran. Deshalb jetzt echte Bitmaps in jeder Größe: das hängt von keiner
+Gewichtung ab.
+
+Die SVGs unter `scalable/` bleiben liegen — reine Qt-Programme ohne
+KDE-Integration finden sie, und sie kosten wenig.
+
+Gemessen wurde ohne `strace`: Die Zugriffszeiten der Symboldateien mit
+`touch -a -d "3 days ago"` zurückdatieren, dann das Programm starten und
+nachsehen, welche Datei ein neues Datum hat. `relatime` aktualisiert von
+sich aus nichts, was jünger als 24 Stunden ist — daran war der erste
+Messversuch gescheitert.
 
 Die Gegenstandsfarben folgen bewusst **nicht** dem Farbschema: Unter
 Windows NT blieb der Ordner gelb und das Laufwerk grau, egal welche

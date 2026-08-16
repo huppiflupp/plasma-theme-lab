@@ -12,22 +12,22 @@ Historie nur auf.
 
 ```
 dist/
-├── nt-legacy-full-manual-install-0.2.6.tar.xz    12 MB   Gesamtpaket
-├── nt-legacy-global-theme-<farbwelt>-0.2.6.tar.xz       10 Stück
-├── nt-legacy-plasma-style-<farbwelt>-0.2.6.tar.xz       10 Stück
-├── nt-legacy-icons-0.2.6.tar.xz                228 KB   (hell und Nachtfassung)
-├── nt-legacy-window-decorations-0.2.6.tar.xz    12 KB
-├── nt-legacy-cursors-0.2.6.tar.xz               12 KB
-├── nt-legacy-color-schemes-0.2.6.tar.xz        4,0 KB
-├── nt-legacy-wallpaper-<name>-0.2.6.tar.xz              26 Stück
-├── nt-legacy-wallpapers-manual-install-0.2.6.tar.xz  69 MB
+├── nt-legacy-full-manual-install-0.2.7.tar.xz    12 MB   Gesamtpaket
+├── nt-legacy-global-theme-<farbwelt>-0.2.7.tar.xz       10 Stück
+├── nt-legacy-plasma-style-<farbwelt>-0.2.7.tar.xz       10 Stück
+├── nt-legacy-icons-0.2.7.tar.xz                228 KB   (hell und Nachtfassung)
+├── nt-legacy-window-decorations-0.2.7.tar.xz    12 KB
+├── nt-legacy-cursors-0.2.7.tar.xz               12 KB
+├── nt-legacy-color-schemes-0.2.7.tar.xz        4,0 KB
+├── nt-legacy-wallpaper-<name>-0.2.7.tar.xz              26 Stück
+├── nt-legacy-wallpapers-manual-install-0.2.7.tar.xz  69 MB
 ├── screenshots/                                 16 Bilder (10 + 5 Tag/Nacht + Übersicht)
 └── SHA256SUMS
 ```
 
 ## Die Hintergründe
 
-Seit 0.2.6 liegen 26 Hintergrundpakete bei: zehn Landschaften (je
+Seit 0.2.7 liegen 26 Hintergrundpakete bei: zehn Landschaften (je
 Farbwelt eine Tag- und eine Nachtfassung), zwölf nahtlose Kacheln und
 vier Großbilder in 4096×4096.
 
