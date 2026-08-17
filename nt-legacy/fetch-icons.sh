@@ -28,7 +28,7 @@ for w in fix-index-theme.py gen-symbolic-aliase.py gen-icon-aliase.py; do
         echo "FEHLER: $w fehlt (gesucht in $WERKZEUGE)." >&2
         echo "        Dieses Skript braucht das Verzeichnis tools/." >&2
         echo "        Es steckt im Gesamtarchiv und im Quelltext:" >&2
-        echo "        https://github.com/huppiflupp/NiceOS9-theme" >&2
+        echo "        https://github.com/huppiflupp/nt-legacy" >&2
         exit 1
     fi
 done

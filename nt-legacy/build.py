@@ -49,7 +49,13 @@ def werkzeug(name):
 
 AUTOR = "huppiflupp"
 EMAIL = "huppiflupp@users.noreply.github.com"
-WEBSITE = "https://github.com/huppiflupp/NiceOS9-theme"
+# Das eigene Repository, nicht die Werkstatt und nicht NiceOS9.
+#
+# Hier stand bis 0.2.8 NiceOS9-theme - ein anderes Theme desselben
+# Autors. Die Adresse steckt in jeder metadata.json und damit im
+# Store-Eintrag: wer dort auf die Website klickte, landete beim
+# falschen Design.
+WEBSITE = "https://github.com/huppiflupp/nt-legacy"
 LIZENZ = "GPL-2.0-or-later"
 SCHRIFT = "Noto Sans"
 VERSION = "0.2.8"
