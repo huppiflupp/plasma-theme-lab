@@ -28,12 +28,31 @@ from pathlib import Path
 HIER = Path(__file__).resolve().parent
 LAB = HIER.parent
 
+
+def werkzeug(name):
+    """Pfad zu einem Skript aus tools/.
+
+    Zwei Lagen, und beide sind normal: im Arbeitsbaum liegt tools/ neben
+    nt-legacy/, im ausgelieferten Archiv als nt-legacy/tools/. Bis 0.2.7
+    kannte build.py nur die erste - im Archiv lief es damit ins Leere,
+    genauso wie fetch-icons.sh (aus der Community gemeldet: "line 65:
+    /nt-legacy/../tools/fix-index-theme.py: No such file or directory").
+
+    Fehlt das Werkzeug in beiden Lagen, ist der Pfad zum Arbeitsbaum die
+    ehrlichere Fehlermeldung - dort gehoert es hin.
+    """
+    for kandidat in (HIER / "tools" / name, LAB / "tools" / name):
+        if kandidat.exists():
+            return str(kandidat)
+    return str(LAB / "tools" / name)
+
+
 AUTOR = "huppiflupp"
 EMAIL = "huppiflupp@users.noreply.github.com"
 WEBSITE = "https://github.com/huppiflupp/NiceOS9-theme"
 LIZENZ = "GPL-2.0-or-later"
 SCHRIFT = "Noto Sans"
-VERSION = "0.2.7"
+VERSION = "0.2.8"
 
 # --------------------------------------------------------------------------
 # Farben. Einzige Stelle, an der sie stehen.
@@ -82,12 +101,14 @@ VARIANTEN = {
         "kurz": "NTLegacy",
         "anzeige": "NT Legacy",
         "beschreibung": "Petrol und warmes Grau - die Grundfassung",
+        "beschreibung_en": "Petrol and warm grey - the base version",
         "farben": {},
     },
     "lilac": {
         "kurz": "NTLegacyLilac",
         "anzeige": "NT Legacy Flieder",
         "beschreibung": "Flieder statt Petrol, nach NTs Schema Lilac",
+        "beschreibung_en": "Lilac instead of petrol, after NT's Lilac scheme",
         "farben": {
             "panel":        "#c4bcc8",
             "kopf_aktiv":   "#5c4a78",
@@ -102,6 +123,7 @@ VARIANTEN = {
         "kurz": "NTLegacyDesert",
         "anzeige": "NT Legacy Wueste",
         "beschreibung": "Sand und Terrakotta, nach NTs Schema Desert",
+        "beschreibung_en": "Sand and terracotta, after NT's Desert scheme",
         "farben": {
             "flaeche":      "#d8d0c0",
             "fenster":      "#f0ece0",
@@ -124,6 +146,7 @@ VARIANTEN = {
         "kurz": "NTLegacyWin98",
         "anzeige": "NT Legacy 98",
         "beschreibung": "Systemgrau und Marineblau - Windows 98",
+        "beschreibung_en": "System grey and navy blue - Windows 98",
         "farben": {
             "flaeche":      "#c0c0c0",
             "fenster":      "#ffffff",
@@ -152,6 +175,7 @@ VARIANTEN = {
         "kurz": "NTLegacyWin2k",
         "anzeige": "NT Legacy 2000",
         "beschreibung": "Weicheres Grau, Blauverlauf - Windows 2000",
+        "beschreibung_en": "Softer grey, blue gradient - Windows 2000",
         "farben": {
             "flaeche":      "#d4d0c8",
             "fenster":      "#ffffff",
@@ -219,6 +243,9 @@ for _k, _v in [("teal", {}), ("win98", {}), ("win2k", {}),
         "anzeige": VARIANTEN[_k]["anzeige"] + " Nacht",
         "beschreibung": VARIANTEN[_k]["beschreibung"].split(" - ")[0].split(", nach")[0]
                         + " als Nachtfassung - dunkle Flaechen, gleiche Akzente",
+        "beschreibung_en": VARIANTEN[_k]["beschreibung_en"].split(" - ")[0]
+                           .split(", after")[0]
+                           + " as a night version - dark surfaces, same accents",
         # Akzentfarben der hellen Fassung uebernehmen, Flaechen ersetzen
         "farben": {**VARIANTEN[_k]["farben"], **NACHT_BASIS, **_v},
     }
@@ -532,12 +559,24 @@ def konsole_profil(schema):
     )
 
 
-def metadata_style(k, anzeige, beschreibung):
+# Beschreibung englisch, Uebersetzung daneben.
+#
+# KPlugin kennt lokalisierte Felder: "Description" ist die Vorgabe,
+# "Description[de]" greift auf einem deutschen System. Bis 0.2.7 stand
+# in "Description" Deutsch - in den Systemeinstellungen las jeder
+# englischsprachige Nutzer also deutsche Saetze unter englischen Namen.
+# Dieselbe Ursache wie beim Abmeldedialog, nur an anderer Stelle.
+#
+# "Category" ist ersatzlos weggefallen: der Schluessel stand mit leerer
+# Zeichenkette darin. Ein Feld ohne Wert ist nicht dasselbe wie kein
+# Feld - KPackage traegt es als leere Kategorie ein, statt gar keine
+# anzunehmen.
+def metadata_style(k, anzeige, beschreibung, beschreibung_en):
     return json.dumps({
         "KPlugin": {
             "Authors": [{"Name": AUTOR, "Email": EMAIL}],
-            "Category": "",
-            "Description": beschreibung,
+            "Description": beschreibung_en,
+            "Description[de]": beschreibung,
             "EnabledByDefault": True,
             "Id": k["style"],
             "License": LIZENZ,
@@ -549,13 +588,13 @@ def metadata_style(k, anzeige, beschreibung):
     }, indent=4, ensure_ascii=False) + "\n"
 
 
-def metadata_lnf(k, anzeige, beschreibung):
+def metadata_lnf(k, anzeige, beschreibung, beschreibung_en):
     return json.dumps({
         "KPackageStructure": "Plasma/LookAndFeel",
         "KPlugin": {
             "Authors": [{"Name": AUTOR, "Email": EMAIL}],
-            "Category": "",
-            "Description": beschreibung,
+            "Description": beschreibung_en,
+            "Description[de]": beschreibung,
             "Id": k["lnf"],
             "License": LIZENZ,
             "Name": anzeige,
@@ -784,7 +823,22 @@ Rectangle {{
 
 def logout_qml(p):
     """Abmeldedialog. Ohne diesen sieht der Abmeldebildschirm Breeze-artig
-    aus - der sichtbarste Bruch im Gesamteindruck."""
+    aus - der sichtbarste Bruch im Gesamteindruck.
+
+    Die Beschriftungen kommen aus Plasmas eigenem Uebersetzungskatalog.
+
+    Hier standen bis 0.2.7 deutsche Zeichenketten in i18n(). Ein Theme
+    bringt aber keinen eigenen Katalog mit - i18n() gibt dann die msgid
+    unveraendert zurueck. Auf einem englischen System stand der Dialog
+    also deutsch da, waehrend alles andere englisch blieb; genau so aus
+    der Community gemeldet (cubanismo, KDE 6.6.5).
+
+    Mit i18nd auf plasma_lookandfeel_org.kde.lookandfeel greifen die
+    Uebersetzungen, die jede Plasma-Installation ohnehin mitbringt: die
+    msgids sind dieselben wie im Abmeldedialog von Breeze. Fehlt der
+    Katalog, bleibt die englische msgid stehen - der richtige Rueckfall.
+    Das '&' darin markiert den Tastenkuerzel-Buchstaben; PlasmaComponents
+    wertet es in diesem Dialog nicht aus, deshalb faellt es weg."""
     return f"""import QtQuick
 import org.kde.plasma.components as PlasmaComponents
 
@@ -800,6 +854,12 @@ Item {{
 
     property string mode
     property var currentAction
+
+    // Uebersetzung aus Plasmas Katalog, ohne den Kuerzel-Marker.
+    function nt_i18n(text) {{
+        return i18nd("plasma_lookandfeel_org.kde.lookandfeel", text)
+                   .replace("&", "")
+    }}
 
     Rectangle {{
         anchors.fill: parent
@@ -824,7 +884,7 @@ Item {{
             Text {{
                 anchors {{ left: parent.left; leftMargin: 8
                            verticalCenter: parent.verticalCenter }}
-                text: i18n("Beenden")
+                text: root.nt_i18n("&Shut Down")
                 color: "{p['auswahl_text']}"
                 font.bold: true
             }}
@@ -834,20 +894,20 @@ Item {{
             anchors.centerIn: parent
             spacing: 10
             PlasmaComponents.Button {{
-                text: i18n("Abmelden"); onClicked: root.logoutRequested()
+                text: root.nt_i18n("&Log Out"); onClicked: root.logoutRequested()
             }}
             PlasmaComponents.Button {{
-                text: i18n("Neu starten"); onClicked: root.rebootRequested()
+                text: root.nt_i18n("&Restart"); onClicked: root.rebootRequested()
             }}
             PlasmaComponents.Button {{
-                text: i18n("Herunterfahren"); onClicked: root.haltRequested()
+                text: root.nt_i18n("&Shut Down"); onClicked: root.haltRequested()
             }}
         }}
 
         PlasmaComponents.Button {{
             anchors {{ bottom: parent.bottom; horizontalCenter: parent.horizontalCenter
                        bottomMargin: 10 }}
-            text: i18n("Abbrechen")
+            text: root.nt_i18n("&Cancel")
             onClicked: root.cancelRequested()
         }}
     }}
@@ -874,11 +934,12 @@ def baue(variante, pruefen=False):
     k = ids(variante)
     p = palette(variante)
     anzeige, beschreibung = v["anzeige"], v["beschreibung"]
+    beschreibung_en = v["beschreibung_en"]
 
     print(f"\n=== {anzeige} ({variante}) ===")
 
     style = HIER / "desktoptheme" / k["style"]
-    schreibe(style / "metadata.json", metadata_style(k, anzeige, beschreibung), still=True)
+    schreibe(style / "metadata.json", metadata_style(k, anzeige, beschreibung, beschreibung_en), still=True)
     schreibe(style / "plasmarc", plasmarc(), still=True)
     # Bewusst KEINE colors-Datei im Plasma-Stil.
     #
@@ -897,7 +958,7 @@ def baue(variante, pruefen=False):
     # color-schemes/<Variante>.colors, und apply.sh setzt beides zusammen.
 
     r = subprocess.run(
-        [sys.executable, str(LAB / "tools" / "gen-plasma-svg.py"),
+        [sys.executable, werkzeug("gen-plasma-svg.py"),
          "--alle", "-o", str(style), "--palette", "nt-legacy",
          "--aussenrahmen", "1", "--rahmen", "1", "--stil", "bevel"],
         capture_output=True, text=True)
@@ -933,7 +994,7 @@ def baue(variante, pruefen=False):
             print(f"  konsole/{k['schema']}.colorscheme")
 
     r = subprocess.run(
-        [sys.executable, str(LAB / "tools" / "gen-aurorae.py"),
+        [sys.executable, werkzeug("gen-aurorae.py"),
          "--name", k["aurorae"], "--anzeige", anzeige,
          "-o", str(HIER / "aurorae"), "--autor", AUTOR,
          "--lizenz", LIZENZ, "--version", VERSION,
@@ -997,7 +1058,7 @@ def baue(variante, pruefen=False):
               f"(keine Landschaft vorhanden, Flaeche eingesetzt)")
 
     lnf = HIER / "look-and-feel" / k["lnf"]
-    schreibe(lnf / "metadata.json", metadata_lnf(k, anzeige, beschreibung), still=True)
+    schreibe(lnf / "metadata.json", metadata_lnf(k, anzeige, beschreibung, beschreibung_en), still=True)
     schreibe(lnf / "contents" / "defaults", defaults(k), still=True)
     schreibe(lnf / "contents" / "layouts" / "org.kde.plasma.desktop-layout.js",
              layout_js(k), still=True)
@@ -1031,7 +1092,7 @@ def baue(variante, pruefen=False):
     print(f"  look-and-feel/{k['lnf']}/  (mit Vorschau)")
 
     if pruefen:
-        subprocess.run([sys.executable, str(LAB / "tools" / "lint-plasma-svg.py"),
+        subprocess.run([sys.executable, werkzeug("lint-plasma-svg.py"),
                         str(style)])
     return True
 
@@ -1063,7 +1124,7 @@ def main():
         ("NTLegacyRot_cursors", "#c03028", "NT Legacy (roter Zeiger)"),
     ]:
         r = subprocess.run(
-            [sys.executable, str(LAB / "tools" / "gen-cursor.py"),
+            [sys.executable, werkzeug("gen-cursor.py"),
              "-o", str(HIER / "cursors"), "--name", zname,
              "--anzeige", anz, "--fuellung", fuell],
             capture_output=True, text=True)
@@ -1073,7 +1134,7 @@ def main():
     icons = HIER / "icons" / "NTLegacy"
     if icons.is_dir():
         r = subprocess.run(
-            [sys.executable, str(LAB / "tools" / "gen-symbolic-aliase.py"),
+            [sys.executable, werkzeug("gen-symbolic-aliase.py"),
              str(icons)], capture_output=True, text=True)
         zeile = r.stdout.strip().splitlines()
         print(f"\nSymbolische Aliase: {zeile[0] if zeile else '—'}")
@@ -1084,7 +1145,7 @@ def main():
     hell = HIER / "icons-nt" / "NTLegacyIcons"
     if hell.is_dir():
         r = subprocess.run(
-            [sys.executable, str(LAB / "tools" / "mach-nacht-symbole.py"),
+            [sys.executable, werkzeug("mach-nacht-symbole.py"),
              str(hell)], capture_output=True, text=True)
         print("\nSymbole fuer die Nachtfassungen:")
         print(r.stdout.rstrip() if r.returncode == 0

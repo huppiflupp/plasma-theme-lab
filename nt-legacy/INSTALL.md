@@ -29,22 +29,28 @@ The archive `nt-legacy-<version>.tar.xz` contains all six layers of the
 theme at once.
 
 ```bash
-tar -xf nt-legacy-full-manual-install-0.2.7.tar.xz
+tar -xf nt-legacy-full-manual-install-0.2.8.tar.xz
 cd nt-legacy
-./install.sh
+./install.sh --anwenden win2k     # install, then apply that version
 ```
 
 `install.sh` creates a backup first and prints its path. It then installs
 Plasma styles, colour schemes, window decorations, icons, cursors and
-wallpapers.
-
-Then pick a version:
+wallpapers. Without `--anwenden` it only installs and leaves your desktop
+untouched; you pick a version afterwards:
 
 ```bash
 ./apply.sh                        # Petrol, the base version
 ./apply.sh win98-nacht            # Windows 98, night version
 ./apply.sh win98-nacht --panel    # …and the NT panel (replaces yours)
+./apply.sh --help                 # all ten versions and switches
 ```
+
+**Use `apply.sh`, not `plasma-apply-lookandfeel`.** The widget style
+(Windows instead of Breeze) can only be set in `~/.config/kdeglobals`,
+and that is what `apply.sh` does — see *If something does not take
+effect*. Applying the global theme alone, from the command line or from
+System Settings, leaves that one layer on Breeze.
 
 **Add `--panel` if you want it to look like the screenshots.** Without it
 your existing panel stays — and on most distributions that panel *floats*,

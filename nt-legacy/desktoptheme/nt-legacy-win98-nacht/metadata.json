@@ -6,13 +6,13 @@
                 "Email": "huppiflupp@users.noreply.github.com"
             }
         ],
-        "Category": "",
-        "Description": "Systemgrau und Marineblau als Nachtfassung - dunkle Flaechen, gleiche Akzente",
+        "Description": "System grey and navy blue as a night version - dark surfaces, same accents",
+        "Description[de]": "Systemgrau und Marineblau als Nachtfassung - dunkle Flaechen, gleiche Akzente",
         "EnabledByDefault": true,
         "Id": "nt-legacy-win98-nacht",
         "License": "GPL-2.0-or-later",
         "Name": "NT Legacy 98 Nacht",
-        "Version": "0.2.7",
+        "Version": "0.2.8",
         "Website": "https://github.com/huppiflupp/NiceOS9-theme"
     },
     "X-Plasma-API": "5.0"

@@ -93,11 +93,33 @@ mkdir -p "$DIST"
 # das niemand ungefragt herunterladen will. Die zehn Landschaften bleiben
 # drin: auf sie zeigt contents/defaults jeder Variante, ohne sie
 # installierte man ein Design, dessen Hintergrund fehlt.
+#
+# tools/ kommt als nt-legacy/tools/ mit hinein.
+#
+# Aus der Community (cubanismo): "./fetch-icons.sh: line 65:
+# /nt-legacy/../tools/fix-index-theme.py: No such file or directory".
+# fetch-icons.sh und build.py rufen sechs Skripte aus tools/ auf, und im
+# Archiv lag bisher nur nt-legacy/. Wer daraus neu baut oder Chicago95
+# nachruestet, lief ins Leere - nach dem Klon von Chicago95, also an der
+# teuersten Stelle.
+#
+# Als Unterverzeichnis und nicht daneben: das Archiv soll weiterhin genau
+# einen Ordner entpacken. Beide Skripte suchen erst in nt-legacy/tools/
+# und dann daneben, damit Arbeitsbaum und Archiv gleich funktionieren.
 GESAMT="$DIST/nt-legacy-full-manual-install-$VERSION.tar.xz"
+TMPTOOLS="$THEME/tools"
+if [ -e "$TMPTOOLS" ]; then
+    echo "ABBRUCH: $TMPTOOLS existiert bereits - Reste eines Abbruchs?" >&2
+    exit 1
+fi
+cp -a "$LAB/tools" "$TMPTOOLS"
+trap 'rm -rf "$TMPTOOLS"' EXIT
 tar -caf "$GESAMT" "${AUSSCHLUSS[@]}" \
     --exclude="wallpapers/ntlegacy-kachel-*" \
     --exclude="wallpapers/ntlegacy-gross-*" \
     -C "$LAB" nt-legacy
+rm -rf "$TMPTOOLS"
+trap - EXIT
 echo "  $(basename "$GESAMT")  $(du -h "$GESAMT" | cut -f1)   (Gesamtpaket mit install.sh, ohne Kacheln)"
 
 # ── 2. Einzelarchive je Ebene ────────────────────────────────────────────

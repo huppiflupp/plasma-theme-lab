@@ -7,12 +7,12 @@
                 "Email": "huppiflupp@users.noreply.github.com"
             }
         ],
-        "Category": "",
-        "Description": "Systemgrau und Marineblau - Windows 98",
+        "Description": "System grey and navy blue - Windows 98",
+        "Description[de]": "Systemgrau und Marineblau - Windows 98",
         "Id": "com.github.huppiflupp.nt-legacy-win98",
         "License": "GPL-2.0-or-later",
         "Name": "NT Legacy 98",
-        "Version": "0.2.7",
+        "Version": "0.2.8",
         "Website": "https://github.com/huppiflupp/NiceOS9-theme"
     },
     "Keywords": "Desktop;Workspace;Appearance;Look and Feel;",

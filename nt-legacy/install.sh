@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Installiert NT Legacy.
 #
+#   ./install.sh                    # nur installieren
+#   ./install.sh --anwenden         # danach die Grundfassung anwenden
+#   ./install.sh --anwenden win2k   # danach diese Variante anwenden
+#
 # Fasst ausschliesslich $HOME an, fragt nie nach sudo, und sichert vorher
 # die Konfiguration. Damit ist die Installation in jedem Fall umkehrbar -
 # das ist der Unterschied zwischen einem Theme, das man ausprobieren
@@ -13,6 +17,28 @@ DATEN="${XDG_DATA_HOME:-$HOME/.local/share}"
 
 LNF_ID="com.github.huppiflupp.nt-legacy"
 STYLE_ID="nt-legacy"
+
+# ── Anwenden: Vorgabe ist weiterhin "nur installieren" ───────────────────
+#
+# Aus der Community (cubanismo, KDE 6.6.5): nach install.sh war das Design
+# nicht aktiv, und die Schlussmeldung riet zu
+# "plasma-apply-lookandfeel --apply …". Dieser Weg ist unvollstaendig -
+# der Anwendungsstil bleibt dabei auf Breeze stehen, weil Qt-Programme
+# den Wert aus ~/.config/kdedefaults nicht lesen (Begruendung in
+# apply.sh). Wer ihm folgt, landet in den Systemeinstellungen und macht
+# den Rest von Hand.
+#
+# Deshalb zwei Aenderungen: die Schlussmeldung nennt jetzt ./apply.sh,
+# und mit --anwenden erledigt install.sh den zweiten Schritt gleich mit.
+ANWENDEN=false
+VARIANTE=""
+for arg in "$@"; do
+    case "$arg" in
+        --anwenden) ANWENDEN=true ;;
+        -*)         echo "Unbekannte Option '$arg'." >&2; exit 1 ;;
+        *)          VARIANTE="$arg" ;;
+    esac
+done
 
 # ── Sicherung ────────────────────────────────────────────────────────────
 BACKUP="$DATEN/nt-legacy/backup-$(date +%Y%m%d-%H%M%S)"
@@ -114,10 +140,15 @@ if [ -d "$HIER/icons-nt" ]; then
     # entsteht sonst in build.py. Wer direkt aus einem Klon installiert,
     # hat sie noch nicht; ohne sie zeigen die Nachtvarianten auf ein
     # Symbolthema, das es auf dem Rechner nicht gibt.
-    if [ ! -d "$HIER/icons-nt/NTLegacyIconsNacht" ] && \
-       [ -f "$HIER/../tools/mach-nacht-symbole.py" ]; then
-        python3 "$HIER/../tools/mach-nacht-symbole.py" \
-            "$HIER/icons-nt/NTLegacyIcons" >/dev/null 2>&1 || true
+    #
+    # tools/ liegt im Arbeitsbaum neben nt-legacy/, im Archiv darin.
+    if [ ! -d "$HIER/icons-nt/NTLegacyIconsNacht" ]; then
+        for w in "$HIER/tools/mach-nacht-symbole.py" \
+                 "$HIER/../tools/mach-nacht-symbole.py"; do
+            [ -f "$w" ] || continue
+            python3 "$w" "$HIER/icons-nt/NTLegacyIcons" >/dev/null 2>&1 || true
+            break
+        done
     fi
     mkdir -p "$DATEN/icons"
     # Erst das alte Verzeichnis weg, dann kopieren.
@@ -209,13 +240,27 @@ kwriteconfig6 --file kdeglobals --group Icons --key Theme "$SATZ"
 # man nach einem Update das alte Theme und sucht den Fehler woanders.
 rm -f "$HOME/.cache/plasma_theme_"*.kcache "$HOME/.cache/ksvg-elements"
 
+echo ""
+echo "Installiert."
+
+# ── Anwenden ─────────────────────────────────────────────────────────────
+if $ANWENDEN; then
+    echo ""
+    exec "$HIER/apply.sh" ${VARIANTE:+"$VARIANTE"}
+fi
+
 cat <<EOF
 
-Fertig.
+  Anwenden:     ./apply.sh              # Grundfassung (Petrol)
+                ./apply.sh win2k        # eine der Varianten
+                ./apply.sh --help       # alle Varianten und Schalter
 
-  Anwenden:     plasma-apply-lookandfeel --apply com.github.huppiflupp.nt-legacy
-                (Varianten: …-lilac, …-desert)
-  oder:         Systemeinstellungen > Farben & Design > Globales Design
+                Oder gleich beides:  ./install.sh --anwenden win2k
+
+  Nimm dafuer apply.sh und nicht plasma-apply-lookandfeel: der
+  Anwendungsstil (Windows statt Breeze) laesst sich nur ueber
+  ~/.config/kdeglobals setzen, und genau das macht apply.sh. Ueber
+  Systemeinstellungen > Farben & Design > Globales Design fehlt er.
 
 Das Design wirkt erst nach einem Ab- und Wiederanmelden vollstaendig.
 

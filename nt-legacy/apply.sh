@@ -51,6 +51,20 @@ for arg in "$@"; do
     [[ "$arg" == "--rot" ]] && ROT=true
     [[ "$arg" == "--schrift" ]] && SCHRIFT=true
     [[ "$arg" == "--panel" ]] && PANEL=true
+    if [[ "$arg" == "--help" || "$arg" == "-h" ]]; then
+        # Die Liste kommt aus build.py, nicht aus einer zweiten hier -
+        # aus demselben Grund wie unten bei den Kennungen.
+        sed -n '3,9p' "${BASH_SOURCE[0]}" | sed 's/^# \?//'
+        echo "Varianten:"
+        (cd "$HIER" && python3 -c "
+import importlib.util
+s = importlib.util.spec_from_file_location('b', 'build.py')
+m = importlib.util.module_from_spec(s); s.loader.exec_module(m)
+for v in sorted(m.VARIANTEN):
+    print('  %-14s %s' % (v, m.VARIANTEN[v]['beschreibung_en']))
+")
+        exit 0
+    fi
 done
 [[ "$VARIANTE" == --* ]] && VARIANTE="teal"
 
@@ -92,6 +106,19 @@ if [ "${KENNUNG%% *}" = "UNBEKANNT" ]; then
     exit 1
 fi
 read -r KURZ STYLE LNF LNF_HELL LNF_DUNKEL KONSOLE SYMBOLE <<< "$KENNUNG"
+
+# Alle Kennungen muessen belegt sein. Faellt eine leer aus, schreibt das
+# Skript sonst leere Werte in die Konfiguration und ruft die
+# plasma-apply-Werkzeuge mit leerem Namen auf - das ergibt Meldungen wie
+# "Could not find theme """, die niemand einem Theme zuordnen kann.
+for feld in KURZ STYLE LNF KONSOLE SYMBOLE; do
+    if [ -z "${!feld}" ]; then
+        echo "FEHLER: Kennung '$feld' ist leer (Variante '$VARIANTE')." >&2
+        echo "        Das ist ein Fehler im Theme, nicht auf deinem Rechner." >&2
+        echo "        Bitte melden: $(sed -n 's/^WEBSITE = "\(.*\)"/\1/p' "$HIER/build.py" | head -1)" >&2
+        exit 1
+    fi
+done
 
 # Trockenlauf: nur pruefen, ob die Variante existiert, nichts anwenden.
 # Wird von pruefe.sh genutzt.
@@ -160,11 +187,28 @@ fi
 #
 # In der Test-VM auf 'clean' nachgewiesen: derselbe Plasma-Stil, einmal
 # ohne und einmal mit --resetLayout - erst mit Layout stimmt das Bild.
+#
+# Die Ausgabe wird aufgehoben und nur bei einem Fehlschlag gezeigt.
+#
+# Vorher stand hier ">/dev/null 2>&1 || true": jede Meldung fiel weg,
+# auch "Unable to find the theme named …". Aus der Community kam genau so
+# ein Fall zurueck - Fehler beim Anwenden, Design nicht aktiv, und
+# niemand konnte hinterher sagen, welche Meldung es war. Umgekehrt soll
+# ein geglueckter Lauf still bleiben: plasma-apply-lookandfeel schreibt
+# auch dann Zeilen, die niemand braucht (etwa xrdb-Warnungen unter
+# Wayland).
+LNF_LOG="$(mktemp)"
+trap 'rm -f "$LNF_LOG"' EXIT
 if $PANEL; then
     echo "  Panel wird durch das NT-Layout ersetzt (Sicherung siehe unten)."
-    plasma-apply-lookandfeel --apply "$LNF" --resetLayout >/dev/null 2>&1 || true
+    plasma-apply-lookandfeel --apply "$LNF" --resetLayout >"$LNF_LOG" 2>&1 || true
 else
-    plasma-apply-lookandfeel --apply "$LNF" >/dev/null 2>&1 || true
+    plasma-apply-lookandfeel --apply "$LNF" >"$LNF_LOG" 2>&1 || true
+fi
+if grep -qi "unable to find\|could not find\|error" "$LNF_LOG"; then
+    echo "  Warnung: plasma-apply-lookandfeel meldet:" >&2
+    sed 's/^/    /' "$LNF_LOG" >&2
+    echo "  Die Ebenen werden trotzdem einzeln gesetzt." >&2
 fi
 
 kwriteconfig6 --file plasmarc   --group Theme   --key name          "$STYLE"
@@ -283,8 +327,26 @@ rm -f "$HOME/.cache/plasma_theme_"*.kcache "$HOME/.cache/ksvg-elements"
 #   3. Nur wenn plasmashell danach wirklich nicht laeuft, wird gestartet -
 #      mit vorherigem reset-failed, damit der Zaehler nicht im Weg steht.
 
-plasma-apply-desktoptheme "$STYLE"  >/dev/null 2>&1 || true
-plasma-apply-colorscheme  "$KURZ"   >/dev/null 2>&1 || true
+# Auch hier: still bei Erfolg, sichtbar bei Fehlschlag. "Could not find
+# theme" mit leerem Namen war die Meldung, die aus der Community gemeldet
+# wurde, ohne dass sich hinterher sagen liess, woher sie kam.
+zur_laufzeit() {
+    local werkzeug="$1" name="$2"
+    if [ -z "$name" ]; then
+        echo "  Warnung: leerer Name fuer $werkzeug - uebersprungen." >&2
+        return
+    fi
+    # Der Ausgang allein reicht nicht: plasma-apply-desktoptheme meldet
+    # "Could not find theme" und beendet sich trotzdem mit 0.
+    if "$werkzeug" "$name" >"$LNF_LOG" 2>&1 \
+       && ! grep -qi "could not find\|unable to find" "$LNF_LOG"; then
+        return
+    fi
+    echo "  Warnung: $werkzeug '$name' fehlgeschlagen:" >&2
+    sed 's/^/    /' "$LNF_LOG" >&2
+}
+zur_laufzeit plasma-apply-desktoptheme "$STYLE"
+zur_laufzeit plasma-apply-colorscheme  "$KURZ"
 
 # KWin die Dekoration neu einlesen lassen. Das Aurorae-THEMA selbst laedt
 # KWin allerdings nur beim Sitzungsstart - deshalb der Hinweis unten.

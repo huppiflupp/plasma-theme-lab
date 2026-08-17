@@ -6,13 +6,13 @@
                 "Email": "huppiflupp@users.noreply.github.com"
             }
         ],
-        "Category": "",
-        "Description": "Weicheres Grau, Blauverlauf - Windows 2000",
+        "Description": "Softer grey, blue gradient - Windows 2000",
+        "Description[de]": "Weicheres Grau, Blauverlauf - Windows 2000",
         "EnabledByDefault": true,
         "Id": "nt-legacy-win2k",
         "License": "GPL-2.0-or-later",
         "Name": "NT Legacy 2000",
-        "Version": "0.2.7",
+        "Version": "0.2.8",
         "Website": "https://github.com/huppiflupp/NiceOS9-theme"
     },
     "X-Plasma-API": "5.0"

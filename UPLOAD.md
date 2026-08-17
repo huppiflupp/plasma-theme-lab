@@ -12,15 +12,15 @@ Historie nur auf.
 
 ```
 dist/
-├── nt-legacy-full-manual-install-0.2.7.tar.xz    12 MB   Gesamtpaket
-├── nt-legacy-global-theme-<farbwelt>-0.2.7.tar.xz       10 Stück
-├── nt-legacy-plasma-style-<farbwelt>-0.2.7.tar.xz       10 Stück
-├── nt-legacy-icons-0.2.7.tar.xz                228 KB   (hell und Nachtfassung)
-├── nt-legacy-window-decorations-0.2.7.tar.xz    12 KB
-├── nt-legacy-cursors-0.2.7.tar.xz               12 KB
-├── nt-legacy-color-schemes-0.2.7.tar.xz        4,0 KB
-├── nt-legacy-wallpaper-<name>-0.2.7.tar.xz              26 Stück
-├── nt-legacy-wallpapers-manual-install-0.2.7.tar.xz  69 MB
+├── nt-legacy-full-manual-install-0.2.8.tar.xz    14 MB   Gesamtpaket
+├── nt-legacy-global-theme-<farbwelt>-0.2.8.tar.xz       10 Stück
+├── nt-legacy-plasma-style-<farbwelt>-0.2.8.tar.xz       10 Stück
+├── nt-legacy-icons-0.2.8.tar.xz                1,4 MB   (hell und Nachtfassung)
+├── nt-legacy-window-decorations-0.2.8.tar.xz    12 KB
+├── nt-legacy-cursors-0.2.8.tar.xz               12 KB
+├── nt-legacy-color-schemes-0.2.8.tar.xz        4,0 KB
+├── nt-legacy-wallpaper-<name>-0.2.8.tar.xz              26 Stück
+├── nt-legacy-wallpapers-manual-install-0.2.8.tar.xz  69 MB
 ├── screenshots/                                 16 Bilder (10 + 5 Tag/Nacht + Übersicht)
 └── SHA256SUMS
 ```
@@ -34,7 +34,7 @@ vier Großbilder in 4096×4096.
 Die Landschaften stecken im Gesamtpaket — auf sie zeigt
 `contents/defaults` jeder Variante, ohne sie hätte das Design keinen
 Hintergrund. Kacheln und Großbilder nicht: das sind 61 der 69 MB, und
-mit ihnen wäre das Gesamtpaket 72 statt 12 MB groß.
+mit ihnen wäre das Gesamtpaket 72 statt 14 MB groß.
 
 **Je Paket ein Archiv, auch hier** — aus zwei Gründen, und der erste
 ist der eigentliche.

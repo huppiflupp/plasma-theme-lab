@@ -14,6 +14,12 @@ Item {
     property string mode
     property var currentAction
 
+    // Uebersetzung aus Plasmas Katalog, ohne den Kuerzel-Marker.
+    function nt_i18n(text) {
+        return i18nd("plasma_lookandfeel_org.kde.lookandfeel", text)
+                   .replace("&", "")
+    }
+
     Rectangle {
         anchors.fill: parent
         color: "#000000"
@@ -37,7 +43,7 @@ Item {
             Text {
                 anchors { left: parent.left; leftMargin: 8
                            verticalCenter: parent.verticalCenter }
-                text: i18n("Beenden")
+                text: root.nt_i18n("&Shut Down")
                 color: "#ffffff"
                 font.bold: true
             }
@@ -47,20 +53,20 @@ Item {
             anchors.centerIn: parent
             spacing: 10
             PlasmaComponents.Button {
-                text: i18n("Abmelden"); onClicked: root.logoutRequested()
+                text: root.nt_i18n("&Log Out"); onClicked: root.logoutRequested()
             }
             PlasmaComponents.Button {
-                text: i18n("Neu starten"); onClicked: root.rebootRequested()
+                text: root.nt_i18n("&Restart"); onClicked: root.rebootRequested()
             }
             PlasmaComponents.Button {
-                text: i18n("Herunterfahren"); onClicked: root.haltRequested()
+                text: root.nt_i18n("&Shut Down"); onClicked: root.haltRequested()
             }
         }
 
         PlasmaComponents.Button {
             anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter
                        bottomMargin: 10 }
-            text: i18n("Abbrechen")
+            text: root.nt_i18n("&Cancel")
             onClicked: root.cancelRequested()
         }
     }

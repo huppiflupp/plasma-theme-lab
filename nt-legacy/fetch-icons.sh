@@ -9,6 +9,29 @@
 set -euo pipefail
 HIER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ZIEL="$HIER/icons/NTLegacy"
+
+# Wo liegen die Werkzeuge aus tools/?
+#
+# Zwei Lagen, und beide sind normal: im Arbeitsbaum neben nt-legacy/, im
+# ausgelieferten Archiv als nt-legacy/tools/. Bis 0.2.7 stand hier fest
+# "$HIER/../tools" - aus dem Archiv heraus lief das ins Leere, gemeldet
+# aus der Community: "line 65: /nt-legacy/../tools/fix-index-theme.py:
+# No such file or directory". Und weil das erst in Zeile 65 auffiel, war
+# der Klon von Chicago95 schon gelaufen.
+if [ -d "$HIER/tools" ]; then
+    WERKZEUGE="$HIER/tools"
+else
+    WERKZEUGE="$HIER/../tools"
+fi
+for w in fix-index-theme.py gen-symbolic-aliase.py gen-icon-aliase.py; do
+    if [ ! -f "$WERKZEUGE/$w" ]; then
+        echo "FEHLER: $w fehlt (gesucht in $WERKZEUGE)." >&2
+        echo "        Dieses Skript braucht das Verzeichnis tools/." >&2
+        echo "        Es steckt im Gesamtarchiv und im Quelltext:" >&2
+        echo "        https://github.com/huppiflupp/NiceOS9-theme" >&2
+        exit 1
+    fi
+done
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -62,14 +85,14 @@ if m:
         "[status/symbolic]\nSize=16\nContext=Status\nType=Fixed\n\n"))
 PY2
 
-"$HIER/../tools/fix-index-theme.py" "$ZIEL"
-"$HIER/../tools/gen-symbolic-aliase.py" "$ZIEL"
+"$WERKZEUGE/fix-index-theme.py" "$ZIEL"
+"$WERKZEUGE/gen-symbolic-aliase.py" "$ZIEL"
 
 # Chicago95 traegt GNOME-Namen (view-grid, view-list), Dolphin fordert
 # aber view-list-icons, view-list-details, view-file-columns an. Ohne
 # diese Verweise sind die Ansichtsmodi in der Werkzeugleiste Breeze-
 # Symbole mitten in der Pixelart.
-"$HIER/../tools/gen-icon-aliase.py" "$ZIEL"
+"$WERKZEUGE/gen-icon-aliase.py" "$ZIEL"
 
 echo
 echo "Fertig. Danach: ./build.py && ./install.sh"
