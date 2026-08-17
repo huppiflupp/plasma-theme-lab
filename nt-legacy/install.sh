@@ -131,9 +131,10 @@ if [ -d "$HIER/icons" ]; then
 fi
 
 # Das mitgelieferte Symbolset. Anders als Chicago95 liegt es im Repo,
-# weil seine Herkunft geklaert ist: ReactOS (GPL-2.0, clean-room) plus
-# selbst gezeichnete Werkzeugleisten-Symbole. Es ist die Vorgabe;
-# Chicago95 bleibt daneben waehlbar, wenn es installiert wurde.
+# weil seine Herkunft geklaert ist: vollstaendig selbst gezeichnet in
+# tools/gen-icons.py, kein uebernommenes Fremdmaterial (ATTRIBUTION.md).
+# Es ist die Vorgabe; Chicago95 bleibt daneben waehlbar, wenn es ueber
+# fetch-icons.sh geholt wurde.
 if [ -d "$HIER/icons-nt" ]; then
     echo "Symbole (NTLegacyIcons) …"
     # Die Nachtfassung steht nicht im Repo - sie ist eine Ableitung und

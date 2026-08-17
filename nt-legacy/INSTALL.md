@@ -25,8 +25,8 @@ Optional but recommended:
 
 ## Option 1 — full package (recommended)
 
-The archive `nt-legacy-<version>.tar.xz` contains all six layers of the
-theme at once.
+The archive `nt-legacy-full-manual-install-<version>.tar.xz` contains all
+six layers of the theme at once.
 
 ```bash
 tar -xf nt-legacy-full-manual-install-0.2.8.tar.xz
@@ -184,6 +184,22 @@ silently and the terminal simply does not look like NT.
 pick. There are five schemes rather than ten because the accent colours
 are identical between the day and night version of a palette — the
 terminal is dark either way, as it was under NT.
+
+## Chicago95 icons — optional, not included
+
+NT Legacy ships its own icon set (*NTLegacyIcons*, plus a night version),
+so you do not need anything else. If you would rather have the Chicago95
+icons, fetch them yourself:
+
+```bash
+./fetch-icons.sh    # clones Chicago95 and adapts it for Plasma 6
+./build.py          # only needed if you build from source
+```
+
+They are **not** part of any archive here: Chicago95 has no LICENSE file
+and the provenance of its bitmaps is unclear, so shipping them would be
+irresponsible. `fetch-icons.sh` uses the `tools/` directory that comes
+with the full package.
 
 ## Verifying
 
