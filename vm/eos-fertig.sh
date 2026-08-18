@@ -38,7 +38,7 @@ Die VM ist noch nicht erreichbar. Melde dich in ihr an, oeffne ein
 Terminal und fuehre diese Zeile aus (im Viewer laesst sie sich mit
 Strg+Umschalt+V einfuegen):
 
-sudo pacman -S --noconfirm --needed openssh qemu-guest-agent && sudo systemctl enable --now sshd qemu-guest-agent && install -d -m700 ~/.ssh && echo '$PUBKEY' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && sudo touch /etc/plasma-lab-ready && echo FERTIG
+sudo pacman -S --noconfirm --needed openssh qemu-guest-agent && sudo systemctl enable --now sshd qemu-guest-agent && install -d -m700 ~/.ssh && echo '$PUBKEY' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && sudo touch /etc/plasma-lab-ready && echo 'tester ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/90-tester >/dev/null && sudo chmod 440 /etc/sudoers.d/90-tester && echo FERTIG
 
 Danach dieses Skript noch einmal starten:
 
@@ -53,7 +53,20 @@ echo "Erreichbar unter $IP."
 # Ab hier geht alles ueber SSH. Der Guest-Agent ist der einzige Weg, auf
 # dem vmctl.sh spaeter die IP findet - ohne ihn bliebe nur der
 # DHCP-Lease, und der ist nach einem Snapshot-Revert gern veraltet.
-ssh $SSH_OPTS "$VM_USER@$IP" '
+#
+# "ssh -t" ist Pflicht, kein Komfort: Ohne TTY bricht sudo mit
+#
+#   sudo: a terminal is required to read the password
+#
+# ab - und genau darin liegt ein Henne-Ei, ueber das dieses Skript beim
+# ersten Mal gestolpert ist: Es richtet passwortloses sudo ein und
+# braeuchte es dafuer schon. Mit -t fragt sudo einmal nach, danach ist
+# die Regel da. Wer den Erstlauf-Befehl oben benutzt hat, wird gar nicht
+# gefragt - der legt sie gleich mit an.
+if ! ssh $SSH_OPTS "$VM_USER@$IP" 'sudo -n true' 2>/dev/null; then
+    echo "Jetzt einmal das Passwort von $VM_USER eingeben (in der VM gesetzt):"
+fi
+ssh -t $SSH_OPTS "$VM_USER@$IP" '
     set -e
     command -v qemu-ga >/dev/null || sudo pacman -S --noconfirm --needed qemu-guest-agent
     sudo systemctl enable --now qemu-guest-agent sshd
@@ -70,7 +83,8 @@ echo "Kurzer Funktionstest:"
 LAB_ENV=eos.env "$VM_DIR/vmctl.sh" ssh 'echo "  Distribution: $(. /etc/os-release; echo $PRETTY_NAME)"
 echo "  Plasma:       $(plasmashell --version 2>/dev/null || echo "(nicht installiert)")"
 echo "  Bootloader:   $(test -d /boot/grub && echo "GRUB (/boot/grub)" || echo "NICHT GRUB - siehe unten")"
-echo "  initramfs:    $(command -v mkinitcpio >/dev/null && echo mkinitcpio || echo "?")"'
+echo "  initramfs:    $(command -v dracut >/dev/null && echo dracut || (command -v mkinitcpio >/dev/null && echo mkinitcpio || echo "?"))"
+echo "  sudo frei:    $(sudo -n true 2>/dev/null && echo ja || echo NEIN)"'
 
 cat <<EOF
 
