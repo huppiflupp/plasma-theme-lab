@@ -12,7 +12,23 @@
 set -euo pipefail
 
 VM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$VM_DIR/lab.env"
+
+# Welche VM? Vorgabe ist die Fedora-Maschine aus lab.env.
+#
+# Seit es eine zweite gibt (EndeavourOS, fuer die Arch-Seite der Skripte)
+# waehlt LAB_ENV die Umgebung:
+#
+#   ./vmctl.sh status                      # Fedora
+#   LAB_ENV=eos.env ./vmctl.sh status      # EndeavourOS
+#
+# Eine zweite Kopie dieses Skripts waere die naheliegende Loesung
+# gewesen - und die schlechtere: jede Korrektur muesste man dann an zwei
+# Stellen machen, und genau das vergisst man.
+LAB_ENV_DATEI="${LAB_ENV:-lab.env}"
+case "$LAB_ENV_DATEI" in
+    /*) source "$LAB_ENV_DATEI" ;;
+    *)  source "$VM_DIR/$LAB_ENV_DATEI" ;;
+esac
 
 V() { virsh -c "$LIBVIRT_URI" "$@"; }
 
