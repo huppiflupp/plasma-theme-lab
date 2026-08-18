@@ -75,7 +75,19 @@ ssh -t $SSH_OPTS "$VM_USER@$IP" '
     # sudo-Abfrage. Dieselbe Freiheit hat der tester in der Fedora-VM.
     echo "tester ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/90-tester >/dev/null
     sudo chmod 440 /etc/sudoers.d/90-tester
-    echo "  Guest-Agent, sshd, Marker und sudo eingerichtet"
+
+    # Autologin. Ohne angemeldete Sitzung gibt es keinen Plasma-Bus, und
+    # dann brechen plasma-apply-lookandfeel, -desktoptheme und
+    # -colorscheme mit SIGABRT ab ("core dumped"). In dieser VM zuerst
+    # genau so passiert - apply.sh setzte die Werte zwar selbst per
+    # kwriteconfig6, aber Hintergrund und Panel blieben stehen.
+    #
+    # Plasma 6.7 bringt einen eigenen Anmeldeverwalter mit
+    # (plasma-login-manager, nicht mehr SDDM); die Konfiguration liegt
+    # in /etc/plasmalogin.conf und folgt dem Aufbau von sddm.conf.
+    printf "[Autologin]\nUser=tester\nSession=plasma\nRelogin=true\n" \
+        | sudo tee /etc/plasmalogin.conf >/dev/null
+    echo "  Guest-Agent, sshd, Marker, sudo und Autologin eingerichtet"
 '
 
 echo ""
