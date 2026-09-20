@@ -131,6 +131,27 @@ anpassen und neu erzeugen.
 **Gegenprobe:** Alle zwölf erzeugten Dateien laufen fehlerfrei durch
 `lint-plasma-svg.py`.
 
+## Die Lückenliste
+
+Ein eigener Symbolsatz ist nie fertig — die Frage ist, was als Nächstes
+dran ist. `tools/luecken-symbole.py` beantwortet sie mit Zahlen statt
+mit Gefühl:
+
+```bash
+tools/luecken-symbole.py nt-legacy/icons-nt/NTLegacyIcons
+tools/luecken-symbole.py <satz> --vergleich <anderer-satz>   # Vorlagen
+```
+
+Es liest den Bedarf aus zwei Quellen — `Icon=` aus allen installierten
+`.desktop`-Dateien und die Zeichenketten der KF6-Bibliotheken — und
+filtert ihn gegen Breeze: Was dort keinen Namen hat, fordert auch
+niemand an. Übrig bleibt, was das System verlangt und der geprüfte Satz
+nicht liefert, sortiert nach Gewicht.
+
+Das Gegenstück ist `tools/pruefe-symbolfalle.py`: Jenes findet Namen,
+die ein Satz **falsch** bedient, dieses die, die er **gar nicht**
+bedient.
+
 ## Der Leitfaden
 
 [`guide/`](guide/README.md) — sechs Kapitel. Er wiederholt nicht die

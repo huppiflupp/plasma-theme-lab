@@ -20,13 +20,17 @@ tests/laeufe/
 __pycache__/
 *.pyc
 
-# Das Icon-Set (Chicago95-Ableger, ~76 MB) liegt bewusst NICHT im Repo,
-# solange seine Lizenzlage ungeklaert ist - siehe nt-legacy/ATTRIBUTION.md.
-# Chicago95 hat keine LICENSE-Datei, und die Herkunft seiner Bitmaps liess
-# sich nicht abschliessend klaeren. Fremdmaterial mit offener Lizenzfrage
-# gehoert nicht in ein Repository, das jemand weitergibt.
+# Die nachgeladenen Fremdsaetze liegen bewusst NICHT im Repo:
+# NTLegacy (Chicago95, ~76 MB) und NTLegacySE98 (SE98, ~164 MB).
+# Begruendung in nt-legacy/ATTRIBUTION.md. Kurz: Chicago95 hat keine
+# LICENSE-Datei und eine ungeklaerte Bitmap-Herkunft; SE98 hat eine
+# (GPL-2.0), nennt sich in der eigenen README aber einen Copy-Paste-Fork
+# von Chicago95 mit Material aus dem MicroSoft-Memphis-Projekt - eine
+# Lizenz deckt nur, was der Setzende selbst geschaffen hat.
+# Fremdmaterial mit offener Lizenzfrage gehoert nicht in ein Repository,
+# das jemand weitergibt.
 #
-# Holen mit:  nt-legacy/fetch-icons.sh
+# Holen mit:  nt-legacy/fetch-icons.sh [chicago95|se98|beide]
 nt-legacy/icons/
 
 # Fertige Archive fuer den KDE Store. Sie entstehen reproduzierbar aus

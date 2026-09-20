@@ -1200,13 +1200,21 @@ def main():
         print(r.stdout.rstrip() if r.returncode == 0
               else "  uebersprungen: " + (r.stderr.strip().splitlines() or ["?"])[0])
 
-    icons = HIER / "icons" / "NTLegacy"
-    if icons.is_dir():
-        r = subprocess.run(
-            [sys.executable, werkzeug("gen-symbolic-aliase.py"),
-             str(icons)], capture_output=True, text=True)
-        zeile = r.stdout.strip().splitlines()
-        print(f"\nSymbolische Aliase: {zeile[0] if zeile else '—'}")
+    # Die nachgeladenen Fremdsaetze aus fetch-icons.sh. Hier stand lange
+    # nur "NTLegacy" - seit es einen zweiten gibt (NTLegacySE98), wird
+    # genommen, was da ist. fetch-icons.sh legt die Aliase schon selbst
+    # an; der Lauf hier faengt den Fall ab, dass jemand den Satz von Hand
+    # ausgetauscht oder das Skript einer aelteren Fassung benutzt hat.
+    fremd = sorted(p for p in (HIER / "icons").glob("*")
+                   if (p / "index.theme").is_file())
+    if fremd:
+        print("\nSymbolische Aliase:")
+        for icons in fremd:
+            r = subprocess.run(
+                [sys.executable, werkzeug("gen-symbolic-aliase.py"),
+                 str(icons)], capture_output=True, text=True)
+            zeile = r.stdout.strip().splitlines()
+            print(f"  {icons.name}: {zeile[0] if zeile else '—'}")
 
     # Die Nachtfassung des Symbolsatzes. Reine Ableitung aus dem hellen
     # Satz - dieselben Bilder, nur breeze-dark als Rueckfall. Deshalb

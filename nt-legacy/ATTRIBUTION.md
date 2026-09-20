@@ -108,12 +108,57 @@ Windows NT blieb der Ordner gelb und das Laufwerk grau, egal welche
 Farbwelt eingestellt war. Nur Linien- und Akzentfarbe richten sich nach
 der Variante.
 
-## Chicago95 weiterhin nutzbar
+## SE98 — geprüft, aus demselben Grund nicht übernommen
 
-`fetch-icons.sh` installiert Chicago95 lokal als eigenes Symbolthema
-`NTLegacy`. Es liegt **nicht** im Repository (steht in `.gitignore`) und
-ist nicht Teil der Weitergabe — wer es installiert hat, kann es in den
-Systemeinstellungen auswählen.
+`fetch-icons.sh` kann inzwischen auch [SE98](https://www.opencode.net/nestoris/Win98SE)
+holen. Der Satz ist verlockend: rund 6.400 Namen gegen unsere 229, in
+Größen von 8 bis 1024 px, mit einer `index.theme`, die alle 109
+Verzeichnisse vollständig führt — deutlich besser gepflegt als
+Chicago95. Von den Symbolnamen, die Plasma auf diesem System tatsächlich
+anfordert und die uns fehlen, deckt er 93 ab.
+
+Er steht trotzdem **nicht** im Repository, und zwar aus demselben Grund
+wie Chicago95 — nur ist der Befund hier klarer. Anders als Chicago95
+liegt eine `LICENSE` bei, GPL-2.0 im Volltext. Die eigene README des
+Projekts beschreibt aber, was darunter liegt:
+
+> „Enhanced Classic icon theme […] **from MicroSoft Memphis project** […]
+> inspired by Chicago95 theme (**actually it's a manual copy-paste
+> fork**) of Grassmunk"
+
+> „there are some icons from **Faenza** and **Chicago95** themes in it"
+
+„Memphis" war der Entwicklungsname von Windows 98. Bei Chicago95 war die
+Herkunft der Bitmaps *ungeklärt*; hier steht sie im Klartext. Eine
+Lizenz deckt nur, was derjenige geschaffen hat, der sie setzt — auf
+fremde Bitmaps kann niemand die GPL legen. Dazu kommt: Es gibt keine
+`CREDITS` und keine datei-genaue Zuordnung, der selbstgezeichnete Anteil
+lässt sich vom übernommenen also gar nicht trennen.
+
+Für den eigenen Rechner ist das unerheblich, für die Weitergabe nicht.
+Deshalb dasselbe Verfahren wie bei Chicago95: nachladbar, nicht
+mitgeliefert.
+
+Was wir stattdessen daraus ziehen, ist die Lückenliste.
+`tools/luecken-symbole.py` ermittelt, welche Namen das System anfordert
+und unser Satz nicht hat — aus den `.desktop`-Dateien und den
+Zeichenketten der KF6-Bibliotheken, gefiltert gegen Breeze. Mit
+`--vergleich` steht daneben, ob SE98 eine Vorlage hätte:
+
+```bash
+tools/luecken-symbole.py nt-legacy/icons-nt/NTLegacyIcons \
+    --vergleich nt-legacy/icons/NTLegacySE98
+```
+
+Das ist die zulässige Nutzung eines fremden Satzes: hinsehen, dann
+selbst zeichnen.
+
+## Die fremden Sätze weiterhin nutzbar
+
+`fetch-icons.sh` installiert Chicago95 als `NTLegacy` und SE98 als
+`NTLegacySE98`. Beide liegen **nicht** im Repository (`nt-legacy/icons/`
+steht in `.gitignore`) und sind nicht Teil der Weitergabe — wer sie
+geholt hat, kann sie in den Systemeinstellungen auswählen.
 
 ## Nicht enthalten
 

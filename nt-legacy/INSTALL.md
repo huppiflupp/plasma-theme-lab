@@ -260,21 +260,46 @@ rm -f ~/.cache/icon-cache.kcache
 
 Then log out and back in.
 
-## Chicago95 icons — optional, not included
+## Other icon sets — optional, not included
 
 NT Legacy ships its own icon set (*NTLegacyIcons*, plus a night version),
-so you do not need anything else. If you would rather have the Chicago95
-icons, fetch them yourself:
+so you do not need anything else. Two well-known retro sets can be
+fetched on top of it, each installed as a separate theme you can pick in
+System Settings:
 
 ```bash
-./fetch-icons.sh    # clones Chicago95 and adapts it for Plasma 6
-./build.py          # only needed if you build from source
+./fetch-icons.sh            # Chicago95      -> "NT Legacy"      (default)
+./fetch-icons.sh se98       # SE98           -> "NT Legacy (SE98)"
+./fetch-icons.sh beide      # both
+./build.py                  # only needed if you build from source
 ```
 
-They are **not** part of any archive here: Chicago95 has no LICENSE file
-and the provenance of its bitmaps is unclear, so shipping them would be
-irresponsible. `fetch-icons.sh` uses the `tools/` directory that comes
-with the full package.
+**Chicago95** is the Windows 95 set the first version of this theme was
+built on. **SE98** aims at Windows 98 SE / ME / 2000 — a little newer
+than NT 4.0, but far larger: roughly 6,400 names against our 229. If a
+program shows a Breeze icon somewhere, SE98 most likely has one for it.
+It needs about 15 MB of image data, but around 164 MB on disk, because
+it is built from some 32,000 symlinks.
+
+Both are adapted while they are fetched: missing `Directories=` entries
+are filled in, non-standard contexts (`Stock`, `Tools`) are replaced,
+`-symbolic` aliases are generated so Plasma stops mixing flat grey
+strokes into the pixel art, and the names Dolphin asks for are wired to
+the icons that exist. For SE98 the inherit chain is repaired as well: it
+shipped `Inherits=…,Breeze`, and no distribution has a directory by that
+name — it is `breeze`, lower case — so the fallback went nowhere.
+
+Neither set is **part of any archive here**, and neither may be
+redistributed with the theme. Chicago95 has no LICENSE file and the
+provenance of its bitmaps is unclear. SE98 does carry a GPL-2.0 file,
+but its own README calls the project a *"manual copy-paste fork"* of
+Chicago95 containing icons from Faenza and from the *"MicroSoft Memphis
+project"* — a licence notice only covers what the person applying it
+actually made. Details in `ATTRIBUTION.md`. Installing either one on
+your own machine is unproblematic; shipping them would not be.
+
+`fetch-icons.sh` uses the `tools/` directory that comes with the full
+package.
 
 ## Verifying
 

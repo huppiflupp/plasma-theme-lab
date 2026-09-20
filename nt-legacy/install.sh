@@ -151,14 +151,25 @@ done
 echo "Farbschema …"
 install -Dm644 "$HIER/color-schemes/"*.colors -t "$DATEN/color-schemes/"
 
-if [ -d "$HIER/icons" ]; then
-    echo "Symbole (Chicago95, optional) …"
+# Nachgeladene Fremdsaetze aus fetch-icons.sh: NTLegacy (Chicago95) und
+# NTLegacySE98 (SE98). Beide sind optional, keiner liegt im Repo. Hier
+# wird nicht nach Namen gesucht, sondern genommen, was da ist - dann
+# kostet ein dritter Satz spaeter keine Aenderung mehr.
+if [ -d "$HIER/icons" ] && [ -n "$(ls -A "$HIER/icons" 2>/dev/null)" ]; then
     mkdir -p "$DATEN/icons"
-    rm -rf "$DATEN/icons/NTLegacy"
-    cp -a "$HIER/icons/"* "$DATEN/icons/"
-    # Ohne aktualisierten Cache zeigt Plasma teils noch die alten Symbole
-    command -v gtk-update-icon-cache >/dev/null && \
-        gtk-update-icon-cache -q -t -f "$DATEN/icons/NTLegacy" 2>/dev/null || true
+    for q in "$HIER/icons"/*/; do
+        [ -d "$q" ] || continue
+        s="$(basename "$q")"
+        echo "Symbole ($s, optional) …"
+        # Erst weg, dann kopieren: ein "cp" darueber schriebe durch die
+        # Verweise der vorigen Installation hindurch - dieselbe Falle wie
+        # unten bei NTLegacyIcons, hier mit noch mehr Verweisen.
+        rm -rf "${DATEN:?}/icons/$s"
+        cp -a "${q%/}" "$DATEN/icons/"
+        # Ohne aktualisierten Cache zeigt Plasma teils noch die alten Symbole
+        command -v gtk-update-icon-cache >/dev/null && \
+            gtk-update-icon-cache -q -t -f "$DATEN/icons/$s" 2>/dev/null || true
+    done
 fi
 
 # Das mitgelieferte Symbolset. Anders als Chicago95 liegt es im Repo,
@@ -220,7 +231,7 @@ if [ -d "$HIER/icons-nt" ]; then
             [ -f "$quelle" ] || continue
             kandidat="$(sed -n '/^\[Icons\]/,/^\[/{s/^Theme=//p}' "$quelle" | head -1)"
             case "$kandidat" in
-                ""|NTLegacy|NTLegacyIcons|NTLegacyIconsNacht|hicolor) continue ;;
+                ""|NTLegacy|NTLegacySE98|NTLegacyIcons|NTLegacyIconsNacht|hicolor) continue ;;
             esac
             for d in "$DATEN/icons/$kandidat" "/usr/share/icons/$kandidat"; do
                 [ -d "$d" ] && { echo "$kandidat"; return 0; }

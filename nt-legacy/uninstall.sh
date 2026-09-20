@@ -49,7 +49,7 @@ for d in "$DATEN"/plasma/desktoptheme "$DATEN"/plasma/look-and-feel \
          "$DATEN"/aurorae/themes "$DATEN"/aurorae; do
     rmdir "$d" 2>/dev/null && echo "  leeres Verzeichnis $d entfernt"
 done
-# Alle drei Symbolsaetze, nicht nur einer.
+# Alle vier Symbolsaetze, nicht nur einer.
 #
 # Hier stand bis 0.2.13 allein "$DATEN/icons/NTLegacy" - das ist der
 # Chicago95-Ableger aus fetch-icons.sh. Die beiden mitgelieferten Saetze
@@ -57,7 +57,12 @@ done
 # Eindruck, die Deinstallation habe nicht gewirkt. In der Arch-Test-VM
 # aufgefallen, als der Ausgangszustand nach uninstall.sh nicht wieder
 # der alte war.
-rm -rf "$DATEN"/icons/NTLegacy "$DATEN"/icons/NTLegacyIcons \
+#
+# Dazu kommt NTLegacySE98 - der zweite Satz aus fetch-icons.sh. Er ist
+# mit rund 32.000 Verweisen der groesste von allen; bleibt er liegen,
+# merkt man das am Plattenplatz.
+rm -rf "$DATEN"/icons/NTLegacy "$DATEN"/icons/NTLegacySE98 \
+       "$DATEN"/icons/NTLegacyIcons \
        "$DATEN"/icons/NTLegacyIconsNacht      && echo "  Symbole"
 rm -rf "$DATEN"/icons/NTLegacy*_cursors         2>/dev/null || true
 rm -rf "$DATEN"/wallpapers/ntlegacy*           && echo "  Hintergrundbilder"
