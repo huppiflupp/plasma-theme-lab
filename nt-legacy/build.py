@@ -84,7 +84,35 @@ BASIS = {
     "kopf_inaktiv": "#60777a",   # entsaettigtes Petrol
     "text":         "#202628",   # sehr dunkles Blau-Grau
     "text2":        "#526166",   # Sekundaertext
-    "auswahl":      "#287f8c",   # Petrol
+    # Auswahlfarbe. Sie muss in BEIDE Richtungen lesbar sein - mit
+    # weisser und mit schwarzer Schrift.
+    #
+    # Der Grund ist Dolphin. Es zeichnet den Text eines ausgewaehlten
+    # Eintrags nicht in QPalette::HighlightedText, sondern in
+    # QPalette::Text - also in der normalen Textfarbe, schwarz
+    # (kstandarditemlistwidget.cpp, normalTextColorRole(): nur waehrend
+    # des Klicks kommt HighlightedText heraus). Unter Breeze faellt das
+    # nicht auf, weil dessen Auswahlbalken hell ist. Der Widget-Stil
+    # "Windows", den dieses Theme setzt, fuellt den Balken dagegen voll
+    # mit der Auswahlfarbe.
+    #
+    # Folge in der Fassung Win2k: schwarze Dateinamen auf #0a246a, dem
+    # echten Auswahlblau von Windows 2000 - 1,47:1, gemeldet als "da
+    # kann man nichts mehr erkennen", und am Bildschirmfoto
+    # nachgemessen. Dasselbe in Win98 mit #000080 (1,31:1).
+    #
+    # Aendern laesst sich daran nur die Farbe. Also liegt sie jetzt auf
+    # dem Punkt, an dem beide Kontraste gleich sind: Luminanz 0,179
+    # ergibt 4,58:1 gegen Schwarz UND gegen Weiss. Dunkler heisst
+    # unlesbare Dateinamen, heller unlesbare Menueeintraege - es gibt
+    # kein Mehr auf einer Seite ohne ein Weniger auf der anderen.
+    # pruefe_auswahl() unten laesst den Bau scheitern, wenn eine
+    # Variante unter 4,5:1 rutscht.
+    #
+    # Der Preis steht dazu: Das Marineblau von Windows ist damit ein
+    # gedaempftes Stahlblau. Authentisch war es nur, solange man nichts
+    # lesen musste.
+    "auswahl":      "#29818e",   # Petrol
     "auswahl_text": "#ffffff",
     "hover":        "#d6a23a",   # NT-artiges Gold
     "warnung":      "#c87922",
@@ -119,7 +147,7 @@ VARIANTEN = {
             "panel":        "#c4bcc8",
             "kopf_aktiv":   "#5c4a78",
             "kopf_inaktiv": "#7a7088",
-            "auswahl":      "#6b5590",
+            "auswahl":      "#8369ae",
             "hover":        "#c8a83a",
             "desktop":      "#9a91a6",
             "text2":        "#5a5266",
@@ -136,7 +164,7 @@ VARIANTEN = {
             "panel":        "#c8bca4",
             "kopf_aktiv":   "#7a5c2e",
             "kopf_inaktiv": "#8a7c64",
-            "auswahl":      "#96703a",
+            "auswahl":      "#946f39",
             "hover":        "#c87922",
             "desktop":      "#a89878",
             "text2":        "#6a5c46",
@@ -161,7 +189,7 @@ VARIANTEN = {
             "kopf_inaktiv": "#808080",
             "text":         "#000000",
             "text2":        "#404040",
-            "auswahl":      "#000080",
+            "auswahl":      "#6f6fb1",
             "hover":        "#dcdcdc",
             "warnung":      "#808000",
             "fehler":       "#800000",
@@ -190,7 +218,7 @@ VARIANTEN = {
             "kopf_inaktiv": "#808080",
             "text":         "#000000",
             "text2":        "#4a4a4a",
-            "auswahl":      "#0a246a",
+            "auswahl":      "#6174aa",
             "hover":        "#316ac5",
             "warnung":      "#c87922",
             "fehler":       "#a83232",
@@ -1175,6 +1203,37 @@ def baue(variante, pruefen=False):
     return True
 
 
+def pruefe_auswahl():
+    """Die Auswahlfarbe muss gegen Schwarz UND gegen Weiss lesbar sein.
+
+    Warum beides - die lange Fassung steht bei BASIS["auswahl"]. Kurz:
+    Qt-Ansichten schreiben auf den Auswahlbalken in HighlightedText
+    (weiss), Dolphin schreibt in Text (schwarz). Eine Farbe, zwei
+    Schriftfarben, und wir koennen nur die Farbe waehlen.
+
+    4,5:1 ist die Schwelle von WCAG AA fuer normalen Text. Erreichbar
+    sind beide Richtungen zugleich nur in einem schmalen Band um die
+    Luminanz 0,179 - dort stehen beide bei 4,58:1. Wer hier eine Farbe
+    aendert, merkt es also sofort, statt es erst auf einem
+    Bildschirmfoto eines Anwenders zu sehen.
+    """
+    schwelle = 4.5
+    schlecht = []
+    print("\nAuswahlfarbe - Kontrast gegen Schwarz und Weiss:")
+    for v in sorted(VARIANTEN):
+        a = palette(v)["auswahl"]
+        s, w = kontrast(a, "#000000"), kontrast(a, "#ffffff")
+        marke = "  " if min(s, w) >= schwelle else "  ZU WENIG"
+        print(f"  {v:14} {a}  schwarz {s:5.2f}  weiss {w:5.2f}{marke}")
+        if min(s, w) < schwelle:
+            schlecht.append((v, a, s, w))
+    if schlecht:
+        print("\nFEHLER: Auswahlfarbe unter %.1f:1 - siehe BASIS[\"auswahl\"]."
+              % schwelle, file=sys.stderr)
+        return False
+    return True
+
+
 def main():
     ap = argparse.ArgumentParser(description="Baut die NT-Legacy-Familie.")
     ap.add_argument("--nur", choices=sorted(VARIANTEN), help="nur eine Variante")
@@ -1182,6 +1241,11 @@ def main():
     args = ap.parse_args()
 
     print(f"NT Legacy {VERSION}")
+    # Vor dem Bauen, nicht danach: ein Lauf, der zwanzig Minuten
+    # Symbole schreibt und am Ende sagt, die Farbe taugt nicht, hat
+    # zwanzig Minuten verschenkt.
+    if not pruefe_auswahl():
+        return 1
     welche = [args.nur] if args.nur else list(VARIANTEN)
     for v in welche:
         if not baue(v, args.pruefen):

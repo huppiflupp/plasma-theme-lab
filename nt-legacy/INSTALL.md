@@ -111,6 +111,28 @@ Three extras:
 `--schrift` is deliberately not applied automatically: otherwise your
 setting under *Fonts → Window Title* would be overwritten on every run.
 
+### Why the selection colour is not the original navy
+
+Windows 2000 selected with `#0a246a` and Windows 98 with `#000080`. Both are
+in this theme — but on the **title bar**, not on the selection, and there the
+white title text sits on them at 14:1.
+
+The selection had to give way, and the reason is worth knowing because it
+looks like a mistake otherwise. Dolphin paints the label of a selected item
+in `QPalette::Text` — black — rather than in `HighlightedText`
+(`kstandarditemlistwidget.cpp`, `normalTextColorRole()`; only while the mouse
+button is down does it use the highlighted colour). Under Breeze that never
+shows, because its selection is a light tint. The **Windows** widget style
+this theme sets fills the whole rectangle with the selection colour, so file
+names ended up black on navy: 1.5:1, unreadable, and no setting in the theme
+reaches it.
+
+One colour, two text colours, and only the colour is ours to choose. It now
+sits where both contrasts are equal — luminance 0.179, which is **4.58:1
+against black and against white**. Darker makes file names illegible, lighter
+makes menu entries illegible; there is no gain on one side without a loss on
+the other. `build.py` refuses to build a palette that falls below 4.5:1.
+
 ## Automatic day/night switching
 
 Plasma 6 can switch between a light and a dark global theme by time of day

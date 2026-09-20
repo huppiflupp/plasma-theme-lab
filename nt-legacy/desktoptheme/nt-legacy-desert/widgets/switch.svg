@@ -7,15 +7,15 @@
     <style id="current-color-scheme" type="text/css">
       .ColorScheme-Text { color:#202628; stop-color:#202628; }
       .ColorScheme-Background { color:#d8d0c0; stop-color:#d8d0c0; }
-      .ColorScheme-Highlight { color:#96703a; stop-color:#96703a; }
+      .ColorScheme-Highlight { color:#946f39; stop-color:#946f39; }
       .ColorScheme-ViewText { color:#202628; stop-color:#202628; }
       .ColorScheme-ViewBackground { color:#f0ece0; stop-color:#f0ece0; }
       .ColorScheme-ViewHover { color:#c87922; stop-color:#c87922; }
-      .ColorScheme-ViewFocus { color:#96703a; stop-color:#96703a; }
+      .ColorScheme-ViewFocus { color:#946f39; stop-color:#946f39; }
       .ColorScheme-ButtonText { color:#202628; stop-color:#202628; }
       .ColorScheme-ButtonBackground { color:#d8d0c0; stop-color:#d8d0c0; }
       .ColorScheme-ButtonHover { color:#c87922; stop-color:#c87922; }
-      .ColorScheme-ButtonFocus { color:#96703a; stop-color:#96703a; }
+      .ColorScheme-ButtonFocus { color:#946f39; stop-color:#946f39; }
       .ColorScheme-HighlightedText { color:#f0ece0; stop-color:#f0ece0; }
       .ColorScheme-ComplementaryBackground { color:#c8bca4; stop-color:#c8bca4; }
       .ColorScheme-NegativeText { color:#a83232; stop-color:#a83232; }
@@ -137,6 +137,6 @@
       <circle cx="28" cy="72" r="10.88" fill="#8a8272" stroke="#202628" stroke-width="1"/>
     </g>
     <g id="handle-focus">
-      <circle cx="72" cy="72" r="10.88" fill="#96703a" stroke="#202628" stroke-width="1"/>
+      <circle cx="72" cy="72" r="10.88" fill="#946f39" stroke="#202628" stroke-width="1"/>
     </g>
 </svg>

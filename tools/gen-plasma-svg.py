@@ -412,7 +412,12 @@ PALETTEN = {
         "karo":      "#fcfcfa",
         "dunkel":    "#8a8a82",   # 3D-Kante unten/rechts
         "rahmen":    "#202628",   # Aussenrahmen, sehr dunkles Blau-Grau
-        "aktiv":     "#287f8c",   # Auswahl, Petrol
+        # Muss mit BASIS["auswahl"] in build.py uebereinstimmen. build.py
+        # faerbt die erzeugten SVGs um, indem es HEXWERTE ersetzt - steht
+        # hier ein anderer, findet es ihn nicht, und der Auswahlbalken im
+        # Plasma-Stil bleibt in der Grundfarbe stehen, waehrend das
+        # Farbschema laengst eine andere zeigt.
+        "aktiv":     "#29818e",   # Auswahl, Petrol
         "aktiv_text": "#ffffff",
         "kopf_aktiv":   "#176b78",
         "kopf_inaktiv": "#60777a",

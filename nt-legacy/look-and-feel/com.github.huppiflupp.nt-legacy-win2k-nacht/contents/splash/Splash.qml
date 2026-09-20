@@ -42,7 +42,7 @@ Rectangle {
                 anchors { left: parent.left; top: parent.top; bottom: parent.bottom
                            margins: 2 }
                 width: Math.max(0, (parent.width - 4) * Math.min(root.stage, 6) / 6)
-                color: "#0a246a"
+                color: "#6174aa"
                 Behavior on width { NumberAnimation { duration: 180 } }
             }
         }
