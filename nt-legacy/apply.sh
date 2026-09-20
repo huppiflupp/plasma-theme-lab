@@ -424,6 +424,56 @@ print(alles_gut ? "PANEL-OK" : "PANEL-KURZ");'
         echo "           werden. Rechtsklick darauf > Anzeigen einrichten" >&2
         echo "           > Breite, oder einmal ab- und wieder anmelden." >&2
     fi
+
+    # ── NT Task Manager anheften ─────────────────────────────────────────
+    #
+    # Nur hier, nicht im Layout-Skript des Designpakets. Das Layout geht
+    # an jeden, der das Design aus dem Store laedt; ein angehefteter
+    # Starter auf ein Programm, das dort nicht installiert ist, waere fuer
+    # die meisten ein toter Eintrag. Die Bash kann nachsehen, die
+    # Plasma-Skriptsprache nicht - sie hat keinen Dateizugriff.
+    #
+    # Und nur mit --panel: ohne das gehoert das Panel dem Nutzer, und
+    # darin heftet ein Design nichts an.
+    TM_DESKTOP=""
+    for ort in "$DATEN/applications" /usr/local/share/applications \
+               /usr/share/applications; do
+        if [ -f "$ort/nt-taskmanager.desktop" ]; then
+            TM_DESKTOP="nt-taskmanager.desktop"
+            break
+        fi
+    done
+    if [ -n "$TM_DESKTOP" ]; then
+        # readConfig liefert die Liste als Zeichenkette mit Kommas.
+        # Doppelt anheften waere sichtbar: icontasks zeigt den Starter
+        # dann zweimal nebeneinander.
+        TM_JS='var fertig = "KEIN-TASKMANAGER";
+var ps = panels();
+for (var i = 0; i < ps.length; i++) {
+    var ws = ps[i].widgets("org.kde.plasma.icontasks");
+    for (var j = 0; j < ws.length; j++) {
+        ws[j].currentConfigGroup = ["General"];
+        var l = String(ws[j].readConfig("launchers", ""));
+        if (l.indexOf("nt-taskmanager.desktop") >= 0) {
+            fertig = "SCHON-DA";
+            continue;
+        }
+        ws[j].writeConfig("launchers",
+            l ? l + ",applications:nt-taskmanager.desktop"
+              : "applications:nt-taskmanager.desktop");
+        ws[j].reloadConfig();
+        fertig = "ANGEHEFTET";
+    }
+}
+print(fertig);'
+        TM_ERG="$(plasma_skript "$TM_JS" | tr -d '\r\n')"
+        case "$TM_ERG" in
+            *ANGEHEFTET*) echo "  NT Task Manager in der Taskleiste angeheftet." ;;
+            *SCHON-DA*)   echo "  NT Task Manager war schon angeheftet." ;;
+            *)            echo "  Hinweis: Der Starter fuer den NT Task Manager" >&2
+                          echo "           liess sich nicht anheften." >&2 ;;
+        esac
+    fi
 fi
 
 cat <<EOF

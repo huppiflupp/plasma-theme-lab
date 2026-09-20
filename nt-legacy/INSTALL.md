@@ -153,6 +153,22 @@ The last ten copies are kept. Note that switching global themes in System
 Settings can also replace the panel — whenever you tick the workspace
 layout there — which is why the copy is written even without `--panel`.
 
+The panel carries the **Application Menu** (`org.kde.plasma.kicker`), not
+the Application Launcher Plasma defaults to. The launcher is a window with
+a search field and a grid of tiles; the menu is the cascading one Windows
+95 through 2000 had, and it is the only one of the two that fits this
+shape language. Its sidebar — favourites at the top, log out, restart and
+shut down at the bottom — is drawn from the Plasma style and therefore
+carries the panel colour, so it reads as a strip rather than as part of
+the entry list.
+
+If the [NT Task Manager](https://github.com/huppiflupp/nt-taskmanager) is
+installed, `--panel` also pins it to the task bar. That happens here and
+not in the theme package: the package goes to everyone, and a pinned
+launcher for a program that is not installed is a dead entry. A shell
+script can check; Plasma's scripting language cannot — it has no file
+access.
+
 ## The look — separate and optional
 
 `anmutung.sh` changes settings of **other programs**: a full-width status
@@ -184,6 +200,57 @@ silently and the terminal simply does not look like NT.
 pick. There are five schemes rather than ten because the accent colours
 are identical between the day and night version of a palette — the
 terminal is dark either way, as it was under NT.
+
+But `apply.sh` is not how most people switch themes. Doing it in *System
+Settings → Colours and Themes → Global Theme* never calls it, and Konsole
+has no "follow the system" switch of its own: a terminal's colours live in
+its **profile**, and Plasma does not touch profiles.
+
+So `anmutung.sh` installs a small systemd user unit,
+`nt-legacy-konsole.path`. It watches the two files Plasma writes when a
+global theme is applied and runs `konsole-folgen.sh`, which looks the
+theme up in `konsole-varianten.tsv` and rewrites that one line in the
+profile. No resident process; nothing else is touched. If the new theme is
+not one of ours, the profile is left exactly as it is — switching to
+Breeze should not drag your terminal along.
+
+One limit remains, and it cannot be worked around: **an already open
+Konsole window keeps its colours.** Konsole reads the profile when a
+session is created, and there is no way from outside to make it read the
+file again. The next new window or tab is correct.
+
+```bash
+./konsole-folgen.sh --zeigen   # what it would do, without doing it
+systemctl --user status nt-legacy-konsole.path
+```
+
+### Kate, and an editor closer to Notepad
+
+`anmutung.sh` switches off Kate's **mini map**. What looks like a very wide
+scroll bar on the right edge is not one: it is a shrunken rendering of the
+whole document that KTextEditor draws *instead of* the scroll bar, 60
+pixels wide against the widget style's 16. It comes from Kate, not from the
+theme, and no colour scheme or widget style makes it narrower.
+
+Kate is a development environment — project bar, LSP client, sessions, a
+terminal. For writing down a note none of that helps. If **FeatherPad** is
+installed, `anmutung.sh` also makes it the default for plain text: a Qt
+program with a real menu bar and nothing else, which is as close to Notepad
+as this desktop gets, and which the Windows widget style draws completely.
+The GTK candidates (Mousepad, L3afpad, gedit) draw themselves and stay
+foreign bodies.
+
+```bash
+sudo dnf install featherpad     # or: sudo pacman -S featherpad
+./anmutung.sh
+```
+
+Nothing is installed for you, and if FeatherPad is absent the entry is
+simply left out — a default application that does not exist produces an
+error message instead of an editor.
+
+Both programs read their settings at start up and write them back when they
+exit, so close them before running `anmutung.sh`.
 
 ## Boot screens — GRUB and Plymouth
 

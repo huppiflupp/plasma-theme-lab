@@ -103,6 +103,25 @@ fi
 rm -f "$DATEN"/konsole/NTLegacy*.colorscheme "$DATEN/konsole/NT Legacy.profile" \
     && echo "  Konsole-Profil und -Farbschemata"
 
+# Der Dienst, der Konsole dem Designwechsel nachzieht.
+#
+# Er muss VOR dem Loeschen des Skripts abgeschaltet werden - eine
+# aktivierte Pfadeinheit, deren Dienst auf eine geloeschte Datei zeigt,
+# meldet bei jedem Designwechsel einen Fehlstart ins Journal. Sichtbar
+# wird davon nichts, und genau deshalb bleibt sie sonst ewig liegen.
+#
+# anmutung.sh --zurueck macht dasselbe. Doppelt ist hier richtig: Wer
+# deinstalliert, hat die Anmutung vielleicht nie zurueckgesetzt.
+DIENST_VERZ="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+if [ -f "$DIENST_VERZ/nt-legacy-konsole.path" ]; then
+    systemctl --user disable --now nt-legacy-konsole.path >/dev/null 2>&1 || true
+    rm -f "$DIENST_VERZ/nt-legacy-konsole.path" \
+          "$DIENST_VERZ/nt-legacy-konsole.service"
+    systemctl --user daemon-reload 2>/dev/null || true
+    echo "  Dienst nt-legacy-konsole"
+fi
+rm -rf "$DATEN/nt-legacy/bin" "$DATEN/nt-legacy/konsole-varianten.tsv"
+
 rm -f "$HOME/.cache/plasma_theme_"*.kcache "$HOME/.cache/ksvg-elements"
 
 cat <<TEXT

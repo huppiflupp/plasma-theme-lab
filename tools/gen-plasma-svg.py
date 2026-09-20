@@ -96,6 +96,45 @@ WIDGETS = {
         "praefixe": ["", "raised", "sunken", "plain"],
         "hints": ["margin"],
         "masken": [],
+        # Das Praefix "plain" ist die SEITENLEISTE des Anwendungsmenues.
+        #
+        # Nicht offensichtlich, aber nachgelesen: kicker zeichnet sie als
+        # KSvg.FrameSvgItem mit imagePath "widgets/frame" und prefix
+        # "plain" (plasma-desktop, applets/kicker/MenuRepresentation.qml,
+        # der Block mit id: sideBar). Damit ist die Leiste ueber den
+        # Plasma-Stil einfaerbbar - ohne das Applet anzufassen, das seit
+        # Plasma 6.4 kompiliert vorliegt und keine QML-Dateien mehr auf
+        # der Platte hat.
+        #
+        # Sie bekommt die PANELfarbe - dieselbe wie die Taskleiste,
+        # aus der das Menue aufklappt. Ohne Farbe geht die Leiste in der
+        # Menueflaeche unter, und die Abmelde-Knoepfe darin sehen aus,
+        # als gehoerten sie in die Eintragsliste.
+        #
+        # Die Titelleistenfarbe waere der naeherliegende Griff - dort
+        # sass bei Windows 95 bis 2000 der dunkle Balken mit dem
+        # senkrechten Schriftzug. Am laufenden Desktop nachgesehen und
+        # wieder verworfen: die drei Sitzungsknoepfe unten in der Leiste
+        # (Abmelden, Neustart, Ausschalten) sind einfarbige Symbole, die
+        # Kirigami in der TEXTfarbe des Farbschemas einfaerbt. Auf
+        # #176b78 standen sie als dunkles Grau auf dunklem Petrol - die
+        # Leiste war bunt und die Knoepfe darin unlesbar. Von aussen
+        # laesst sich daran nichts drehen: die Symbolfarbe haengt am
+        # Farbsatz des Dialogs, nicht am SVG.
+        #
+        # Ohne Farbschema-Klasse, also fest wie beim Panel: die Klassen,
+        # die KSvg ersetzt, kennen keine Panelfarbe. Mit
+        # ColorScheme-Highlight wuerde die Leiste die Auswahlfarbe
+        # tragen - in den Nachtfassungen ein greller Streifen.
+        #
+        # Geprueft, wen das sonst noch trifft: ausser kicker fordern nur
+        # PlasmaComponents3.Frame und .GroupBox dieses Praefix an (per
+        # strings in liborg_kde_plasmacomponents3.so). Auf dieser
+        # Installation benutzt sie kein einziges Plasmoid - gemessen
+        # ueber alle .so in plasma/applets und plasma/private.
+        "zustaende": {
+            "plain": ("panel", False, None),
+        },
     },
     "listitem": {
         "ecke": 2,

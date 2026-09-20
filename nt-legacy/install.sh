@@ -279,6 +279,22 @@ if [ -d "$HIER/konsole" ]; then
     cp -r "$HIER/konsole/"* "$DATEN/konsole/"
 fi
 
+# Das Hilfsskript, das Konsole dem Designwechsel nachzieht, samt seiner
+# Tabelle. Beides wird nur abgelegt - eingeschaltet wird der Dienst erst
+# von anmutung.sh, aus demselben Grund wie beim Profil darueber.
+#
+# Nicht nach konsole/: dort liegen die Dateien, die Konsole selbst liest,
+# und ein Skript zwischen den Profilen taucht im Auswahlmenue als
+# fehlerhaftes Profil auf. Gemessen ist das nicht - aber der Ordner
+# gehoert einem fremden Programm, und da legt man nichts hinein, was es
+# nicht erwartet.
+if [ -f "$HIER/konsole-folgen.sh" ]; then
+    mkdir -p "$DATEN/nt-legacy/bin"
+    install -m 755 "$HIER/konsole-folgen.sh" "$DATEN/nt-legacy/bin/"
+    [ -f "$HIER/konsole-varianten.tsv" ] \
+        && install -m 644 "$HIER/konsole-varianten.tsv" "$DATEN/nt-legacy/"
+fi
+
 if [ -d "$HIER/wallpapers" ]; then
     echo "Hintergrundbilder …"
     mkdir -p "$DATEN/wallpapers"

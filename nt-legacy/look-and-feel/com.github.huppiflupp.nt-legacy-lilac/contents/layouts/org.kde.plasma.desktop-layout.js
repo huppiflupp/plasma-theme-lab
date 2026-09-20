@@ -11,7 +11,16 @@ panel.floating = false;
 panel.hiding = "none";
 panel.alignment = "left";
 
-panel.addWidget("org.kde.plasma.kickoff");
+// Das Anwendungsmenue, nicht der Anwendungsstarter.
+//
+// org.kde.plasma.kickoff ist Plasmas Vorgabe: ein Fenster mit Suchfeld,
+// Kachelraster und Reitern. org.kde.plasma.kicker ist das aufklappende
+// Menue mit Untermenues - das, was Windows 95 bis 2000 hatte, und das
+// Einzige von beiden, das zu dieser Formensprache passt.
+//
+// Es bringt ausserdem die Seitenleiste mit, die der Plasma-Stil
+// einfaerbt (siehe widgets/frame, Praefix "plain").
+panel.addWidget("org.kde.plasma.kicker");
 panel.addWidget("org.kde.plasma.icontasks");
 panel.addWidget("org.kde.plasma.systemtray");
 panel.addWidget("org.kde.plasma.digitalclock");

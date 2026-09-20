@@ -681,7 +681,16 @@ panel.floating = false;
 panel.hiding = "none";
 panel.alignment = "left";
 
-panel.addWidget("org.kde.plasma.kickoff");
+// Das Anwendungsmenue, nicht der Anwendungsstarter.
+//
+// org.kde.plasma.kickoff ist Plasmas Vorgabe: ein Fenster mit Suchfeld,
+// Kachelraster und Reitern. org.kde.plasma.kicker ist das aufklappende
+// Menue mit Untermenues - das, was Windows 95 bis 2000 hatte, und das
+// Einzige von beiden, das zu dieser Formensprache passt.
+//
+// Es bringt ausserdem die Seitenleiste mit, die der Plasma-Stil
+// einfaerbt (siehe widgets/frame, Praefix "plain").
+panel.addWidget("org.kde.plasma.kicker");
 panel.addWidget("org.kde.plasma.icontasks");
 panel.addWidget("org.kde.plasma.systemtray");
 panel.addWidget("org.kde.plasma.digitalclock");
@@ -1183,6 +1192,25 @@ def main():
     # um, sobald anmutung.sh das Profil aktiviert hat.
     schreibe(HIER / "konsole" / "NT Legacy.profile",
              konsole_profil(VARIANTEN["teal"]["kurz"]))
+
+    # Die Zuordnung Globales Design -> Konsole-Farbschema, als Tabelle.
+    #
+    # Sie steht hier und nirgends sonst. konsole-folgen.sh laeuft spaeter
+    # als eigener Dienst auf dem Rechner des Nutzers und hat build.py
+    # nicht zur Hand - ohne diese Datei muesste es die Namen ein zweites
+    # Mal fuehren, und beim naechsten Hinzufuegen einer Farbwelt waere
+    # genau diese zweite Liste die, die niemand pflegt. Derselbe Grund,
+    # aus dem apply.sh seine Kennungen aus build.py holt.
+    #
+    # Ein Farbschema je Farbwelt, nicht je Fassung - die Nachtfassung
+    # teilt es sich mit der hellen (siehe konsole_schema).
+    zeilen = ["# Globales Design\tKonsole-Farbschema",
+              "# Erzeugt von build.py - nicht von Hand aendern."]
+    for v in sorted(VARIANTEN):
+        basis = v[:-len("-nacht")] if v.endswith("-nacht") else v
+        if basis in VARIANTEN:
+            zeilen.append(f"{ids(v)['lnf']}\t{ids(basis)['schema']}")
+    schreibe(HIER / "konsole-varianten.tsv", "\n".join(zeilen) + "\n")
 
     # Zeiger einmal fuer alle Varianten. Sie unterscheiden sich nur in
     # weiss und rot - je Farbwelt ein eigenes Thema waere Ballast im
