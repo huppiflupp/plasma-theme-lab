@@ -1,0 +1,20 @@
+[kdeglobals][General]
+ColorScheme=CDECopper
+font=Noto Sans,10,-1,5,50,0,0,0,0,0
+[kdeglobals][KDE]
+widgetStyle=Windows
+[kdeglobals][Icons]
+Theme=CDECopper
+[plasmarc][Theme]
+name=cde-copper
+[kwinrc][org.kde.kdecoration2]
+library=org.kde.kwin.aurorae
+theme=__aurorae__svg__CDECopper
+ButtonsOnLeft=M
+ButtonsOnRight=IAX
+BorderSize=Normal
+[kwinrc][Desktops]
+Number=4
+Rows=2
+[Wallpaper]
+Image=org.cde.copper

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "CDE Plasma 2027",
+  "version": "0.1.0-design-handoff",
+  "colors": {
+    "desktopDeepTeal": "#086875",
+    "panelTeal": "#2E7180",
+    "surfaceBlueGray": "#86A4AA",
+    "surfaceLight": "#AFC2C2",
+    "copperActive": "#E8874F",
+    "copperLight": "#F0B184",
+    "tealShadow": "#174C55",
+    "ink": "#10262B",
+    "terminal": "#061C22",
+    "cyanSignal": "#3DB5C3",
+    "disabled": "#6F8588"
+  },
+  "geometry": {
+    "cornerRadiusSmallPx": 1,
+    "cornerRadiusLargePx": 0,
+    "bevelWidthPx": 2,
+    "windowVisibleBorderPx": 4,
+    "windowResizeTargetPx": 8,
+    "titlebarHeightPx": 30,
+    "windowButtonPx": 23,
+    "controlHeightPx": 32,
+    "menuRowHeightPx": 32,
+    "scrollbarWidthPx": 18,
+    "panelScreenMarginPx": 16,
+    "panelWidthPercent": 92,
+    "panelTwoRowHeightPx": 106,
+    "hiddenHandlePx": 4
+  },
+  "motion": {
+    "fastMs": 120,
+    "panelMs": 170,
+    "slowMs": 200,
+    "bounce": false,
+    "respectReducedMotion": true
+  },
+  "typography": {
+    "uiPreferred": "IBM Plex Sans Condensed",
+    "uiFallback": "Noto Sans",
+    "monoPreferred": "IBM Plex Mono",
+    "monoFallback": "Noto Sans Mono",
+    "basePointSize": 10.5
+  },
+  "constraints": {
+    "maxCopperAreaPercent": 15,
+    "coreTransparencyPercent": 0,
+    "panelOptionalTransparencyMaxPercent": 5,
+    "requireCustomCoreIcons": true,
+    "primarySession": "Wayland",
+    "plasmaMajor": 6,
+    "qtMajor": 6
+  }
+}

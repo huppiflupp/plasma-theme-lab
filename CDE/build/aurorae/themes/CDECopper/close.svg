@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="156" height="36" viewBox="0 0 156 36">
+  <g id="active-center">
+    <rect x="6" y="6" width="24" height="24" fill="#e8874f" />
+    <rect x="6" y="6" width="24" height="1" fill="#10262b" />
+    <rect x="6" y="29" width="24" height="1" fill="#10262b" />
+    <rect x="6" y="6" width="1" height="24" fill="#10262b" />
+    <rect x="29" y="6" width="1" height="24" fill="#10262b" />
+    <rect x="7" y="7" width="22" height="1" fill="#c9dedb" />
+    <rect x="7" y="7" width="1" height="22" fill="#c9dedb" />
+    <rect x="7" y="28" width="22" height="1" fill="#41646a" />
+    <rect x="28" y="7" width="1" height="22" fill="#41646a" />
+    <path d="M10.8,10.8 L25.2,25.2 M25.2,10.8 L10.8,25.2" stroke="#10262b" stroke-width="2.16" />
+  </g>
+  <g id="inactive-center">
+    <rect x="36" y="6" width="24" height="24" fill="#649099" />
+    <rect x="36" y="6" width="24" height="1" fill="#10262b" />
+    <rect x="36" y="29" width="24" height="1" fill="#10262b" />
+    <rect x="36" y="6" width="1" height="24" fill="#10262b" />
+    <rect x="59" y="6" width="1" height="24" fill="#10262b" />
+    <rect x="37" y="7" width="22" height="1" fill="#c9dedb" />
+    <rect x="37" y="7" width="1" height="22" fill="#c9dedb" />
+    <rect x="37" y="28" width="22" height="1" fill="#41646a" />
+    <rect x="58" y="7" width="1" height="22" fill="#41646a" />
+    <path d="M40.8,10.8 L55.2,25.2 M55.2,10.8 L40.8,25.2" stroke="#10262b" stroke-width="2.16" />
+  </g>
+  <g id="hover-center">
+    <rect x="66" y="6" width="24" height="24" fill="#e8874f" />
+    <rect x="66" y="6" width="24" height="1" fill="#10262b" />
+    <rect x="66" y="29" width="24" height="1" fill="#10262b" />
+    <rect x="66" y="6" width="1" height="24" fill="#10262b" />
+    <rect x="89" y="6" width="1" height="24" fill="#10262b" />
+    <rect x="67" y="7" width="22" height="1" fill="#c9dedb" />
+    <rect x="67" y="7" width="1" height="22" fill="#c9dedb" />
+    <rect x="67" y="28" width="22" height="1" fill="#41646a" />
+    <rect x="88" y="7" width="1" height="22" fill="#41646a" />
+    <path d="M70.8,10.8 L85.2,25.2 M85.2,10.8 L70.8,25.2" stroke="#10262b" stroke-width="2.16" />
+  </g>
+  <g id="pressed-center">
+    <rect x="96" y="6" width="24" height="24" fill="#e8874f" />
+    <rect x="96" y="6" width="24" height="1" fill="#10262b" />
+    <rect x="96" y="29" width="24" height="1" fill="#10262b" />
+    <rect x="96" y="6" width="1" height="24" fill="#10262b" />
+    <rect x="119" y="6" width="1" height="24" fill="#10262b" />
+    <rect x="97" y="7" width="22" height="1" fill="#41646a" />
+    <rect x="97" y="7" width="1" height="22" fill="#41646a" />
+    <rect x="97" y="28" width="22" height="1" fill="#c9dedb" />
+    <rect x="118" y="7" width="1" height="22" fill="#c9dedb" />
+    <path d="M101.8,11.8 L116.2,26.2 M116.2,11.8 L101.8,26.2" stroke="#10262b" stroke-width="2.16" />
+  </g>
+  <g id="deactivated-center">
+    <rect x="126" y="6" width="24" height="24" fill="#e8874f" />
+    <rect x="126" y="6" width="24" height="1" fill="#10262b" />
+    <rect x="126" y="29" width="24" height="1" fill="#10262b" />
+    <rect x="126" y="6" width="1" height="24" fill="#10262b" />
+    <rect x="149" y="6" width="1" height="24" fill="#10262b" />
+    <rect x="127" y="7" width="22" height="1" fill="#c9dedb" />
+    <rect x="127" y="7" width="1" height="22" fill="#c9dedb" />
+    <rect x="127" y="28" width="22" height="1" fill="#41646a" />
+    <rect x="148" y="7" width="1" height="22" fill="#41646a" />
+    <path d="M130.8,10.8 L145.2,25.2 M145.2,10.8 L130.8,25.2" stroke="#10262b" stroke-width="2.16" />
+  </g>
+</svg>

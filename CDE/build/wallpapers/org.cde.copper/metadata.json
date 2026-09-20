@@ -1,0 +1,15 @@
+{
+  "KPlugin": {
+    "Id": "org.cde.copper",
+    "Name": "Copper / Teal",
+    "Description": "Quiet workstation teal",
+    "Version": "0.1.0",
+    "License": "GPL-2.0-or-later",
+    "Authors": [
+      {
+        "Name": "CDE Copper contributors"
+      }
+    ],
+    "Website": "https://github.com/huppiflupp/plasma-theme-lab"
+  }
+}

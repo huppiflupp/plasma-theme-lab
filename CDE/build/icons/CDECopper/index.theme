@@ -1,0 +1,12 @@
+[Icon Theme]
+Name=CDE Copper
+Comment=Original scalable workstation pictograms
+Inherits=breeze,hicolor
+Directories=scalable/all
+
+[scalable/all]
+Size=48
+Type=Scalable
+MinSize=16
+MaxSize=512
+Context=Applications

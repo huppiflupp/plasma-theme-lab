@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="188" height="56" viewBox="0 0 188 56">
+  <!-- arrows.svg — Pfeile in Aufklappmenues und Bildlaufleisten -->
+  <!-- Erzeugt von tools/gen-plasma-svg.py. Die Element-IDs sind
+       die Schnittstelle zu Plasma: bitte nicht umbenennen. -->
+  <defs>
+    <style id="current-color-scheme" type="text/css">
+      .ColorScheme-Text { color:#10262b; stop-color:#10262b; }
+      .ColorScheme-Background { color:#86a4aa; stop-color:#86a4aa; }
+      .ColorScheme-Highlight { color:#e8874f; stop-color:#e8874f; }
+      .ColorScheme-ViewText { color:#10262b; stop-color:#10262b; }
+      .ColorScheme-ViewBackground { color:#c4d2d0; stop-color:#c4d2d0; }
+      .ColorScheme-ViewHover { color:#f0b184; stop-color:#f0b184; }
+      .ColorScheme-ViewFocus { color:#e8874f; stop-color:#e8874f; }
+      .ColorScheme-ButtonText { color:#10262b; stop-color:#10262b; }
+      .ColorScheme-ButtonBackground { color:#86a4aa; stop-color:#86a4aa; }
+      .ColorScheme-ButtonHover { color:#f0b184; stop-color:#f0b184; }
+      .ColorScheme-ButtonFocus { color:#e8874f; stop-color:#e8874f; }
+      .ColorScheme-HighlightedText { color:#10262b; stop-color:#10262b; }
+      .ColorScheme-ComplementaryBackground { color:#2e7180; stop-color:#2e7180; }
+      .ColorScheme-NegativeText { color:#a32626; stop-color:#a32626; }
+      .ColorScheme-NeutralText { color:#aa571b; stop-color:#aa571b; }
+      .ColorScheme-PositiveText { color:#24643d; stop-color:#24643d; }
+    </style>
+  </defs>
+    <g id="up-arrow">
+      <polygon points="28,17.12 17.12,34.528 38.88,34.528" fill="#10262b"/>
+    </g>
+    <g id="down-arrow">
+      <polygon points="72,38.88 61.12,21.472 82.88,21.472" fill="#10262b"/>
+    </g>
+    <g id="left-arrow">
+      <polygon points="105.12,28 122.528,17.12 122.528,38.88" fill="#10262b"/>
+    </g>
+    <g id="right-arrow">
+      <polygon points="170.88,28 153.472,17.12 153.472,38.88" fill="#10262b"/>
+    </g>
+</svg>

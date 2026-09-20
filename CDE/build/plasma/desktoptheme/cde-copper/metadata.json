@@ -1,0 +1,15 @@
+{
+  "KPlugin": {
+    "Id": "cde-copper",
+    "Name": "CDE Copper",
+    "Description": "Motif surfaces in teal and copper",
+    "Version": "0.1.0",
+    "License": "GPL-2.0-or-later",
+    "Authors": [
+      {
+        "Name": "CDE Copper contributors"
+      }
+    ],
+    "Website": "https://github.com/huppiflupp/plasma-theme-lab"
+  }
+}
