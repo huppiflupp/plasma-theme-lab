@@ -101,10 +101,15 @@ fi
 # laufender Prozess, keine Abhaengigkeit ausser systemd - das haben
 # beide Test-VMs, Fedora wie EndeavourOS.
 #
-# Beobachtet werden zwei Stellen, und beide werden gebraucht:
-# ~/.config/kdedefaults/package traegt die Kennung des Globalen Designs
-# und wird von Plasma beim Anwenden neu geschrieben; kdeglobals faengt
-# den Fall ab, dass jemand nur das Farbschema umstellt.
+# Beobachtet wird genau EINE Datei: ~/.config/kdedefaults/package. Sie
+# traegt die Kennung des Globalen Designs und wird von Plasma beim
+# Anwenden neu geschrieben.
+#
+# Hier stand zuerst auch kdeglobals. Das brachte nichts und schadete:
+# Die Zuordnung geht ueber die Kennung des Designs, ein reiner
+# Farbschemawechsel liesse sich gar nicht zuordnen - dafuer aber
+# vervielfachte die zweite Datei die Ausloesungen je Wechsel und trieb
+# den Dienst in die Startbegrenzung (siehe unten).
 #
 # Die Pfade stehen ausgeschrieben in der Einheit, nicht als %h: wer
 # XDG_DATA_HOME verlegt hat, bekaeme sonst eine Einheit, die ins Leere
@@ -125,9 +130,34 @@ dienst_ein() {
         return
     fi
     mkdir -p "$DIENST_VERZ"
+    # StartLimitIntervalSec=0 schaltet die Startbegrenzung ab, und das
+    # ist hier keine Bequemlichkeit, sondern notwendig.
+    #
+    # systemd erlaubt einer Einheit von Haus aus fuenf Starts in zehn
+    # Sekunden. Ein einziger Designwechsel schreibt aber mehrere Dateien
+    # unterhalb von kdedefaults, und zwar innerhalb derselben Sekunde -
+    # die Pfadeinheit loest also vier- bis fuenfmal aus. Beim naechsten
+    # Wechsel ist das Kontingent aufgebraucht:
+    #
+    #   nt-legacy-konsole.service: Start request repeated too quickly.
+    #   nt-legacy-konsole.path: Failed with result unit-start-limit-hit.
+    #
+    # Und damit ist nicht nur ein Lauf ausgefallen: die PFADEINHEIT
+    # selbst geht in den Fehlerzustand und beobachtet nichts mehr. In
+    # der Test-VM genau so gemessen - der erste Wechsel zog das Profil
+    # nach, der zweite nicht mehr, und danach gar keiner. Auf dem
+    # Entwicklungsrechner war es nie aufgefallen, weil dort nur ein
+    # einzelner Wechsel getestet wurde.
+    #
+    # Dieselbe Falle wie bei plasma-plasmashell.service, siehe apply.sh.
+    # Dort war sie gefaehrlicher, hier nur still.
+    #
+    # Abschalten ist vertretbar: der Dienst ist ein Skript von wenigen
+    # Zeilen, das eine Zeile in eine Datei schreibt und sich beendet.
     cat > "$DIENST_VERZ/$DIENST_NAME.service" <<DIENST
 [Unit]
 Description=NT Legacy: Konsole-Farbschema dem Globalen Design nachziehen
+StartLimitIntervalSec=0
 
 [Service]
 Type=oneshot
@@ -139,7 +169,6 @@ Description=NT Legacy: auf einen Wechsel des Globalen Designs warten
 
 [Path]
 PathChanged=${XDG_CONFIG_HOME:-$HOME/.config}/kdedefaults/package
-PathChanged=${XDG_CONFIG_HOME:-$HOME/.config}/kdeglobals
 Unit=$DIENST_NAME.service
 
 [Install]

@@ -175,6 +175,25 @@ The last ten copies are kept. Note that switching global themes in System
 Settings can also replace the panel — whenever you tick the workspace
 layout there — which is why the copy is written even without `--panel`.
 
+**One panel per screen.** Plasma's own template creates a single panel and
+lets Plasma decide which screen it lands on. With two monitors that is a
+coin toss, and the screen that loses has no task bar at all — reported as
+"switching back to NT Legacy leaves me without a task bar", and because the
+choice can differ from run to run it looked like a fault in one particular
+palette. The layout now loops over `screenCount`. From the second screen on
+it checks that the panel really ended up there and removes it if not; the
+first one is never removed, since one panel too few is exactly the bug being
+fixed.
+
+The layout no longer sets the panel's length. It used to, against a panel
+that supposedly came out 34 pixels wide — but `panel.length` reports the
+width of the panel's *contents*, not the width it is drawn at. Measured in
+the lab VM: with no length set at all, `lengthMode` is `fill`, and the
+screenshot shows the panel across the full width while `length` reports 388
+of 1280. Setting `minimumLength` and `maximumLength` to the same value also
+pins the panel to a fixed size, which is wrong the moment it sits on a
+second screen of a different width.
+
 The panel carries the **Application Menu** (`org.kde.plasma.kicker`), not
 the Application Launcher Plasma defaults to. The launcher is a window with
 a search field and a grid of tiles; the menu is the cascading one Windows

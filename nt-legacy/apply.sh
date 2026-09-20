@@ -364,40 +364,29 @@ if command -v systemctl >/dev/null; then
     fi
 fi
 
-# ── Panelbreite nachziehen ───────────────────────────────────────────────
+# ── Panel nachkontrollieren ──────────────────────────────────────────────
 #
-# Das Layout-Skript im Design setzt die Laenge des Panels, und Plasma
-# ueberschreibt sie beim Anwenden wieder mit der Breite der Symbole:
-# gemessen 456 statt 1024 Pixel (EndeavourOS) und 388 statt 1280
-# (Fedora). Auf dem Bildschirm sieht das nicht nach "Panel etwas kurz"
-# aus, sondern nach "Panel fehlt" - ein Stummel in der linken Ecke.
+# Hier stand bis 0.2.14 eine Schleife, die das Panel sechsmal auf die
+# Bildschirmbreite zog, weil "panel.length" 456 statt 1024 meldete.
 #
-# Deshalb hier noch einmal ueber die Skriptkonsole - und zwar in einer
-# Schleife mit Nachkontrolle. Ein einzelner Versuch reicht nicht: Plasma
-# baut das Layout asynchron auf und schrumpft das Panel unter Umstaenden
-# NACH unserem Aufruf wieder. Wie lange das dauert, ist von System zu
-# System verschieden - drei Sekunden genuegten auf EndeavourOS und auf
-# Fedora nicht.
+# Die Messung war falsch. "length" liefert die Breite des INHALTS, nicht
+# die gezeichnete Breite des Panels; in der Test-VM meldet ein Panel,
+# das ueber die volle Breite gezeichnet ist, 388 von 1280. Die Schleife
+# hat also einen Fehler behoben, den es nicht gab - und dabei
+# minimumLength und maximumLength auf denselben Wert genagelt, was das
+# Panel auf eine feste Groesse festlegt. Auf einem zweiten Bildschirm
+# anderer Breite ist das genau verkehrt.
 #
-# Nur mit --panel: an einem selbstgebauten Panel des Nutzers hat dieses
-# Skript nichts zu drehen.
+# Geblieben ist die Hilfsfunktion: das Anheften des Task Managers
+# braucht sie.
 if $PANEL; then
-    PANEL_JS='var ps = panels();
-var alles_gut = true;
-for (var i = 0; i < ps.length; i++) {
-    var nr = ps[i].screen; if (nr === undefined || nr < 0) { nr = 0; }
-    var g = screenGeometry(nr);
-    var b = (g && g.width > 0) ? g.width : 99999;
-    ps[i].length = b; ps[i].maximumLength = b; ps[i].minimumLength = b;
-    if (ps[i].length != b) { alles_gut = false; }
-}
-print(alles_gut ? "PANEL-OK" : "PANEL-KURZ");'
-
     plasma_skript() {
         if command -v qdbus6 >/dev/null; then
             qdbus6 org.kde.plasmashell /PlasmaShell evaluateScript "$1" 2>/dev/null
         elif command -v qdbus >/dev/null; then
             qdbus org.kde.plasmashell /PlasmaShell evaluateScript "$1" 2>/dev/null
+        elif command -v qdbus-qt6 >/dev/null; then
+            qdbus-qt6 org.kde.plasmashell /PlasmaShell evaluateScript "$1" 2>/dev/null
         else
             dbus-send --session --print-reply --dest=org.kde.plasmashell \
                 /PlasmaShell org.kde.PlasmaShell.evaluateScript \
@@ -405,24 +394,22 @@ print(alles_gut ? "PANEL-OK" : "PANEL-KURZ");'
         fi
     }
 
-    panel_sitzt=false
-    for _versuch in 1 2 3 4 5 6; do
-        sleep 2
-        if plasma_skript "$PANEL_JS" | grep -q "PANEL-OK"; then
-            # Noch einmal hinsehen: der Wert muss auch zwei Sekunden
-            # spaeter noch stehen, sonst hat Plasma nur noch nicht
-            # zurueckgeschrieben.
-            sleep 2
-            if plasma_skript "$PANEL_JS" | grep -q "PANEL-OK"; then
-                panel_sitzt=true
-                break
-            fi
-        fi
-    done
-    if ! $panel_sitzt; then
-        echo "  Warnung: Das Panel konnte nicht auf volle Breite gezogen" >&2
-        echo "           werden. Rechtsklick darauf > Anzeigen einrichten" >&2
-        echo "           > Breite, oder einmal ab- und wieder anmelden." >&2
+    # Ein Panel je Bildschirm - nachsehen, ob das Layout das geschafft
+    # hat. Melden statt reparieren: wer hier eingreift, erzeugt im
+    # Zweifel ein zweites Panel auf demselben Schirm.
+    sleep 3
+    PANEL_LAGE="$(plasma_skript 'var ps = panels();
+var s = "";
+for (var i = 0; i < ps.length; i++) { s += (s ? "," : "") + ps[i].screen; }
+print(ps.length + ":" + screenCount + ":" + s);' | tr -d '\r\n')"
+    ANZ="${PANEL_LAGE%%:*}"
+    REST="${PANEL_LAGE#*:}"
+    SCHIRME="${REST%%:*}"
+    if [ -n "$ANZ" ] && [ -n "$SCHIRME" ] && [ "$ANZ" -lt "$SCHIRME" ] 2>/dev/null; then
+        echo "  Hinweis: $ANZ Panel(s) auf $SCHIRME Bildschirmen." >&2
+        echo "           Auf den uebrigen fehlt die Taskleiste. Rechtsklick" >&2
+        echo "           auf die Arbeitsflaeche > Anzeigen hinzufuegen, oder" >&2
+        echo "           einmal ab- und wieder anmelden." >&2
     fi
 
     # ── NT Task Manager anheften ─────────────────────────────────────────
