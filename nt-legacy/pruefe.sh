@@ -84,6 +84,14 @@ if $SYSTEM; then
        ! grep -q '^Inherits=breeze-dark' "$DATEN/icons/NTLegacyIconsNacht/index.theme"; then
         meld "NTLegacyIconsNacht erbt nicht von breeze-dark"
     fi
+    # Ohne FollowsColorScheme faerbt KDE die geerbten Breeze-Symbole nicht
+    # um - ihre Farbe haengt dann allein am eingetragenen Satz (Issue 1).
+    for satz in NTLegacyIcons NTLegacyIconsNacht; do
+        idx="$DATEN/icons/$satz/index.theme"
+        [ -f "$idx" ] || continue
+        grep -q '^FollowsColorScheme=true' "$idx" || \
+            meld "$satz: FollowsColorScheme=true fehlt (Symbole folgen dem Farbschema nicht)"
+    done
 
     # Steht das Icon-Thema wirklich in kdeglobals?
     #

@@ -1096,6 +1096,18 @@ def index_theme(theme: Path, name="NT Legacy Icons"):
               # Breeze als Rueckfallebene: was fehlt, landet ohnehin dort -
               # so steht es wenigstens ausdruecklich da.
               "Inherits=breeze,hicolor",
+              # Ohne diese Zeile faerbt KIconLoader die geerbten
+              # Breeze-Symbole nicht um. Er fragt dafuer das AKTIVE Thema
+              # (kiconloader.cpp: q->theme()->followsColorScheme()), nicht
+              # das, in dem er die Datei gefunden hat - Breeze selbst
+              # traegt das Flag, das nuetzt hier aber nichts. Die Symbole
+              # behalten dann ihre feste Farbe: #232629 aus breeze, Weiss
+              # aus breeze-dark. Steht der falsche Satz in kdeglobals,
+              # ist der Systemabschnitt unlesbar (Issue 1: weisse Symbole
+              # auf dem hellen Panel). In der VM nachgestellt und mit
+              # dieser Zeile behoben. Die eigenen Symbole beruehrt das
+              # nicht, sie tragen kein Stylesheet "current-color-scheme".
+              "FollowsColorScheme=true",
               f"Directories={','.join(verzeichnisse)}", ""]
     unbekannt = []
     for v in verzeichnisse:
