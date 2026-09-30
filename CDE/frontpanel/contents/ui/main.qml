@@ -119,9 +119,9 @@ PlasmoidItem {
                     surface: "#86a4aa"
                     Column {
                         anchors.centerIn: parent; spacing: 0
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "ddd").toUpperCase(); color: "#38565c"; font.pixelSize: 10; font.family: "Noto Sans" }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "HH:mm"); color: "#10262b"; font.pixelSize: 24; font.family: "Noto Sans Mono" }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "dd MMM").toUpperCase(); color: "#10262b"; font.pixelSize: 10; font.family: "Noto Sans" }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "ddd").toUpperCase(); color: "#38565c"; font.pixelSize: 10; font.family: "IBM Plex Sans Condensed" }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "HH:mm"); color: "#10262b"; font.pixelSize: 24; font.family: "IBM Plex Mono" }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "dd MMM").toUpperCase(); color: "#10262b"; font.pixelSize: 10; font.family: "IBM Plex Sans Condensed" }
                     }
                 }
                 Repeater {
@@ -224,7 +224,7 @@ PlasmoidItem {
                 Layout.fillWidth: true; Layout.preferredHeight: 24; Layout.maximumHeight: 24; spacing: 3
                 Text {
                     Layout.preferredWidth: 92; text: "CDE / COPPER"; color: "#d0ded9"
-                    font.pixelSize: 9; font.family: "Noto Sans"; horizontalAlignment: Text.AlignHCenter
+                    font.pixelSize: 9; font.family: "IBM Plex Sans Condensed"; horizontalAlignment: Text.AlignHCenter
                 }
                 ListView {
                     id: taskList

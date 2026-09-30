@@ -2,7 +2,7 @@
 
 A contemporary CDE/Motif workstation theme for KDE Plasma 6.
 
-![CDE Copper in the Fedora lab VM](screenshots/desktop-third-1920.png)
+![CDE Copper in the Fedora lab VM](screenshots/desktop-kvantum-1920.png)
 
 The handoff's teal and copper palette meets a more traditional CDE silhouette:
 a compact bottom front console, centered window titles, square Motif controls,
@@ -12,6 +12,11 @@ window, selected workspace and focused controls. The desktop stays quiet teal.
 ## Included
 
 - KDE color scheme and 38 Plasma surface SVGs.
+- Kvantum widget style with Motif controls: bevelled buttons, sunken fields,
+  diamond radio buttons, copper focus frame, default button and selection,
+  bevelled scrollbars with arrows, attached tabs and hard-edged menus.
+- IBM Plex Sans Condensed for the interface and titles (semibold), IBM Plex
+  Mono for Konsole and fixed-width text; both ship with the theme (SIL OFL).
 - Aurorae decoration with active/inactive frames, Motif menu and minimize symbols,
   square maximize/restore controls, and a separate close button.
 - One front-console plasmoid: clock, launchers, four-workspace switcher, window
@@ -23,9 +28,11 @@ window, selected workspace and focused controls. The desktop stays quiet teal.
 
 ## Install
 
-Requires Plasma 6 / Qt 6, Aurorae, Python 3, the built-in Qt Windows widget style,
-`kbuildsycoca6`, Plasma apply utilities, `qdbus-qt6` or `qdbus6`, and the Plasma 5
-Support executable data engine. Network/audio status uses NetworkManager's
+Requires Plasma 6 / Qt 6, Aurorae, Python 3, `kbuildsycoca6`, Plasma apply
+utilities, `qdbus-qt6` or `qdbus6`, and the Plasma 5 Support executable data
+engine. The Motif controls need the Kvantum style engine (package `kvantum`);
+without it the installer falls back to the built-in Qt Windows style and says
+so. The fonts are installed per user and need `fc-cache`. Network/audio status uses NetworkManager's
 `nmcli` and WirePlumber's `wpctl`. Launchers use Dolphin, Konsole, Kate and the
 configured default web/mail applications. A mail client must be configured.
 
@@ -75,16 +82,18 @@ reaches outside this directory, and the release archive carries the same copies.
 The theme shares a repository with NT Legacy, but the two are kept apart on
 purpose: a change to one must not alter the other (see `tools/README.md`).
 Palette and decoration generation live in `build.py`; original icon geometry
-and aliases in `icons.py`; the console lives in `frontpanel/`. Generated assets
-are under `build/`.
+and aliases in `icons.py`; the Kvantum SVG and its configuration in
+`kvantum.py`; the console lives in `frontpanel/`; the fonts in `fonts/`.
+Generated assets are under `build/`.
 
 All testing was performed in the project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.1.0. It uses the native Qt Windows application style rather
-than shipping a new binary Qt style. Third-party applications can supply their
-own controls or client-side decorations. Less common icon names fall back to
+This is version 0.1.0. The application style is a Kvantum theme generated from
+the palette in `kvantum.py`, not a compiled Qt style, so it needs Kvantum at
+run time. Third-party applications can supply their own controls or
+client-side decorations. Less common icon names fall back to
 Breeze and then hicolor; the console's core icons and common file-manager icons
 are custom SVGs. The console exposes audio/network/session controls, but does
 not embed the general-purpose Plasma system tray. Other tray widgets can be
@@ -97,7 +106,9 @@ and multiple physical monitors have not been validated.
 
 ## Credits
 
-Source and original artwork: GPL-2.0-or-later. Plasma SVG and Aurorae generation
+Source and original artwork: GPL-2.0-or-later. IBM Plex Sans Condensed and IBM
+Plex Mono are copyright IBM Corp. under the SIL Open Font License 1.1
+(`fonts/IBMPlex/LICENSE-OFL.txt`). Plasma SVG and Aurorae generation
 reuse the lab's tools by huppiflupp. CDE/Motif is the design inspiration; no CDE
 or Microsoft icon files are copied. The supplied reference images are not
 installed or included in the release.

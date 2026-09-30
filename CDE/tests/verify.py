@@ -39,7 +39,7 @@ class Separation(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="cde-copy-") as temp:
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
-            for item in ("tools", "frontpanel", "build.py", "icons.py", "layout.js"):
+            for item in ("tools", "frontpanel", "fonts", "build.py", "icons.py", "kvantum.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
                     shutil.copytree(source, copy / item, symlinks=True,
@@ -101,11 +101,14 @@ class Installer(unittest.TestCase):
             result = self.command("install")
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((self.data / "icons/CDECopper/scalable/all/folder.svg").is_file())
+            self.assertTrue((self.data / "fonts/CDECopper/IBMPlexSansCondensed-Regular.otf").is_file())
+            self.assertTrue((self.config / "Kvantum/CDECopper/CDECopper.kvconfig").is_file())
             result = self.command("install")
             self.assertEqual(result.returncode, 0, result.stderr)
             result = self.command("uninstall")
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertFalse((self.data / "icons/CDECopper").exists())
+            self.assertFalse((self.config / "Kvantum/CDECopper").exists())
             self.assertEqual(unrelated.read_text(), "keep")
             self.assertEqual((self.config / "kdeglobals").read_bytes(), before)
 

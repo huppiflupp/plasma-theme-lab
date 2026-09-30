@@ -17,11 +17,21 @@ CONFIG = Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config"))
 STATE = DATA / "cde-copper-install"
 MANIFEST = STATE / "manifest.json"
 CONFIG_FILES = ("kdeglobals", "kwinrc", "plasmarc", "ksplashrc", "kcminputrc",
-                "konsolerc", "plasma-org.kde.plasma.desktop-appletsrc", "kdedefaults")
+                "konsolerc", "plasma-org.kde.plasma.desktop-appletsrc", "kdedefaults",
+                "Kvantum/kvantum.kvconfig")
+# Owned paths below XDG_CONFIG_HOME: the Kvantum widget style lives there.
+CONFIG_TARGETS = ("Kvantum/CDECopper",)
+KVANTUM_PLUGINS = ("/usr/lib64/qt6/plugins/styles/libkvantum.so",
+                   "/usr/lib/x86_64-linux-gnu/qt6/plugins/styles/libkvantum.so",
+                   "/usr/lib/qt6/plugins/styles/libkvantum.so")
 TARGETS = ("color-schemes/CDECopper.colors", "aurorae/themes/CDECopper",
            "plasma/desktoptheme/cde-copper", "plasma/look-and-feel/org.cde.copper.desktop",
            "plasma/plasmoids/org.cde.copper.frontpanel", "icons/CDECopper",
-           "wallpapers/org.cde.copper", "konsole/CDECopper.colorscheme", "konsole/CDE Copper.profile")
+           "wallpapers/org.cde.copper", "konsole/CDECopper.colorscheme", "konsole/CDE Copper.profile",
+           "fonts/CDECopper")
+UI_FONT = "IBM Plex Sans Condensed,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+TITLE_FONT = "IBM Plex Sans Condensed,10,-1,5,600,0,0,0,0,0,0,0,0,0,0,1"
+MONO_FONT = "IBM Plex Mono,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 
 
 def run(*args, check=True):
@@ -50,6 +60,7 @@ def remove(path):
 
 def write_config(file, section, values):
     path = CONFIG / file
+    path.parent.mkdir(parents=True, exist_ok=True)
     config = configparser.ConfigParser(interpolation=None, strict=False)
     config.optionxform = str
     config.read(path)
@@ -61,8 +72,12 @@ def write_config(file, section, values):
         config.write(out, space_around_delimiters=False)
 
 
+def kvantum_available():
+    return any(Path(p).exists() for p in KVANTUM_PLUGINS) or bool(shutil.which("kvantummanager"))
+
+
 def install():
-    for target in TARGETS:
+    for target in TARGETS + CONFIG_TARGETS:
         if not (ROOT / "build" / target).exists():
             raise RuntimeError("Build first; missing " + target)
     if MANIFEST.exists():
@@ -71,6 +86,7 @@ def install():
             raise RuntimeError("Installation paths differ from the ownership manifest")
     else:
         collisions = [str(DATA / t) for t in TARGETS if (DATA / t).exists() or (DATA / t).is_symlink()]
+        collisions += [str(CONFIG / t) for t in CONFIG_TARGETS if (CONFIG / t).exists() or (CONFIG / t).is_symlink()]
         if collisions:
             raise RuntimeError("Refusing to overwrite unowned paths: " + ", ".join(collisions))
         if STATE.exists():
@@ -84,15 +100,24 @@ def install():
             if (CONFIG / file).exists():
                 copy(CONFIG / file, STATE / "config" / file)
                 present.append(file)
-        manifest = {"version": 1, "data": str(DATA), "config": str(CONFIG),
-                    "targets": list(TARGETS), "config_present": present, "applied": False}
+        manifest = {"version": 2, "data": str(DATA), "config": str(CONFIG),
+                    "targets": list(TARGETS), "config_targets": list(CONFIG_TARGETS),
+                    "config_present": present, "applied": False}
         MANIFEST.write_text(json.dumps(manifest, indent=2))
     for target in TARGETS:
         if target not in manifest["targets"]:
             raise RuntimeError("Target not owned by this installation: " + target)
         remove(DATA / target)
         copy(ROOT / "build" / target, DATA / target)
+    for target in CONFIG_TARGETS:
+        if target not in manifest.setdefault("config_targets", []):
+            manifest["config_targets"].append(target)
+        remove(CONFIG / target)
+        copy(ROOT / "build" / target, CONFIG / target)
+    MANIFEST.write_text(json.dumps(manifest, indent=2))
     run("kbuildsycoca6", check=False)
+    if shutil.which("fc-cache"):
+        run("fc-cache", "-f", str(DATA / "fonts/CDECopper"), check=False)
     print("Installed CDE Copper. Original configuration: " + str(STATE / "config"))
 
 
@@ -105,11 +130,20 @@ def apply(panel=False):
     run("plasma-apply-lookandfeel", "--apply", "org.cde.copper.desktop")
     run("plasma-apply-colorscheme", "CDECopper")
     run("plasma-apply-desktoptheme", "cde-copper")
-    write_config("kdeglobals", "KDE", {"widgetStyle": "Windows", "LookAndFeelPackage": "org.cde.copper.desktop"})
+    # The Motif controls are a Kvantum theme; without the Kvantum style
+    # plugin the built-in Qt Windows style is the nearest bevelled fallback.
+    if kvantum_available():
+        write_config("Kvantum/kvantum.kvconfig", "General", {"theme": "CDECopper"})
+        style = "kvantum"
+    else:
+        style = "Windows"
+        print("Kvantum style plugin not found; using the Qt Windows style. Install 'kvantum' for the Motif controls.")
+    write_config("kdeglobals", "KDE", {"widgetStyle": style, "LookAndFeelPackage": "org.cde.copper.desktop"})
     write_config("kdeglobals", "Icons", {"Theme": "CDECopper"})
-    write_config("kdeglobals", "General", {"font": "Noto Sans,10,-1,5,50,0,0,0,0,0", "fixed": "Noto Sans Mono,10,-1,5,50,0,0,0,0,0"})
+    write_config("kdeglobals", "General", {"font": UI_FONT, "fixed": MONO_FONT, "menuFont": UI_FONT, "toolBarFont": UI_FONT})
+    write_config("kdeglobals", "WM", {"activeFont": TITLE_FONT})
     write_config("kwinrc", "org.kde.kdecoration2", {"library": "org.kde.kwin.aurorae", "theme": "__aurorae__svg__CDECopper", "ButtonsOnLeft": "M", "ButtonsOnRight": "IAX", "BorderSize": "Normal"})
-    write_config("kwinrc", "WM", {"activeFont": "Noto Sans,10,-1,5,63,0,0,0,0,0"})
+    write_config("kwinrc", "WM", {"activeFont": TITLE_FONT})
     write_config("konsolerc", "Desktop Entry", {"DefaultProfile": "CDE Copper.profile"})
     dbus("org.kde.KWin", "/KWin", "reconfigure")
     if panel:
@@ -130,6 +164,8 @@ def uninstall():
         raise RuntimeError("Installation paths differ from the manifest")
     if any(target not in TARGETS for target in manifest["targets"]):
         raise RuntimeError("Unexpected target in ownership manifest")
+    if any(target not in CONFIG_TARGETS for target in manifest.get("config_targets", [])):
+        raise RuntimeError("Unexpected config target in ownership manifest")
     if manifest["applied"]:
         run("systemctl", "--user", "stop", "plasma-plasmashell.service")
         for file in CONFIG_FILES:
@@ -138,6 +174,8 @@ def uninstall():
                 copy(STATE / "config" / file, CONFIG / file)
     for target in manifest["targets"]:
         remove(DATA / target)
+    for target in manifest.get("config_targets", []):
+        remove(CONFIG / target)
     for cache in (HOME / ".cache").glob("plasma_theme_cde-copper*"):
         remove(cache)
     if manifest["applied"]:
@@ -155,7 +193,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     if args.dry_run:
-        print("\n".join(str(DATA / t) for t in TARGETS))
+        print("\n".join([str(DATA / t) for t in TARGETS] + [str(CONFIG / t) for t in CONFIG_TARGETS]))
         return
     if os.geteuid() == 0:
         raise RuntimeError("Run as the desktop user, not root")

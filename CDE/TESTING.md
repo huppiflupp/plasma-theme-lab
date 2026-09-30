@@ -23,6 +23,24 @@ Checks completed:
 - `uninstall.sh` removed only manifest-owned files and restored the saved
   `kdeglobals` byte-for-byte. An unrelated icon theme remained untouched.
 
+Checks of 2026-09-30 (fonts and Kvantum widget style), same VM at 1920x1080:
+
+- `install.sh` put the fonts under `~/.local/share/fonts/CDECopper` (13 faces
+  listed by `fc-list`) and the Kvantum theme under `~/.config/Kvantum/CDECopper`;
+  `apply.sh` chose `widgetStyle=kvantum` because the plugin was present.
+- After a reboot: Plex Sans Condensed in panel, titles (semibold) and dialogs,
+  Plex Mono in Konsole.
+- Dolphin's settings dialog showed bevelled buttons, the copper default button
+  (`kdialog --yesnocancel`), sunken line edits with copper focus frame, attached
+  tabs, check boxes, diamond radio buttons and a bevelled combo box; the
+  hamburger menu showed the raised frame, separators and sub-menu arrows.
+  Screenshots: `desktop-kvantum-1920.png`, `dialog-kvantum-1920.png`,
+  `menu-kvantum-1280.png` (the menu shot predates the tighter menu margins).
+- `tests/verify.py` covered the new install targets and the byte-identical
+  rebuild from a copy of `CDE/` alone.
+- Four `kioworker` core dumps appeared at the second the test killed Dolphin
+  with `pkill`; none at any other time, so they are not attributed to the style.
+
 The project VM was restored to the original configuration after the destructive
 installation test. The last visual run deliberately leaves CDE Copper applied
 in the VM so it can be opened with `vm/vmctl.sh viewer`; remove it with

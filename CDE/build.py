@@ -10,6 +10,11 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "build"
 VERSION = "0.1.0"
+# Qt 6 font strings (16 fields): family, size, pixel, hint, weight, style, ...
+UI_FONT = "IBM Plex Sans Condensed,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+TITLE_FONT = "IBM Plex Sans Condensed,10,-1,5,600,0,0,0,0,0,0,0,0,0,0,1"
+MONO_FONT = "IBM Plex Mono,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+KONSOLE_FONT = "IBM Plex Mono,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 P = dict(flaeche="#86a4aa", fenster="#c4d2d0", panel="#2e7180",
          kopf_aktiv="#e8874f", kopf_inaktiv="#649099", text="#10262b",
          text2="#38565c", aktiv="#e8874f", auswahl="#e8874f", auswahl_text="#10262b",
@@ -128,9 +133,14 @@ def other_assets():
     meta = metadata("org.cde.copper.desktop", "CDE Copper", "A contemporary Motif workstation")
     meta["KPackageStructure"] = "Plasma/LookAndFeel"
     write(lnf + "metadata.json", json.dumps(meta, indent=2))
-    write(lnf + "contents/defaults", """[kdeglobals][General]
+    write(lnf + "contents/defaults", f"""[kdeglobals][General]
 ColorScheme=CDECopper
-font=Noto Sans,10,-1,5,50,0,0,0,0,0
+font={UI_FONT}
+fixed={MONO_FONT}
+menuFont={UI_FONT}
+toolBarFont={UI_FONT}
+[kdeglobals][WM]
+activeFont={TITLE_FONT}
 [kdeglobals][KDE]
 widgetStyle=Windows
 [kdeglobals][Icons]
@@ -157,8 +167,10 @@ Image=org.cde.copper
         for suffix in ("", "Intense", "Faint"):
             lines += ["", f"[Color{i}{suffix}]", f"Color={rgb}"]
     write("konsole/CDECopper.colorscheme", "\n".join(lines) + "\n")
-    write("konsole/CDE Copper.profile", "[General]\nName=CDE Copper\nParent=FALLBACK/\n[Appearance]\nColorScheme=CDECopper\nFont=Noto Sans Mono,11,-1,5,50,0,0,0,0,0\n[Scrolling]\nHistoryMode=1\nHistorySize=10000\n")
+    write("konsole/CDE Copper.profile", "[General]\nName=CDE Copper\nParent=FALLBACK/\n[Appearance]\nColorScheme=CDECopper\nFont=" + KONSOLE_FONT + "\n[Scrolling]\nHistoryMode=1\nHistorySize=10000\n")
     shutil.copytree(ROOT / "frontpanel", OUT / "plasma/plasmoids/org.cde.copper.frontpanel", dirs_exist_ok=True)
+    # IBM Plex Sans Condensed and IBM Plex Mono (SIL OFL 1.1), installed per user.
+    shutil.copytree(ROOT / "fonts/IBMPlex", OUT / "fonts/CDECopper", dirs_exist_ok=True)
     shutil.copy2(ROOT / "layout.js", OUT / lnf / "contents/layout.js")
 
 
@@ -174,6 +186,8 @@ def main():
     decoration(args.tools)
     from icons import build_icons
     build_icons(OUT)
+    from kvantum import build_kvantum
+    build_kvantum(OUT, P)
     other_assets()
     print(f"CDE Copper {VERSION}: {sum(1 for p in OUT.rglob('*') if p.is_file())} files in {OUT}")
 

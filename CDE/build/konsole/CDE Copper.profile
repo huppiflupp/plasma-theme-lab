@@ -3,7 +3,7 @@ Name=CDE Copper
 Parent=FALLBACK/
 [Appearance]
 ColorScheme=CDECopper
-Font=Noto Sans Mono,11,-1,5,50,0,0,0,0,0
+Font=IBM Plex Mono,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 [Scrolling]
 HistoryMode=1
 HistorySize=10000
