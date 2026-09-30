@@ -2,6 +2,7 @@
 """Run in the lab VM after build.py; no changes to the active desktop."""
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -25,6 +26,46 @@ class Assets(unittest.TestCase):
             self.assertFalse(any(e.tag.endswith("image") for e in doc.iter()), str(file))
         for file in (ROOT / "build").rglob("*.svg"):
             ET.parse(file)
+
+
+class Separation(unittest.TestCase):
+    """CDE Copper must build from its own directory alone.
+
+    The theme shares a repository with NT Legacy, but neither may influence
+    the other. A copy of CDE/ placed somewhere with no sibling tools/ has to
+    rebuild build/ byte for byte from CDE/tools/."""
+
+    def test_build_is_self_contained_and_reproducible(self):
+        with tempfile.TemporaryDirectory(prefix="cde-copy-") as temp:
+            copy = Path(temp) / "island/CDE"
+            copy.mkdir(parents=True)
+            for item in ("tools", "frontpanel", "build.py", "icons.py", "layout.js"):
+                source = ROOT / item
+                if source.is_dir():
+                    shutil.copytree(source, copy / item, symlinks=True,
+                                    ignore=shutil.ignore_patterns("__pycache__"))
+                else:
+                    shutil.copy2(source, copy / item)
+            result = subprocess.run([sys.executable, str(copy / "build.py")],
+                                    cwd=copy, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            expected = {p.relative_to(ROOT / "build") for p in (ROOT / "build").rglob("*") if p.is_file() or p.is_symlink()}
+            actual = {p.relative_to(copy / "build") for p in (copy / "build").rglob("*") if p.is_file() or p.is_symlink()}
+            self.assertEqual(expected, actual)
+            for rel in sorted(expected):
+                a, b = ROOT / "build" / rel, copy / "build" / rel
+                if a.is_symlink() or b.is_symlink():
+                    self.assertEqual(os.readlink(a), os.readlink(b), str(rel))
+                else:
+                    self.assertEqual(a.read_bytes(), b.read_bytes(), str(rel))
+
+    def test_no_reference_to_sibling_themes(self):
+        for name in ("build.py", "icons.py", "manage.py", "package.py", "install.sh",
+                     "apply.sh", "uninstall.sh"):
+            text = (ROOT / name).read_text()
+            self.assertNotIn("ROOT.parent", text, name)
+            self.assertNotIn("../tools", text, name)
+            self.assertNotIn("nt-legacy", text, name)
 
 
 class Installer(unittest.TestCase):

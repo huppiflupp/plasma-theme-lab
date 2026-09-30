@@ -7,9 +7,11 @@ Checks completed:
 
 - `python3 build.py` generated the theme, decoration, plasmoid, wallpaper,
   Konsole profile, and 196 build files.
-- `lint-plasma-svg.py build/plasma/desktoptheme/cde-copper` passed: 38 SVGs.
-- `python3 tests/verify.py` passed all four tests: scalable SVG assets,
-  collision refusal, install/reinstall/rollback, and manifest tamper refusal.
+- `tools/lint-plasma-svg.py build/plasma/desktoptheme/cde-copper` passed: 38 SVGs.
+- `python3 tests/verify.py` passed all six tests: scalable SVG assets,
+  self-contained byte-identical rebuild from a copy of `CDE/` alone, no
+  reference to sibling themes, collision refusal, install/reinstall/rollback,
+  and manifest tamper refusal.
 - The live Plasma session loaded the theme without a plasmashell failure.
 - Dolphin and Konsole showed the custom teal/copper surfaces and Aurorae frames.
 - The front console showed launchers, workspace buttons, task buttons, live clock,

@@ -2,7 +2,7 @@
 
 A contemporary CDE/Motif workstation theme for KDE Plasma 6.
 
-![CDE Copper in the Fedora lab VM](screenshots/CDE-Copper-1920x1080.png)
+![CDE Copper in the Fedora lab VM](screenshots/desktop-third-1920.png)
 
 The handoff's teal and copper palette meets a more traditional CDE silhouette:
 a compact bottom front console, centered window titles, square Motif controls,
@@ -70,10 +70,13 @@ All project-specific work lives here. The supplied handoff remains unchanged.
 python3 build.py
 ```
 
-In the lab repository this uses the existing SVG generators in `../tools/`.
-The release includes those generators under `tools/`. Palette and decoration
-generation live in `build.py`; original icon geometry and aliases in `icons.py`;
-the console lives in `frontpanel/`. Generated assets are under `build/`.
+The SVG generators are CDE Copper's own copies under `tools/`; the build never
+reaches outside this directory, and the release archive carries the same copies.
+The theme shares a repository with NT Legacy, but the two are kept apart on
+purpose: a change to one must not alter the other (see `tools/README.md`).
+Palette and decoration generation live in `build.py`; original icon geometry
+and aliases in `icons.py`; the console lives in `frontpanel/`. Generated assets
+are under `build/`.
 
 All testing was performed in the project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 

@@ -164,7 +164,10 @@ Image=org.cde.copper
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--tools", type=Path, default=ROOT / "tools" if (ROOT / "tools").is_dir() else ROOT.parent / "tools")
+    # CDE Copper carries its own copies of the SVG generators in tools/.
+    # Never fall back to a sibling theme's tools: the two projects must not
+    # influence each other (see tools/README.md).
+    ap.add_argument("--tools", type=Path, default=ROOT / "tools")
     args = ap.parse_args()
     colors()
     plasma(args.tools)
