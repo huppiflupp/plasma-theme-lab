@@ -180,6 +180,8 @@ activeFont={TITLE_FONT}
 widgetStyle=kvantum
 [kdeglobals][Icons]
 Theme=CDECopper
+[kcminputrc][Mouse]
+cursorTheme=CDECopperCursors
 [plasmarc][Theme]
 name=cde-copper
 [kwinrc][org.kde.kdecoration2]
@@ -239,6 +241,8 @@ def main():
     backdrops_plugin()
     from icons import build_icons
     build_icons(OUT)
+    from cursors import build_cursors
+    build_cursors(OUT)
     from kvantum import build_kvantum
     build_kvantum(OUT, P)
     other_assets()

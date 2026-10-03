@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parent
 DIST = ROOT / "dist"
 DIST.mkdir(exist_ok=True)
 archive = DIST / "cde-copper-0.4.0.tar.xz"
-items = ["build", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "tools", "build.py", "icons.py",
+items = ["build", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "tools", "build.py", "icons.py", "cursors.py",
          "kvantum.py", "palettes.py", "backdrops.py", "manage.py", "install.sh",
          "apply.sh", "uninstall.sh", "layout.js", "README.md", "LICENSE", "TESTING.md", "tests"]
 with tarfile.open(archive, "w:xz") as tar:

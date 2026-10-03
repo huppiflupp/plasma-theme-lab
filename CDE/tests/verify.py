@@ -38,6 +38,22 @@ class Assets(unittest.TestCase):
             ET.parse(file)
 
 
+class Cursors(unittest.TestCase):
+    def test_xcursor_files(self):
+        import struct
+        folder = ROOT / "build/icons/CDECopperCursors/cursors"
+        for name in ("left_ptr", "default", "pointer", "text", "wait", "progress", "not-allowed", "ew-resize", "nwse-resize", "grab"):
+            data = (folder / name).read_bytes()
+            magic, header, version, count = struct.unpack("<4sIII", data[:16])
+            self.assertEqual((magic, header, count), (b"Xcur", 16, 4), name)
+            for k in range(count):
+                kind, size, position = struct.unpack("<3I", data[16 + 12 * k:28 + 12 * k])
+                chunk = struct.unpack("<9I", data[position:position + 36])
+                self.assertEqual((chunk[0], chunk[1], chunk[4], chunk[5]), (36, 0xfffd0002, size, size), name)
+                self.assertLess(chunk[6], size); self.assertLess(chunk[7], size)
+                self.assertEqual(len(data) >= position + 36 + 4 * size * size, True, name)
+
+
 class Separation(unittest.TestCase):
     """CDE Copper must build from its own directory alone.
 
@@ -50,7 +66,7 @@ class Separation(unittest.TestCase):
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
             for item in ("tools", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "screenshots",
-                         "build.py", "icons.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
+                         "build.py", "icons.py", "cursors.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
                     shutil.copytree(source, copy / item, symlinks=True,

@@ -10,6 +10,8 @@ activeFont=IBM Plex Sans Condensed,10,-1,5,600,0,0,0,0,0,0,0,0,0,0,1
 widgetStyle=kvantum
 [kdeglobals][Icons]
 Theme=CDECopper
+[kcminputrc][Mouse]
+cursorTheme=CDECopperCursors
 [plasmarc][Theme]
 name=cde-copper
 [kwinrc][org.kde.kdecoration2]

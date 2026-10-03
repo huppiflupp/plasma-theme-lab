@@ -39,7 +39,7 @@ TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "
            "plasma/plasmoids/org.cde.copper.frontpanel", "icons/CDECopper",
            "wallpapers/org.cde.copper", "plasma/wallpapers/org.cde.copper.backdrop",
            "konsole/CDECopper.colorscheme", "konsole/CDE Copper.profile",
-           "kstyle/themes/kvantum.themerc", "kstyle/themes/kvantum-dark.themerc",
+           "kstyle/themes/kvantum.themerc", "kstyle/themes/kvantum-dark.themerc", "icons/CDECopperCursors",
            "fonts/CDECopper", TOOL) + SCHEMES
 # The tool copy: what applying a palette needs, so the console and System
 # Settings can switch palettes without the extracted archive.
@@ -476,6 +476,11 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
         print("Kvantum style plugin not found; using the Qt Windows style. Install 'kvantum' for the Motif controls.")
     write_config("kdeglobals", "KDE", {"widgetStyle": style, "LookAndFeelPackage": "org.cde.copper.desktop"})
     write_config("kdeglobals", "Icons", {"Theme": "CDECopper"})
+    # Cursors after the X11 cursor font; plasma-apply-cursortheme also tells
+    # running programs and XWayland.
+    write_config("kcminputrc", "Mouse", {"cursorTheme": "CDECopperCursors"})
+    if shutil.which("plasma-apply-cursortheme"):
+        run("plasma-apply-cursortheme", "CDECopperCursors", check=False)
     write_config("kdeglobals", "General", {"font": UI_FONT, "fixed": MONO_FONT, "menuFont": UI_FONT, "toolBarFont": UI_FONT})
     write_config("kdeglobals", "WM", {"activeFont": TITLE_FONT})
     write_config("kwinrc", "org.kde.kdecoration2", {"library": "org.kde.kwin.aurorae", "theme": DECORATION, "ButtonsOnLeft": "M", "ButtonsOnRight": "IAX", "BorderSize": "Normal"})

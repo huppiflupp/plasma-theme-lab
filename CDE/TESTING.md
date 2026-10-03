@@ -226,6 +226,12 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   on whole pixels and written as SVG rectangles; the theme lists 16/all and
   22/all as fixed sizes. Dolphin's Places panel shows them crisp; Downloads
   showed a plain folder (Dolphin asks for folder-downloads), now an alias.
+- Cursors: 28 drawings after the X11 cursor font on the 16-pixel grid,
+  written as Xcursor files (24 drawn anew, 32/48/64 enlarged by whole
+  numbers), 99 names with the X11, Qt and CSS aliases. Thin strokes keep
+  their colour: the white mask is the shape grown by one pixel, as in the
+  cursor font. System Settings lists them as "CDE"; applied in the VM with
+  plasma-apply-cursortheme. A test reads the Xcursor headers.
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the

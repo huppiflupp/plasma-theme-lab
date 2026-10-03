@@ -42,9 +42,13 @@ or takes any of CDE's own 37 palettes and backdrops.
   backdrops, coloured with the chosen palette.
 - A window arrangement around the console: terminals left and right, the main
   window in the middle above the console (Meta+Ctrl+C).
+- Mouse cursors after the X11 cursor font of CDE and Motif (arrow, I-beam,
+  wristwatch, hand, crosshair, resize arrows...), 28 drawings under 99 names,
+  pixel-exact at 24, 32, 48 and 64 px.
 - Original SVG icon artwork, 248 drawings under 652 names (applications,
   menu categories, actions, documents, devices, places, battery, network and
-  other status icons), with no embedded raster images.
+  other status icons), with no embedded raster images; the 59 most visible
+  also as pixel versions for 16 and 22 px.
 - Konsole profile and color scheme, global-theme bundle, and teal wallpaper.
 - User-only installer, ownership manifest and configuration rollback.
 
@@ -277,8 +281,7 @@ compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,
 document, device and status names; less common names fall back to Breeze and
-then hicolor. Login/lock-screen replacement and a custom
-cursor theme are outside this release. Native Plasma manages panel hiding and
+then hicolor. Login/lock-screen replacement is outside this release. Native Plasma manages panel hiding and
 screen-edge reveal; there is no separate retractable handle.
 
 Popups from the console open at the size they first appear with: under Wayland
@@ -332,7 +335,7 @@ Not reached:
   accessible names and keys work in the subpanels, but full keyboard operation
   of auto-hide and of the Applications menu has not been verified, nor has a
   screen reader been used.
-- **Theme coverage (phase 3).** No cursor theme, lock screen or SDDM theme;
+- **Theme coverage (phase 3).** No lock screen or SDDM theme;
   notifications and calendar follow only through the Plasma surfaces.
 - **Test matrix.** 150 % and 200 % scaling were checked for 0.1 only, not for
   the QML window frame, the console and the popups that came later. X11 was
