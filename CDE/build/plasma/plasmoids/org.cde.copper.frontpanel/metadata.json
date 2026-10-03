@@ -11,6 +11,6 @@
   },
   "KPackageStructure": "Plasma/Applet",
   "X-Plasma-API-Minimum-Version": "6.0",
-  "X-Plasma-Provides": ["org.kde.plasma.multitasking", "org.kde.plasma.virtualdesktops"],
+  "X-Plasma-Provides": ["org.kde.plasma.multitasking", "org.kde.plasma.virtualdesktops", "org.kde.plasma.launchermenu"],
   "X-Plasma-NotificationArea": false
 }

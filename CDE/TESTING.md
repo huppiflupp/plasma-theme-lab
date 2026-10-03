@@ -246,6 +246,10 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   while the page was open (it looked for the old palette's tiles, which the
   tool replaces). The page now rereads the palette in use and falls back to
   the packaged Copper tile.
+- Meta key: the console provides org.kde.plasma.launchermenu, so Plasma
+  activates it on the active screen; it opens the Applications menu above
+  the Apps tile. Checked in the VM with a real Meta key press (uinput) and
+  with PlasmaShell.activateLauncherMenu; a second press closes the menu.
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the

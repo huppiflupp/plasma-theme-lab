@@ -26,7 +26,8 @@ or takes any of CDE's own 37 palettes and backdrops.
   Mono for Konsole and fixed-width text; both ship with the theme (SIL OFL).
 - The front console (one per screen, at any screen edge): clock with a month
   calendar and the day's appointments, configurable launcher tiles with
-  subpanels, an Applications menu with cascading categories, the browser's
+  subpanels, an Applications menu with cascading categories (also on the
+  Meta key), the browser's
   bookmarks, the editor's (or LibreOffice's) recently opened files, a Mail
   subpanel (new message, appointments, address book), Places, System and Help
   subpanels, four-workspace switcher (each button in a colour of the palette,

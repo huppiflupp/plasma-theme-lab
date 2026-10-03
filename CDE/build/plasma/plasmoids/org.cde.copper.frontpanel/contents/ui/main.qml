@@ -16,6 +16,14 @@ import "motif.js" as Motif
 PlasmoidItem {
     id: root
     preferredRepresentation: fullRepresentation
+    // The Meta key: Plasma activates the panel applet that provides
+    // org.kde.plasma.launchermenu (metadata.json) on the active screen.
+    activationTogglesExpanded: false
+    property Item appsTile: null
+    Connections {
+        target: Plasmoid
+        function onActivated() { root.openApplications(root.appsTile || root.fullRepresentationItem); }
+    }
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
 
     property string popupTitle: ""
@@ -454,6 +462,8 @@ PlasmoidItem {
             Layout.fillWidth: true; Layout.fillHeight: true
             text: slot.modelData.label; iconName: slot.modelData.icon
             onClicked: root.launch(slot.modelData, launcher)
+            // The Applications tile, where the Meta key opens the menu.
+            Component.onCompleted: if (slot.modelData.command === "@applications") root.appsTile = launcher
         }
     }
 
