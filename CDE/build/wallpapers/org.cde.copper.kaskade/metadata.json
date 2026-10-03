@@ -1,0 +1,15 @@
+{
+  "KPlugin": {
+    "Id": "org.cde.copper.kaskade",
+    "Name": "Copper Kaskade",
+    "Description": "Low-poly landscape in Copper colours, light and dark",
+    "Version": "0.7.0",
+    "License": "GPL-2.0-or-later",
+    "Authors": [
+      {
+        "Name": "CDE Copper contributors"
+      }
+    ],
+    "Website": "https://github.com/huppiflupp/plasma-theme-lab"
+  }
+}

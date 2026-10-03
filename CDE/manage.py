@@ -29,6 +29,7 @@ KVANTUM_PLUGINS = ("/usr/lib64/qt6/plugins/styles/libkvantum.so",
 DECORATION = "kwin4_decoration_qml_cdecopper"
 sys.path.insert(0, str(ROOT))
 import palettes  # noqa: E402  (ships beside this file, also in the tool copy)
+from build import PICTURES  # noqa: E402  (build.py is part of the tool copy too)
 
 # Every CDE palette is installed as a colour scheme, so System Settings lists
 # them; the rest of a palette is generated when it is applied.
@@ -38,6 +39,7 @@ TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "
            "plasma/desktoptheme/cde-copper", "plasma/look-and-feel/org.cde.copper.desktop",
            "plasma/plasmoids/org.cde.copper.frontpanel", "icons/CDECopper",
            "wallpapers/org.cde.copper", "plasma/wallpapers/org.cde.copper.backdrop",
+           *(f"wallpapers/org.cde.copper.{key}" for key, _, _ in PICTURES),
            "konsole/CDECopper.colorscheme", "konsole/CDE Copper.profile",
            "kstyle/themes/kvantum.themerc", "kstyle/themes/kvantum-dark.themerc", "icons/CDECopperCursors",
            "plasma/shells/org.cde.copper.shell", "themes/CDECopper",

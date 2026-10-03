@@ -142,6 +142,49 @@ def backdrops_plugin():
     write(base + "metadata.json", json.dumps(meta, indent=2))
 
 
+# Picture wallpapers (see wallpapers/README.md): key, display name, description.
+LOWPOLY = "Low-poly landscape in Copper colours"
+PICTURES = (
+    ("altai", "Copper Altai", LOWPOLY), ("canopee", "Copper Canopée", LOWPOLY), ("cluster", "Copper Cluster", LOWPOLY),
+    ("fluss", "Copper Fluss", LOWPOLY), ("kaskade", "Copper Kaskade", LOWPOLY),
+    ("monolith", "CDE Monolith", "Retro ray-traced desert, Default palette"),
+    ("polarlicht", "CDE Polarlicht", "Aurora over a low-poly fjord, NorthernSky palette"),
+    ("mesa", "CDE Mesa", "Paper-cut desert, Arizona palette"),
+    ("riff", "CDE Riff", "Coral reef, Urchin palette"),
+    ("origami", "CDE Origami", "Folded paper lilies, Lilac palette"),
+    ("bauhaus", "CDE Bauhaus", "Bauhaus poster, Golden palette"),
+    ("weinberg", "CDE Weinberg", "Isometric vineyard, Cabernet palette"),
+    ("orbit", "CDE Orbit", "Ringed planet in glass, Neptune palette"),
+    ("chipstadt", "CDE Chipstadt", "Miniature city built from workstation chips, Default palette"),
+    ("cad", "CDE CAD", "Gear assembly in wireframe and solid, SoftBlue palette"),
+    ("molekuel", "CDE Molekül", "Protein ribbons and atoms, Crimson palette"),
+    ("sequenz", "CDE Sequenz", "Sequencing gel and chromatogram, Golden palette"),
+    ("druckvorstufe", "CDE Druckvorstufe", "Desktop publishing proofs, PBNJ palette"),
+    ("schnittplatz", "CDE Schnittplatz", "Film, tapes and a vectorscope, SkyRed palette"),
+    ("mrt", "CDE MRT", "MRI films on a lightbox, Alpine palette"),
+    ("mischpult", "CDE Mischpult", "Analog mixing console, Tundra palette"),
+    ("vlsi", "CDE VLSI", "Chip layout layers, Summer palette"),
+    ("stroemung", "CDE Strömung", "Computed flow around an airfoil, Delphinium palette"),
+    ("kristall", "CDE Kristall", "Crystal mosaic in Copper colours"),
+    ("marmor", "CDE Marmor", "Marbled ink, Crimson palette"),
+    ("duene", "CDE Düne", "Dunes with a lone workstation, Copper colours"),
+    ("aquarell", "CDE Aquarell", "Late-1990s watercolour, a workstation sending windows"),
+    ("panorama", "CDE Panorama", "Late-1990s gouache landscape with a paper plane"),
+)
+
+
+def pictures():
+    """Picture wallpapers, light and dark; images_dark is picked by Plasma
+    under a dark colour scheme."""
+    for key, name, description in PICTURES:
+        base = f"wallpapers/org.cde.copper.{key}/"
+        for sub, suffix in (("images", ""), ("images_dark", "-dark")):
+            target = OUT / base / "contents" / sub
+            target.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / f"wallpapers/images/{key}{suffix}.jpg", target / "3840x2160.jpg")
+        write(base + "metadata.json", json.dumps(metadata(f"org.cde.copper.{key}", name, description + ", light and dark"), indent=2))
+
+
 def palette_schemes():
     """Every CDE palette as a colour scheme, so System Settings lists them;
     the console completes the switch (Kvantum, Plasma surfaces, backdrop)."""
@@ -280,6 +323,7 @@ def main():
     decoration()
     arrange()
     backdrops_plugin()
+    pictures()
     from icons import build_icons
     build_icons(OUT)
     from cursors import build_cursors

@@ -135,6 +135,22 @@ of its own ("A backdrop for each workspace"): Plasma itself knows wallpapers
 per screen and activity only, so the wallpaper follows the current virtual
 desktop by itself.
 
+28 picture wallpapers come along in 3840×2160, each with a dark version that
+Plasma shows on its own while a dark colour scheme is active:
+
+- **Copper Altai, Canopée, Cluster, Fluss, Kaskade**: low-poly landscapes after
+  Plasma's own Altai, Canopée, Cluster, Flow and Cascade, in Copper's teal and copper.
+- **CDE Monolith, Polarlicht, Mesa, Riff, Origami, Bauhaus, Weinberg, Orbit**:
+  one CDE palette each, from Default to Neptune.
+- **CDE Chipstadt, CAD, Molekül, Sequenz, Druckvorstufe, Schnittplatz, MRT,
+  Mischpult, VLSI, Strömung**: what CDE workstations were used for in the 1990s.
+- **CDE Kristall, Marmor, Düne**: abstract, after the most popular KDE Store wallpapers.
+- **CDE Aquarell, Panorama**: late-1990s software box illustration.
+
+All but Strömung are AI-generated decoration without logos or lettering;
+Strömung is a computed potential flow around an airfoil.
+`wallpapers/README.md` records how each was made.
+
 The same from a shell:
 
 ```sh
@@ -290,6 +306,7 @@ purpose: a change to one must not alter the other (see `tools/README.md`).
 | `backdrops.py`, `backdrops/` | CDE backdrops, coloured per palette |
 | `decoration/` | the QML window frame |
 | `backdrop/` | the "CDE Backdrop" wallpaper type |
+| `wallpapers/` | the 28 picture wallpapers, light and dark, and the scripts that made them |
 | `frontpanel/` | the console plasmoid; `contents/code/menus.py` reads bookmarks and recent files |
 | `arrange/` | the KWin script for the window arrangement |
 | `fonts/` | IBM Plex |

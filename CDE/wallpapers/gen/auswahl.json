@@ -1,0 +1,207 @@
+{
+ "monolith": {
+  "motiv": "monolith",
+  "seed": 301,
+  "dunkel": {
+   "lo": "#0a0f1a",
+   "hi": "#3e4c62",
+   "akzent": "sat"
+  }
+ },
+ "polarlicht": {
+  "motiv": "polarlicht",
+  "seed": 302,
+  "dunkel": {
+   "lo": "#020a14",
+   "hi": "#1d4566",
+   "akzent": "sat"
+  }
+ },
+ "mesa": {
+  "motiv": "mesa",
+  "seed": 302,
+  "dunkel": {
+   "lo": "#160a12",
+   "hi": "#5a3646",
+   "akzent": "none"
+  }
+ },
+ "riff": {
+  "motiv": "riff",
+  "seed": 301,
+  "dunkel": {
+   "lo": "#021212",
+   "hi": "#0f5654",
+   "akzent": "sat"
+  }
+ },
+ "origami": {
+  "motiv": "origami",
+  "seed": 301,
+  "dunkel": {
+   "lo": "#110b16",
+   "hi": "#4a3d58",
+   "akzent": "sat"
+  }
+ },
+ "bauhaus": {
+  "motiv": "bauhaus",
+  "seed": 301,
+  "dunkel": {
+   "lo": "#0b1220",
+   "hi": "#34465f",
+   "akzent": "sat"
+  }
+ },
+ "weinberg": {
+  "motiv": "weinberg",
+  "seed": 302,
+  "dunkel": {
+   "lo": "#0b1311",
+   "hi": "#34443f",
+   "akzent": "none"
+  }
+ },
+ "orbit": {
+  "motiv": "orbit",
+  "seed": 301,
+  "dunkel": {
+   "lo": "#020814",
+   "hi": "#1f3a5c",
+   "akzent": "sat"
+  }
+ },
+ "chipstadt": {
+  "motiv": "chipstadt",
+  "seed": 411,
+  "dunkel": {
+   "lo": "#05070d",
+   "hi": "#232c3a",
+   "akzent": "sat",
+   "img2img": "Nacht-Prompt, denoise 0.7"
+  }
+ },
+ "cad": {
+  "motiv": "cad",
+  "seed": 601,
+  "dunkel": {
+   "lo": "#02040a",
+   "hi": "#1e2e50",
+   "akzent": "sat"
+  }
+ },
+ "molekuel": {
+  "motiv": "rasmol",
+  "seed": 601,
+  "dunkel": {
+   "lo": "#000000",
+   "hi": "#1a1a24",
+   "akzent": "sat"
+  }
+ },
+ "sequenz": {
+  "motiv": "sequenz",
+  "seed": 601,
+  "dunkel": {
+   "lo": "#050810",
+   "hi": "#1e2a40",
+   "akzent": "sat"
+  }
+ },
+ "druckvorstufe": {
+  "motiv": "dtp",
+  "seed": 712,
+  "dunkel": {
+   "lo": "#0e0806",
+   "hi": "#4a3428",
+   "akzent": "none"
+  }
+ },
+ "schnittplatz": {
+  "motiv": "video",
+  "seed": 702,
+  "dunkel": {
+   "lo": "#050708",
+   "hi": "#2a3436",
+   "akzent": "sat"
+  }
+ },
+ "mrt": {
+  "motiv": "mrt",
+  "seed": 702,
+  "dunkel": {
+   "lo": "#020610",
+   "hi": "#24405a",
+   "akzent": "none"
+  }
+ },
+ "mischpult": {
+  "motiv": "mischpult",
+  "seed": 701,
+  "dunkel": {
+   "lo": "#0a0a06",
+   "hi": "#33362a",
+   "akzent": "sat"
+  }
+ },
+ "vlsi": {
+  "motiv": "vlsi",
+  "seed": 802,
+  "dunkel": {
+   "lo": "#000000",
+   "hi": "#14141c",
+   "akzent": "sat"
+  }
+ },
+ "kristall": {
+  "motiv": "kristall",
+  "seed": 902,
+  "dunkel": {
+   "lo": "#051419",
+   "hi": "#345c64",
+   "akzent": "warm"
+  }
+ },
+ "marmor": {
+  "motiv": "marmor",
+  "seed": 903,
+  "dunkel": {
+   "lo": "#0c0812",
+   "hi": "#2e2440",
+   "akzent": "sat"
+  }
+ },
+ "duene": {
+  "motiv": "duene",
+  "seed": 903,
+  "dunkel": {
+   "lo": "#030c10",
+   "hi": "#1d3c44",
+   "akzent": "warm"
+  }
+ },
+ "aquarell": {
+  "motiv": "aquarell",
+  "seed": "acro2_workstation_1011",
+  "dunkel": {
+   "lo": "#0a1020",
+   "hi": "#2c3e66",
+   "akzent": "none",
+   "img2img": "Nacht-Prompt aus acro_night_prompts.json, denoise 0.6"
+  }
+ },
+ "panorama": {
+  "motiv": "panorama",
+  "seed": "acro_panorama_1001",
+  "dunkel": {
+   "lo": "#060c1e",
+   "hi": "#2a3c70",
+   "akzent": "sat",
+   "img2img": "Nacht-Prompt aus acro_night_prompts.json, Prefix 'Dark night scene', denoise 0.48, keep 0.45"
+  }
+ },
+ "stroemung": {
+  "motiv": "cfd",
+  "berechnet": "cfd.py (Joukowski-Profil, Potentialströmung)"
+ }
+}

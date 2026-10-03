@@ -65,7 +65,7 @@ class Separation(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="cde-copy-") as temp:
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
-            for item in ("tools", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "screenshots",
+            for item in ("tools", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "wallpapers", "screenshots",
                          "lookandfeel", "shell", "build.py", "icons.py", "cursors.py", "gtktheme.py", "systemparts.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
