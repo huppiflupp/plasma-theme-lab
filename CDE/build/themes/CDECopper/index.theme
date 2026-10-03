@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=CDECopper
+Comment=Motif controls in the CDE palette
+
+[X-GNOME-Metatheme]
+GtkTheme=CDECopper

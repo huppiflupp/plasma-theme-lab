@@ -59,6 +59,10 @@ or takes any of CDE's own 37 palettes and backdrops.
   its own (org.cde.copper.shell) that takes everything else from Plasma's;
   applying the theme switches to it, moving the panel and desktop
   configuration along (Style page › Lock screen switches back).
+- A GTK 3 and GTK 4 theme (CDECopper) from the same palette, so GTK
+  programs such as Firefox or PCManFM get the Motif controls too; it is
+  rebuilt with every palette. Libadwaita programs ignore GTK themes and only
+  take Plasma's colours.
 - CDE's logout confirmation: a Motif dialog with lock, sleep, hibernate,
   restart, shut down and log out, the action it was called for as default
   button and a countdown, in the palette's colours.

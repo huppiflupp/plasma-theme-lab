@@ -40,11 +40,11 @@ TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "
            "wallpapers/org.cde.copper", "plasma/wallpapers/org.cde.copper.backdrop",
            "konsole/CDECopper.colorscheme", "konsole/CDE Copper.profile",
            "kstyle/themes/kvantum.themerc", "kstyle/themes/kvantum-dark.themerc", "icons/CDECopperCursors",
-           "plasma/shells/org.cde.copper.shell",
+           "plasma/shells/org.cde.copper.shell", "themes/CDECopper",
            "fonts/CDECopper", TOOL) + SCHEMES
 # The tool copy: what applying a palette needs, so the console and System
 # Settings can switch palettes without the extracted archive.
-TOOL_SOURCES = ("manage.py", "build.py", "palettes.py", "backdrops.py", "kvantum.py", "icons.py", "cursors.py",
+TOOL_SOURCES = ("manage.py", "build.py", "palettes.py", "backdrops.py", "kvantum.py", "icons.py", "cursors.py", "gtktheme.py",
                 "layout.js", "tools", "palettes", "backdrops")
 # Owned by older installations and removed when they are upgraded.
 LEGACY_TARGETS = ("aurorae/themes/CDECopper", "wallpapers/CDEBackdrops", "wallpapers/org.cde.copper.backdrop")
@@ -366,6 +366,7 @@ def set_palette(manifest, name):
                   + (" else " + plain if manifest.get("backdrop") == "none" else "") + " }")
     integrate_xfile()
     update_splash(name)
+    update_gtk(name)
     MANIFEST.write_text(json.dumps(manifest, indent=2))
     return theme
 
@@ -474,6 +475,32 @@ def set_lockscreen(manifest, kind, running=True):
     write_config("plasmashellrc", "Shell", {"ShellPackage": wanted})
     if running:
         run("systemctl", "--user", "start", "plasma-plasmashell.service", check=False)
+
+
+GTK_THEME = "CDECopper"
+
+
+def gtk_theme(name=None):
+    """The GTK theme Plasma sets (kded's gtkconfig), or set it."""
+    exe = shutil.which("qdbus6") or shutil.which("qdbus-qt6") or shutil.which("qdbus")
+    if not exe:
+        return ""
+    args = [exe, "org.kde.GtkConfig", "/GtkConfig", "org.kde.GtkConfig." + ("setGtkTheme" if name else "gtkTheme")] + ([name] if name else [])
+    result = subprocess.run(args, capture_output=True, text=True)
+    return result.stdout.strip()
+
+
+def update_gtk(name):
+    """Rebuild the GTK theme (ours) in the palette; running GTK programs load
+    it again when the theme name changes, so it is switched away and back."""
+    sys.path.insert(0, str(ROOT))
+    import build
+    from gtktheme import build_gtk
+    build_gtk(DATA, build.P if name == "Copper" else palettes.theme(name))
+    if gtk_theme() == GTK_THEME:
+        gtk_theme("Adwaita")
+        time.sleep(0.5)
+        gtk_theme(GTK_THEME)
 
 
 def update_splash(name):
@@ -593,6 +620,11 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
     dbus("org.kde.KWin", "/KWin", "reconfigure")
     dbus("org.kde.KWin", "/Scripting", "org.kde.kwin.Scripting.start")
     set_lockscreen(manifest, manifest.get("lockscreen", "cde"))
+    # GTK programs: Motif controls too (Plasma's gtkconfig sets GTK 3/4).
+    previous = gtk_theme()
+    if previous and previous != GTK_THEME:
+        manifest["gtk_previous"] = previous
+    gtk_theme(GTK_THEME)
     MANIFEST.write_text(json.dumps(manifest, indent=2))
     if backdrop:
         set_backdrop(manifest, backdrop, backdrop_scale or manifest.get("backdrop_scale", 1))
@@ -627,6 +659,8 @@ def uninstall():
         raise RuntimeError("Unexpected config target in ownership manifest")
     if manifest["applied"]:
         run("systemctl", "--user", "stop", "plasma-plasmashell.service")
+    if gtk_theme() == GTK_THEME:
+        gtk_theme(manifest.get("gtk_previous", "Breeze"))
     # Back to Plasma's shell package (and lock screen) with the panel
     # configuration, before the saved configuration is restored.
     if current_shell() == SHELL:

@@ -1,0 +1,250 @@
+/* CDE Copper: Motif controls in the palette's colours (generated). */
+@import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained.css");
+
+@define-color theme_bg_color #86a4aa;
+@define-color theme_fg_color #10262b;
+@define-color theme_base_color #c4d2d0;
+@define-color theme_text_color #10262b;
+@define-color theme_selected_bg_color #e8874f;
+@define-color theme_selected_fg_color #10262b;
+@define-color insensitive_fg_color #6f8588;
+@define-color borders #10262b;
+
+window, .background, dialog, messagedialog .dialog-action-area {
+  background-color: #86a4aa;
+  color: #10262b;
+}
+*:disabled, label:disabled { color: #6f8588; }
+
+/* Title bars drawn by GTK itself (client-side decorations). */
+headerbar, .titlebar, window.csd > .titlebar {
+  background-image: none;
+  background-color: #86a4aa;
+  color: #10262b;
+  border-radius: 0;
+  border-bottom: 1px solid #10262b;
+  box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a;
+  min-height: 30px;
+}
+headerbar .title { font-weight: 600; }
+window.csd, window.csd decoration, decoration { border-radius: 0; }
+
+/* Push buttons. */
+button {
+  background-image: none;
+  background-color: #86a4aa;
+  color: #10262b;
+  border: 1px solid #10262b;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  padding: 4px 10px;
+  min-height: 22px;
+}
+button:hover { background-color: #95b1b6; }
+button:active, button:checked { background-color: #78969c; box-shadow: inset 1px 1px #41646a, inset -1px -1px #c9dedb; }
+button:disabled { color: #6f8588; box-shadow: none; }
+button.flat, button.image-button.flat, headerbar button.flat {
+  border-color: transparent;
+  background-color: transparent;
+  box-shadow: none;
+}
+button.flat:hover { border-color: #10262b; background-color: #95b1b6; box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a; }
+button.suggested-action, button.default {
+  border: 1px solid #10262b;
+  box-shadow: 0 0 0 2px #41646a, inset 1px 1px #c9dedb, inset -1px -1px #41646a;
+}
+button.destructive-action { background-color: #a32626; color: #ffffff; }
+
+/* Text fields, spin boxes, combo entries: sunken. */
+entry, spinbutton, spinbutton:not(.vertical), textview, .view text {
+  background-image: none;
+  background-color: #c4d2d0;
+  color: #10262b;
+  border-radius: 0;
+}
+entry, spinbutton {
+  border: 1px solid #10262b;
+  box-shadow: inset 1px 1px #41646a, inset -1px -1px #c9dedb;
+  min-height: 24px;
+}
+entry:focus, spinbutton:focus-within, entry:focus-within {
+  border-color: #e8874f;
+  
+}
+spinbutton button { border-radius: 0; }
+
+/* Lists, trees, icon views. */
+.view, treeview, iconview, list, listview, columnview, gridview, textview text, row {
+  background-color: #c4d2d0;
+  color: #10262b;
+}
+treeview header button, columnview > header > button { border-radius: 0; box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a; }
+selection, *:selected, row:selected, treeview:selected, .view:selected, iconview:selected,
+listview > row:selected, gridview > child:selected, entry selection, textview selection {
+  background-color: #e8874f;
+  color: #10262b;
+}
+
+/* Menus: raised, the item under the pointer in the selection colour. */
+menubar { background-color: #86a4aa; box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a; border-bottom: 1px solid #10262b; }
+menubar > menuitem:hover, menubar > item:hover { background-color: #e8874f; color: #10262b; box-shadow: none; }
+menu, .menu, .context-menu, popover.background {
+  background-color: #86a4aa;
+  color: #10262b;
+  border: 1px solid #10262b;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a;
+  padding: 2px;
+}
+menuitem:hover, menu menuitem:hover, .menu menuitem:hover, popover modelbutton:hover { background-color: #e8874f; color: #10262b; border-radius: 0; }
+menu separator, popover separator { background-color: #41646a; min-height: 1px; }
+
+/* Tabs. */
+notebook > header { background-color: #6f8f96; border-color: #10262b; }
+notebook > header tab {
+  background-color: #86a4aa;
+  border: 1px solid #10262b;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a;
+  margin: 2px 1px 0 1px;
+  padding: 4px 10px;
+}
+notebook > header tab:checked { background-color: #86a4aa; box-shadow: inset 0 2px #e8874f, inset 1px 1px #c9dedb, inset -1px -1px #41646a; }
+notebook > header tab:hover { background-color: #95b1b6; }
+notebook > stack:not(:only-child) { background-color: #86a4aa; }
+
+/* Scroll bars: a sunken groove, raised slider. */
+scrollbar { background-color: #6f8f96; border: none; }
+scrollbar slider {
+  background-color: #86a4aa;
+  border: 1px solid #10262b;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a;
+  min-width: 10px;
+  min-height: 10px;
+}
+scrollbar slider:hover { background-color: #95b1b6; }
+
+/* Check boxes and radio buttons. */
+check, radio {
+  background-image: none;
+  background-color: #c4d2d0;
+  border: 1px solid #10262b;
+  box-shadow: inset 1px 1px #41646a, inset -1px -1px #c9dedb;
+  color: #e8874f;
+  min-width: 14px;
+  min-height: 14px;
+}
+check { border-radius: 0; }
+check:checked, radio:checked { background-color: #e8874f; color: #10262b; }
+
+/* Progress bars and sliders. */
+progressbar trough, scale trough, levelbar trough {
+  background-image: none;
+  background-color: #afc2c2;
+  border: 1px solid #10262b;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #41646a, inset -1px -1px #c9dedb;
+  min-height: 10px;
+}
+progressbar progress, scale highlight, levelbar block.filled {
+  background-image: none;
+  background-color: #e8874f;
+  border: 1px solid #10262b;
+  border-radius: 0;
+  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.3), inset -1px -1px rgba(0, 0, 0, 0.3);
+}
+scale slider {
+  background-image: none;
+  background-color: #86a4aa;
+  border: 1px solid #10262b;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a;
+  min-width: 12px;
+  min-height: 18px;
+}
+
+/* Switches drawn as Motif toggles. */
+switch { background-color: #6f8f96; border: 1px solid #10262b; border-radius: 0; box-shadow: inset 1px 1px #41646a, inset -1px -1px #c9dedb; }
+switch:checked { background-color: #e8874f; }
+switch slider { background-color: #86a4aa; border: 1px solid #10262b; border-radius: 0; box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a; }
+
+/* Frames, separators, tooltips. */
+frame > border, .frame { border: 1px solid #41646a; border-radius: 0; box-shadow: inset 1px 1px #c9dedb; }
+separator { background-color: #41646a; }
+tooltip, tooltip.background {
+  background-color: #c4d2d0;
+  color: #10262b;
+  border: 1px solid #10262b;
+  border-radius: 0;
+  box-shadow: none;
+}
+tooltip * { color: #10262b; }
+
+/* States. GTK's built-in theme has more specific rules for disabled,
+   pressed and unfocused (backdrop) controls; these repeat ours for them. */
+button:backdrop, button:backdrop:hover { background-image: none; background-color: #86a4aa; color: #10262b; border-color: #10262b; box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a; }
+button:checked:backdrop, button:active:backdrop { background-image: none; background-color: #78969c; box-shadow: inset 1px 1px #41646a, inset -1px -1px #c9dedb; }
+button:disabled, button:disabled:backdrop, button:checked:disabled, button.flat:disabled {
+  background-image: none;
+  background-color: #86a4aa;
+  color: #6f8588;
+  border-color: #41646a;
+  box-shadow: none;
+}
+button.flat:backdrop, headerbar button.flat:backdrop { background-color: transparent; border-color: transparent; box-shadow: none; }
+entry:backdrop, spinbutton:backdrop { background-image: none; background-color: #c4d2d0; color: #10262b; border-color: #10262b; box-shadow: inset 1px 1px #41646a, inset -1px -1px #c9dedb; }
+entry:disabled, entry:disabled:backdrop, spinbutton:disabled, spinbutton:disabled:backdrop {
+  background-image: none;
+  background-color: #86a4aa;
+  color: #6f8588;
+  border-color: #41646a;
+  box-shadow: none;
+}
+check:backdrop, radio:backdrop, check:hover, radio:hover { background-image: none; background-color: #c4d2d0; border-color: #10262b; box-shadow: inset 1px 1px #41646a, inset -1px -1px #c9dedb; }
+check:checked, check:indeterminate, radio:checked, radio:indeterminate,
+check:checked:backdrop, check:indeterminate:backdrop, radio:checked:backdrop, radio:indeterminate:backdrop,
+check:checked:hover, radio:checked:hover {
+  background-image: none;
+  background-color: #e8874f;
+  color: #10262b;
+  border-color: #10262b;
+}
+check:disabled, radio:disabled, check:checked:disabled, radio:checked:disabled, check:indeterminate:disabled, radio:indeterminate:disabled {
+  background-image: none;
+  background-color: #86a4aa;
+  color: #6f8588;
+  border-color: #41646a;
+  box-shadow: none;
+}
+scale slider:backdrop, scale slider:hover { background-image: none; background-color: #86a4aa; border-color: #10262b; box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a; }
+scale slider:disabled, scale trough:disabled, progressbar trough:disabled { background-image: none; background-color: #86a4aa; border-color: #41646a; box-shadow: none; }
+scale highlight:disabled { background-image: none; background-color: #649099; }
+headerbar:backdrop, .titlebar:backdrop { background-image: none; background-color: #86a4aa; color: #6f8588; }
+notebook > header tab:backdrop { background-color: #86a4aa; }
+notebook > header > tabs > tab:checked, notebook > header.top > tabs > tab:checked, notebook > header.bottom > tabs > tab:checked,
+notebook > header.left > tabs > tab:checked, notebook > header.right > tabs > tab:checked {
+  box-shadow: inset 0 2px #e8874f, inset 1px 1px #c9dedb, inset -1px -1px #41646a;
+}
+notebook > header.top > tabs > tab:hover, notebook > header.bottom > tabs > tab:hover,
+notebook > header.left > tabs > tab:hover, notebook > header.right > tabs > tab:hover { box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a; }
+spinbutton:not(.vertical):disabled, spinbutton.vertical:disabled { background-image: none; background-color: #86a4aa; color: #6f8588; }
+switch, switch:backdrop { background-image: none; background-color: #6f8f96; border-color: #10262b; }
+switch:checked, switch:checked:backdrop { background-image: none; background-color: #e8874f; }
+switch slider, switch slider:backdrop, switch:checked slider { background-image: none; background-color: #86a4aa; border-color: #10262b; }
+/* GTK 4's own theme names these by their full path. */
+progressbar > trough > progress, scale > trough > highlight, levelbar > trough > block.filled {
+  background-image: none;
+  background-color: #e8874f;
+  border: 1px solid #10262b;
+  border-radius: 0;
+}
+progressbar > trough, scale > trough, levelbar > trough { background-image: none; background-color: #afc2c2; border-radius: 0; }
+scale > trough > slider { background-image: none; background-color: #86a4aa; border: 1px solid #10262b; border-radius: 0; box-shadow: inset 1px 1px #c9dedb, inset -1px -1px #41646a; }
+checkbutton > check, checkbutton > radio { background-image: none; background-color: #c4d2d0; border: 1px solid #10262b; box-shadow: inset 1px 1px #41646a, inset -1px -1px #c9dedb; }
+checkbutton > check:checked, checkbutton > check:indeterminate, checkbutton > radio:checked, checkbutton > radio:indeterminate {
+  background-image: none; background-color: #e8874f; color: #10262b;
+}
+checkbutton > check:disabled, checkbutton > radio:disabled { background-color: #86a4aa; color: #6f8588; box-shadow: none; }

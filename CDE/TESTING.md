@@ -285,6 +285,17 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   `ksmserver-logout-greeter --windowed` in the VM for 5 s and stopped (the
   windowed mode carries the actions out for real, so no button was
   pressed); hibernate is not offered by the VM, so its button stays hidden.
+- GTK theme (gtktheme.py, themes/CDECopper with gtk-3.0 and gtk-4.0): GTK's
+  built-in theme (Adwaita for 3, Default for 4) imported, Motif controls on
+  top in the palette's colours, plus rules for the more specific states of
+  the built-in themes (disabled, checked, backdrop) and GTK 4's full-path
+  selectors. gtk-dark.css is the same file: Plasma reported "prefer dark"
+  for Orchid and GTK 4 then fell back to its own dark theme. Applying sets
+  it through Plasma's gtkconfig (org.kde.GtkConfig.setGtkTheme); a palette
+  change rebuilds it and switches GTK to Adwaita and back so running
+  programs reload; uninstall restores the previous GTK theme. Checked in the
+  VM with gtk3-widget-factory, gtk4-widget-factory and PCManFM under
+  Orchid. Not checked: Firefox, libadwaita programs (they ignore themes).
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the

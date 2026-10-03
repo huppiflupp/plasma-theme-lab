@@ -284,6 +284,8 @@ def main():
     build_icons(OUT)
     from cursors import build_cursors
     build_cursors(OUT)
+    from gtktheme import build_gtk
+    build_gtk(OUT, P)
     from kvantum import build_kvantum
     build_kvantum(OUT, P)
     other_assets()
