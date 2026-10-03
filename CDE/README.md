@@ -40,8 +40,10 @@ languages can be added as `po/<language>.po`.
   subpanels, four-workspace switcher (each button in a colour of the palette,
   as in CDE), window task strip (several windows of
   one application as one button, "3× Konsole"), volume
-  control, and four small buttons in the space of one launcher: hidden tray
-  icons, console settings, lock screen, show desktop. The Plasma system tray
+  control, and a launcher-wide block: its arrow strip opens the hidden tray
+  icons, below it four square buttons for console settings, lock screen,
+  show desktop and a load meter (processor and memory from Plasma's own
+  sensors; a click opens the system monitor). The Plasma system tray
   stays in the console's panel for notifications, but by default it is out of
   sight: its entries open from the console's button; the tray's own volume
   icon is left out, since the console has one. By default the console stands
@@ -210,7 +212,9 @@ Right-click the console and choose its settings.
 - **Front Console**: bottom, top, left or right screen edge (upright at the
   sides, running the full screen height, subpanels opening towards the middle);
   Always Visible, Auto-hide / Edge Reveal, or Dodge Windows; window list per
-  screen; whether the tray's volume icon is left to the console; label; size
+  screen; whether the tray's volume icon is left to the console; hard
+  contrast (pure black text, white on dark surfaces, labels in semibold);
+  label; size
   (75–200 %, tiles, icons and text scale together).
 - **Launchers**: the tiles left and right of the workspace switch. Each tile has
   a label, an icon, a program and the subpanel its arrow opens (Applications,
@@ -349,7 +353,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.8.2. The application style is a Kvantum theme, not a
+This is version 0.8.3. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

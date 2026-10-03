@@ -10,6 +10,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager
 import org.kde.plasma.private.kicker as Kicker
 import org.kde.plasma.workspace.calendar as PlasmaCalendar
+import org.kde.ksysguard.sensors as Sensors
 import "launch.js" as Launch
 import "motif.js" as Motif
 
@@ -55,7 +56,7 @@ PlasmoidItem {
     property string volumeState: i18nd("cde-copper", "Audio")
     property int volume: 0
     property bool muted: false
-    readonly property string dbus: "$(command -v qdbus6 || command -v qdbus-qt6 || command -v qdbus)"
+    readonly property string dbus: Launch.DBUS
     readonly property var leftSlots: Launch.parse(Plasmoid.configuration.leftLaunchers, Launch.LEFT)
     readonly property var rightSlots: Launch.parse(Plasmoid.configuration.rightLaunchers, Launch.RIGHT)
 
@@ -68,13 +69,18 @@ PlasmoidItem {
     QtObject {
         id: consoleColors
         readonly property color panel: complementary.Kirigami.Theme.backgroundColor
-        readonly property color panelText: complementary.Kirigami.Theme.textColor
+        // Hard contrast (setting): pure black, or white on a dark surface.
+        readonly property bool hard: Plasmoid.configuration.hardContrast
+        // Labels in semibold with hard contrast: thin small type was the
+        // other half of the weak contrast, beside the colours.
+        readonly property int weight: hard ? Font.DemiBold : Font.Normal
+        readonly property color panelText: hard ? Motif.stark(panel) : complementary.Kirigami.Theme.textColor
         readonly property color window: windowSet.Kirigami.Theme.backgroundColor
-        readonly property color windowText: windowSet.Kirigami.Theme.textColor
+        readonly property color windowText: hard ? Motif.stark(window) : windowSet.Kirigami.Theme.textColor
         readonly property color field: viewSet.Kirigami.Theme.backgroundColor
-        readonly property color fieldText: viewSet.Kirigami.Theme.textColor
+        readonly property color fieldText: hard ? Motif.stark(field) : viewSet.Kirigami.Theme.textColor
         readonly property color highlight: windowSet.Kirigami.Theme.highlightColor
-        readonly property color highlightText: windowSet.Kirigami.Theme.highlightedTextColor
+        readonly property color highlightText: hard ? Motif.stark(highlight) : windowSet.Kirigami.Theme.highlightedTextColor
         readonly property string font: Kirigami.Theme.defaultFont.family
         readonly property date now: root.now
         // Console scale (settings): every size below is a multiple of it.
@@ -163,7 +169,9 @@ PlasmoidItem {
                 entry(i18nd("cde-copper", "Network"), "network-workgroup", "@settings kcm_networkmanagement"),
                 entry(i18nd("cde-copper", "Display"), "computer", "@settings kcm_kscreen"),
                 entry(i18nd("cde-copper", "Lock Screen"), "system-lock-screen", dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock"),
-                entry(i18nd("cde-copper", "Leave Session..."), "system-log-out", dbus + " org.kde.LogoutPrompt /LogoutPrompt promptAll")];
+                entry(i18nd("cde-copper", "Leave Session..."), "system-log-out", dbus + " org.kde.LogoutPrompt /LogoutPrompt promptAll"),
+                entry(i18nd("cde-copper", "Restart..."), "system-reboot", dbus + " org.kde.LogoutPrompt /LogoutPrompt promptReboot"),
+                entry(i18nd("cde-copper", "Shut Down..."), "system-shutdown", dbus + " org.kde.LogoutPrompt /LogoutPrompt promptShutDown")];
     }
     // The mail client's own command with a bare mailto: opens a new message
     // in Thunderbird, KMail and Evolution alike.
@@ -513,6 +521,8 @@ PlasmoidItem {
             segmentEdge: Plasmoid.configuration.clockSegmentEdge
             now: root.now
             ink: clock.selected ? consoleColors.highlightText : consoleColors.windowText
+            dim: consoleColors.hard ? 1 : 0.8
+            bold: consoleColors.hard
             // Lit segments and the second hand: the selection (copper) colour,
             // swapped while the tile itself is highlighted.
             accent: clock.selected ? consoleColors.highlightText : consoleColors.highlight
@@ -530,8 +540,9 @@ PlasmoidItem {
         ColumnLayout {
             anchors.fill: parent; anchors.margins: 4; spacing: 3
             Text {
-                Layout.fillWidth: true; text: i18nd("cde-copper", "WORKSPACES"); color: Motif.shades(consoleColors.panel).top
+                Layout.fillWidth: true; text: i18nd("cde-copper", "WORKSPACES"); color: consoleColors.hard ? Motif.stark(consoleColors.panel) : Motif.shades(consoleColors.panel).top
                 font.pixelSize: root.u(9); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter
+                font.weight: consoleColors.weight
             }
             GridLayout {
                 columns: 2; rowSpacing: 3; columnSpacing: 3
@@ -550,9 +561,9 @@ PlasmoidItem {
                         readonly property var own: Plasmoid.configuration.workspaceColours && root.workspaceColours.length
                                                    ? root.workspaceColours[index % root.workspaceColours.length] : null
                         surface: own ? own.bg : consoleColors.panel
-                        foreground: own ? own.fg : consoleColors.panelText
+                        foreground: own ? (consoleColors.hard ? Motif.stark(own.bg) : own.fg) : consoleColors.panelText
                         accent: own ? own.sel : consoleColors.highlight
-                        accentText: own ? own.fg : consoleColors.highlightText
+                        accentText: own ? (consoleColors.hard ? Motif.stark(own.bg) : own.fg) : consoleColors.highlightText
                         onClicked: root.run(root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
                     }
                 }
@@ -562,29 +573,109 @@ PlasmoidItem {
 
     // Four small buttons in the space of one launcher with its arrow: the
     // tray's hidden icons, the console's settings, lock and show desktop.
+    // The session block: an arrow strip like the launchers' over four
+    // square quarter buttons. The arrow opens the tray's hidden icons;
+    // the quarters are settings, lock, show desktop and a load meter.
     component SessionButtons: GridLayout {
-        rows: 2; columns: 2
+        id: session
+        rows: root.vertical ? 1 : 2
+        columns: root.vertical ? 2 : 1
         rowSpacing: 1; columnSpacing: 1
         Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
-        Layout.preferredWidth: root.vertical ? -1 : root.u(68)
-        Layout.preferredHeight: root.vertical ? root.u(62) : -1
-        SmallButton {
-            iconName: "arrow-up"; Accessible.name: i18nd("cde-copper", "Hidden Icons")
+        // The side of one square, from the space beside the arrow strip.
+        readonly property int quarter: Math.max(10, Math.floor(((root.vertical ? width : height) - root.u(13) - 2) / 2))
+        Layout.preferredWidth: root.vertical ? -1 : 2 * quarter + 1
+        Layout.preferredHeight: root.vertical ? 2 * quarter + 1 : -1
+        ConsoleButton {
+            Layout.row: 0
+            Layout.column: root.vertical && !root.atRight ? 1 : 0
+            Layout.fillWidth: !root.vertical; Layout.fillHeight: root.vertical
+            Layout.preferredHeight: root.vertical ? -1 : root.u(13)
+            Layout.preferredWidth: root.vertical ? root.u(13) : -1
+            text: ""
+            Accessible.name: i18nd("cde-copper", "Hidden Icons")
+            contentItem: Text {
+                text: root.arrowGlyph
+                color: consoleColors.panelText; font.pixelSize: root.u(12)
+                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+            }
             onClicked: root.showHiddenIcons()
         }
-        SmallButton {
-            iconName: "configure"; Accessible.name: i18nd("cde-copper", "Configure Front Console")
-            onClicked: Plasmoid.internalAction("configure").trigger()
+        GridLayout {
+            Layout.row: root.vertical ? 0 : 1
+            Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
+            Layout.alignment: Qt.AlignCenter
+            Layout.preferredWidth: 2 * session.quarter + 1
+            Layout.preferredHeight: 2 * session.quarter + 1
+            rows: 2; columns: 2
+            rowSpacing: 1; columnSpacing: 1
+            SmallButton {
+                iconName: "configure"; Accessible.name: i18nd("cde-copper", "Configure Front Console")
+                onClicked: Plasmoid.internalAction("configure").trigger()
+            }
+            SmallButton {
+                iconName: "system-lock-screen"; Accessible.name: i18nd("cde-copper", "Lock Screen")
+                onClicked: root.run(root.dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock")
+            }
+            SmallButton {
+                iconName: "user-desktop"; Accessible.name: i18nd("cde-copper", "Show Desktop")
+                // KWin's D-Bus showDesktop(bool) is accepted but does nothing in
+                // Plasma 6.7; its own "Show Desktop" shortcut toggles reliably.
+                onClicked: root.run(root.dbus + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop'")
+            }
+            LoadMeter {}
         }
-        SmallButton {
-            iconName: "system-lock-screen"; Accessible.name: i18nd("cde-copper", "Lock Screen")
-            onClicked: root.run(root.dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock")
-        }
-        SmallButton {
-            iconName: "user-desktop"; Accessible.name: i18nd("cde-copper", "Show Desktop")
-            // KWin's D-Bus showDesktop(bool) is accepted but does nothing in
-            // Plasma 6.7; its own "Show Desktop" shortcut toggles reliably.
-            onClicked: root.run(root.dbus + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop'")
+    }
+    // CPU and memory load as two sunken Motif meters (Plasma's own sensors,
+    // ksystemstats), a click opens the system monitor.
+    component LoadMeter: ConsoleButton {
+        id: meter
+        Layout.fillWidth: true; Layout.fillHeight: true
+        Layout.preferredWidth: 1; Layout.preferredHeight: 1
+        implicitWidth: 0; implicitHeight: 0
+        padding: 0; text: ""
+        readonly property int cpuLoad: Math.round(Math.max(0, Math.min(100, Number(cpuSensor.value) || 0)))
+        readonly property int memLoad: Math.round(Math.max(0, Math.min(100, Number(memSensor.value) || 0)))
+        Accessible.name: i18nd("cde-copper", "Processor %1 %, memory %2 %", cpuLoad, memLoad)
+        onClicked: root.run("plasma-systemmonitor || ksysguard")
+        Sensors.Sensor { id: cpuSensor; sensorId: "cpu/all/usage"; updateRateLimit: 2000 }
+        Sensors.Sensor { id: memSensor; sensorId: "memory/physical/usedPercent"; updateRateLimit: 2000 }
+        contentItem: Item {
+            id: gauges
+            // Whole pixels at every console size.
+            readonly property int side: Math.min(width, height)
+            readonly property int barWidth: Math.max(4, Math.round(side * 0.2))
+            readonly property int barHeight: Math.max(8, Math.round(side * 0.56))
+            readonly property int labelSize: Math.max(6, Math.round(side * 0.2))
+            Row {
+                anchors.centerIn: parent
+                spacing: Math.max(2, Math.round(gauges.side * 0.12))
+                Repeater {
+                    model: [{label: "C", load: meter.cpuLoad}, {label: "M", load: meter.memLoad}]
+                    delegate: Column {
+                        required property var modelData
+                        spacing: 1
+                        Bevel {
+                            sunken: true
+                            surface: consoleColors.field
+                            width: gauges.barWidth; height: gauges.barHeight
+                            Rectangle {
+                                x: 2; width: parent.width - 4
+                                readonly property int room: parent.height - 4
+                                height: Math.round(room * modelData.load / 100)
+                                y: 2 + room - height
+                                color: consoleColors.highlight
+                            }
+                        }
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            text: modelData.label
+                            font.family: consoleColors.font; font.pixelSize: gauges.labelSize; font.weight: Font.DemiBold
+                            color: consoleColors.panelText
+                        }
+                    }
+                }
+            }
         }
     }
     // A quarter launcher: the icon follows the button, whole pixels.
@@ -715,6 +806,7 @@ PlasmoidItem {
                     Layout.preferredWidth: root.vertical ? -1 : root.u(92)
                     text: Plasmoid.configuration.consoleLabel; color: consoleColors.panelText
                     font.pixelSize: root.u(9); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
+                    font.weight: consoleColors.weight
                 }
                 TaskStrip {}
                 VolumeButton {}

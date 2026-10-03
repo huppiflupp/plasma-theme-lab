@@ -363,6 +363,28 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   now only called with DISPLAY set; plasmashell hung on logout in Klipper's
   clipboard history (KIO worker thread join), Plasma's own code, and was
   killed by systemd after the stop timeout.
+- Leave Session (0.8.3): the System subpanel's D-Bus entries did nothing:
+  the D-Bus caller had become a shell expression ($(command -v qdbus6 ...))
+  and the entries' check took "$(command" for a program and gave up.
+  resolve()/check() now pass such expressions through (Launch.DBUS). New
+  entries Restart... and Shut Down... (LogoutPrompt promptReboot /
+  promptShutDown); log out is a door, shut down the power sign, restart the
+  circular arrow, in the pixel versions too. The direct D-Bus call opened
+  the greeter in the VM; the entries themselves not yet clicked (the user
+  was working in the VM).
+- Session block, load meter, hard contrast, lock icon (0.8.3): the arrow
+  strip opens the tray popup with the hidden icons; the meter (ksystemstats
+  sensors cpu/all/usage, memory/physical/usedPercent) went to full on four
+  busy loops. Hard contrast under Alpine changed little in colour, the
+  palette's console text is already black: CDE's palettes pick black or
+  white for it. So the option sets the labels semibold too, the thin small
+  type being the other half. Found on the way: a second font.weight in
+  ConsoleButton.qml made the console fail to load ("Property value set
+  multiple times"). The padlock lost its shackle on the console face (a
+  pale stroke without outline): now outlined, copper body, dark keyhole.
+  Also found: installing the X11 session had upgraded Plasma only partly,
+  some of Plasma's own applets (battery, brightness, weather) failed with
+  undefined symbols; the VM was then upgraded as a whole.
 - System Settings icons (0.8.2): KDE shortens a missing icon name until
   one exists, so 42 page names (preferences-desktop-color, -icons,
   -cursors, ...) fell onto four drawings and the appearance pages showed

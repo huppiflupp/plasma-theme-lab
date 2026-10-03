@@ -21,6 +21,7 @@ KCM.SimpleKCM {
     property var cfg_hideTrayIconsDefault
     property var cfg_trayHiddenByConsoleDefault
     property var cfg_panelFrameDefault
+    property var cfg_hardContrastDefault
     property var cfg_styleRequestDefault
     property var cfg_leftLaunchersDefault
     property var cfg_rightLaunchersDefault
@@ -43,6 +44,7 @@ KCM.SimpleKCM {
     property alias cfg_hideTrayVolume: hideVolume.checked
     property alias cfg_hideTrayIcons: hideIcons.checked
     property alias cfg_panelFrame: panelFrame.checked
+    property alias cfg_hardContrast: hardContrast.checked
     Kirigami.FormLayout {
         ComboBox {
             id: visibility
@@ -82,6 +84,11 @@ KCM.SimpleKCM {
             id: panelFrame
             Kirigami.FormData.label: i18nd("cde-copper", "Panel:")
             text: i18nd("cde-copper", "Frame behind the console")
+        }
+        CheckBox {
+            id: hardContrast
+            Kirigami.FormData.label: i18nd("cde-copper", "Text:")
+            text: i18nd("cde-copper", "Hard contrast: black (white on dark surfaces) instead of the palette's colours")
         }
         TextField { id: label; Kirigami.FormData.label: i18nd("cde-copper", "Console label:") }
         SpinBox {

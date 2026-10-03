@@ -52,7 +52,7 @@ Button {
             text: control.text
             color: control.selected ? control.accentText : control.foreground
             font.family: consoleColors.font; font.pixelSize: Math.round(11 * consoleColors.unit)
-            font.weight: control.selected ? Font.DemiBold : Font.Normal
+            font.weight: control.selected ? Font.DemiBold : consoleColors.weight
             elide: Text.ElideRight
             horizontalAlignment: control.horizontal ? Text.AlignLeft : Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter

@@ -167,15 +167,21 @@ function chain(token, args, probe, translate) {
 // console itself and never reaches this.
 // extra: further arguments taken literally (a bookmark's URL, a file path
 // with spaces); they are quoted, not split.
+// The D-Bus caller under the names distributions give it; a shell
+// expression, so resolve() and check() take it as such, not as a program.
+const DBUS = "$(command -v qdbus6 || command -v qdbus-qt6 || command -v qdbus)";
+
 function resolve(command, extra, translate) {
     const token = command.trim().split(/\s+/)[0] || "";
+    if (token.indexOf("$(") === 0)
+        return command + ((extra || []).length ? " " + extra.map(quote).join(" ") : "");
     const rest = command.trim().substring(token.length).trim();
     const words = (rest ? rest.split(/\s+/).map(argument) : []).concat((extra || []).map(quote));
     const args = words.join(" ");
     if (TOKENS[token])
         return chain(token, args, false, translate);
     if (token === "@arrange")
-        return "qdbus-qt6 org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'CDE Copper: Arrange Around Console'";
+        return DBUS + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'CDE Copper: Arrange Around Console'";
     if (token.indexOf("app:") === 0) {
         const id = quote(token.substring(4));
         return "gtk-launch " + id + " " + args + " 2>/dev/null || kstart --application " + id + " " + args + " 2>/dev/null || "
@@ -190,7 +196,7 @@ function resolve(command, extra, translate) {
 function check(command) {
     const token = command.trim().split(/\s+/)[0] || "";
     if (token === "") return "echo missing";
-    if (token === "@applications" || token === "@arrange") return "echo ok";
+    if (token === "@applications" || token === "@arrange" || token.indexOf("$(") === 0) return "echo ok";
     if (TOKENS[token]) return chain(token, "", true);
     if (token.indexOf("app:") === 0) {
         const file = quote(token.substring(4).replace(/\.desktop$/, "") + ".desktop");

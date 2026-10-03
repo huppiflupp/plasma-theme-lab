@@ -21,6 +21,8 @@ Item {
     property bool segmentShadow: true    // unlit segments faintly drawn
     property date now: new Date()
     property color ink: "black"          // text, hands, marks
+    property real dim: 0.8               // the weekday, a little quieter
+    property bool bold: false            // semibold date and weekday
     property color accent: "orange"      // second hand, lit segments
     property color dialColor: "white"    // the dial's surface
     property color tile: "gray"          // the tile around it
@@ -36,8 +38,8 @@ Item {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Qt.formatDateTime(face.now, "ddd").toUpperCase()
-            color: face.ink; opacity: 0.8
-            font.pixelSize: face.small; font.family: face.font
+            color: face.ink; opacity: face.dim
+            font.pixelSize: face.small; font.family: face.font; font.weight: face.bold ? Font.DemiBold : Font.Normal
         }
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -51,7 +53,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Qt.formatDateTime(face.now, "dd MMM").toUpperCase()
             color: face.ink
-            font.pixelSize: face.small; font.family: face.font
+            font.pixelSize: face.small; font.family: face.font; font.weight: face.bold ? Font.DemiBold : Font.Normal
         }
     }
 
@@ -182,7 +184,7 @@ Item {
             y: segments.y + segments.height + segmentsFace.gapBelow
             text: Qt.formatDateTime(face.now, "ddd dd MMM").toUpperCase()
             color: face.ink
-            font.pixelSize: face.small; font.family: face.font
+            font.pixelSize: face.small; font.family: face.font; font.weight: face.bold ? Font.DemiBold : Font.Normal
         }
     }
 

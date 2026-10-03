@@ -41,6 +41,15 @@ function shades(c) {
     return {top: q(ts), bottom: q(bs), select: q(sel)};
 }
 
+// Black or white, whichever reads better on c (WCAG contrast): the hard
+// contrast of the console's option.
+function stark(c) {
+    if (typeof c === "string") c = Qt.lighter(c, 1);
+    const lin = v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    const l = 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+    return (l + 0.05) / 0.05 >= 1.05 / (l + 0.05) ? Qt.rgba(0, 0, 0, 1) : Qt.rgba(1, 1, 1, 1);
+}
+
 function mix(a, b, t) {
     return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, 1);
 }

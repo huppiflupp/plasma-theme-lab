@@ -34,6 +34,7 @@ KCM.SimpleKCM {
     property var cfg_hideTrayIconsDefault
     property var cfg_trayHiddenByConsoleDefault
     property var cfg_panelFrameDefault
+    property var cfg_hardContrastDefault
     property var cfg_styleRequestDefault
     property var cfg_leftLaunchersDefault
     property var cfg_rightLaunchersDefault

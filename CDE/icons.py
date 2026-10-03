@@ -113,7 +113,11 @@ def build_icons(out: Path):
     edit = document(text) + path("M30 43L48 13L56 19L38 48L28 53Z", COPPER) + path("M30 43L38 48M48 13L56 19")
     clock = rect(8, 7, 48, 50, "#86a4aa") + circle(32, 31, 19, "#c4d2d0") + path("M32 17V31L43 37", "none", INK, 3) + rect(29, 51, 6, 3, COPPER, "none")
     cabinet = rect(10, 6, 44, 52, "#86a4aa") + rect(15, 12, 34, 18, TEAL) + rect(15, 35, 34, 18, TEAL) + rect(26, 19, 12, 4, COPPER) + rect(26, 42, 12, 4, COPPER)
-    lock = path("M20 28V18C20 2 44 2 44 18V28", "none", "#afc2c2", 7) + rect(12, 26, 40, 32, TEAL) + circle(32, 39, 4, COPPER) + rect(30, 41, 4, 7, COPPER, "none")
+    # A padlock: outlined shackle, copper body, dark keyhole (the shackle
+    # was a pale stroke alone and vanished on the console face).
+    shackle = "M21 28V17C21 3 43 3 43 17V28"
+    lock = (path(shackle, "none", INK, 11) + path(shackle, "none", "#c4d2d0", 6) + rect(11, 26, 42, 32, COPPER)
+            + path("M14 55V29H50", "none", "#ffffff") + circle(32, 38, 5, INK, "none") + path("M32 41V50", "none", INK, 4))
     power = path("M23 13A22 22 0 1 0 42 13", "none", TEAL, 7) + path("M32 5V31", "none", COPPER, 7)
     logo = rect(7, 7, 50, 50, TEAL) + "".join(rect(15 if y not in (15, 45) else 22, y, 31 if y in (15, 45) else 12, 4, COPPER, "none") for y in (15, 21, 27, 33, 39, 45))
     defs = {
@@ -131,7 +135,11 @@ def build_icons(out: Path):
         "network-workgroup": network, "audio-volume-high": audio, "preferences-system": gear,
         "preferences-desktop-virtual": workspaces, "text-x-generic": document(text),
         "application-x-executable": cabinet, "drive-harddisk": cabinet, "chronometer": clock,
-        "system-lock-screen": lock, "system-log-out": power,
+        "system-lock-screen": lock, "system-shutdown": power,
+        # Leaving the session: a door with an arrow out (the power sign is
+        # shutting down, side by side in the console's System subpanel).
+        "system-log-out": (rect(8, 6, 30, 52, TEAL) + rect(13, 11, 20, 42, PAPER) + circle(28, 33, 2, INK, "none")
+                           + path("M36 33H58M49 24L58 33L49 42", "none", COPPER, 5)),
         "help-browser": circle(32, 32, 25, "#afc2c2") + path("M23 24C23 10 47 12 42 26L32 35V40M32 47V51", "none", TEAL, 5),
         "printer": rect(17, 5, 31, 26, "#c4d2d0") + rect(7, 23, 50, 27, "#86a4aa") + rect(18, 39, 29, 20, "#c4d2d0") + rect(44, 29, 5, 4, COPPER),
         "image-x-generic": document(picture), "application-pdf": document(path("M20 43L39 23L32 46L20 43L43 39", "none", "#a32626", 3)),
@@ -180,7 +188,7 @@ def build_icons(out: Path):
         "go-home": "user-home", "go-parent-folder": "go-up", "go-jump": "go-next",
         "view-hidden": "edit-find", "show-menu": "view-list-details", "overflow-menu": "view-list-details",
         "configure": "preferences-system", "configure-toolbars": "preferences-system",
-        "system-reboot": "view-refresh", "system-shutdown": "system-log-out",
+        "system-reboot": "view-refresh",
         "dialog-information": "help-browser", "dialog-warning": "help-browser", "dialog-error": "dialog-cancel",
         "dialog-question": "help-browser", "help-contents": "help-browser", "appointment-new": "chronometer",
         "org.kde.gwenview": "image-x-generic", "org.kde.okular": "application-pdf", "org.kde.ark": "application-x-executable",
@@ -1011,9 +1019,9 @@ def px_editor(p):
 
 
 def px_lock(p):
-    p.shape(p.disc(8, 6.5, 5.5) - p.disc(8, 6.5, 2.8) - p.rect(0, 6.5, 16, 10), PALE)
-    p.shape(p.rect(2, 6.5, 12, 9.5), TEAL, light=LIGHT)
-    p.fill(p.disc(8, 10, 1.4) | p.rect(7.4, 10, 1.3, 3), COPPER)
+    p.shape(p.disc(8, 6.5, 5.5) - p.disc(8, 6.5, 2.8) - p.rect(0, 6.5, 16, 10), PAPER)
+    p.shape(p.rect(2, 6.5, 12, 9.5), COPPER, light=LIGHT)
+    p.fill(p.disc(8, 10, 1.4) | p.rect(7.4, 10, 1.3, 3), INK)
 
 
 def px_power(p):
@@ -1130,11 +1138,13 @@ PIXEL = {
     "internet-mail": px_mail,
     "accessories-text-editor": px_editor,
     "system-lock-screen": px_lock,
-    "system-log-out": px_power,
+    "system-shutdown": px_power,
     "audio-volume-high": px_volume,
     "audio-volume-muted": lambda p: px_volume(p, True),
     "cde-menu": px_logo,
 }
+# Leaving the session is a door, shutting down the power sign.
+PIXEL["system-log-out"] = PIXEL["application-exit"]
 
 
 # ---- monochrome Plasma / Kirigami pictograms -----------------------------
