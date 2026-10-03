@@ -175,12 +175,23 @@ PlasmoidItem {
     // is a CDE palette, the tool brings Kvantum, the Plasma surfaces and the
     // backdrop along. Unchanged palettes cost nothing: the tool compares.
     readonly property string schemeKey: consoleColors.panel + consoleColors.window + consoleColors.highlight + consoleColors.field
-    onSchemeKeyChanged: { schemeTimer.restart(); workspaceTimer.restart(); }
+    onSchemeKeyChanged: { schemeTimer.restart(); workspaceReads = 0; workspaceTimer.restart(); }
     // The palette's workspace colours, written by the tool with each palette
     // (cde-copper/workspaces.json); read at start and after a scheme change.
     property var workspaceColours: []
     readonly property string workspaceFile: decodeURIComponent(StandardPaths.writableLocation(StandardPaths.GenericDataLocation).toString().replace(/^file:\/\//, "")) + "/cde-copper/workspaces.json"
-    Timer { id: workspaceTimer; interval: 3000; running: true; onTriggered: workspaceReader.connectSource("cat " + Launch.quote(root.workspaceFile)) }
+    // Read three times, 3 s apart: the tool may still be writing the file
+    // when the colours change. A scheme that is not CDE's has none.
+    property int workspaceReads: 0
+    Timer {
+        id: workspaceTimer
+        interval: 3000; running: true; repeat: true
+        onTriggered: {
+            workspaceReader.connectSource("case \"$(kreadconfig6 --group General --key ColorScheme)\" in CDE*) cat " + Launch.quote(root.workspaceFile)
+                                          + " ;; *) echo '[]' ;; esac");
+            if (++root.workspaceReads >= 3) stop();
+        }
+    }
     P5Support.DataSource {
         id: workspaceReader
         engine: "executable"
@@ -212,17 +223,21 @@ PlasmoidItem {
         const icons = Plasmoid.configuration.hideTrayIcons;
         // Applications' status icons are not in the tray's list; their ids
         // come from the helper (statusIds, refreshed by trayIds below).
-        const script = "for (var p of panels()) { var ours = p.widgets().some(function (w) { return w.type === 'org.cde.copper.frontpanel'; }); if (!ours) continue;"
+        // The entries the console hid itself are recorded in its own
+        // settings (trayHiddenByConsole); switching the option off takes out
+        // only those, so what the user hid in the tray stays hidden.
+        const script = "function list(w, key) { var v = w.readConfig(key, []); return typeof v === 'string' ? (v ? v.split(',') : []) : v; }"
+            + " for (var p of panels()) { var ours = p.widgets().filter(function (w) { return w.type === 'org.cde.copper.frontpanel'; })[0]; if (!ours) continue;"
+            + " ours.currentConfigGroup = ['General']; var mine = list(ours, 'trayHiddenByConsole');"
             + " for (var w of p.widgets()) { if (w.type !== 'org.kde.plasma.systemtray') continue; w.currentConfigGroup = ['General'];"
             + " var items = w.readConfig('extraItems', []); if (typeof items === 'string') items = items ? items.split(',') : [];"
             + " var has = items.indexOf('org.kde.plasma.volume') >= 0;"
             + (hide ? " if (has) w.writeConfig('extraItems', items.filter(function (i) { return i !== 'org.kde.plasma.volume'; }));"
                     : " if (!has && items.length) { items.push('org.kde.plasma.volume'); w.writeConfig('extraItems', items); }")
-            + " var known = w.readConfig('knownItems', []); if (typeof known === 'string') known = known ? known.split(',') : [];"
-            + (icons ? " var want = known.concat(" + JSON.stringify(root.statusIds) + ");"
-                       + " var now = w.readConfig('hiddenItems', []); if (typeof now === 'string') now = now ? now.split(',') : [];"
-                       + " if (want.some(function (i) { return now.indexOf(i) < 0; })) w.writeConfig('hiddenItems', now.concat(want.filter(function (i) { return now.indexOf(i) < 0; })));"
-                     : " w.writeConfig('hiddenItems', []);")
+            + " var now = list(w, 'hiddenItems');"
+            + (icons ? " var add = list(w, 'knownItems').concat(" + JSON.stringify(root.statusIds) + ").filter(function (i, k, all) { return now.indexOf(i) < 0 && all.indexOf(i) === k; });"
+                       + " if (add.length) { w.writeConfig('hiddenItems', now.concat(add)); ours.writeConfig('trayHiddenByConsole', mine.concat(add)); }"
+                     : " if (mine.length) { w.writeConfig('hiddenItems', now.filter(function (i) { return mine.indexOf(i) < 0; })); ours.writeConfig('trayHiddenByConsole', []); }")
             + " } }";
         runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(script));
     }
@@ -270,20 +285,34 @@ PlasmoidItem {
     // Plasma's tray has no setting to drop its arrow. With its entries
     // behind the console's button, its container in the panel's layout is
     // hidden instead; the tray keeps running for notifications and its popup.
+    // What placeTray() changed, to put back when the option is switched off.
+    property var trayLayoutSpacing: null
+    property var hiddenTray: null
     function placeTray() {
         const layout = root.parent ? root.parent.parent : null;
         if (!layout || !layout.children) return;
+        const hide = Plasmoid.configuration.hideTrayIcons;
         for (const item of layout.children) {
             const applet = item.applet ? item.applet.plasmoid : null;
-            if (applet && applet.pluginName === "org.kde.plasma.systemtray") item.visible = !Plasmoid.configuration.hideTrayIcons;
+            if (!applet || applet.pluginName !== "org.kde.plasma.systemtray") continue;
+            if (hide) { item.visible = false; root.hiddenTray = item; }
+            else if (root.hiddenTray === item) { item.visible = true; root.hiddenTray = null; }
         }
         // The panel's layout keeps its spacing after the console, before an
         // invisible end spacer: four pixels more panel on one side.
-        if (Plasmoid.configuration.hideTrayIcons) { layout.columnSpacing = 0; layout.rowSpacing = 0; }
+        if (hide && root.trayLayoutSpacing === null) {
+            root.trayLayoutSpacing = [layout.columnSpacing, layout.rowSpacing];
+            layout.columnSpacing = 0; layout.rowSpacing = 0;
+        } else if (!hide && root.trayLayoutSpacing !== null) {
+            layout.columnSpacing = root.trayLayoutSpacing[0]; layout.rowSpacing = root.trayLayoutSpacing[1];
+            root.trayLayoutSpacing = null;
+        }
     }
     // The panel's own background (the theme's panel-background frame) behind
     // the console. Without it the console stands on the desktop by itself;
     // the panel keeps its size, so the margin around stays, transparent.
+    // Hidden by scale, not opacity: Plasma binds the frames' opacity to its
+    // adaptive panel opacity, and an assignment would break that binding.
     function placePanelFrame() {
         let item = root.parent;
         while (item && item.parent) item = item.parent;     // the panel window's root
@@ -291,7 +320,7 @@ PlasmoidItem {
         function walk(node, depth) {
             if (!node || depth > 3 || !node.children) return;
             for (const child of node.children) {
-                if (child.imagePath !== undefined && String(child.imagePath).indexOf("panel-background") >= 0) child.opacity = show ? 1 : 0;
+                if (child.imagePath !== undefined && String(child.imagePath).indexOf("panel-background") >= 0) child.scale = show ? 1 : 0;
                 else walk(child, depth + 1);
             }
         }

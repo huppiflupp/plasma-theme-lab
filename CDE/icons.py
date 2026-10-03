@@ -146,9 +146,10 @@ def build_icons(out: Path):
     dest = theme / "scalable/all"
     # Start empty: writing a drawing through a link left by an earlier build
     # would overwrite the link's target instead.
-    if dest.exists():
-        import shutil
-        shutil.rmtree(dest)
+    for folder_ in ("scalable", "16", "22"):
+        if (theme / folder_).exists():
+            import shutil
+            shutil.rmtree(theme / folder_)
     dest.mkdir(parents=True, exist_ok=True)
     for name, body in defs.items():
         (dest / f"{name}.svg").write_text(f'<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">{body}</svg>\n')
@@ -157,7 +158,27 @@ def build_icons(out: Path):
         if p.is_symlink() or p.exists():
             p.unlink()
         p.symlink_to(original + ".svg")
-    (theme / "index.theme").write_text("[Icon Theme]\nName=CDE Copper\nComment=Original scalable workstation pictograms\nInherits=breeze,hicolor\nDirectories=scalable/all\n\n[scalable/all]\nSize=48\nType=Scalable\nMinSize=16\nMaxSize=512\nContext=Applications\n")
+    # Pixel versions at 16 and 22 px; an alias whose drawing has one gets a
+    # link there too, so it does not fall back to the scalable picture.
+    def final(name):
+        while name in aliases:
+            name = aliases[name]
+        return name
+    for size in (16, 22):
+        folder_ = theme / f"{size}/all"
+        folder_.mkdir(parents=True, exist_ok=True)
+        for name, draw in PIXEL.items():
+            canvas = Pixels(size)
+            draw(canvas)
+            (folder_ / f"{name}.svg").write_text(canvas.svg())
+        for name in aliases:
+            if final(name) in PIXEL and name not in PIXEL:
+                (folder_ / f"{name}.svg").symlink_to(final(name) + ".svg")
+    (theme / "index.theme").write_text("[Icon Theme]\nName=CDE Copper\nComment=Original workstation pictograms, pixel versions at 16 and 22 px\n"
+                                       "Inherits=breeze,hicolor\nDirectories=16/all,22/all,scalable/all\n\n"
+                                       "[16/all]\nSize=16\nType=Fixed\nContext=Applications\n\n"
+                                       "[22/all]\nSize=22\nType=Fixed\nContext=Applications\n\n"
+                                       "[scalable/all]\nSize=48\nType=Scalable\nMinSize=16\nMaxSize=512\nContext=Applications\n")
 
 
 # ---- the rest of the set ---------------------------------------------------
@@ -525,6 +546,11 @@ MORE_ALIASES = {
     "media-flash": ["media-flash-sd-mmc", "media-flash-memory-stick"],
     "drive-harddisk": ["drive-harddisk-root", "drive-harddisk-system", "drive-multidisk", "drive-partition", "partitionmanager-symbolic"],
     "folder-open": ["folder-drag-accept"],
+    "folder-download": ["folder-downloads"],
+    "folder-pictures": ["folder-images", "folder-image"],
+    "folder-music": ["folder-sound"],
+    "folder-videos": ["folder-video"],
+    "folder-documents": ["folder-text"],
     "folder-locked": ["folder-root-locked"],
     "starred": ["favorite", "rating", "starred-symbolic", "bookmark-star"],
     "bookmarks": ["bookmarks-organize", "bookmark", "folder-bookmark"],
@@ -559,3 +585,420 @@ SYMBOLIC = ("applications-accessories", "applications-development", "application
             "applications-games-board", "applications-games-card", "applications-games-logic", "applications-games-strategy",
             "applications-education-language", "applications-education-mathematics", "applications-education-miscellaneous",
             "applications-development-web", "applications-development-translation")
+
+
+# ---- pixel versions for 16 and 22 px ---------------------------------------
+# At 16 and 22 px the 64-unit drawings above put their 2-unit outlines on
+# fractions of a pixel. CDE drew its small icons as separate bitmaps; these
+# are drawn the same way, on whole pixels, and still written as SVG (one
+# rectangle per run of pixels). Each picture is described once on a 16-pixel
+# grid; for 22 px the coordinates are scaled and the shapes rasterised anew,
+# so the outlines stay one pixel wide at both sizes.
+WHITE, YELLOW, SHADE = "#ffffff", "#ffe08a", "#41646a"
+
+
+class Pixels:
+    def __init__(self, size):
+        self.n = size
+        self.k = size / 16
+        self.grid = [[None] * size for _ in range(size)]
+
+    def at(self, v):
+        return round(v * self.k)
+
+    # Masks: sets of pixels whose centres lie inside a shape (16-grid units).
+    def rect(self, x, y, w, h):
+        x0, y0, x1, y1 = self.at(x), self.at(y), self.at(x + w), self.at(y + h)
+        return {(i, j) for i in range(max(0, x0), min(self.n, x1)) for j in range(max(0, y0), min(self.n, y1))}
+
+    def poly(self, pts):
+        pts = [(px * self.k, py * self.k) for px, py in pts]
+        out = set()
+        for j in range(self.n):
+            for i in range(self.n):
+                x, y, inside = i + 0.5, j + 0.5, False
+                for (ax, ay), (bx, by) in zip(pts, pts[1:] + pts[:1]):
+                    if (ay > y) != (by > y) and x < ax + (y - ay) * (bx - ax) / (by - ay):
+                        inside = not inside
+                if inside:
+                    out.add((i, j))
+        return out
+
+    def disc(self, cx, cy, r):
+        cx, cy, r = cx * self.k, cy * self.k, r * self.k
+        return {(i, j) for i in range(self.n) for j in range(self.n) if (i + 0.5 - cx) ** 2 + (j + 0.5 - cy) ** 2 <= r * r}
+
+    def line(self, x0, y0, x1, y1):
+        x0, y0, x1, y1 = (round(v * self.k - 0.01) for v in (x0, y0, x1, y1))
+        out, steps = set(), max(abs(x1 - x0), abs(y1 - y0), 1)
+        for s in range(steps + 1):
+            out.add((round(x0 + (x1 - x0) * s / steps), round(y0 + (y1 - y0) * s / steps)))
+        return {(i, j) for i, j in out if 0 <= i < self.n and 0 <= j < self.n}
+
+    def hline(self, x, y, w):
+        """One pixel high at every size."""
+        j = self.at(y)
+        return {(i, j) for i in range(self.at(x), self.at(x + w)) if 0 <= i < self.n and 0 <= j < self.n}
+
+    def vline(self, x, y, h):
+        i = self.at(x)
+        return {(i, j) for j in range(self.at(y), self.at(y + h)) if 0 <= i < self.n and 0 <= j < self.n}
+
+    # Painting.
+    def fill(self, mask, colour):
+        for i, j in mask:
+            self.grid[j][i] = colour
+
+    def clear(self, mask):
+        self.fill(mask, None)
+
+    def shape(self, mask, fill, edge=INK, light=None):
+        """Fill a mask, its border pixels in the edge colour; light draws the
+        Motif highlight along the inner top and left."""
+        border = {(i, j) for i, j in mask if any(p not in mask for p in ((i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)))}
+        self.fill(mask - border, fill)
+        if light:
+            self.fill({(i, j) for i, j in mask - border if (i - 1, j) in border or (i, j - 1) in border}, light)
+        if edge:
+            self.fill(border, edge)
+
+    def svg(self):
+        rects = []
+        for j, row in enumerate(self.grid):
+            i = 0
+            while i < self.n:
+                c = row[i]
+                start = i
+                while i < self.n and row[i] == c:
+                    i += 1
+                if c:
+                    rects.append(f'<rect x="{start}" y="{j}" width="{i - start}" height="1" fill="{c}"/>')
+        n = self.n
+        return f'<svg xmlns="http://www.w3.org/2000/svg" width="{n}" height="{n}" viewBox="0 0 {n} {n}" shape-rendering="crispEdges">{"".join(rects)}</svg>\n'
+
+
+def px_folder(p, mark=None):
+    p.shape(p.rect(0, 2, 7, 4), COPPER)
+    p.shape(p.rect(0, 4, 16, 11), TEAL, light=LIGHT)
+    if mark:
+        mark(p)
+
+
+def px_document(p, lines=True, x=2, w=12):
+    fold = 3.5
+    p.shape(p.poly([(x, 0), (x + w - fold, 0), (x + w, fold), (x + w, 16), (x, 16)]), PAPER, light=WHITE)
+    p.shape(p.poly([(x + w - fold - 0.5, 0), (x + w, fold + 0.5), (x + w - fold - 0.5, fold + 0.5)]), COPPER)
+    if lines:
+        for k, lw in enumerate((w - 4, w - 4, w - 4, w - 7)):
+            p.fill(p.hline(x + 2, 6 + 2 * k, lw), INK)
+
+
+def px_lens(p, sign=None):
+    p.shape(p.poly([(9, 10.5), (10.5, 9), (16, 14.5), (14.5, 16)]), COPPER)
+    p.shape(p.disc(6.5, 6.5, 5.6), PALE, light=WHITE)
+    if sign:
+        p.fill(p.rect(3.5, 6, 6, 1.5), INK)
+        if sign == "+":
+            p.fill(p.rect(6, 3.5, 1.5, 6), INK)
+
+
+def px_monitor(p, screen=TEAL):
+    p.shape(p.rect(0, 0.5, 16, 11.5), GREY, light=WHITE)
+    p.shape(p.rect(2, 2.5, 12, 7.5), screen)
+    p.fill(p.rect(6.5, 12, 3, 1.5), INK)
+    p.shape(p.rect(3.5, 13.5, 9, 2.5), GREY)
+
+
+def px_window(p, mark=None):
+    p.shape(p.rect(0, 1, 16, 14.5), PAPER, light=WHITE)
+    p.shape(p.rect(0, 1, 16, 4.5), COPPER)
+    if mark:
+        mark(p)
+
+
+def px_cross(p, x0, y0, x1, y1, colour):
+    d = (x1 - x0) * 0.16
+    p.fill(p.poly([(x0, y0 + d), (x0 + d, y0), (x1, y1 - d), (x1 - d, y1)]) | p.poly([(x1 - d, y0), (x1, y0 + d), (x0 + d, y1), (x0, y1 - d)]), colour)
+
+
+def px_gear(p):
+    import math
+    teeth = set()
+    for k in range(8):
+        a = math.pi / 4 * k
+        c, s = math.cos(a), math.sin(a)
+        teeth |= p.poly([(8 + 4 * c - 1.6 * s, 8 + 4 * s + 1.6 * c), (8 + 7.8 * c - 1.6 * s, 8 + 7.8 * s + 1.6 * c),
+                         (8 + 7.8 * c + 1.6 * s, 8 + 7.8 * s - 1.6 * c), (8 + 4 * c + 1.6 * s, 8 + 4 * s - 1.6 * c)])
+    p.shape(teeth | p.disc(8, 8, 5.8), GREY)
+    p.shape(p.disc(8, 8, 2.6), TEAL)
+
+
+def px_speaker(p):
+    p.shape(p.poly([(0.5, 5), (4.5, 5), (9, 1), (9, 15), (4.5, 11), (0.5, 11)]), GREY, light=WHITE)
+
+
+def mark_documents(p):
+    p.shape(p.rect(5, 6.5, 6.5, 7), PAPER)
+    for y in (8.5, 10.5):
+        p.fill(p.hline(6.5, y, 3.5), INK)
+
+
+def mark_download(p):
+    p.shape(p.poly([(6.5, 6), (9.5, 6), (9.5, 9), (12, 9), (8, 13.5), (4, 9), (6.5, 9)]), COPPER)
+
+
+def mark_pictures(p):
+    p.shape(p.rect(3.5, 6.5, 9, 7), PALE)
+    p.fill(p.poly([(4.5, 12.5), (7.5, 8.5), (10, 11), (11.5, 9.5), (11.5, 12.5)]), TEAL)
+    p.fill(p.rect(9.5, 7.5, 1.5, 1.5), COPPER)
+
+
+def mark_music(p):
+    p.shape(p.disc(7, 11.5, 2.3), COPPER)
+    p.fill(p.rect(8.5, 6, 1.5, 5.5), INK)
+    p.fill(p.rect(8.5, 6, 3.5, 1.5), INK)
+
+
+def mark_videos(p):
+    p.shape(p.rect(4, 6.5, 8, 7), DARK)
+    p.fill(p.poly([(6.5, 8), (10, 10), (6.5, 12)]), COPPER)
+
+
+def mark_desktop(p):
+    p.shape(p.rect(4, 6.5, 8, 5.5), TEAL)
+    p.fill(p.rect(6.5, 12, 3, 1.5), INK)
+
+
+def mark_share(p):
+    p.shape(p.disc(6, 9, 2), COPPER)
+    p.shape(p.disc(10.5, 9.5, 1.8), PAPER)
+    p.fill(p.rect(4, 11.5, 4, 2), COPPER)
+    p.fill(p.rect(9, 11.5, 3.5, 2), PAPER)
+
+
+def px_doc_with(mark):
+    def draw(p):
+        px_document(p, lines=False)
+        mark(p)
+    return draw
+
+
+def px_home(p):
+    p.shape(p.poly([(0, 8.5), (8, 0.5), (16, 8.5)]), COPPER)
+    p.shape(p.rect(2.5, 7.5, 11, 8.5), PALE, light=WHITE)
+    p.shape(p.rect(6.5, 10, 3.5, 5.5), TEAL)
+
+
+def px_trash(p):
+    p.shape(p.rect(6, 0.5, 4, 2.5), COPPER)
+    p.shape(p.poly([(3, 4.5), (13, 4.5), (12, 16), (4, 16)]), GREY, light=WHITE)
+    for x in (6, 8, 10):
+        p.fill(p.vline(x, 7, 6.5), PALE)
+    p.shape(p.rect(1.5, 2.5, 13, 3), TEAL)
+
+
+def px_network(p):
+    p.shape(p.rect(5, 0, 6, 5.5), TEAL)
+    p.fill(p.vline(8, 5.5, 3) | p.hline(2.5, 8, 11) | p.vline(2.5, 8, 2.5) | p.vline(8, 8, 2.5) | p.vline(13.5, 8, 2.5), INK)
+    for x in (0, 5.5, 11):
+        p.shape(p.rect(x, 10.5, 5, 5.5), COPPER)
+
+
+def px_harddisk(p):
+    p.shape(p.rect(0, 4.5, 16, 7.5), GREY, light=WHITE)
+    p.fill(p.hline(2.5, 9.5, 7), DARK)
+    p.shape(p.rect(11, 7.5, 3, 2.5), COPPER)
+
+
+def px_usb(p):
+    p.shape(p.rect(5, 0.5, 6, 5), PAPER)
+    p.fill(p.rect(6.5, 2, 1, 1.5) | p.rect(8.5, 2, 1, 1.5), INK)
+    p.shape(p.rect(3.5, 5, 9, 11), GREY, light=WHITE)
+    p.shape(p.rect(6.5, 10, 3, 2), COPPER)
+
+
+def px_package(p):
+    p.shape(p.poly([(0.5, 5), (8, 1.5), (15.5, 5), (15.5, 12.5), (8, 16), (0.5, 12.5)]), PALE, light=WHITE)
+    p.fill(p.line(1, 5, 8, 8) | p.line(8, 8, 15, 5) | p.vline(8, 8, 8), INK)
+    p.fill(p.poly([(4, 3.2), (6, 2.3), (12.5, 5.5), (12.5, 9), (10.5, 10), (10.5, 6.5)]), COPPER)
+
+
+def px_floppy(p):
+    p.shape(p.rect(0.5, 0.5, 15, 15), TEAL, light=LIGHT)
+    p.shape(p.rect(3.5, 0.5, 9, 5.5), PALE)
+    p.fill(p.rect(9.5, 1.5, 1.5, 3), INK)
+    p.shape(p.rect(3, 8.5, 10, 7), PAPER)
+
+
+def px_printer(p):
+    p.shape(p.rect(3.5, 0.5, 9, 5.5), PAPER)
+    p.shape(p.rect(0, 5, 16, 7.5), GREY, light=WHITE)
+    p.shape(p.rect(3.5, 10, 9, 6), PAPER)
+    p.fill(p.rect(12.5, 7, 1.5, 1.5), COPPER)
+
+
+def px_clipboard(p):
+    p.shape(p.rect(1.5, 2, 13, 14), TEAL)
+    p.shape(p.rect(3.5, 4.5, 9, 10), PAPER)
+    p.shape(p.rect(5, 0.5, 6, 3.5), COPPER)
+
+
+def px_scissors(p):
+    p.fill(p.poly([(4.5, 9.5), (11.5, 0.5), (13, 1.5), (6.5, 10.5)]) | p.poly([(11.5, 9.5), (4.5, 0.5), (3, 1.5), (9.5, 10.5)]), INK)
+    for cx in (4, 12):
+        p.shape(p.disc(cx, 12.5, 3.3) - p.disc(cx, 12.5, 1.4), TEAL)
+
+
+def px_copy(p):
+    px_document(p, lines=False, x=0.5, w=10)
+    px_document(p, lines=False, x=5.5, w=10)
+    for k in range(3):
+        p.fill(p.hline(7.5, 6 + 2 * k, 6), INK)
+
+
+def px_plus_badge(p):
+    p.shape(p.disc(11.5, 11.5, 4.5), TEAL)
+    p.fill(p.rect(10.75, 8.5, 1.5, 6) | p.rect(8.5, 10.75, 6, 1.5), PAPER)
+
+
+def px_globe(p):
+    p.shape(p.disc(8, 8, 7.8), TEAL, light=LIGHT)
+    p.shape(p.poly([(2.5, 4.5), (6, 2), (7.5, 4.5), (5.5, 8.5), (3, 7.5)]), COPPER)
+    p.shape(p.poly([(9, 2.5), (12.5, 4), (13, 7.5), (11, 8.5), (12, 11.5), (9, 14), (8.5, 10), (7.5, 7.5)]), COPPER)
+
+
+def px_mail(p):
+    p.shape(p.rect(0, 2.5, 16, 11.5), PALE, light=WHITE)
+    p.fill(p.line(1, 3.5, 8, 9) | p.line(8, 9, 15, 3.5) | p.line(1, 4, 8, 9.5) | p.line(8, 9.5, 15, 4), COPPER)
+
+
+def px_editor(p):
+    px_document(p)
+    p.shape(p.poly([(5.5, 15.5), (6.5, 12), (13.5, 4.5), (16, 7), (9, 14.5)]), COPPER)
+
+
+def px_lock(p):
+    p.shape(p.disc(8, 6.5, 5.5) - p.disc(8, 6.5, 2.8) - p.rect(0, 6.5, 16, 10), PALE)
+    p.shape(p.rect(2, 6.5, 12, 9.5), TEAL, light=LIGHT)
+    p.fill(p.disc(8, 10, 1.4) | p.rect(7.4, 10, 1.3, 3), COPPER)
+
+
+def px_power(p):
+    p.shape(p.disc(8, 9, 7) - p.disc(8, 9, 4.6) - p.poly([(8, 9), (4.5, 0), (11.5, 0)]), TEAL)
+    p.shape(p.rect(6.8, 0.5, 2.5, 8.5), COPPER)
+
+
+def px_volume(p, muted=False):
+    px_speaker(p)
+    if muted:
+        px_cross(p, 9.5, 4.5, 15.5, 11.5, COPPER)
+        return
+    right = p.rect(10, 0, 6, 16)
+    p.fill((p.disc(8, 8, 4.8) - p.disc(8, 8, 3.2)) & right, COPPER)
+    p.fill((p.disc(8, 8, 7.8) - p.disc(8, 8, 6.2)) & right, COPPER)
+
+
+def px_logo(p):
+    p.shape(p.rect(0, 0, 16, 16), TEAL)
+    for y, x, w in ((3, 5, 8), (5.5, 3, 4), (8, 3, 4), (10.5, 3, 4), (13, 5, 8)):
+        p.fill(p.rect(x, y - 0.75, w, 1.5), COPPER)
+
+
+def px_refresh(p):
+    p.shape((p.disc(8, 8.5, 7) - p.disc(8, 8.5, 4.4)) - p.poly([(8, 8.5), (16, 0), (16, 8.5)]), TEAL)
+    p.shape(p.poly([(8.5, 0), (15.5, 1), (11, 7)]), TEAL)
+
+
+def px_arrow_left(p):
+    p.shape(p.poly([(0.5, 8), (7.5, 1), (7.5, 5), (15.5, 5), (15.5, 11), (7.5, 11), (7.5, 15)]), COPPER)
+
+
+def px_turned(draw, turn):
+    """The same picture mirrored or turned: turn 1 = right, 2 = up, 3 = down."""
+    def out(p):
+        q = Pixels(p.n)
+        draw(q)
+        for j in range(p.n):
+            for i in range(p.n):
+                c = q.grid[j][i]
+                if turn == 1:
+                    p.grid[j][p.n - 1 - i] = c
+                elif turn == 2:
+                    p.grid[i][j] = c
+                else:
+                    p.grid[p.n - 1 - i][p.n - 1 - j] = c
+    return out
+
+
+def px_ok(p):
+    p.shape(p.poly([(0.5, 8.5), (3, 6), (6.5, 9.5), (13, 2), (15.5, 4.5), (6.5, 14.5)]), TEAL)
+
+
+def px_question(p):
+    p.shape(p.disc(8, 8, 7.8), PALE, light=WHITE)
+    p.fill(p.rect(5, 3, 6, 2) | p.rect(9.5, 3, 2, 4) | p.rect(7, 6.5, 4, 2) | p.rect(7, 8, 2, 2.5) | p.rect(7, 11.5, 2, 2), TEAL)
+
+
+PIXEL = {
+    "folder": px_folder,
+    "folder-documents": lambda p: px_folder(p, mark_documents),
+    "folder-download": lambda p: px_folder(p, mark_download),
+    "folder-pictures": lambda p: px_folder(p, mark_pictures),
+    "folder-music": lambda p: px_folder(p, mark_music),
+    "folder-videos": lambda p: px_folder(p, mark_videos),
+    "folder-desktop": lambda p: px_folder(p, mark_desktop),
+    "folder-publicshare": lambda p: px_folder(p, mark_share),
+    "folder-open": lambda p: (p.shape(p.rect(0, 2, 7, 4), COPPER), p.shape(p.rect(0, 4, 16, 11), TEAL),
+                              p.shape(p.poly([(0, 15), (3, 7), (16, 7), (13, 15)]), PALE, light=WHITE)),
+    "user-home": px_home,
+    "user-trash": px_trash,
+    "computer": px_monitor,
+    "utilities-terminal": lambda p: (px_monitor(p, DARK), p.fill(p.line(4, 4.5, 6, 6) | p.line(6, 6, 4, 7.5), COPPER), p.fill(p.hline(7, 7.5, 3), COPPER)),
+    "network-workgroup": px_network,
+    "drive-harddisk": px_harddisk,
+    "drive-removable-media": px_usb,
+    "text-x-generic": px_document,
+    "image-x-generic": px_doc_with(lambda p: (p.shape(p.rect(3.5, 6, 9, 7), TEAL), p.fill(p.poly([(4.5, 12), (7.5, 8.5), (10, 11), (11.5, 9.5), (11.5, 12)]), PALE), p.fill(p.rect(9.5, 7, 1.5, 1.5), COPPER))),
+    "application-pdf": lambda p: (px_document(p), p.shape(p.rect(3.5, 11, 9, 4), RED)),
+    "audio-x-generic": px_doc_with(lambda p: (p.shape(p.disc(6.5, 12, 2.3), COPPER), p.fill(p.rect(8, 6, 1.5, 6) | p.rect(8, 6, 3.5, 1.5), INK))),
+    "video-x-generic": px_doc_with(lambda p: (p.shape(p.rect(3.5, 6, 9, 8), DARK), p.fill(p.poly([(6, 7.5), (10, 10), (6, 12.5)]), COPPER))),
+    "text-x-script": px_doc_with(lambda p: p.fill(p.line(4, 7, 6, 9) | p.line(6, 9, 4, 11) | p.hline(7, 11, 4), COPPER)),
+    "package-x-generic": px_package,
+    "go-previous": px_arrow_left,
+    "go-next": px_turned(px_arrow_left, 1),
+    "go-up": px_turned(px_arrow_left, 2),
+    "go-down": px_turned(px_arrow_left, 3),
+    "view-refresh": px_refresh,
+    "edit-find": px_lens,
+    "zoom-in": lambda p: px_lens(p, "+"),
+    "zoom-out": lambda p: px_lens(p, "-"),
+    "edit-copy": px_copy,
+    "edit-cut": px_scissors,
+    "edit-paste": px_clipboard,
+    "document-new": lambda p: (px_document(p), px_plus_badge(p)),
+    "document-save": px_floppy,
+    "printer": px_printer,
+    "list-add": lambda p: p.fill(p.rect(6.75, 1.5, 2.5, 13) | p.rect(1.5, 6.75, 13, 2.5), INK),
+    "list-remove": lambda p: p.fill(p.rect(1.5, 6.75, 13, 2.5), INK),
+    "view-list-icons": lambda p: [p.shape(p.rect(x, y, 6.5, 6.5), TEAL, light=LIGHT) for x in (1, 8.5) for y in (1, 8.5)],
+    "view-list-details": lambda p: [(p.shape(p.rect(0.5, y, 4, 4), COPPER), p.fill(p.rect(6.5, y + 1.25, 9, 1.5), INK)) for y in (1, 6, 11)],
+    "preferences-system": px_gear,
+    "application-exit": lambda p: (p.shape(p.rect(0.5, 0.5, 9, 15), GREY), p.shape(p.rect(2.5, 2.5, 5, 11), DARK),
+                                   p.shape(p.poly([(5.5, 6.5), (10.5, 6.5), (10.5, 3.5), (15.5, 8), (10.5, 12.5), (10.5, 9.5), (5.5, 9.5)]), COPPER)),
+    "dialog-ok": px_ok,
+    "dialog-cancel": lambda p: px_cross(p, 1.5, 1.5, 14.5, 14.5, INK),
+    "window-close": lambda p: px_window(p, lambda q: px_cross(q, 4.5, 7, 11.5, 14, INK)),
+    "window": px_window,
+    "help-browser": px_question,
+    "dialog-information": lambda p: (p.shape(p.disc(8, 8, 7.8), TEAL), p.fill(p.rect(7, 3, 2, 2) | p.rect(7, 6.5, 2, 6.5), PAPER)),
+    "dialog-warning": lambda p: (p.shape(p.poly([(8, 0), (16, 15.5), (0, 15.5)]), COPPER), p.fill(p.rect(7, 5, 2, 5.5) | p.rect(7, 12, 2, 2), INK)),
+    "dialog-error": lambda p: (p.shape(p.disc(8, 8, 7.8), RED), px_cross(p, 4, 4, 12, 12, WHITE)),
+    "internet-web-browser": px_globe,
+    "internet-mail": px_mail,
+    "accessories-text-editor": px_editor,
+    "system-lock-screen": px_lock,
+    "system-log-out": px_power,
+    "audio-volume-high": px_volume,
+    "audio-volume-muted": lambda p: px_volume(p, True),
+    "cde-menu": px_logo,
+}

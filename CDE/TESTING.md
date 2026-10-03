@@ -204,6 +204,28 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   writes the four sets to cde-copper/workspaces.json with every palette; the
   console reads it (General › Workspaces, on by default). Copper uses
   #649099, #c4d2d0, #2e7180, #e8874f. Checked in the VM under NorthernSky.
+
+Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
+
+- A review of everything since cde6f41 found one bug and several risks, all
+  fixed: the console emptied the tray's hidden list at every start when its
+  option was off (it now records what it hid itself and takes out only
+  that); Copper's progress style was lost on reinstall; choosing one
+  backdrop in the Style page had no effect with backdrops per workspace
+  (it now switches those off); seven-segment digits under 13 px lost their
+  horizontal segments (orientation is now explicit, small digits use 1 px
+  strokes, at least 9 px high); the layout spacing and the panel frame's
+  opacity binding were not restored (spacing is put back, the frame is
+  hidden by scale); the workspace colours could stay from an old or a
+  non-CDE scheme (read three times after a change, none for other schemes);
+  XFile's menu entry carries InitialPreference=1.
+- Busy progress bars: the moving block shows the groove's dark edge on its
+  left, as the filled part repeats it; it reads as an outlined block.
+  Right-to-left layouts not checked.
+- Pixel icons: 59 drawings at 16 and 22 px (181 names with aliases), drawn
+  on whole pixels and written as SVG rectangles; the theme lists 16/all and
+  22/all as fixed sizes. Dolphin's Places panel shows them crisp; Downloads
+  showed a plain folder (Dolphin asks for folder-downloads), now an alias.
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the

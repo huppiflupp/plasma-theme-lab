@@ -168,6 +168,9 @@ def install():
         remove(CONFIG / target)
         copy(ROOT / "build" / target, CONFIG / target)
     MANIFEST.write_text(json.dumps(manifest, indent=2))
+    # The copy from build/ has outlined progress bars; keep the chosen style.
+    if manifest.get("palette", "Copper") == "Copper" and manifest.get("progress", "outlined") != "outlined":
+        copper_kvantum(manifest["progress"])
     run("kbuildsycoca6", check=False)
     if shutil.which("fc-cache"):
         run("fc-cache", "-f", str(DATA / "fonts/CDECopper"), check=False)
@@ -176,6 +179,20 @@ def install():
 
 def palette_owned(target, patterns):
     return any(re.fullmatch(p, target) for p in patterns)
+
+
+def copper_kvantum(progress):
+    """Copper's Kvantum theme is installed from build/ (outlined progress
+    bars); another progress style regenerates it in place (it is ours)."""
+    sys.path.insert(0, str(ROOT))
+    import build
+    from kvantum import build_kvantum
+    stage = STATE / "palette-build"
+    remove(stage)
+    build_kvantum(stage, build.P, progress=progress)
+    remove(CONFIG / "Kvantum/CDECopper")
+    copy(stage / "Kvantum/CDECopper", CONFIG / "Kvantum/CDECopper")
+    remove(stage)
 
 
 def install_palette(manifest, name):
@@ -190,17 +207,7 @@ def install_palette(manifest, name):
     if name == "Copper":
         manifest["palette"] = "Copper"
         if progress != "outlined" or (CONFIG / "Kvantum/CDECopper").exists():
-            # Copper's Kvantum theme is installed from build/; another
-            # progress style regenerates it in place (it is ours).
-            sys.path.insert(0, str(ROOT))
-            import build
-            from kvantum import build_kvantum
-            stage = STATE / "palette-build"
-            remove(stage)
-            build_kvantum(stage, build.P, progress=progress)
-            remove(CONFIG / "Kvantum/CDECopper")
-            copy(stage / "Kvantum/CDECopper", CONFIG / "Kvantum/CDECopper")
-            remove(stage)
+            copper_kvantum(progress)
         return {"colors": "CDECopper", "plasma": "cde-copper", "kvantum": "CDECopper", "desktop": "#086875"}
     sys.path.insert(0, str(ROOT))
     import build
@@ -383,6 +390,8 @@ Icon=system-file-manager
 Terminal=false
 Categories=System;FileTools;FileManager;
 MimeType=inode/directory;
+# Choosable as the file manager, never the default by itself (Dolphin has 10).
+InitialPreference=1
 X-CDE-Copper=true
 """)
 
@@ -409,7 +418,8 @@ def set_backdrop(manifest, name, scale):
             raise RuntimeError(f"Unknown backdrop {name!r}; available: {', '.join(backdrops.names())}")
         plasma_script("for (var d of desktops()) { d.wallpaperPlugin = 'org.cde.copper.backdrop';"
                       " d.currentConfigGroup = ['Wallpaper', 'org.cde.copper.backdrop', 'General'];"
-                      f" d.writeConfig('Backdrop', '{name}'); d.writeConfig('Palette', '{chosen}');"
+                      # One backdrop chosen: it replaces backdrops per workspace.
+                      f" d.writeConfig('Backdrop', '{name}'); d.writeConfig('Palette', '{chosen}'); d.writeConfig('PerWorkspace', false);"
                       f" d.writeConfig('PixelSize', {int(scale)}); d.writeConfig('Color', '{colour_set['bg']}'); }}")
     MANIFEST.write_text(json.dumps(manifest, indent=2))
 

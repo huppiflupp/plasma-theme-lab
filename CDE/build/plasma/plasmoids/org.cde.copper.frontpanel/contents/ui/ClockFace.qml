@@ -71,15 +71,17 @@ Item {
         readonly property int digits: face.seconds ? 6 : 4
         readonly property int colons: face.seconds ? 2 : 1
         function geometry(h) {
-            const t = Math.max(2, Math.round(h * 0.09));          // stroke
-            const w = Math.max(3 * t, Math.round(h * 0.5));       // digit width
+            // Small digits draw one-pixel strokes; every segment keeps at
+            // least three pixels between its one-pixel gaps (h >= 9).
+            const t = h < 14 ? 1 : Math.max(2, Math.round(h * 0.09));   // stroke
+            const w = Math.max(2 * t + 3, Math.round(h * 0.5));         // digit width
             const s = Math.max(1, Math.round(h * 0.1));           // digit spacing
             return {t: t, w: w, s: s, width: digits * w + (digits - 1) * s + colons * (t + s)};
         }
         // The largest digit height that fits the room, in whole pixels.
         readonly property int digitHeight: {
-            let h = Math.max(7, Math.floor(Math.min(face.height - dateHeight - gapBelow, face.height * 0.62)));
-            while (h > 7 && geometry(h).width + 2 > face.width) h--;
+            let h = Math.max(9, Math.floor(Math.min(face.height - dateHeight - gapBelow, face.height * 0.62)));
+            while (h > 9 && geometry(h).width + 2 > face.width) h--;
             return h;
         }
         readonly property var g: geometry(digitHeight)
@@ -128,9 +130,9 @@ Item {
                     const inner = w - 2 * t;                  // horizontal bar length
                     const upper = mid - t, lower = h - t - mid - t;
                     const parts = {
-                        a: [x + t, 0, inner, t], g: [x + t, mid, inner, t], d: [x + t, h - t, inner, t],
-                        f: [x, t, t, upper], b: [x + w - t, t, t, upper],
-                        e: [x, mid + t, t, lower], c: [x + w - t, mid + t, t, lower]
+                        a: [x + t, 0, inner, t, true], g: [x + t, mid, inner, t, true], d: [x + t, h - t, inner, t, true],
+                        f: [x, t, t, upper, false], b: [x + w - t, t, t, upper, false],
+                        e: [x, mid + t, t, lower, false], c: [x + w - t, mid + t, t, lower, false]
                     };
                     ctx.fillStyle = grow ? edge : lit ? on : off;
                     for (const key in parts) {
@@ -139,7 +141,7 @@ Item {
                         // Shortened by the gap at both ends; from a 3-pixel
                         // stroke on, the ends are cut back a pixel at the
                         // edges - a bevelled tip that stays on the grid.
-                        const horizontal = p[2] > p[3];
+                        const horizontal = p[4];
                         const x0 = horizontal ? p[0] + gap : p[0], y0 = horizontal ? p[1] : p[1] + gap;
                         const len = (horizontal ? p[2] : p[3]) - 2 * gap;
                         const cut = t >= 3 ? 1 : 0;

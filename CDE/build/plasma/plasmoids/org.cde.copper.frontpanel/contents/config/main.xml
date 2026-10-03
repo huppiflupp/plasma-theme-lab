@@ -17,6 +17,8 @@
     <entry name="hideTrayVolume" type="Bool"><default>true</default></entry>
     <!-- Tray entries only behind the console's hidden-icons button -->
     <entry name="hideTrayIcons" type="Bool"><default>true</default></entry>
+    <!-- Tray entries the console hid itself, taken out again when switched off -->
+    <entry name="trayHiddenByConsole" type="StringList"><default></default></entry>
     <!-- The Plasma panel's own frame around the console -->
     <entry name="panelFrame" type="Bool"><default>false</default></entry>
     <!-- Written by the Style page; the console applies it (JSON: palette, backdrop, scale) -->

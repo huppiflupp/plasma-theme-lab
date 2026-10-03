@@ -23,7 +23,16 @@ class Assets(unittest.TestCase):
         for file in files:
             self.assertTrue(file.resolve().is_relative_to(ROOT / "build/icons/CDECopper"))
             doc = ET.parse(file).getroot()
-            self.assertEqual(doc.get("viewBox"), "0 0 64 64")
+            # scalable/ on a 64-unit grid; 16/ and 22/ hold pixel versions
+            # on their own size, whole pixels only.
+            size = file.parent.parent.name
+            grid = "64" if size == "scalable" else size
+            self.assertEqual(doc.get("viewBox"), f"0 0 {grid} {grid}", str(file))
+            if size != "scalable":
+                for e in doc.iter():
+                    for attr in ("x", "y", "width", "height"):
+                        if e.get(attr) is not None:
+                            self.assertTrue(e.get(attr).isdigit(), f"{file}: {attr}={e.get(attr)}")
             self.assertFalse(any(e.tag.endswith("image") for e in doc.iter()), str(file))
         for file in (ROOT / "build").rglob("*.svg"):
             ET.parse(file)
