@@ -3,7 +3,7 @@
     "Id": "org.cde.copper.stroemung",
     "Name": "CDE Str\u00f6mung",
     "Description": "Computed flow around an airfoil, Delphinium palette, light and dark",
-    "Version": "0.8.1",
+    "Version": "0.8.2",
     "License": "GPL-2.0-or-later",
     "Authors": [
       {

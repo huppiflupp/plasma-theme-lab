@@ -58,7 +58,12 @@ languages can be added as `po/<language>.po`.
 - Original SVG icon artwork, 248 drawings under 652 names (applications,
   menu categories, actions, documents, devices, places, battery, network and
   other status icons), with no embedded raster images; the 59 most visible
-  also as pixel versions for 16 and 22 px.
+  also as pixel versions for 16 and 22 px. Drawn in Copper's colours and
+  recoloured with every palette, as CDE's icons took the palette's dynamic
+  colours: outline, body, paper, dark accent and copper accent come from
+  the palette, with a contrast floor against the console face and the text
+  fields (on dark ones the bodies turn light, the outline stays dark).
+  Monochrome "-symbolic" icons are coloured by Plasma itself.
 - Konsole profile and color scheme, global-theme bundle with a Motif start-up
   screen, and teal wallpaper. A second global theme, CDE Night (CDE's
   NorthernSky palette), is set as the night theme of Plasma's day/night
@@ -344,7 +349,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.8.1. The application style is a Kvantum theme, not a
+This is version 0.8.2. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

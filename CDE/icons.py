@@ -7,6 +7,67 @@ TEAL = "#2e7180"
 COPPER = "#e8874f"
 
 
+# The drawings use Copper's colours. Under another palette they are
+# recoloured, as CDE's own icons took the palette's dynamic colours: each
+# Copper colour stands for a role (outline, body, paper, accent, ...) that
+# the palette fills, with a contrast floor against the console face.
+ROLES = {"#10262b": "ink", "#2e7180": "teal", "#e8874f": "copper", "#c4d2d0": "paper",
+         "#afc2c2": "pale", "#86a4aa": "grey", "#c9dedb": "light", "#061c22": "dark"}
+
+
+def icon_colours(P):
+    """Role -> colour for palette colours P (palettes.theme)."""
+    import palettes
+    lum, mix = palettes.luminance, palettes.mix
+    face, field = P["flaeche"], P["fenster"]
+    # Icons sit on the console face and on text fields (file managers): the
+    # darker of the two decides.
+    ref = face if lum(face) <= lum(field) else field
+    dark = lum(ref) < 0.18
+
+    def lift(colour, target):
+        # On a dark face fills must stand out lighter, not darker: move
+        # toward white until lighter than the face by the target ratio.
+        if not dark:
+            return palettes.legible(colour, face, "#000000", target)
+        for step in range(21):
+            candidate = mix(colour, "#ffffff", step / 20)
+            if lum(candidate) > lum(ref) and palettes.contrast(candidate, ref) >= target:
+                return candidate
+        return "#ffffff"
+    # A dark outline everywhere: on a dark face the bodies turn light and the
+    # outline separates them from it, as Copper's do on its mid face.
+    ink = mix(P["rahmen"], "#000000", 0.3) if dark else P["rahmen"]
+    if not dark and palettes.contrast(ink, face) < 3:
+        ink = palettes.legible(ink, face, "#000000", 3)
+    teal = P["panel"] if palettes.contrast(P["panel"], face) >= 1.6 else P["dunkel"]
+    paper, pale, grey = field, P["karo"], face
+    if dark:
+        # Bodies as light as on a light palette, in the palette's hues.
+        paper, pale, grey = (mix(c, "#ffffff", 0.55) for c in (field, P["karo"], P["hell"]))
+    teal, copper = lift(teal, 1.6), lift(P["kopf_aktiv"], 1.5)
+    # Copper lines on a teal ground (the menu logo, the globe, the lock):
+    # lifted together they would run into each other.
+    if palettes.contrast(copper, teal) < 1.8:
+        copper = palettes.legible(copper, teal, "#000000" if lum(teal) > 0.25 else "#ffffff", 1.8)
+    return {"ink": ink, "teal": teal, "copper": copper,
+            "paper": paper if lum(paper) > lum(ref) or not dark else mix(paper, "#ffffff", 0.6),
+            "pale": pale, "grey": grey, "light": P["hell"], "dark": mix(P["rahmen"], "#000000", 0.4)}
+
+
+def recolour(theme: Path, P):
+    """Rewrite the colours of every drawn icon below theme (not the symbolic
+    ones, which Plasma colours itself)."""
+    import re
+    colours = icon_colours(P)
+    swap = re.compile("|".join(ROLES), re.I)
+    for svg in theme.rglob("*.svg"):
+        if svg.is_symlink() or "symbolic" in svg.parts:
+            continue
+        text = svg.read_text()
+        svg.write_text(swap.sub(lambda m: colours[ROLES[m.group(0).lower()]], text))
+
+
 def rect(x, y, w, h, fill, stroke=INK, sw=2):
     return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>'
 
@@ -128,9 +189,13 @@ def build_icons(out: Path):
     defs["audio-volume-muted"] = audio + path("M8 55L55 8", "none", COPPER, 5)
     defs.update(more_icons(text, picture, home, globe, mail, trash, gear, lock, document, folder, monitor))
     defs["document-print-preview"] = defs["printer"] + badge(lens(), 26, 26, 0.6)
-    for target, names in MORE_ALIASES.items():
-        for name in names:
-            aliases[name] = target
+    # Keyboard and Shortcuts are neighbours in System Settings.
+    defs["preferences-desktop-keyboard-shortcut"] = defs["input-keyboard"] + badge(
+        rect(4, 4, 56, 56, COPPER) + path("M18 32H46M32 18V46", "none", INK, 7), 32, 30, 0.48)
+    for table in (MORE_ALIASES, SETTINGS_ALIASES):
+        for target, names in table.items():
+            for name in names:
+                aliases[name] = target
     # A drawing beats an older alias of the same name.
     aliases = {name: target for name, target in aliases.items() if name not in defs}
     for name in SYMBOLIC:
@@ -472,12 +537,67 @@ def more_icons(text, picture, home, globe, mail, trash, gear, lock, document, fo
     d["sidebar-collapse-left"] = window(path("M7 21H22V54H7Z", PALE) + path("M34 30L44 38L34 46", "none", COPPER, 4))
     for side in ("expand", "collapse"):
         d[f"sidebar-{side}-right"] = f'<g transform="scale(-1 1) translate(-64 0)">{d[f"sidebar-{side}-left"]}</g>'
+    # System Settings' pages (their modules' icon names). Without own
+    # drawings KDE shortens a missing name until one exists, and the
+    # appearance pages all ended up on preferences-desktop's monitor.
+    d["preferences-desktop-theme-global"] = (rect(5, 6, 54, 40, GREY) + rect(9, 10, 46, 32, TEAL) + rect(13, 14, 22, 16, PAPER)
+                                             + rect(13, 14, 22, 4, COPPER) + rect(9, 36, 46, 6, PALE) + path("M23 56H41M32 46V56", "none", INK, 3))
+    d["preferences-desktop-color"] = (path("M32 6C14 6 5 18 5 31C5 46 17 57 30 57C36 57 36 51 33 48C30 45 32 41 37 41H46C54 41 59 36 59 28C59 15 47 6 32 6Z", PAPER)
+                                      + circle(19, 24, 5, COPPER) + circle(31, 15, 5, TEAL) + circle(45, 19, 5, RED) + circle(17, 39, 5, "#ffe08a")
+                                      + path("M10 30Q10 14 26 10", "none", "#ffffff"))
+    d["preferences-desktop-theme-applications"] = window(rect(11, 26, 22, 10, PALE) + path("M12 35V27H32", "none", "#ffffff", 1)
+                                                         + rect(40, 26, 10, 10, "#ffffff") + path("M41 31L44 34L50 27", "none", COPPER, 3)
+                                                         + path("M11 46H53", "none", INK, 3) + rect(28, 41, 6, 10, COPPER))
+    d["preferences-desktop-plasma-theme"] = (rect(5, 8, 54, 48, TEAL) + rect(5, 46, 54, 10, GREY) + rect(9, 48, 10, 6, COPPER, "none")
+                                             + rect(35, 13, 20, 24, PALE) + rect(35, 13, 20, 5, COPPER) + path("M7 54V48H57", "none", "#ffffff"))
+    d["preferences-desktop-theme-windowdecorations"] = (rect(5, 12, 54, 42, PAPER) + rect(5, 12, 54, 14, COPPER) + rect(8, 15, 8, 8, GREY)
+                                                        + rect(39, 15, 8, 8, GREY) + rect(48, 15, 8, 8, GREY) + path("M7 52V28H57", "none", "#ffffff"))
+    d["preferences-desktop-icons"] = (rect(6, 6, 22, 22, TEAL) + circle(17, 17, 6, COPPER) + rect(36, 6, 22, 22, PAPER) + path("M40 13H54M40 19H54M40 24H50")
+                                      + rect(6, 36, 22, 22, COPPER) + path("M11 52L17 42L23 52Z", PAPER) + rect(36, 36, 22, 22, PALE) + circle(47, 47, 6, TEAL))
+    d["preferences-desktop-cursors"] = path("M18 5V49L28 40L36 58L45 54L37 36H51Z", COPPER, INK, 3) + path("M21 12V40", "none", "#ffffff", 2)
+    d["preferences-system-splash"] = (rect(6, 13, 52, 38, PAPER) + rect(6, 13, 52, 9, COPPER) + rect(12, 27, 8, 8, TEAL)
+                                      + path("M24 30H50", "none", INK, 2) + rect(12, 40, 40, 6, "#ffffff") + rect(12, 40, 22, 6, TEAL))
+    d["preferences-system-tabbox"] = (rect(4, 17, 56, 30, GREY) + rect(8, 22, 13, 20, PAPER) + rect(24, 19, 16, 26, COPPER)
+                                      + rect(26, 22, 12, 20, PAPER) + rect(43, 22, 13, 20, PAPER) + path("M6 45V19H58", "none", "#ffffff"))
+    d["preferences-desktop-effects"] = (path(star_path(26, 32, 21, 8), COPPER) + path(star_path(48, 14, 10, 4), "#ffe08a")
+                                        + path(star_path(49, 47, 8, 3), TEAL))
     return {k: v for k, v in d.items() if v}
 
 
 # Names that share a drawing. "-symbolic" variants are listed where Plasma
 # asks for them (the Applications menu's categories) - otherwise Breeze's
 # monochrome version would win over the drawing.
+# System Settings' other pages, onto drawings that already say it (a dict
+# of its own: several targets are keys of MORE_ALIASES too).
+SETTINGS_ALIASES = {
+    "video-display": ["preferences-desktop-display-randr"],
+    "audio-volume-high": ["preferences-desktop-sound"],
+    "network-wired": ["preferences-system-network", "preferences-system-network-connection", "preferences-system-network-proxy"],
+    "preferences-desktop-remote-desktop": ["preferences-system-network-remote"],
+    "battery-080": ["preferences-system-power-management"],
+    "chronometer": ["preferences-system-time"],
+    "dialog-password": ["preferences-desktop-user-password"],
+    "security-high": ["preferences-system-login", "preferences-security"],
+    "computer-laptop": ["preferences-desktop-touchpad"],
+    "preferences-desktop-peripherals": ["preferences-desktop-tablet", "preferences-desktop-touchscreen"],
+    "applications-games": ["preferences-desktop-gaming"],
+    "applications-other": ["preferences-desktop-default-applications"],
+    "document-properties": ["preferences-desktop-filetype-association"],
+    "edit-find": ["preferences-desktop-baloo", "plasma-search", "krunner"],
+    "view-list-icons": ["preferences-desktop-activities"],
+    "help-about": ["preferences-desktop-feedback", "ktip"],
+    "computer-chip": ["preferences-desktop-thunderbolt"],
+    "system-run": ["preferences-system-session-services"],
+    "printer": ["preferences-devices-printer"],
+    "internet-web-browser": ["preferences-online-accounts"],
+    "drive-harddisk": ["preferences-smart-status"],
+    "weather-clear": ["lighttable"],
+    "font-x-generic": ["preferences-desktop-font", "preferences-desktop-font-installer"],
+    "window": ["preferences-system-windows", "preferences-system-windows-actions"],
+    "preferences-desktop-effects": ["preferences-desktop-animations"],
+    "x-office-address-book": ["preferences-system-users"],
+}
+
 MORE_ALIASES = {
     "x-office-spreadsheet": ["libreoffice-calc", "application-vnd.oasis.opendocument.spreadsheet", "text-csv", "application-vnd.ms-excel"],
     "x-office-presentation": ["libreoffice-impress", "application-vnd.oasis.opendocument.presentation", "application-vnd.ms-powerpoint"],

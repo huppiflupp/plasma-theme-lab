@@ -369,6 +369,33 @@ def notify_change(kind):
             "--signal", "org.kde.KGlobalSettings.notifyChange", str(kind), "0", check=False)
 
 
+def update_icons(name):
+    """The icon set in the palette's colours (icons.recolour), drawn afresh
+    from icons.py: Copper's as built, any other recoloured. Swapped in whole,
+    then running programs are told to reload their icons."""
+    sys.path.insert(0, str(ROOT))
+    import build
+    from icons import build_icons, recolour
+    target = DATA / "icons/CDECopper"
+    if not target.exists():
+        return
+    stage = STATE / "icon-build"
+    remove(stage)
+    build_icons(stage)
+    if name != "Copper":
+        recolour(stage / "icons/CDECopper", palettes.theme(name))
+    old = target.with_name("CDECopper.old")
+    remove(old)
+    target.rename(old)
+    (stage / "icons/CDECopper").rename(target)
+    remove(old)
+    remove(stage)
+    remove(HOME / ".cache/icon-cache.kcache")
+    if shutil.which("dbus-send"):
+        run("dbus-send", "--session", "--type=signal", "/KIconLoader",
+            "org.kde.KIconLoader.iconChanged", "int32:0", check=False)
+
+
 def refresh_running_windows():
     """Bring windows that are already open into the new palette.
 
@@ -432,6 +459,7 @@ def set_palette(manifest, name):
                   " else " + plain + " }")
     integrate_xfile()
     update_splash(name)
+    update_icons(name)
     update_gtk(name)
     save_manifest(manifest)
     return theme

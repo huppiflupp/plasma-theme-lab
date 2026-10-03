@@ -3,7 +3,7 @@
     "Id": "cde-copper-arrange",
     "Name": "CDE Copper Window Arrangement",
     "Description": "Terminals left and right of the front console, the main window above it (Meta+Ctrl+C)",
-    "Version": "0.8.1",
+    "Version": "0.8.2",
     "License": "GPL-2.0-or-later",
     "Authors": [
       {

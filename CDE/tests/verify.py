@@ -392,6 +392,44 @@ class Installer(unittest.TestCase):
         self.assertTrue((self.data / "icons/CDECopper").exists())
 
 
+class IconPalettes(unittest.TestCase):
+    """Icons recoloured per palette (icons.recolour): contrast floors hold for
+    every palette, and the Copper build stays as drawn."""
+    def test_contrast_floors(self):
+        sys.path.insert(0, str(ROOT))
+        import palettes
+        from icons import icon_colours
+        for name in palettes.names():
+            P = palettes.theme(name)
+            c = icon_colours(P)
+            face, field = P["flaeche"], P["fenster"]
+            ref = min((face, field), key=palettes.luminance)
+            dark = palettes.luminance(ref) < 0.18
+            against = ref if dark else face
+            self.assertGreaterEqual(palettes.contrast(c["teal"], against), 1.55, name)
+            self.assertGreaterEqual(palettes.contrast(c["copper"], c["teal"]), 1.75, name)
+            if not dark:
+                self.assertGreaterEqual(palettes.contrast(c["ink"], face), 2.95, name)
+
+    def test_recolour_leaves_symbolic_and_links(self):
+        sys.path.insert(0, str(ROOT))
+        import palettes
+        from icons import build_icons, recolour, ROLES
+        with tempfile.TemporaryDirectory(prefix="cde-icons-") as temp:
+            out = Path(temp)
+            build_icons(out)
+            theme = out / "icons/CDECopper"
+            symbolic = {f: f.read_text() for f in (theme / "symbolic").rglob("*.svg") if not f.is_symlink()}
+            recolour(theme, palettes.theme("NorthernSky"))
+            for f, text in symbolic.items():
+                self.assertEqual(f.read_text(), text)
+            drawn = [f for f in (theme / "scalable").rglob("*.svg") if not f.is_symlink()]
+            self.assertTrue(drawn)
+            for f in drawn:
+                body = f.read_text().lower()
+                self.assertFalse(any(colour in body for colour in ROLES), f.name)
+
+
 class Stability(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

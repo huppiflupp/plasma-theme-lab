@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "build"
-VERSION = "0.8.1"
+VERSION = "0.8.2"
 # Qt 6 font strings (16 fields): family, size, pixel, hint, weight, style, ...
 UI_FONT = "IBM Plex Sans Condensed,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 TITLE_FONT = "IBM Plex Sans Condensed,10,-1,5,600,0,0,0,0,0,0,0,0,0,0,1"
@@ -390,6 +390,9 @@ def night_theme(day):
     write(lnf + "contents/defaults", defaults)
     import palettes
     write(lnf + "contents/splash/Colours.qml", splash_colours(palettes.theme(palette)))
+    # Its own preview, so System Settings' day and night choice differ.
+    for name in ("preview.png", "fullscreenpreview.png"):
+        shutil.copy2(ROOT / "screenshots/desktop-night-1920.png", OUT / lnf / "contents/previews" / name)
 
 
 def main():

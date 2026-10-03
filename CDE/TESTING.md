@@ -363,6 +363,25 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   now only called with DISPLAY set; plasmashell hung on logout in Klipper's
   clipboard history (KIO worker thread join), Plasma's own code, and was
   killed by systemd after the stop timeout.
+- System Settings icons (0.8.2): KDE shortens a missing icon name until
+  one exists, so 42 page names (preferences-desktop-color, -icons,
+  -cursors, ...) fell onto four drawings and the appearance pages showed
+  one monitor. Now ten new drawings (global theme, colours, application
+  style, Plasma style, window decorations, icons, pointers, splash, task
+  switcher, effects, shortcuts) and SETTINGS_ALIASES onto drawings that
+  fit (display, sound, network, power, time, users, printers, search, ...).
+  Seen in System Settings in the VM; all module icon names of Plasma 6.7
+  resolve except symbolic ones and media-optical-audio (CD drawing).
+  CDE Night got its own preview (screenshots/desktop-night-1920.png).
+- Icons after the palette (0.8.2): icons.recolour maps Copper's eight
+  colours to palette roles (manage.py update_icons, run with every palette;
+  0.07 s to draw the set). Proof sheet of all palettes on console face and
+  text field: screenshots/icons-palettes.png. Seen in the VM: console and
+  PCManFM-Qt under NorthernSky, Summer and Cabernet. Trap met: icons looked
+  like Breeze in programs started over ssh, because their XDG_CONFIG_DIRS
+  lacked ~/.config/kdedefaults, where a global theme keeps the icon theme;
+  started from the console (session environment) they are CDE's.
+  Tests: contrast floors for all palettes, symbolic icons and links untouched.
 - Stability pass (0.8.1), lab VM, Plasma 6.7.4 then 6.7.5, Wayland and
   X11. A check script after every step: global theme, colour scheme,
   shell, panels and consoles (plasma scripting), wallpaper plugin, new
