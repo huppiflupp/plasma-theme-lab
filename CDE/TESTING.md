@@ -141,10 +141,20 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   opens the tray's popup with the hidden entries, as its arrow does.
 - "Status icons only behind the console's button" (General, on by default):
   every entry the tray knows and every application's status icon (read over
-  D-Bus, every 30 s) goes to the tray's hidden list. Beside the console only
-  the tray's arrow is left; the console's button lists all entries, Discover's
-  update icon included. The arrow itself cannot be switched off in Plasma's
-  tray; removing the tray would take notifications with it.
+  D-Bus, every 30 s) goes to the tray's hidden list, and the tray's place in
+  the panel's layout is hidden, arrow and all (Plasma has no setting for the
+  arrow; the tray itself stays, for notifications). Nothing is left beside the
+  console; its button opens the tray's popup with every entry, Discover's
+  update icon included.
+- Volume button as wide as a launcher, lined up under the small buttons.
+- Mail subpanel: New Message (the mail client with a bare mailto:),
+  Open Mail, Appointments (the calendar application), Address Book. The
+  subpanel opens; the VM has no mail client, so the entries themselves were
+  not run.
+- Window grouping: four Konsole windows show as one button "4× Konsole";
+  three clicks brought three different ones forward in turn.
+- Seven-segment with "Unlit segments faintly visible" off: only the lit
+  segments are drawn.
 - The VM's wallpaper had been changed to a grey-teal gradient in the meantime;
   it was left as found, as were the console at the top edge and its settings.
 

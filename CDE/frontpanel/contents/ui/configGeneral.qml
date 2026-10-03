@@ -9,6 +9,7 @@ KCM.SimpleKCM {
     property bool cfg_topEdge
     property int cfg_edge: -1
     property alias cfg_windowsOnThisScreen: thisScreen.checked
+    property alias cfg_groupWindows: groupWindows.checked
     property alias cfg_consoleLabel: label.text
     property real cfg_consoleScale: 1.0
     property alias cfg_hideTrayVolume: hideVolume.checked
@@ -29,6 +30,10 @@ KCM.SimpleKCM {
             id: thisScreen
             Kirigami.FormData.label: "Window list:"
             text: "Only windows on this console's screen"
+        }
+        CheckBox {
+            id: groupWindows
+            text: "Group windows of one application (\"3× Konsole\")"
         }
         CheckBox {
             id: hideVolume

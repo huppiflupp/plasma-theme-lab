@@ -15,6 +15,7 @@ KCM.SimpleKCM {
     property string cfg_clockDial: "cde"
     property alias cfg_clockSeconds: seconds.checked
     property alias cfg_clockSegmentEdge: segmentEdge.checked
+    property alias cfg_clockSegmentShadow: segmentShadow.checked
     readonly property var styles: [{text: "Digital", value: "digital"}, {text: "Seven-segment", value: "segments"},
                                    {text: "Analog", value: "analog"}]
     readonly property var dials: [{text: "CDE (round, as dtclock)", value: "cde"}, {text: "Motif (square well)", value: "motif"},
@@ -42,6 +43,11 @@ KCM.SimpleKCM {
             onActivated: index => page.cfg_clockDial = page.dials[index].value
         }
         CheckBox { id: seconds; text: "Show seconds" }
+        CheckBox {
+            id: segmentShadow
+            text: "Unlit segments faintly visible"
+            enabled: page.cfg_clockStyle === "segments"
+        }
         CheckBox {
             id: segmentEdge
             text: "Black edge around lit segments"

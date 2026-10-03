@@ -71,6 +71,7 @@ PlasmoidItem {
         case "places": openSection("Places", placesEntries(), anchor); break;
         case "system": openSection("System", systemEntries(), anchor); break;
         case "help": openSection("Help", helpEntries(), anchor); break;
+        case "mail": openSection("Mail", mailEntries(slot), anchor); break;
         case "bookmarks": openListing("bookmarks", "Bookmarks", slot, anchor); break;
         case "recent": openListing("recent", "Recent Files", slot, anchor); break;
         }
@@ -130,6 +131,15 @@ PlasmoidItem {
                 entry("Display", "computer", "@settings kcm_kscreen"),
                 entry("Lock Screen", "system-lock-screen", dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock"),
                 entry("Leave Session...", "system-log-out", dbus + " org.kde.LogoutPrompt /LogoutPrompt promptAll")];
+    }
+    // The mail client's own command with a bare mailto: opens a new message
+    // in Thunderbird, KMail and Evolution alike.
+    function mailEntries(slot) {
+        const mail = slot.command || "@mail";
+        return [entry("New Message", "mail-message-new", mail + " mailto:"),
+                entry("Open Mail", "internet-mail", mail),
+                entry("Appointments", "view-calendar", "@calendar"),
+                entry("Address Book", "x-office-address-book", "@contacts")];
     }
     function helpEntries() {
         return [entry("Help Center", "help-browser", "@help"),
@@ -222,7 +232,7 @@ PlasmoidItem {
         function onEdgeChanged() { root.configurePanel(); }
         function onConsoleScaleChanged() { root.configurePanel(); }
         function onHideTrayVolumeChanged() { root.syncTray(); }
-        function onHideTrayIconsChanged() { root.syncTray(); }
+        function onHideTrayIconsChanged() { root.syncTray(); root.placeTray(); }
     }
 
     Component.onCompleted: {
@@ -230,7 +240,18 @@ PlasmoidItem {
         // The tray fills its item list on its first start; look once it has.
         trayTimer.start();
     }
-    Timer { id: trayTimer; interval: 4000; onTriggered: trayIds.connectSource("python3 " + Launch.quote(root.helper) + " tray") }
+    // Plasma's tray has no setting to drop its arrow. With its entries
+    // behind the console's button, its container in the panel's layout is
+    // hidden instead; the tray keeps running for notifications and its popup.
+    function placeTray() {
+        const layout = root.parent ? root.parent.parent : null;
+        if (!layout || !layout.children) return;
+        for (const item of layout.children) {
+            const applet = item.applet ? item.applet.plasmoid : null;
+            if (applet && applet.pluginName === "org.kde.plasma.systemtray") item.visible = !Plasmoid.configuration.hideTrayIcons;
+        }
+    }
+    Timer { id: trayTimer; interval: 4000; onTriggered: { root.placeTray(); trayIds.connectSource("python3 " + Launch.quote(root.helper) + " tray"); } }
     // Applications add status icons while the session runs: look again
     // every half minute while the tray's entries are kept behind the button.
     property var statusIds: []
@@ -298,7 +319,10 @@ PlasmoidItem {
         filterByActivity: true
         // With one console per screen, each lists the windows on its own screen.
         filterByScreen: Plasmoid.configuration.windowsOnThisScreen
-        groupMode: TaskManager.TasksModel.GroupDisabled
+        groupMode: Plasmoid.configuration.groupWindows ? TaskManager.TasksModel.GroupApplications : TaskManager.TasksModel.GroupDisabled
+        groupInline: false
+        // Group from the second window on, not only when the strip is full.
+        groupingWindowTasksThreshold: -1
         sortMode: TaskManager.TasksModel.SortVirtualDesktop
     }
     Timer { interval: 1000; running: true; repeat: true; onTriggered: root.now = new Date() }
@@ -373,6 +397,7 @@ PlasmoidItem {
             style: Plasmoid.configuration.clockStyle
             dial: Plasmoid.configuration.clockDial
             seconds: Plasmoid.configuration.clockSeconds
+            segmentShadow: Plasmoid.configuration.clockSegmentShadow
             segmentEdge: Plasmoid.configuration.clockSegmentEdge
             now: root.now
             ink: clock.selected ? consoleColors.highlightText : consoleColors.windowText
@@ -483,22 +508,41 @@ PlasmoidItem {
                  : Math.min(root.u(220), Math.max(root.u(120), (taskList.width - (taskList.count - 1) * 3) / Math.max(1, taskList.count)))
             height: root.vertical ? root.u(24) : taskList.height
             horizontal: true; iconSize: root.u(18)
-            text: model.display || "Window"
+            readonly property int windows: model.IsGroupParent ? model.ChildCount : 1
+            text: windows > 1 ? windows + "× " + (model.AppName || model.display) : (model.display || "Window")
+            Accessible.name: windows > 1 ? root.groupTitles(index).join("\n") : text
             iconName: ""
             Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: root.u(18); height: width; source: parent.model.decoration; active: false }
             leftPadding: root.u(30)
             selected: Boolean(model.IsActive)
             onClicked: {
+                if (windows > 1) { root.cycleGroup(index, windows); return; }
                 const idx = tasks.makeModelIndex(index);
                 if (model.IsActive) tasks.requestToggleMinimized(idx); else tasks.requestActivate(idx);
             }
         }
     }
 
+    // A group's button brings its windows forward in turn: the one after
+    // the active one, or the first.
+    function cycleGroup(row, count) {
+        let active = -1;
+        for (let i = 0; i < count; i++)
+            if (tasks.data(tasks.makeModelIndex(row, i), TaskManager.AbstractTasksModel.IsActive)) active = i;
+        tasks.requestActivate(tasks.makeModelIndex(row, (active + 1) % count));
+    }
+    function groupTitles(row) {
+        const titles = [];
+        const count = tasks.data(tasks.makeModelIndex(row), TaskManager.AbstractTasksModel.ChildCount) || 0;
+        for (let i = 0; i < count; i++) titles.push(tasks.data(tasks.makeModelIndex(row, i), Qt.DisplayRole));
+        return titles;
+    }
+
     component VolumeButton: ConsoleButton {
         id: status
         Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
-        Layout.preferredWidth: root.vertical ? -1 : root.u(104)
+        // As wide as a launcher, so it lines up with the tiles above it.
+        Layout.preferredWidth: root.vertical ? -1 : root.u(68)
         Layout.preferredHeight: root.vertical ? root.u(26) : -1
         text: root.volumeState; iconSize: root.u(18); horizontal: true
         iconName: root.muted ? "audio-volume-muted" : "audio-volume-high"

@@ -27,14 +27,15 @@ or takes any of CDE's own 37 palettes and backdrops.
 - The front console (one per screen, at any screen edge): clock with a month
   calendar and the day's appointments, configurable launcher tiles with
   subpanels, an Applications menu with cascading categories, the browser's
-  bookmarks, the editor's (or LibreOffice's) recently opened files, Places,
-  System and Help subpanels, four-workspace switcher, window task strip, volume
+  bookmarks, the editor's (or LibreOffice's) recently opened files, a Mail
+  subpanel (new message, appointments, address book), Places, System and Help
+  subpanels, four-workspace switcher, window task strip (several windows of
+  one application as one button, "3× Konsole"), volume
   control, and four small buttons in the space of one launcher: hidden tray
   icons, console settings, lock screen, show desktop. The Plasma system tray
-  stays beside it for notifications, but by default its entries are all
-  hidden and open from the console's button, so only its arrow (and anything
-  asking for attention) shows there; the tray's own volume icon is left out,
-  since the console has one.
+  stays in the console's panel for notifications, but by default it is out of
+  sight: its entries open from the console's button; the tray's own volume
+  icon is left out, since the console has one.
 - CDE's 37 colour palettes, shaded with Motif's algorithm, and CDE's 25 desktop
   backdrops, coloured with the chosen palette.
 - A window arrangement around the console: terminals left and right, the main
@@ -117,7 +118,7 @@ Right-click the console and choose its settings.
   (75–200 %, tiles, icons and text scale together).
 - **Launchers**: the tiles left and right of the workspace switch. Each tile has
   a label, an icon, a program and the subpanel its arrow opens (Applications,
-  Places, System, Help, Bookmarks, Recent files). Programs are
+  Places, System, Help, Mail, Bookmarks, Recent files). Programs are
   "Default web browser", "Default mail client", "Default file manager",
   "Default text editor", terminal, calendar and so on, which follow
   System Settings › Default Applications, or an installed application picked
@@ -145,7 +146,8 @@ wheel changes the volume directly.
 ![The clock displays](screenshots/clock-faces-200.png)
 
 **Clock and Calendar** also chooses the clock display: digital, seven-segment
-(unlit segments faintly visible, optionally a black edge round the lit ones)
+(unlit segments faintly visible, both that and a black edge round the lit
+ones can be switched)
 or analog with one of four dials: CDE (round,
 after CDE's own front-panel clock), Motif (a square sunken well), Roman
 numerals, or plain marks on the tile. Seconds can be shown on every display.
@@ -155,7 +157,9 @@ the clock to match. All sizes follow the tile, so the clock fits at 75 % and
 in the upright console.
 
 Subpanels and menus accept Tab, Enter, Space, the arrow keys and Escape. The
-task strip scrolls when many windows are open.
+task strip scrolls when many windows are open. Windows of one application share
+a button ("3× Konsole", the titles in its tooltip); each click brings the next
+of them forward. General › "Group windows of one application" turns this off.
 
 ### Arrange windows around the console
 

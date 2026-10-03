@@ -14,7 +14,7 @@ const LEFT = [
 ];
 const RIGHT = [
     {label: "Web", icon: "internet-web-browser", command: "@browser", menu: "bookmarks"},
-    {label: "Mail", icon: "internet-mail", command: "@mail", menu: ""},
+    {label: "Mail", icon: "internet-mail", command: "@mail", menu: "mail"},
     {label: "System", icon: "preferences-system", command: "@settings", menu: "system"},
     {label: "Help", icon: "help-browser", command: "@help", menu: "help"},
     {label: "Trash", icon: "user-trash", command: "@trash", menu: ""}
@@ -43,6 +43,7 @@ const MENUS = [
     {text: "Places", value: "places"},
     {text: "System", value: "system"},
     {text: "Help", value: "help"},
+    {text: "Mail", value: "mail"},
     {text: "Bookmarks", value: "bookmarks"},
     {text: "Recent files", value: "recent"}
 ];
@@ -51,6 +52,7 @@ const MENUS = [
 function menuFor(command) {
     const token = command.trim().split(/\s+/)[0] || "";
     if (token === "@browser") return "bookmarks";
+    if (token === "@mail") return "mail";
     if (token === "@editor" || token.indexOf("app:") === 0) return "recent";
     if (token === "@files" || token === "@trash") return "places";
     if (token === "@settings") return "system";
@@ -113,6 +115,8 @@ const TOKENS = {
                   programs: ["konsole --profile 'CDE Copper'", "xdg-terminal-exec", "gnome-terminal", "xterm"]},
     "@calendar": {what: "A calendar application",
                   programs: ["merkuro-calendar", "korganizer", "gnome-calendar", "thunderbird -calendar"]},
+    "@contacts": {what: "An address book",
+                  programs: ["kaddressbook", "merkuro-contact", "gnome-contacts", "thunderbird -addressbook"]},
     "@settings": {what: "System Settings", programs: ["systemsettings"]},
     "@help": {what: "Help Center", programs: ["khelpcenter", "xdg-open https://docs.kde.org"]}
 };

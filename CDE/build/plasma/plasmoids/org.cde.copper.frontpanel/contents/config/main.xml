@@ -7,6 +7,8 @@
     <!-- 0 bottom, 1 top, 2 left, 3 right; -1 follows topEdge (0.2.0 settings) -->
     <entry name="edge" type="Int"><default>-1</default></entry>
     <entry name="windowsOnThisScreen" type="Bool"><default>true</default></entry>
+    <!-- Windows of one application as one task button: "3× Konsole" -->
+    <entry name="groupWindows" type="Bool"><default>true</default></entry>
     <entry name="consoleLabel" type="String"><default>CDE / COPPER</default></entry>
     <entry name="consoleScale" type="Double"><default>1.0</default></entry>
     <!-- The console shows the volume; keep the tray from showing it twice -->
@@ -26,6 +28,7 @@
     <entry name="clockDial" type="String"><default>cde</default></entry>
     <entry name="clockSeconds" type="Bool"><default>false</default></entry>
     <entry name="clockSegmentEdge" type="Bool"><default>false</default></entry>
+    <entry name="clockSegmentShadow" type="Bool"><default>true</default></entry>
     <entry name="calendarCommand" type="String"><default>@calendar</default></entry>
     <entry name="enabledCalendarPlugins" type="StringList"><default>pimevents</default></entry>
   </group>
