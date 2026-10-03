@@ -25,6 +25,7 @@ const PRESETS = [
     {text: "Default web browser", value: "@browser", icon: "internet-web-browser"},
     {text: "Default mail client", value: "@mail", icon: "internet-mail"},
     {text: "Default file manager", value: "@files", icon: "folder"},
+    {text: "XFile (Motif, as CDE's dtfile)", value: "@xfile", icon: "system-file-manager"},
     {text: "Terminal", value: "@terminal", icon: "utilities-terminal"},
     {text: "Default text editor", value: "@editor", icon: "accessories-text-editor"},
     {text: "Calendar", value: "@calendar", icon: "view-calendar"},
@@ -54,7 +55,7 @@ function menuFor(command) {
     if (token === "@browser") return "bookmarks";
     if (token === "@mail") return "mail";
     if (token === "@editor" || token.indexOf("app:") === 0) return "recent";
-    if (token === "@files" || token === "@trash") return "places";
+    if (token === "@files" || token === "@xfile" || token === "@trash") return "places";
     if (token === "@settings") return "system";
     if (token === "@help") return "help";
     if (token === "@applications") return "applications";
@@ -107,6 +108,7 @@ const TOKENS = {
               programs: ["kmail", "thunderbird", "evolution"]},
     "@files": {what: "A file manager", query: "xdg-mime query default inode/directory",
                programs: ["dolphin", "pcmanfm-qt", "nautilus", "thunar", "xdg-open"], home: true},
+    "@xfile": {what: "XFile", programs: ["xfile"], home: true},
     "@trash": {what: "A file manager", query: "xdg-mime query default inode/directory",
                programs: ["dolphin", "kioclient exec"], fixed: "trash:/"},
     "@editor": {what: "A text editor", query: "xdg-mime query default text/plain",

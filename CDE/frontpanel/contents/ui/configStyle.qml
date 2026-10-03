@@ -10,9 +10,10 @@ import "palettes.js" as Palettes
 import "launch.js" as Launch
 
 // The style manager, after CDE's dtstyle: the palettes as colour swatches and
-// the backdrops as patterns. Applying runs the theme's tool in the profile,
-// which switches colour scheme, Plasma surfaces, Kvantum controls and the
-// desktop together. The CDE palettes are also listed in System Settings ›
+// the backdrops as patterns. A choice becomes the styleRequest setting, so
+// the dialog's Apply and OK take it like any other; the console then runs
+// the theme's tool, which switches colour scheme, Plasma surfaces, Kvantum
+// controls and the desktop together. The CDE palettes are also listed in System Settings ›
 // Colours; choosing one there has the same effect.
 KCM.SimpleKCM {
     id: page
@@ -21,7 +22,7 @@ KCM.SimpleKCM {
     property string current: ""          // the palette in use
     property string chosen: ""
     property string backdrop: ""         // "" keeps the desktop as it is
-    property string status: ""
+    property string cfg_styleRequest: ""
 
     P5Support.DataSource {
         id: shell
@@ -32,20 +33,14 @@ KCM.SimpleKCM {
                 const scheme = data.stdout.trim();
                 page.current = scheme.indexOf("CDE") === 0 ? scheme.substring(3) : "";
                 if (!page.chosen) page.chosen = page.current || "Copper";
-            } else {
-                page.status = data["exit code"] === 0 ? "Applied. Restart applications to bring their controls into the new colours."
-                                                      : "The tool reported a problem: " + (data.stderr || data.stdout).trim();
             }
         }
     }
     Component.onCompleted: shell.connectSource("kreadconfig6 --group General --key ColorScheme")
 
-    function apply() {
-        let command = "python3 " + Launch.quote(tool) + " palette --palette " + Launch.quote(chosen);
-        if (backdrop) command += " --backdrop " + Launch.quote(backdrop) + " --backdrop-scale " + pixels.value;
-        status = "Applying " + chosen + " …";
-        shell.connectSource(command);
-        current = chosen;
+    // Every change makes a new request (the time keeps two equal ones apart).
+    function request() {
+        cfg_styleRequest = JSON.stringify({palette: chosen, backdrop: backdrop, scale: pixels.value, at: Date.now()});
     }
 
     ColumnLayout {
@@ -53,7 +48,8 @@ KCM.SimpleKCM {
         Kirigami.Heading { level: 3; text: "Palette" }
         Label {
             Layout.fillWidth: true; wrapMode: Text.Wrap; opacity: 0.75
-            text: "CDE's 37 palettes and CDE Copper. The stripes: console, windows, text fields, active and inactive title, desktop."
+            text: "CDE's 37 palettes and CDE Copper. The stripes: console, windows, text fields, active and inactive title, desktop. "
+                + "Choose one (and a backdrop below), then Apply or OK. ● marks the palette in use."
         }
         GridLayout {
             id: palettes
@@ -70,7 +66,7 @@ KCM.SimpleKCM {
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 7
                     Layout.preferredHeight: Kirigami.Units.gridUnit * 3.2
                     highlighted: page.chosen === modelData.name
-                    onClicked: page.chosen = modelData.name
+                    onClicked: { page.chosen = modelData.name; page.request(); }
                     ToolTip.text: modelData.name + (page.current === modelData.name ? " (in use)" : "")
                     ToolTip.visible: hovered
                     contentItem: ColumnLayout {
@@ -104,14 +100,15 @@ KCM.SimpleKCM {
                 id: backdrops
                 Layout.preferredWidth: Kirigami.Units.gridUnit * 14
                 model: ["Keep the desktop as it is", "Plain palette colour"].concat(Palettes.BACKDROPS)
-                onActivated: index => page.backdrop = index === 0 ? "" : index === 1 ? "none" : Palettes.BACKDROPS[index - 2]
+                onActivated: index => { page.backdrop = index === 0 ? "" : index === 1 ? "none" : Palettes.BACKDROPS[index - 2]; page.request(); }
             }
             Label { text: "Pixel size:"; visible: page.backdrop && page.backdrop !== "none" }
             SpinBox {
                 id: pixels
                 visible: page.backdrop && page.backdrop !== "none"
-                from: 1; to: 4; value: 1
+                from: 1; to: 3; value: 1
                 textFromValue: value => value + " ×"
+                onValueModified: page.request()
             }
         }
         Rectangle {
@@ -136,14 +133,6 @@ KCM.SimpleKCM {
             text: "Backdrops are CDE's patterns (The Open Group, CC BY-SA 3.0), coloured with the palette. They can also be chosen in the desktop's wallpaper settings as \"CDE Backdrop\"."
         }
 
-        RowLayout {
-            Button {
-                text: "Apply palette" + (page.backdrop ? " and backdrop" : "")
-                icon.name: "dialog-ok-apply"
-                enabled: page.chosen !== ""
-                onClicked: page.apply()
-            }
-            Label { Layout.fillWidth: true; text: page.status; wrapMode: Text.Wrap }
-        }
+
     }
 }

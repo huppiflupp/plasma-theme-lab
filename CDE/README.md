@@ -78,7 +78,20 @@ open take the new controls when restarted; a notification says so.
 
 The **style manager** does the same from the console, after CDE's dtstyle:
 System subpanel › Style Manager (or the console's settings › Style) shows
-every palette as colour stripes and every backdrop pattern, and applies both.
+every palette as colour stripes and every backdrop pattern; choosing one and
+pressing the settings dialog's Apply or OK applies both.
+
+**XFile**, a Motif file manager (fastestcode.org, MIT licence), is the closest
+thing to CDE's own dtfile on a current system: Motif widgets, bevels shaded
+from the background like CDE's, an icon view and a path field. It is not
+packaged by the distributions; built from source (it needs only X and Motif),
+it joins in by itself: with every palette change the tool writes its X
+resources (`~/XFile`: the palette's window, field and selection colours,
+IBM Plex, the desktop's terminal, `xdg-open` for files) and, if the
+installation brought no menu entry, adds one. A `~/XFile` of your own is left
+alone (the theme marks its file in the first line). In the console, choose
+"XFile (Motif, as CDE's dtfile)" for the Files tile; its Places subpanel then
+opens in XFile too (the trash stays the desktop's, XFile has none).
 
 CDE's 25 backdrops are a wallpaper type of their own: desktop settings ›
 Wallpaper type **CDE Backdrop**, a grid of the patterns in the palette's
@@ -119,7 +132,7 @@ Right-click the console and choose its settings.
 - **Launchers**: the tiles left and right of the workspace switch. Each tile has
   a label, an icon, a program and the subpanel its arrow opens (Applications,
   Places, System, Help, Mail, Bookmarks, Recent files). Programs are
-  "Default web browser", "Default mail client", "Default file manager",
+  "Default web browser", "Default mail client", "Default file manager", XFile,
   "Default text editor", terminal, calendar and so on, which follow
   System Settings › Default Applications, or an installed application picked
   from a list, or any command. A tick or a warning shows whether the program is

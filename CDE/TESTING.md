@@ -155,6 +155,15 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   three clicks brought three different ones forward in turn.
 - Seven-segment with "Unlit segments faintly visible" off: only the lit
   segments are drawn.
+- Style page (reported: unusable): choosing a palette had no effect on the
+  dialog, Apply stayed greyed out and the page's own button sat below the
+  fold. Now a choice enables Apply; Neptune → Copper applied the scheme,
+  Plasma style, Kvantum and XFile's resources. The backdrop pixel size stops
+  at 3, as the tool does.
+- XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
+  libXft-devel); a palette change wrote `~/XFile` in that palette and the
+  menu entry. Not checked: the Files tile switched to XFile (the launcher
+  code is the same as for every other program).
 - The VM's wallpaper had been changed to a grey-teal gradient in the meantime;
   it was left as found, as were the console at the top edge and its settings.
 

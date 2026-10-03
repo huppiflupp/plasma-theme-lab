@@ -68,7 +68,7 @@ PlasmoidItem {
     function openMenu(slot, anchor) {
         switch (slot.menu) {
         case "applications": openApplications(anchor); break;
-        case "places": openSection("Places", placesEntries(), anchor); break;
+        case "places": openSection("Places", placesEntries(slot), anchor); break;
         case "system": openSection("System", systemEntries(), anchor); break;
         case "help": openSection("Help", helpEntries(), anchor); break;
         case "mail": openSection("Mail", mailEntries(slot), anchor); break;
@@ -114,12 +114,15 @@ PlasmoidItem {
         else appMenu.open(anchor || root.fullRepresentationItem);
     }
     function entry(label, icon, command) { return {label: label, icon: icon, command: command}; }
-    function placesEntries() {
-        return [entry("Home", "user-home", "@files ~"),
-                entry("Documents", "folder-documents", "@files xdg:DOCUMENTS"),
-                entry("Downloads", "folder-download", "@files xdg:DOWNLOAD"),
-                entry("Pictures", "folder-pictures", "@files xdg:PICTURES"),
-                entry("File System", "drive-harddisk", "@files /"),
+    // The places open in the slot's file manager (XFile, if that is the
+    // tile's); XFile has no trash, so the trash stays the desktop's.
+    function placesEntries(slot) {
+        const files = slot && slot.command.indexOf("@xfile") === 0 ? "@xfile" : "@files";
+        return [entry("Home", "user-home", files + " ~"),
+                entry("Documents", "folder-documents", files + " xdg:DOCUMENTS"),
+                entry("Downloads", "folder-download", files + " xdg:DOWNLOAD"),
+                entry("Pictures", "folder-pictures", files + " xdg:PICTURES"),
+                entry("File System", "drive-harddisk", files + " /"),
                 entry("Trash", "user-trash", "@trash")];
     }
     function systemEntries() {
@@ -233,6 +236,15 @@ PlasmoidItem {
         function onConsoleScaleChanged() { root.configurePanel(); }
         function onHideTrayVolumeChanged() { root.syncTray(); }
         function onHideTrayIconsChanged() { root.syncTray(); root.placeTray(); }
+        // The Style page's choice, taken by the settings dialog's Apply/OK.
+        function onStyleRequestChanged() {
+            let request = null;
+            try { request = JSON.parse(Plasmoid.configuration.styleRequest); } catch (e) { return; }
+            if (!request || !request.palette) return;
+            let command = "python3 " + Launch.quote(root.tool) + " palette --notify --palette " + Launch.quote(request.palette);
+            if (request.backdrop) command += " --backdrop " + Launch.quote(request.backdrop) + " --backdrop-scale " + Math.max(1, Math.min(3, request.scale || 1));
+            root.run(command);
+        }
     }
 
     Component.onCompleted: {

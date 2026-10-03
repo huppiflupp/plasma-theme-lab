@@ -300,8 +300,79 @@ def set_palette(manifest, name):
                   " d.currentConfigGroup = ['Wallpaper', 'org.cde.copper.backdrop', 'General'];"
                   f" d.writeConfig('Palette', '{name}'); d.writeConfig('Color', '{colour_set['bg']}'); }}"
                   + (" else " + plain if manifest.get("backdrop") == "none" else "") + " }")
+    integrate_xfile()
     MANIFEST.write_text(json.dumps(manifest, indent=2))
     return theme
+
+
+XFILE_MARK = "! Written by CDE Copper; delete this line to keep your own settings."
+XFILE_RESOURCES = HOME / "XFile"       # Xt's per-user app-defaults ($HOME/%N)
+XFILE_DESKTOP = DATA / "applications" / "cde-copper-xfile.desktop"
+
+
+def kde_colour(group, key):
+    """A colour of the applied scheme as #rrggbb."""
+    value = read_config("kdeglobals", f"Colors:{group}", key)
+    parts = [int(part) for part in value.split(",")[:3]] if value else [0, 0, 0]
+    return "#%02x%02x%02x" % tuple(parts)
+
+
+def integrate_xfile():
+    """XFile, the Motif file manager closest to CDE's dtfile, in the palette:
+    Motif shades its bevels from the background like CDE did, so the scheme's
+    window, view and selection colours are all it needs. Its X resources go
+    to ~/XFile unless the user keeps an own file there. A menu entry is added
+    when the installation brought none (XFile ships without one)."""
+    if not shutil.which("xfile"):
+        return
+    if XFILE_RESOURCES.exists() and XFILE_MARK not in XFILE_RESOURCES.read_text(errors="replace"):
+        print(f"{XFILE_RESOURCES} is your own; XFile keeps its colours")
+    else:
+        terminal = read_config("kdeglobals", "General", "TerminalApplication") or "konsole"
+        XFILE_RESOURCES.write_text("\n".join([
+            XFILE_MARK,
+            f"! Palette {current_scheme()}, renewed with every palette change.",
+            f"XFile*background: {kde_colour('Window', 'BackgroundNormal')}",
+            f"XFile*foreground: {kde_colour('Window', 'ForegroundNormal')}",
+            f"XFile*XmTextField.background: {kde_colour('View', 'BackgroundNormal')}",
+            f"XFile*XmTextField.foreground: {kde_colour('View', 'ForegroundNormal')}",
+            f"*FileList.background: {kde_colour('View', 'BackgroundNormal')}",
+            f"*FileList.foreground: {kde_colour('View', 'ForegroundNormal')}",
+            f"*FileList.selectColor: {kde_colour('Selection', 'BackgroundNormal')}",
+            "XFile*renderTable: ui",
+            "XFile*renderTable.ui.fontType: FONT_IS_XFT",
+            "XFile*renderTable.ui.fontName: IBM Plex Sans Condensed",
+            "XFile*renderTable.ui.fontSize: 10",
+            *(f"*FileList.renderTable.{kind}.fontName: IBM Plex Sans Condensed"
+              for kind in ("regular", "directory", "symlink", "special")),
+            f"XFile.tools.terminal: {terminal}",
+            f"XFile.variable.terminal: {terminal} -e",
+            # The desktop's own choices (Default Applications) open files.
+            *(f"XFile.variable.{name}: xdg-open" for name in
+              ("textEditor", "imageViewer", "imageEditor", "audioPlayer", "videoPlayer", "pdfViewer", "webBrowser")),
+            ""]))
+    system = [Path(d) / "applications" for d in
+              os.environ.get("XDG_DATA_DIRS", "/usr/local/share:/usr/share").split(":")]
+    if not any((folder / "xfile.desktop").exists() for folder in system):
+        XFILE_DESKTOP.parent.mkdir(parents=True, exist_ok=True)
+        XFILE_DESKTOP.write_text("""[Desktop Entry]
+Type=Application
+Name=XFile
+GenericName=File Manager
+Comment=Motif file manager, in the CDE palette
+Exec=xfile %f
+Icon=system-file-manager
+Terminal=false
+Categories=System;FileTools;FileManager;
+MimeType=inode/directory;
+X-CDE-Copper=true
+""")
+
+
+def remove_xfile_integration():
+    if XFILE_RESOURCES.exists() and XFILE_MARK in XFILE_RESOURCES.read_text(errors="replace"):
+        remove(XFILE_RESOURCES)
+    remove(XFILE_DESKTOP)
 
 
 def set_backdrop(manifest, name, scale):
@@ -426,6 +497,7 @@ def uninstall():
         remove(CONFIG / target)
     for cache in (HOME / ".cache").glob("plasma_theme_cde-*"):
         remove(cache)
+    remove_xfile_integration()
     if manifest["applied"]:
         dbus("org.kde.KWin", "/KWin", "reconfigure")
         run("systemctl", "--user", "start", "plasma-plasmashell.service")

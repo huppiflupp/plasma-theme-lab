@@ -15,6 +15,8 @@
     <entry name="hideTrayVolume" type="Bool"><default>true</default></entry>
     <!-- Tray entries only behind the console's hidden-icons button -->
     <entry name="hideTrayIcons" type="Bool"><default>true</default></entry>
+    <!-- Written by the Style page; the console applies it (JSON: palette, backdrop, scale) -->
+    <entry name="styleRequest" type="String"><default></default></entry>
   </group>
   <group name="Launchers">
     <!-- JSON lists of {label, icon, command, menu}; empty means the defaults in launch.js -->
