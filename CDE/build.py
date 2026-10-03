@@ -177,7 +177,7 @@ toolBarFont={UI_FONT}
 [kdeglobals][WM]
 activeFont={TITLE_FONT}
 [kdeglobals][KDE]
-widgetStyle=Windows
+widgetStyle=kvantum
 [kdeglobals][Icons]
 Theme=CDECopper
 [plasmarc][Theme]
@@ -206,7 +206,16 @@ Image=org.cde.copper
     shutil.copytree(ROOT / "frontpanel", OUT / "plasma/plasmoids/org.cde.copper.frontpanel", dirs_exist_ok=True)
     # IBM Plex Sans Condensed and IBM Plex Mono (SIL OFL 1.1), installed per user.
     shutil.copytree(ROOT / "fonts/IBMPlex", OUT / "fonts/CDECopper", dirs_exist_ok=True)
-    shutil.copy2(ROOT / "layout.js", OUT / lnf / "contents/layout.js")
+    # Plasma reads a global theme's desktop layout from exactly this path;
+    # without it, choosing the theme with its layout falls back to Plasma's
+    # default panel (Kickoff, task manager, clock) drawn in CDE's surfaces.
+    (OUT / lnf / "contents/layouts").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT / "layout.js", OUT / lnf / "contents/layouts/org.kde.plasma.desktop-layout.js")
+    # Shown in System Settings › Global Theme.
+    for name in ("preview.png", "fullscreenpreview.png"):
+        target = OUT / lnf / "contents/previews" / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / "screenshots/desktop-arranged-1920.png", target)
 
 
 def main():

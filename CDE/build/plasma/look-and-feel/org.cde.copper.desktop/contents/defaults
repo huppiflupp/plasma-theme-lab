@@ -7,7 +7,7 @@ toolBarFont=IBM Plex Sans Condensed,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
 [kdeglobals][WM]
 activeFont=IBM Plex Sans Condensed,10,-1,5,600,0,0,0,0,0,0,0,0,0,0,1
 [kdeglobals][KDE]
-widgetStyle=Windows
+widgetStyle=kvantum
 [kdeglobals][Icons]
 Theme=CDECopper
 [plasmarc][Theme]

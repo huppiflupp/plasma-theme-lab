@@ -212,10 +212,17 @@ def plasma_script(script):
 
 
 def current_scheme():
-    config = configparser.ConfigParser(interpolation=None, strict=False)
-    config.optionxform = str
-    config.read(CONFIG / "kdeglobals")
-    return config.get("General", "ColorScheme", fallback="")
+    """The colour scheme in effect. A global theme writes its choices to the
+    defaults layer (kdedefaults/kdeglobals) and removes them from kdeglobals,
+    so a scheme set by switching the global theme is only found there."""
+    for path in (CONFIG / "kdeglobals", CONFIG / "kdedefaults/kdeglobals"):
+        config = configparser.ConfigParser(interpolation=None, strict=False)
+        config.optionxform = str
+        config.read(path)
+        scheme = config.get("General", "ColorScheme", fallback="")
+        if scheme:
+            return scheme
+    return ""
 
 
 def workspace_set(name):

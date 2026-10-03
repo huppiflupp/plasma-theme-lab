@@ -40,7 +40,7 @@ class Separation(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="cde-copy-") as temp:
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
-            for item in ("tools", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops",
+            for item in ("tools", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "screenshots",
                          "build.py", "icons.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
@@ -60,6 +60,15 @@ class Separation(unittest.TestCase):
                     self.assertEqual(os.readlink(a), os.readlink(b), str(rel))
                 else:
                     self.assertEqual(a.read_bytes(), b.read_bytes(), str(rel))
+
+    def test_global_theme_brings_its_layout(self):
+        # Plasma only reads this path; a layout elsewhere is silently ignored.
+        lnf = ROOT / "build/plasma/look-and-feel/org.cde.copper.desktop/contents"
+        layout = lnf / "layouts/org.kde.plasma.desktop-layout.js"
+        self.assertTrue(layout.is_file())
+        self.assertIn("org.cde.copper.frontpanel", layout.read_text())
+        self.assertFalse((lnf / "layout.js").exists())
+        self.assertIn("widgetStyle=kvantum", (lnf / "defaults").read_text())
 
     def test_no_reference_to_sibling_themes(self):
         for name in ("build.py", "icons.py", "manage.py", "package.py", "install.sh",
@@ -328,6 +337,14 @@ class Installer(unittest.TestCase):
         value = json.loads(manifest.read_text())
         self.assertIn("color-schemes/CDEBroica.colors", value["targets"])
         self.assertNotIn("color-schemes/CDEBroica.colors", value["palette_targets"])
+
+    def test_scheme_set_by_a_global_theme_is_found(self):
+        # A global theme leaves the scheme only in the defaults layer.
+        (self.config / "kdedefaults").mkdir()
+        (self.config / "kdedefaults/kdeglobals").write_text("[General]\nColorScheme=CDEBroica\n")
+        code = "import manage; print(manage.current_scheme())"
+        result = subprocess.run([sys.executable, "-c", code], cwd=ROOT, env=self.env, text=True, capture_output=True)
+        self.assertEqual(result.stdout.strip(), "CDEBroica", result.stderr)
 
     def test_collision_is_not_overwritten(self):
         existing = self.data / "icons/CDECopper"

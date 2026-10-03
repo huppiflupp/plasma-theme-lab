@@ -176,6 +176,25 @@ Checks of 2026-10-03 (title bar height, reported: a lower limit):
   and 21 px (21 being the value set there): text readable and inside the bar.
 - The decoration is listed as "CDE" now; it follows any palette.
 
+Switching global themes (reported: back to CDE Copper the panel came apart and
+another one was used):
+
+- The global theme carried its layout at `contents/layout.js`; Plasma reads
+  only `contents/layouts/org.kde.plasma.desktop-layout.js`. With the layout
+  option ticked, Plasma fell back to its default panel (Kickoff, pager, task
+  manager, clock) drawn in CDE's surfaces. Now in the right place; round trip
+  CDE Copper → NT Legacy Lilac → CDE Copper with `plasma-apply-lookandfeel
+  --resetLayout` gave the front console with its tray each time.
+- The global theme set the Qt Windows widget style; now Kvantum. It also has a
+  preview picture for System Settings now.
+- A global theme writes its colour scheme only into the defaults layer
+  (`kdedefaults/kdeglobals`); the palette tool read `kdeglobals` alone and so
+  missed it, leaving Kvantum on the previous palette (seen: Camouflage controls
+  under the Copper scheme). It now falls back to the defaults layer; a test
+  covers it. The full round trip with a non-Copper palette could not be
+  repeated cleanly: the VM was in use at the time (Delphinium was chosen in
+  between; the state was consistent afterwards).
+
 Against the specification's test matrix (`IMPLEMENTATION-GUIDE.md`), as of
 0.3:
 
