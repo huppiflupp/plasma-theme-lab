@@ -256,6 +256,12 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   theme sets ksplashrc to it. Checked with `ksplashqml org.cde.copper.desktop
   --test --window` in the VM (screenshots/splash-1920.png, also its
   preview in System Settings); a real login not yet.
+- Start-up screen, revised: each block shows what starts in that stage
+  (display, window manager, Plasma, settings, session, desktop - the order
+  of plasma-workspace's ksplashqml under Wayland; KSplash passes only the
+  count), and the line below names it. Colours and backdrop tile follow the
+  palette: the tool writes splash/Colours.qml and the Lattice tile with
+  every palette (and after a reinstall). Checked under Orchid and Copper.
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the

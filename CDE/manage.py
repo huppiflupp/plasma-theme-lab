@@ -172,6 +172,8 @@ def install():
     # keep the chosen ones.
     if cursor_edge(manifest) != CURSOR_COLOURS["copper"]:
         install_cursors(manifest)
+    if manifest.get("palette", "Copper") != "Copper":
+        update_splash(manifest["palette"])
     if manifest.get("palette", "Copper") == "Copper" and manifest.get("progress", "outlined") != "outlined":
         copper_kvantum(manifest["progress"])
     run("kbuildsycoca6", check=False)
@@ -362,6 +364,7 @@ def set_palette(manifest, name):
                   f" d.writeConfig('Palette', '{name}'); d.writeConfig('Color', '{colour_set['bg']}'); }}"
                   + (" else " + plain if manifest.get("backdrop") == "none" else "") + " }")
     integrate_xfile()
+    update_splash(name)
     MANIFEST.write_text(json.dumps(manifest, indent=2))
     return theme
 
@@ -436,6 +439,21 @@ def remove_xfile_integration():
     if XFILE_RESOURCES.exists() and XFILE_MARK in XFILE_RESOURCES.read_text(errors="replace"):
         remove(XFILE_RESOURCES)
     remove(XFILE_DESKTOP)
+
+
+def update_splash(name):
+    """The start-up screen in the palette: its Colours.qml and backdrop tile
+    in the installed global theme (ours)."""
+    sys.path.insert(0, str(ROOT))
+    import build
+    splash = DATA / "plasma/look-and-feel/org.cde.copper.desktop/contents/splash"
+    if not splash.exists():
+        return
+    colours = build.P if name == "Copper" else palettes.theme(name)
+    (splash / "Colours.qml").write_text(build.splash_colours(colours))
+    tile = DATA / TOOL / "backdrops" / name / "Lattice.png"
+    if tile.exists():
+        shutil.copy2(tile, splash / "images/backdrop.png")
 
 
 def set_backdrop(manifest, name, scale):

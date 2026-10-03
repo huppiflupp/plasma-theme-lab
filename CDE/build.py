@@ -87,6 +87,20 @@ def plasma(tools, P, theme="cde-copper", name="CDE Copper", base=None):
     write(f"plasma/desktoptheme/{theme}/plasmarc", "[Settings]\nFallbackTheme=default\n[ContrastEffect]\nenabled=false\n[BlurBehindEffect]\nenabled=false\n", base)
 
 
+# The start-up screen's stage pictures (lookandfeel/contents/splash).
+SPLASH_ICONS = {"display": "computer", "window": "window", "plasma": "cde-menu",
+                "settings": "preferences-system", "session": "user-home", "desktop": "folder-desktop"}
+
+
+def splash_colours(P):
+    """Colours.qml of the start-up screen, from a palette's colours."""
+    values = {"desktop": P["desktop"], "face": P["flaeche"], "light": P["hell"], "dark": P["dunkel"],
+              "ink": P["text"], "accent": P["kopf_aktiv"], "title": P["kopf_aktiv"],
+              "titleText": P["kopf_aktiv_text"], "trough": P["rille"]}
+    lines = "\n".join(f'    readonly property color {key}: "{value}"' for key, value in values.items())
+    return f"import QtQuick\n\n// Written by CDE Copper for the palette in use.\nQtObject {{\n{lines}\n}}\n"
+
+
 def decoration():
     """The Motif frame is a QML Aurorae decoration; it reads its colours from
     the active colour scheme, so it needs no per-palette build."""
@@ -230,6 +244,10 @@ Image=org.cde.copper
     images.mkdir(parents=True, exist_ok=True)
     shutil.copy2(OUT / "plasma/wallpapers/org.cde.copper.backdrop/contents/images/Copper/Lattice.png", images / "backdrop.png")
     shutil.copy2(OUT / "icons/CDECopper/scalable/all/cde-menu.svg", images / "logo.svg")
+    for part, icon in SPLASH_ICONS.items():
+        shutil.copy2(OUT / f"icons/CDECopper/22/all/{icon}.svg" if (OUT / f"icons/CDECopper/22/all/{icon}.svg").exists()
+                     else OUT / f"icons/CDECopper/scalable/all/{icon}.svg", images / f"{part}.svg")
+    write(lnf + "contents/splash/Colours.qml", splash_colours(P))
     (OUT / lnf / "contents/previews").mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "screenshots/splash-1920.png", OUT / lnf / "contents/previews/splash.png")
     # Shown in System Settings › Global Theme.

@@ -2,18 +2,28 @@ import QtQuick
 
 // The start-up screen (KSplash): a Motif dialog on the tiled backdrop, as
 // CDE showed its session start. KSplash raises `stage` from 1 to 6 while
-// Plasma starts; each stage lights one more block of the meter.
+// Plasma starts; each stage lights one more block of the meter, with the
+// part that has just started. The colours and the backdrop tile are those
+// of the palette in use (Colours.qml and images/backdrop.png, rewritten by
+// CDE Copper's tool with every palette).
 Rectangle {
     id: root
-    color: "#086875"
+    Colours { id: colours }
+    color: colours.desktop
     property int stage
 
-    readonly property color face: "#86a4aa"
-    readonly property color light: "#c9dedb"
-    readonly property color dark: "#41646a"
-    readonly property color ink: "#10262b"
-    readonly property color copper: "#e8874f"
+    readonly property color face: colours.face
+    readonly property color light: colours.light
+    readonly property color dark: colours.dark
+    readonly property color ink: colours.ink
+    readonly property color copper: colours.accent
     readonly property string font: "IBM Plex Sans Condensed"
+    // KSplash passes only the count; on Wayland the stages come in this
+    // order (plasma-workspace, ksplash/ksplashqml/splashapp.cpp).
+    readonly property var parts: [
+        {icon: "display", text: "Display"}, {icon: "window", text: "Window manager"},
+        {icon: "plasma", text: "Plasma"}, {icon: "settings", text: "Settings"},
+        {icon: "session", text: "Session"}, {icon: "desktop", text: "Desktop"}]
 
     // A Motif bevel: light top and left, dark bottom and right.
     component Bevel: Rectangle {
@@ -36,7 +46,7 @@ Rectangle {
     Rectangle {
         // The window's ink outline around the bevel.
         id: dialog
-        width: 460; height: 236
+        width: 460; height: 250
         anchors.centerIn: parent
         color: root.ink
         opacity: 0
@@ -47,12 +57,12 @@ Rectangle {
                 id: title
                 anchors { left: parent.left; right: parent.right; top: parent.top; margins: 4 }
                 height: 26
-                color: root.copper
+                color: colours.title
                 Text {
                     anchors.centerIn: parent
                     text: "CDE Copper"
                     font.family: root.font; font.pixelSize: 14; font.weight: Font.DemiBold
-                    color: root.ink
+                    color: colours.titleText
                 }
             }
             Row {
@@ -67,15 +77,18 @@ Rectangle {
                     spacing: 6
                     anchors.verticalCenter: parent.verticalCenter
                     Text { text: "Common Desktop Environment"; font.family: root.font; font.pixelSize: 18; color: root.ink }
-                    Text { text: "Starting the desktop …"; font.family: root.font; font.pixelSize: 13; color: root.ink; opacity: 0.8 }
+                    Text {
+                        text: root.stage >= 1 && root.stage <= 6 ? "Starting: " + root.parts[root.stage - 1].text + " …" : "Starting the desktop …"
+                        font.family: root.font; font.pixelSize: 13; color: root.ink; opacity: 0.8
+                    }
                 }
             }
             Bevel {
                 // The meter: six blocks in a sunken well.
                 sunken: true
                 anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: 18 }
-                height: 30
-                color: "#6f8f96"
+                height: 44
+                color: colours.trough
                 Row {
                     anchors.fill: parent; anchors.margins: 5
                     spacing: 5
@@ -89,6 +102,14 @@ Rectangle {
                             color: root.stage > index ? root.copper : root.face
                             sunken: root.stage <= index
                             Behavior on color { ColorAnimation { duration: 180 } }
+                            Image {
+                                anchors.centerIn: parent
+                                width: 22; height: 22
+                                sourceSize: Qt.size(22, 22)
+                                source: "images/" + root.parts[parent.index].icon + ".svg"
+                                opacity: root.stage > parent.index ? 1 : 0.35
+                                Behavior on opacity { NumberAnimation { duration: 180 } }
+                            }
                         }
                     }
                 }
