@@ -194,6 +194,16 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   in Multimedia and System. Build fix: the icon folder is emptied first; a
   drawing written through a link of an earlier build had overwritten the
   link's target (folder, edit-find and dialog-cancel showed other pictures).
+- A backdrop per workspace (CDE Backdrop › "A backdrop for each workspace",
+  off by default; Pebbles, Lattice, RicePaper, Crochet as a start): switching
+  workspaces 1-4 in the VM changed the pattern each time. The fallback to the
+  packaged tile no longer breaks the binding, so the pattern keeps following.
+- Coloured workspace buttons: CDE gives One to Four the palette's colour sets
+  3, 5, 6 and 7, measured on a CDE 2.x screenshot with the Default palette
+  (#8998aa, #c6b2a8, #4992a7, #b7878d, exactly sets 3, 5, 6, 7). The tool
+  writes the four sets to cde-copper/workspaces.json with every palette; the
+  console reads it (General › Workspaces, on by default). Copper uses
+  #649099, #c4d2d0, #2e7180, #e8874f. Checked in the VM under NorthernSky.
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the

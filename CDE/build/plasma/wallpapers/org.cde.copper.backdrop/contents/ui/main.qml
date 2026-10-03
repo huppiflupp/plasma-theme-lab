@@ -1,6 +1,7 @@
 import QtQuick
 import QtCore
 import org.kde.plasma.plasmoid
+import org.kde.taskmanager as TaskManager
 
 // CDE backdrops as a wallpaper type: the pattern tiled pixel for pixel.
 // Plasma's picture wallpaper scales a picture to the screen before tiling,
@@ -10,9 +11,17 @@ import org.kde.plasma.plasmoid
 // The tiles are coloured with the applied palette by CDE Copper's tool and
 // kept in ~/.local/share/cde-copper/backdrops/<palette>/; the package itself
 // carries the Copper set as a fallback.
+//
+// As in CDE, every workspace can have its own backdrop (PerWorkspace): the
+// pattern follows the current virtual desktop; workspaces beyond the list
+// show the general one.
 WallpaperItem {
     id: root
-    readonly property string backdrop: root.configuration.Backdrop || "Pebbles"
+    TaskManager.VirtualDesktopInfo { id: desktops }
+    readonly property int workspace: desktops.desktopIds.indexOf(desktops.currentDesktop)
+    readonly property var perWorkspace: root.configuration.Workspaces || []
+    readonly property string backdrop: (root.configuration.PerWorkspace && workspace >= 0 && perWorkspace[workspace])
+                                       || root.configuration.Backdrop || "Pebbles"
     readonly property string paletteName: root.configuration.Palette || "Copper"
     readonly property int pixel: Math.max(1, Math.min(4, root.configuration.PixelSize || 1))
     readonly property string profileTile: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
@@ -25,12 +34,17 @@ WallpaperItem {
     }
     // Loads the tile once at its natural size; the visible copy scales it by
     // whole pixels. Falls back to the packaged Copper tile.
+    // A flag rather than assigning the source, so the binding survives a
+    // change of workspace or backdrop.
+    property bool fallback: false
+    onBackdropChanged: fallback = false
+    onPaletteNameChanged: fallback = false
     Image {
         id: probe
         visible: false
         cache: false
-        source: root.profileTile
-        onStatusChanged: if (status === Image.Error && source !== root.packageTile) source = root.packageTile
+        source: root.fallback ? root.packageTile : root.profileTile
+        onStatusChanged: if (status === Image.Error && !root.fallback) root.fallback = true
     }
     Image {
         anchors.fill: parent

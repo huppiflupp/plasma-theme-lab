@@ -296,6 +296,10 @@ def set_palette(manifest, name):
     """Switch everything to one palette: colour scheme, Plasma surfaces,
     Kvantum controls, and the backdrop tiles and desktop colour."""
     import backdrops
+    # The console colours its workspace buttons from this; written before
+    # the scheme changes, so the console finds it when it repaints.
+    (DATA / TOOL).mkdir(parents=True, exist_ok=True)
+    (DATA / TOOL / "workspaces.json").write_text(json.dumps(palettes.workspace_colours(name)))
     theme = install_palette(manifest, name)
     if current_scheme() != theme["colors"]:
         run("plasma-apply-colorscheme", theme["colors"])

@@ -29,7 +29,8 @@ or takes any of CDE's own 37 palettes and backdrops.
   subpanels, an Applications menu with cascading categories, the browser's
   bookmarks, the editor's (or LibreOffice's) recently opened files, a Mail
   subpanel (new message, appointments, address book), Places, System and Help
-  subpanels, four-workspace switcher, window task strip (several windows of
+  subpanels, four-workspace switcher (each button in a colour of the palette,
+  as in CDE), window task strip (several windows of
   one application as one button, "3× Konsole"), volume
   control, and four small buttons in the space of one launcher: hidden tray
   icons, console settings, lock screen, show desktop. The Plasma system tray
@@ -102,7 +103,10 @@ CDE's 25 backdrops are a wallpaper type of their own: desktop settings ›
 Wallpaper type **CDE Backdrop**, a grid of the patterns in the palette's
 colours, a pixel size for 200 % screens and the colour behind the pattern.
 They are tiled pixel for pixel; Plasma's picture wallpaper would scale the
-small patterns up into a blur.
+small patterns up into a blur. As in CDE, every workspace can have a backdrop
+of its own ("A backdrop for each workspace"): Plasma itself knows wallpapers
+per screen and activity only, so the wallpaper follows the current virtual
+desktop by itself.
 
 The same from a shell:
 

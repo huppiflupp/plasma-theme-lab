@@ -7,6 +7,8 @@
     <!-- 0 bottom, 1 top, 2 left, 3 right; -1 follows topEdge (0.2.0 settings) -->
     <entry name="edge" type="Int"><default>-1</default></entry>
     <entry name="windowsOnThisScreen" type="Bool"><default>true</default></entry>
+    <!-- Workspace buttons in the palette's colour sets 3, 5, 6, 7, as in CDE -->
+    <entry name="workspaceColours" type="Bool"><default>true</default></entry>
     <!-- Windows of one application as one task button: "3× Konsole" -->
     <entry name="groupWindows" type="Bool"><default>true</default></entry>
     <entry name="consoleLabel" type="String"><default>CDE / COPPER</default></entry>

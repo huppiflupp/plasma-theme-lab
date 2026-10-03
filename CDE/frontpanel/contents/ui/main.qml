@@ -175,7 +175,20 @@ PlasmoidItem {
     // is a CDE palette, the tool brings Kvantum, the Plasma surfaces and the
     // backdrop along. Unchanged palettes cost nothing: the tool compares.
     readonly property string schemeKey: consoleColors.panel + consoleColors.window + consoleColors.highlight + consoleColors.field
-    onSchemeKeyChanged: schemeTimer.restart()
+    onSchemeKeyChanged: { schemeTimer.restart(); workspaceTimer.restart(); }
+    // The palette's workspace colours, written by the tool with each palette
+    // (cde-copper/workspaces.json); read at start and after a scheme change.
+    property var workspaceColours: []
+    readonly property string workspaceFile: decodeURIComponent(StandardPaths.writableLocation(StandardPaths.GenericDataLocation).toString().replace(/^file:\/\//, "")) + "/cde-copper/workspaces.json"
+    Timer { id: workspaceTimer; interval: 3000; running: true; onTriggered: workspaceReader.connectSource("cat " + Launch.quote(root.workspaceFile)) }
+    P5Support.DataSource {
+        id: workspaceReader
+        engine: "executable"
+        onNewData: function(sourceName, data) {
+            disconnectSource(sourceName);
+            try { root.workspaceColours = JSON.parse(data.stdout); } catch (e) { root.workspaceColours = []; }
+        }
+    }
     Timer {
         id: schemeTimer
         interval: 2000
@@ -467,6 +480,13 @@ PlasmoidItem {
                         text: root.workspaceLabel(index)
                         Accessible.name: "Workspace " + (index + 1) + " " + (desktops.desktopNames[index] || "")
                         selected: desktops.currentDesktop === modelData
+                        // As in CDE, each workspace in a colour of its own.
+                        readonly property var own: Plasmoid.configuration.workspaceColours && root.workspaceColours.length
+                                                   ? root.workspaceColours[index % root.workspaceColours.length] : null
+                        surface: own ? own.bg : consoleColors.panel
+                        foreground: own ? own.fg : consoleColors.panelText
+                        accent: own ? own.sel : consoleColors.highlight
+                        accentText: own ? own.fg : consoleColors.highlightText
                         onClicked: root.run(root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
                     }
                 }

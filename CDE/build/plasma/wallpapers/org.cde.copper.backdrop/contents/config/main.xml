@@ -3,6 +3,9 @@
   <kcfgfile name=""/>
   <group name="General">
     <entry name="Backdrop" type="String"><default>Pebbles</default></entry>
+    <!-- CDE's dtwm gave every workspace its own backdrop -->
+    <entry name="PerWorkspace" type="Bool"><default>false</default></entry>
+    <entry name="Workspaces" type="StringList"><default>Pebbles,Lattice,RicePaper,Crochet</default></entry>
     <!-- Set by CDE Copper's tool when a palette is applied -->
     <entry name="Palette" type="String"><default>Copper</default></entry>
     <entry name="PixelSize" type="Int"><default>1</default></entry>

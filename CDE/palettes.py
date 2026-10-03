@@ -138,6 +138,21 @@ def copper_desktop():
     return colour_set("#086875")
 
 
+# CDE's front panel gives every workspace button its own colour: One to
+# Four take colour sets 3, 5, 6 and 7 of the palette (checked against a
+# screenshot of CDE 2.x with the Default palette). Further workspaces repeat
+# them. CDE Copper's four follow the same pattern from its own colours.
+WORKSPACE_SETS = (3, 5, 6, 7)
+COPPER_WORKSPACES = ("#649099", "#c4d2d0", "#2e7180", "#e8874f")
+
+
+def workspace_colours(name):
+    if name == "Copper":
+        return [colour_set(c) for c in COPPER_WORKSPACES]
+    sets = load(name)
+    return [sets[i - 1] for i in WORKSPACE_SETS]
+
+
 def theme(name):
     """Map a CDE palette onto the colour keys the CDE Copper generators use."""
     s = load(name)
