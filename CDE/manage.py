@@ -230,6 +230,54 @@ def workspace_set(name):
     return palettes.copper_desktop() if name == "Copper" else palettes.load(name)[2]
 
 
+def read_config(file, section, key):
+    """A value in effect: the user's file, else the defaults layer."""
+    for path in (CONFIG / file, CONFIG / "kdedefaults" / file):
+        config = configparser.ConfigParser(interpolation=None, strict=False)
+        config.optionxform = str
+        config.read(path)
+        value = config.get(section, key, fallback="")
+        if value:
+            return value
+    return ""
+
+
+def notify_change(kind):
+    """KDE's change broadcast: 0 palette, 2 style (KGlobalSettings)."""
+    if shutil.which("dbus-send"):
+        run("dbus-send", "--session", "--type=signal", "/KGlobalSettings",
+            "org.kde.KGlobalSettings.notifyChange", f"int32:{kind}", "int32:0", check=False)
+    elif shutil.which("gdbus"):
+        run("gdbus", "emit", "--session", "--object-path", "/KGlobalSettings",
+            "--signal", "org.kde.KGlobalSettings.notifyChange", str(kind), "0", check=False)
+
+
+def refresh_running_windows():
+    """Bring windows that are already open into the new palette.
+
+    Kvantum has no reload: a running program keeps its style object until the
+    style *name* changes (plasma-integration's KHintsSettings only calls
+    QApplication::setStyle for a different name). A short detour through
+    Fusion makes KDE programs create a fresh Kvantum style with the new
+    theme. KWin keeps the colours of existing window frames; switching the
+    decoration away and back makes it build them anew. Programs without
+    KDE's platform theme still need a restart."""
+    if read_config("kdeglobals", "KDE", "widgetStyle") == "kvantum":
+        write_config("kdeglobals", "KDE", {"widgetStyle": "fusion"})
+        notify_change(2)
+        time.sleep(1)
+        write_config("kdeglobals", "KDE", {"widgetStyle": "kvantum"})
+        notify_change(2)
+        time.sleep(1)
+        notify_change(0)
+    if read_config("kwinrc", "org.kde.kdecoration2", "theme") == DECORATION:
+        write_config("kwinrc", "org.kde.kdecoration2", {"library": "org.kde.breeze"})
+        dbus("org.kde.KWin", "/KWin", "reconfigure")
+        time.sleep(0.5)
+        write_config("kwinrc", "org.kde.kdecoration2", {"library": "org.kde.kwin.aurorae"})
+        dbus("org.kde.KWin", "/KWin", "reconfigure")
+
+
 def set_palette(manifest, name):
     """Switch everything to one palette: colour scheme, Plasma surfaces,
     Kvantum controls, and the backdrop tiles and desktop colour."""
@@ -297,6 +345,7 @@ def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=Fa
         # keeps the palette as it is.
         if name and (not follow or name != manifest.get("palette", "Copper")):
             set_palette(manifest, name)
+            refresh_running_windows()
             if notify and shutil.which("notify-send"):
                 run("notify-send", "-a", "CDE Front Console", "-i", "preferences-desktop-color",
                     f"Palette {name}", "Restart applications to bring their controls into the new colours.", check=False)

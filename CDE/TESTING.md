@@ -206,6 +206,28 @@ bar):
 - Checked in a new `kcmshell6 kcm_kwindecoration` window; a System Settings
   window open before keeps the old preview until the page is opened again.
 
+Checks of 2026-10-03 evening (buttons, live palette switch, show desktop):
+
+- Push buttons: 32 px high before (measured in a `kdialog` and in System
+  Settings), 29 px after (text margins 3/2 instead of 3/3, side margins 5
+  instead of 8, minimum size +0.1 font instead of +0.3), about 90 % as asked.
+  Short labels ("Ja", "Nein") keep Qt's minimum width of dialog buttons.
+- Palette switch in open windows: research by Codex (CLI, read-only) on the
+  Kvantum, plasma-integration, KWin and Aurorae sources: Kvantum has no reload;
+  KDE programs build a new style object only when the style name changes.
+  Tested: a Dolphin opened before a switch to Broica kept Neptune's controls;
+  after widgetStyle kvantum -> fusion -> kvantum with the KGlobalSettings
+  signals it showed Broica's, without restart. Contrary to the research,
+  KWin did not recolour the frames of open windows, not even after
+  `reconfigure`; switching the decoration away and back did. Both are now part
+  of every palette switch (about 3 s, a short flicker). Back to Neptune with
+  Dolphin open: controls and frame changed at once.
+- Show Desktop: KWin's D-Bus `showDesktop(true)` is accepted and does nothing
+  in Plasma 6.7 (`showingDesktop` stays false); the button now invokes KWin's
+  "Show Desktop" shortcut through KGlobalAccel, which toggles. The command was
+  checked directly; the console in the VM was not restarted, as the VM was in
+  use, so the button itself takes the fix after the next login.
+
 Against the specification's test matrix (`IMPLEMENTATION-GUIDE.md`), as of
 0.3:
 

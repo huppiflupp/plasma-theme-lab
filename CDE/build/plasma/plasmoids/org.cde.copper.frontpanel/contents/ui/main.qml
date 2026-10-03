@@ -399,7 +399,9 @@ PlasmoidItem {
             Layout.fillWidth: true; Layout.fillHeight: true
             iconName: "computer"; text: ""; iconSize: root.u(23)
             Accessible.name: "Show Desktop"
-            onClicked: root.run(root.dbus + " org.kde.KWin /KWin showDesktop \"$(if [ \"$(" + root.dbus + " org.kde.KWin /KWin org.kde.KWin.showingDesktop)\" = true ]; then echo false; else echo true; fi)\"")
+            // KWin's D-Bus showDesktop(bool) is accepted but does nothing in
+            // Plasma 6.7; its own "Show Desktop" shortcut toggles reliably.
+            onClicked: root.run(root.dbus + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop'")
         }
     }
 

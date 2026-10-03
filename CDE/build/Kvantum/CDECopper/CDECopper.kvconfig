@@ -98,12 +98,12 @@ text.press.color=#10262b
 text.toggle.color=#10262b
 text.shadow=false
 text.margin.top=3
-text.margin.bottom=3
-text.margin.left=8
-text.margin.right=8
+text.margin.bottom=2
+text.margin.left=5
+text.margin.right=5
 text.iconspacing=4
-min_width=+0.3font
-min_height=+0.3font
+min_width=+0.1font
+min_height=+0.1font
 
 [PanelButtonTool]
 inherits=PanelButtonCommand

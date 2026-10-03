@@ -345,12 +345,12 @@ interior.element=button
 indicator.element=arrow
 indicator.size=9
 {text}text.margin.top=3
-text.margin.bottom=3
-text.margin.left=8
-text.margin.right=8
+text.margin.bottom=2
+text.margin.left=5
+text.margin.right=5
 text.iconspacing=4
-min_width=+0.3font
-min_height=+0.3font
+min_width=+0.1font
+min_height=+0.1font
 
 [PanelButtonTool]
 inherits=PanelButtonCommand
