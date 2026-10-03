@@ -35,14 +35,14 @@ DecorationButton {
         // Window menu: mwm's horizontal raised bar.
         Bevel {
             visible: button.buttonType === DecorationOptions.DecorationButtonMenu
-            width: Math.round(glyph.s * 0.56); height: Math.max(5, Math.round(glyph.s * 0.2))
+            width: Math.round(glyph.s * 0.56); height: Math.max(3, Math.round(glyph.s * 0.2))
             x: Math.round((glyph.s - width) / 2); y: Math.round((glyph.s - height) / 2)
             color: button.face; light: button.shade.top; dark: button.shade.bottom; thickness: 1
         }
         // Minimize: a small raised square.
         Bevel {
             visible: button.buttonType === DecorationOptions.DecorationButtonMinimize
-            width: Math.max(5, Math.round(glyph.s * 0.24)); height: width
+            width: Math.max(3, Math.round(glyph.s * 0.24)); height: width
             x: Math.round((glyph.s - width) / 2); y: Math.round((glyph.s - height) / 2)
             color: button.face; light: button.shade.top; dark: button.shade.bottom; thickness: 1
         }

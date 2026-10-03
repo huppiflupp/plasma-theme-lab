@@ -168,6 +168,33 @@ upgraded in place:
 - Restored afterwards: palette Copper and the wallpaper the VM had (the NT
   Legacy picture "ntlegacy-win98-flaeche").
 
+Checks of 2026-10-03 (title bar height, reported: a lower limit):
+
+- Heights below 16 px were ignored and fell back to the automatic height
+  (about 23 px), so a smaller setting gave a taller bar. Now every height from
+  8 px is used and the title text shrinks with it. Seen in the VM at 12, 16
+  and 21 px (21 being the value set there): text readable and inside the bar.
+- The decoration is listed as "CDE" now; it follows any palette.
+
+Against the specification's test matrix (`IMPLEMENTATION-GUIDE.md`), as of
+0.3:
+
+| Check | Status |
+|---|---|
+| 100 % scaling, crisp edges | checked (all versions) |
+| 150 % scaling | checked for 0.1 only; not for the QML frame, console, popups |
+| 200 % scaling | as 150 % |
+| active/inactive window distinguishable | checked by colour; no structural difference (see README) |
+| keyboard focus visible on every widget | not checked systematically |
+| panel auto-hide without focus trap or flicker | reveal checked by pointer (0.2.2); keyboard not checked |
+| multiple monitors, popups on screen | not checked (VM shows one output) |
+| dark terminal keeps the frame readable | checked (Konsole in every screenshot) |
+| starts without QML or KWin errors | warnings in the log (settings pages, menu binding loops) |
+| no root rights | checked (installer refuses root, tests run as user) |
+| Wayland session | checked; X11 not |
+| uninstall removes only own files | checked by test (verify.py) and in the VM |
+| icon fallback documented | yes (Breeze, hicolor) |
+
 The project VM was restored to the original configuration after the destructive
 installation test. The last visual run deliberately leaves CDE Copper applied
 in the VM so it can be opened with `vm/vmctl.sh viewer`; remove it with

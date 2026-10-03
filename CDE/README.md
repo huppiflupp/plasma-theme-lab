@@ -181,7 +181,7 @@ toolkit and runs through XWayland, so it ignores the widget style and palette.
 ### Window frame
 
 Two settings: the title-bar height (0 follows the title font, about 23 px with
-IBM Plex at 10 pt; the buttons follow the height) and whether the whole frame takes the title colour (CDE) or
+IBM Plex at 10 pt; from 8 px, the buttons and the title text follow it) and whether the whole frame takes the title colour (CDE) or
 only the title bar. The decoration ships a settings page for System Settings ›
 Window Decorations; the same values can be set directly:
 
@@ -258,6 +258,57 @@ the full size of both of its levels and leaves the unused part transparent.
 One console per screen is set up by `--panel`, but multiple physical monitors
 have not been validated (the test VM shows only one output). Very narrow
 logical screens below 800 px have not been validated either.
+
+## Where it falls short of the specification
+
+Measured against the handoff (`CDE-Plasma-2027-Handoff/DESIGN-SPEC.md` and
+`IMPLEMENTATION-GUIDE.md`). Some of these are decisions, the rest is not done.
+
+Decided differently:
+
+- **Front panel (§8).** The specification asks for a floating panel at the top,
+  88–94 % of the screen wide, with a second row of Applications / Places /
+  System / Help menus. CDE Copper keeps the compact classic console of CDE,
+  centred and only as wide as its tiles, by choice of its user; its menus hang
+  off the tiles' arrows. The console can sit at any edge.
+- **Title bar (§5).** The specification gives 28–32 px title bars and 22–24 px
+  buttons. On request the default is the title font + 6 px, about 23 px, with
+  buttons of the same size; 28–32 px can be set in the decoration's settings.
+- **Copper share (§2).** With "Colour the whole frame like the title bar" (on
+  by default, as CDE does) the active window's frame is copper all round; for
+  small windows this can exceed the 10–15 % the specification allows. Switch it
+  off for copper title bars only. Not measured.
+
+Not reached:
+
+- **Focus without colour (§5).** Active and inactive frames differ in colour
+  and brightness only, not in frame structure.
+- **Window shadow (§3).** The decoration draws no shadow at all, rather than a
+  short, firm one.
+- **Controls (§6).** Kvantum's minimum heights are font-relative: push buttons
+  and menu rows come out below the 28–34 px and 30–34 px the specification
+  gives (derived from the Kvantum configuration, not measured on screen).
+- **Icons (§7).** Less common icon names fall back to Breeze, and the system
+  tray shows the icons of the applets and applications in it, so Breeze icons
+  do appear. The icons are one scalable set, not optically tuned per size
+  (16/22/24/32/48/64).
+- **Hidden panel (§8).** No grip edge or copper marker while the console is
+  hidden; KWin's own edge glow is all there is. Showing and hiding use
+  Plasma's timing, not the 140–180 ms of the specification.
+- **Subpanels (§8).** They close on a second click, Escape or when another
+  window is activated; they do not stay open by pointer position.
+- **Keyboard and screen readers (§8, acceptance).** Tiles and menus carry
+  accessible names and keys work in the subpanels, but full keyboard operation
+  of auto-hide and of the Applications menu has not been verified, nor has a
+  screen reader been used.
+- **Theme coverage (phase 3).** No cursor theme, lock screen or SDDM theme;
+  notifications and calendar follow only through the Plasma surfaces.
+- **Test matrix.** 150 % and 200 % scaling were checked for 0.1 only, not for
+  the QML window frame, the console and the popups that came later. X11 was
+  not tested; Wayland is.
+- **"Plasma starts without QML errors" (acceptance).** Plasma starts, but its
+  log shows warnings from the console's settings pages (Plasma offers every
+  page every setting) and binding-loop warnings from Qt's menu items.
 
 ## Credits
 

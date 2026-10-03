@@ -14,7 +14,7 @@
     <layout class="QHBoxLayout" name="titleRow">
      <item>
       <widget class="QLabel" name="titleLabel">
-       <property name="text"><string>Title bar height (buttons follow):</string></property>
+       <property name="text"><string>Title bar height, from 8 px (buttons and text follow):</string></property>
       </widget>
      </item>
      <item>

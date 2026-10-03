@@ -25,7 +25,9 @@ Decoration {
     readonly property bool maximized: decoration.client.maximized
     // From the title font unless a height is configured; the buttons are
     // squares of this height, so they scale with it.
-    readonly property int titleHeight: fixedTitleHeight >= 16 ? fixedTitleHeight : Math.max(20, Math.ceil(metrics.height) + 6)
+    // Any height from 8 px is honoured (smaller ones count as 8); the title
+    // text shrinks to fit. 0 follows the title font.
+    readonly property int titleHeight: fixedTitleHeight > 0 ? Math.max(8, fixedTitleHeight) : Math.max(20, Math.ceil(metrics.height) + 6)
     readonly property int corner: titleHeight + edge
 
     readonly property color frameColor: options.titleBarColor
@@ -167,7 +169,14 @@ Decoration {
                 anchors.rightMargin: 8
                 text: decoration.client.caption
                 textFormat: Text.PlainText
-                font: options.titleFont
+                // The title font, shrunk to a low title bar instead of cut off:
+                // capitals and descenders take about the pixel size, so the
+                // text may be as large as the bar's inner height.
+                font.family: options.titleFont.family
+                font.weight: options.titleFont.weight
+                font.italic: options.titleFont.italic
+                font.pixelSize: Math.max(6, Math.min(Math.round(metrics.height / 1.25),
+                                                     root.titleHeight - 2 * root.bevel))
                 color: root.inkColor
                 elide: Text.ElideMiddle
                 horizontalAlignment: Text.AlignHCenter

@@ -92,7 +92,8 @@ def decoration():
     the active colour scheme, so it needs no per-palette build."""
     base = f"kwin/decorations/{DECORATION}/"
     shutil.copytree(ROOT / "decoration/contents", OUT / base / "contents", dirs_exist_ok=True)
-    meta = metadata(DECORATION, "CDE Copper", "Motif window frame: corner handles, shadowed title parts")
+    # Named "CDE": the frame follows whichever palette is applied.
+    meta = metadata(DECORATION, "CDE", "Motif window frame after mwm; follows the colour scheme")
     meta["KPackageStructure"] = "KWin/Decoration"
     write(base + "metadata.json", json.dumps(meta, indent=2))
 

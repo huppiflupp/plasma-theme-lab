@@ -1,8 +1,8 @@
 {
   "KPlugin": {
     "Id": "kwin4_decoration_qml_cdecopper",
-    "Name": "CDE Copper",
-    "Description": "Motif window frame: corner handles, shadowed title parts",
+    "Name": "CDE",
+    "Description": "Motif window frame after mwm; follows the colour scheme",
     "Version": "0.3.0",
     "License": "GPL-2.0-or-later",
     "Authors": [
