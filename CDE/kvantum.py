@@ -92,6 +92,14 @@ def box_pixels(rings, interior, w, h):
     return color
 
 
+def motif_shades(color):
+    """Motif's top and bottom shadow for a #rrggbb colour (palettes.calculate)."""
+    import palettes
+    value = tuple(int(color[i:i + 2], 16) * 257 for i in (1, 3, 5))
+    _, _, top, bottom = palettes.calculate(value)
+    return palettes.hex8(top), palettes.hex8(bottom)
+
+
 def nine_patch(sheet, name, rings, interior, frame=None):
     """Emit interior plus eight frame parts for one element-state."""
     n = frame if frame is not None else len(rings)
@@ -169,8 +177,11 @@ def build_kvantum(out, P, name="CDECopper", comment="Motif workstation controls 
     nine_patch(s, "slider-toggled", [(dark, light), (dark, light)], P["panel"])
     s.add("slider-tick-normal", 5, 1, [(0, 0, 5, 1, dark)])
     nine_patch(s, "progress-normal", [(dark, light), (dark, light)], P["karo"])
-    s.add("progress-pattern-normal", CELL, CELL, [(0, 0, CELL, CELL, copper)])
-    s.add("progress-pattern-disabled", CELL, CELL, [(0, 0, CELL, CELL, P["kopf_inaktiv"])])
+    # The filled part is a raised Motif bar in its own colour: one pixel of
+    # top and bottom shadow, shaded from the fill as Motif shades everything.
+    for st, fill in (("normal", copper), ("disabled", P["kopf_inaktiv"])):
+        top, bottom = motif_shades(fill)
+        nine_patch(s, f"progress-pattern-{st}", [(top, bottom)], fill)
     for st, rings, fill in (("normal", raised, face), ("focused", raised, hover_face),
                             ("pressed", sunken, pressed_face), ("disabled", raised, face)):
         color = box_pixels(rings, fill, 16, 16)
@@ -519,8 +530,13 @@ text.bold=false
 
 [ProgressbarContents]
 inherits=PanelButtonCommand
-frame=false
+frame=true
+frame.element=progress-pattern
 interior.element=progress-pattern
+frame.top=1
+frame.bottom=1
+frame.left=1
+frame.right=1
 
 [ItemView]
 inherits=PanelButtonCommand

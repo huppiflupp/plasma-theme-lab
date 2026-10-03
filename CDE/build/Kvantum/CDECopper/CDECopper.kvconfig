@@ -272,8 +272,13 @@ text.bold=false
 
 [ProgressbarContents]
 inherits=PanelButtonCommand
-frame=false
+frame=true
+frame.element=progress-pattern
 interior.element=progress-pattern
+frame.top=1
+frame.bottom=1
+frame.left=1
+frame.right=1
 
 [ItemView]
 inherits=PanelButtonCommand

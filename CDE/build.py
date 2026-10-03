@@ -203,6 +203,13 @@ Image=org.cde.copper
             lines += ["", f"[Color{i}{suffix}]", f"Color={rgb}"]
     write("konsole/CDECopper.colorscheme", "\n".join(lines) + "\n")
     write("konsole/CDE Copper.profile", "[General]\nName=CDE Copper\nParent=FALLBACK/\n[Appearance]\nColorScheme=CDECopper\nFont=" + KONSOLE_FONT + "\n[Scrolling]\nHistoryMode=1\nHistorySize=10000\n")
+    # System Settings › Application Style lists Qt style plugins by key and
+    # takes names from kstyle/themes/*.themerc. Kvantum brings none, so its
+    # keys show as "kvantum" and "kvantum-dark"; the second only differs for
+    # Kvantum themes with a dark variant, which CDE's palettes are not.
+    write("kstyle/themes/kvantum.themerc", "[KDE]\nWidgetStyle=kvantum\n\n[Misc]\nName=CDE\n"
+          "Comment=Motif controls in the CDE palette (Kvantum)\n")
+    write("kstyle/themes/kvantum-dark.themerc", "[Desktop Entry]\nHidden=true\n\n[KDE]\nWidgetStyle=kvantum-dark\n\n[Misc]\nName=CDE (dark)\n")
     shutil.copytree(ROOT / "frontpanel", OUT / "plasma/plasmoids/org.cde.copper.frontpanel", dirs_exist_ok=True)
     # IBM Plex Sans Condensed and IBM Plex Mono (SIL OFL 1.1), installed per user.
     shutil.copytree(ROOT / "fonts/IBMPlex", OUT / "fonts/CDECopper", dirs_exist_ok=True)

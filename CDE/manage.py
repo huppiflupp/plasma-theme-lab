@@ -39,6 +39,7 @@ TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "
            "plasma/plasmoids/org.cde.copper.frontpanel", "icons/CDECopper",
            "wallpapers/org.cde.copper", "plasma/wallpapers/org.cde.copper.backdrop",
            "konsole/CDECopper.colorscheme", "konsole/CDE Copper.profile",
+           "kstyle/themes/kvantum.themerc", "kstyle/themes/kvantum-dark.themerc",
            "fonts/CDECopper", TOOL) + SCHEMES
 # The tool copy: what applying a palette needs, so the console and System
 # Settings can switch palettes without the extracted archive.

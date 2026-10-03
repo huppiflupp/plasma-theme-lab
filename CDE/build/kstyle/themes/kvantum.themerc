@@ -1,0 +1,6 @@
+[KDE]
+WidgetStyle=kvantum
+
+[Misc]
+Name=CDE
+Comment=Motif controls in the CDE palette (Kvantum)

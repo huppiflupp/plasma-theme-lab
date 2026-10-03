@@ -160,6 +160,16 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   fold. Now a choice enables Apply; Neptune → Copper applied the scheme,
   Plasma style, Kvantum and XFile's resources. The backdrop pixel size stops
   at 3, as the tool does.
+- Application Style listed "kvantum" and "kvantum-dark", identical (the
+  second loads a Kvantum theme's dark variant; CDE's palettes have none).
+  The theme now installs kstyle/themes/kvantum.themerc (shown as "CDE") and
+  kvantum-dark.themerc with Hidden=true, which System Settings honours
+  (plasma-workspace 6.7.4, kcms/style/stylesmodel.cpp). Checked in the VM:
+  the list shows "CDE", no second entry. Side effect: while CDE Copper is
+  installed, any Kvantum theme is listed under that name.
+- Progress bars: the filled part was a flat copper area. It is now a raised
+  Motif bar, one pixel of top and bottom shadow shaded from the fill colour
+  (palettes.calculate); checked in the style preview under Grass.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the
   menu entry. Not checked: the Files tile switched to XFile (the launcher
