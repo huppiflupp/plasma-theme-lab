@@ -2,6 +2,7 @@ import QtQuick
 import QtCore
 import org.kde.plasma.plasmoid
 import org.kde.taskmanager as TaskManager
+import org.kde.kirigami as Kirigami
 
 // CDE backdrops as a wallpaper type: the pattern tiled pixel for pixel.
 // Plasma's picture wallpaper scales a picture to the screen before tiling,
@@ -15,6 +16,10 @@ import org.kde.taskmanager as TaskManager
 // As in CDE, every workspace can have its own backdrop (PerWorkspace): the
 // pattern follows the current virtual desktop; workspaces beyond the list
 // show the general one.
+//
+// "picture:<key>" instead of a pattern shows one of CDE Copper's pictures
+// (the wallpaper packages org.cde.copper.<key>) across the screen, its dark
+// version under a dark palette.
 WallpaperItem {
     id: root
     TaskManager.VirtualDesktopInfo { id: desktops }
@@ -27,6 +32,10 @@ WallpaperItem {
     readonly property string profileTile: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
         + "/cde-copper/backdrops/" + paletteName + "/" + backdrop + ".png"
     readonly property string packageTile: Qt.resolvedUrl("../images/Copper/" + backdrop + ".png")
+    readonly property bool isPicture: backdrop.startsWith("picture:")
+    readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
+    readonly property string picture: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
+        + "/wallpapers/org.cde.copper." + backdrop.slice(8) + "/contents/" + (dark ? "images_dark" : "images") + "/3840x2160.jpg"
 
     Rectangle {
         anchors.fill: parent
@@ -40,15 +49,25 @@ WallpaperItem {
     onBackdropChanged: fallback = false
     onPaletteNameChanged: fallback = false
     Image {
+        anchors.fill: parent
+        visible: root.isPicture
+        source: root.isPicture ? root.picture : ""
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        // Decoded at screen size, not at 3840 x 2160.
+        sourceSize.width: width
+        sourceSize.height: height
+    }
+    Image {
         id: probe
         visible: false
         cache: false
-        source: root.fallback ? root.packageTile : root.profileTile
+        source: root.isPicture ? "" : root.fallback ? root.packageTile : root.profileTile
         onStatusChanged: if (status === Image.Error && !root.fallback) root.fallback = true
     }
     Image {
         anchors.fill: parent
-        visible: probe.status === Image.Ready
+        visible: !root.isPicture && probe.status === Image.Ready
         source: probe.source
         cache: false
         smooth: false

@@ -3,7 +3,7 @@
 
 Run as root, from the extracted package after build.py:
 
-    sudo python3 system.py install [--parts plymouth,grub]
+    sudo python3 system.py install [--parts plymouth,grub] [--palette NAME]
     sudo python3 system.py uninstall
     sudo python3 system.py status
 
@@ -11,14 +11,20 @@ Everything it changes is recorded in /var/lib/cde-copper/system.json with
 a copy of each file it edits, and uninstall puts it back: the previous
 Plymouth theme (initramfs rebuilt), /etc/default/grub (grub.cfg rebuilt),
 the theme folders removed. The user-level theme (manage.py) is separate.
+
+The boot parts take the colours of a CDE palette: by default the one the
+user calling sudo has applied (from their CDE Copper manifest), Copper when
+there is none. After switching palettes, run install again to follow.
 """
 import argparse
 import json
 import os
+import pwd
 import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -27,6 +33,7 @@ STATE = Path("/var/lib/cde-copper")
 MANIFEST = STATE / "system.json"
 PLYMOUTH_DIR = Path("/usr/share/plymouth/themes/cde-copper")
 NAME = "cde-copper"
+GFXPAYLOAD = Path("/etc/grub.d/09_cde_copper_gfxpayload")
 
 
 def run(*args, check=True):
@@ -54,6 +61,31 @@ def load():
 def save(manifest):
     STATE.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps(manifest, indent=2))
+
+
+def user_palette():
+    """The palette applied by the user behind sudo, Copper if unknown."""
+    try:
+        home = Path(pwd.getpwnam(os.environ["SUDO_USER"]).pw_dir)
+        manifest = home / ".local/share/cde-copper-install/manifest.json"
+        return json.loads(manifest.read_text()).get("palette", "Copper")
+    except (KeyError, OSError, ValueError):
+        return "Copper"
+
+
+def build_for(palette):
+    """build/system as shipped for Copper; other palettes are drawn afresh
+    into a temporary folder from the same generators."""
+    global BUILD
+    if palette == "Copper":
+        return
+    sys.path.insert(0, str(ROOT))
+    import palettes
+    from systemparts import build_system
+    out = Path(tempfile.mkdtemp(prefix="cde-copper-system-"))
+    build_system(out, palettes.theme(palette))
+    BUILD = out / "system"
+    print(f"Boot screens drawn in the colours of palette {palette}")
 
 
 # ---- Plymouth ---------------------------------------------------------------
@@ -165,7 +197,18 @@ def grub_install(manifest, background="altai-dark"):
     part.update({"folder": str(folder), "prefix": prefix})
     manifest["parts"]["grub"] = part
     save(manifest)
-    set_defaults(defaults, {"GRUB_THEME": str(theme / "theme.txt"), "GRUB_TERMINAL_OUTPUT": "gfxterm"})
+    # gfxpayload=keep hands GRUB's graphics mode to the kernel, so the
+    # screen does not drop to a black text mode before Plymouth starts.
+    set_defaults(defaults, {"GRUB_THEME": str(theme / "theme.txt"), "GRUB_TERMINAL_OUTPUT": "gfxterm",
+                            "GRUB_GFXPAYLOAD_LINUX": "keep"})
+    # Boot loader spec entries (Fedora) ignore GRUB_GFXPAYLOAD_LINUX: a
+    # global, exported setting reaches them too.
+    # The terminal in the window colour (terminal.cfg), where GRUB has the
+    # module for it: not under Secure Boot.
+    colour = "" if secure_boot() else (theme / "terminal.cfg").read_text()
+    GFXPAYLOAD.write_text("#!/bin/sh\n# CDE Copper: keep GRUB's graphics mode for Plymouth (system.py uninstall removes this)\n"
+                          "cat <<'EOF'\nset gfxpayload=keep\nexport gfxpayload\n" + colour + "EOF\n")
+    GFXPAYLOAD.chmod(0o755)
     run(f"{prefix}-mkconfig", "-o", folder / "grub.cfg")
 
 
@@ -176,6 +219,8 @@ def grub_uninstall(manifest):
         folder = Path(part["folder"])
         if (folder / "themes" / NAME).exists():
             shutil.rmtree(folder / "themes" / NAME)
+        if GFXPAYLOAD.exists():
+            GFXPAYLOAD.unlink()
         run(f"{part['prefix']}-mkconfig", "-o", folder / "grub.cfg", check=False)
     save(manifest)
 
@@ -189,6 +234,7 @@ def main():
     parser.add_argument("--parts", default="plymouth,grub", help="comma-separated: " + ", ".join(PARTS))
     parser.add_argument("--grub-background", default="altai-dark",
                         help="lattice (the CDE backdrop) or a picture of wallpapers/images, e.g. altai-dark, fluss-dark")
+    parser.add_argument("--palette", help="CDE palette for the boot screens (default: the one you applied, else Copper)")
     args = parser.parse_args()
     if args.action == "status":
         print(json.dumps(load(), indent=2))
@@ -200,6 +246,14 @@ def main():
         print("Build first: python3 build.py", file=sys.stderr)
         return 1
     manifest = load()
+    if args.action == "install":
+        palette = args.palette or user_palette()
+        try:
+            build_for(palette)
+        except KeyError as error:
+            print(error, file=sys.stderr)
+            return 1
+        manifest["palette"] = palette
     for name in [p.strip() for p in args.parts.split(",") if p.strip()]:
         if name not in PARTS:
             print(f"Unknown part {name!r}", file=sys.stderr)

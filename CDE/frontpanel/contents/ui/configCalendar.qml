@@ -16,10 +16,10 @@ KCM.SimpleKCM {
     property alias cfg_clockSeconds: seconds.checked
     property alias cfg_clockSegmentEdge: segmentEdge.checked
     property alias cfg_clockSegmentShadow: segmentShadow.checked
-    readonly property var styles: [{text: "Digital", value: "digital"}, {text: "Seven-segment", value: "segments"},
-                                   {text: "Analog", value: "analog"}]
-    readonly property var dials: [{text: "CDE (round, as dtclock)", value: "cde"}, {text: "Motif (square well)", value: "motif"},
-                                  {text: "Roman numerals", value: "roman"}, {text: "Plain (no dial)", value: "plain"}]
+    readonly property var styles: [{text: i18nd("cde-copper", "Digital"), value: "digital"}, {text: i18nd("cde-copper", "Seven-segment"), value: "segments"},
+                                   {text: i18nd("cde-copper", "Analog"), value: "analog"}]
+    readonly property var dials: [{text: i18nd("cde-copper", "CDE (round, as dtclock)"), value: "cde"}, {text: i18nd("cde-copper", "Motif (square well)"), value: "motif"},
+                                  {text: i18nd("cde-copper", "Roman numerals"), value: "roman"}, {text: i18nd("cde-copper", "Plain (no dial)"), value: "plain"}]
 
     PlasmaCalendar.EventPluginsManager {
         id: manager
@@ -28,55 +28,55 @@ KCM.SimpleKCM {
 
     Kirigami.FormLayout {
         ComboBox {
-            Kirigami.FormData.label: "Clock display:"
+            Kirigami.FormData.label: i18nd("cde-copper", "Clock display:")
             model: page.styles
             textRole: "text"
             currentIndex: Math.max(0, page.styles.findIndex(s => s.value === page.cfg_clockStyle))
             onActivated: index => page.cfg_clockStyle = page.styles[index].value
         }
         ComboBox {
-            Kirigami.FormData.label: "Dial:"
+            Kirigami.FormData.label: i18nd("cde-copper", "Dial:")
             visible: page.cfg_clockStyle === "analog"
             model: page.dials
             textRole: "text"
             currentIndex: Math.max(0, page.dials.findIndex(d => d.value === page.cfg_clockDial))
             onActivated: index => page.cfg_clockDial = page.dials[index].value
         }
-        CheckBox { id: seconds; text: "Show seconds" }
+        CheckBox { id: seconds; text: i18nd("cde-copper", "Show seconds") }
         CheckBox {
             id: segmentShadow
-            text: "Unlit segments faintly visible"
+            text: i18nd("cde-copper", "Unlit segments faintly visible")
             enabled: page.cfg_clockStyle === "segments"
         }
         CheckBox {
             id: segmentEdge
-            text: "Black edge around lit segments"
+            text: i18nd("cde-copper", "Black edge around lit segments")
             enabled: page.cfg_clockStyle === "segments"
         }
         Label {
-            text: "Colours follow the palette: dial in the text-field colour, hands in the text colour,\nsecond hand and lit segments in the selection colour."
+            text: i18nd("cde-copper", "Colours follow the palette: dial in the text-field colour, hands in the text colour,\nsecond hand and lit segments in the selection colour.")
             opacity: 0.7
             font: Kirigami.Theme.smallFont
         }
         Item { Kirigami.FormData.isSection: true }
         RadioButton {
-            Kirigami.FormData.label: "Clicking the clock:"
-            text: "Shows the month and the day's events"
+            Kirigami.FormData.label: i18nd("cde-copper", "Clicking the clock:")
+            text: i18nd("cde-copper", "Shows the month and the day's events")
             checked: !opensApp.checked
         }
-        RadioButton { id: opensApp; text: "Opens the calendar application" }
+        RadioButton { id: opensApp; text: i18nd("cde-copper", "Opens the calendar application") }
         TextField {
             id: command
-            Kirigami.FormData.label: "Calendar application:"
+            Kirigami.FormData.label: i18nd("cde-copper", "Calendar application:")
             placeholderText: "@calendar"
             Layout.minimumWidth: Kirigami.Units.gridUnit * 18
         }
         Label {
-            text: "@calendar starts Merkuro or KOrganizer, whichever is installed.\nAny command or app:<desktop id> works too."
+            text: i18nd("cde-copper", "@calendar starts Merkuro or KOrganizer, whichever is installed.\nAny command or app:<desktop id> works too.")
             opacity: 0.7
             font: Kirigami.Theme.smallFont
         }
-        Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: "Events from" }
+        Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18nd("cde-copper", "Events from") }
         ColumnLayout {
             Repeater {
                 model: manager.model
@@ -96,7 +96,7 @@ KCM.SimpleKCM {
             }
         }
         Label {
-            text: "Appointments come from KOrganizer/Akonadi (\"PIM Events\")."
+            text: i18nd("cde-copper", "Appointments come from KOrganizer/Akonadi (\"PIM Events\").")
             opacity: 0.7
             font: Kirigami.Theme.smallFont
         }

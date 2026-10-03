@@ -21,9 +21,9 @@ Rectangle {
     // KSplash passes only the count; on Wayland the stages come in this
     // order (plasma-workspace, ksplash/ksplashqml/splashapp.cpp).
     readonly property var parts: [
-        {icon: "display", text: "Display"}, {icon: "window", text: "Window manager"},
-        {icon: "plasma", text: "Plasma"}, {icon: "settings", text: "Settings"},
-        {icon: "session", text: "Session"}, {icon: "desktop", text: "Desktop"}]
+        {icon: "display", text: i18nd("cde-copper", "Display")}, {icon: "window", text: i18nd("cde-copper", "Window manager")},
+        {icon: "plasma", text: "Plasma"}, {icon: "settings", text: i18nd("cde-copper", "Settings")},
+        {icon: "session", text: i18nd("cde-copper", "Session")}, {icon: "desktop", text: i18nd("cde-copper", "Desktop")}]
 
     // A Motif bevel: light top and left, dark bottom and right.
     component Bevel: Rectangle {
@@ -76,9 +76,9 @@ Rectangle {
                 Column {
                     spacing: 6
                     anchors.verticalCenter: parent.verticalCenter
-                    Text { text: "Common Desktop Environment"; font.family: root.font; font.pixelSize: 18; color: root.ink }
+                    Text { text: i18nd("cde-copper", "Common Desktop Environment"); font.family: root.font; font.pixelSize: 18; color: root.ink }
                     Text {
-                        text: root.stage >= 1 && root.stage <= 6 ? "Starting: " + root.parts[root.stage - 1].text + " …" : "Starting the desktop …"
+                        text: root.stage >= 1 && root.stage <= 6 ? i18nd("cde-copper", "Starting: %1 …", root.parts[root.stage - 1].text) : i18nd("cde-copper", "Starting the desktop …")
                         font.family: root.font; font.pixelSize: 13; color: root.ink; opacity: 0.8
                     }
                 }

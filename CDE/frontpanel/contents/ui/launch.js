@@ -85,7 +85,7 @@ function presetFor(command) {
 }
 
 function quote(s) {
-    return "'" + String(s).replace(/'/g, "'\\''") + "'";
+    return "'" + String(s).replace(/\x27/g, "'\\''") + "'";
 }
 
 // One argument for the shell: "~/x" expands to the home directory and
@@ -125,10 +125,12 @@ const TOKENS = {
 
 // A missing program is reported as a desktop notification instead of
 // failing silently.
-function missing(what) {
-    return "notify-send -a 'CDE Front Console' -i dialog-warning " + quote(what + " is not installed")
-        + " 'Choose another program in the console settings (right-click › Configure).' 2>/dev/null"
-        + " || kdialog --passivepopup " + quote(what + " is not installed") + " 8";
+function missing(what, translate) {
+    const title = translate("%1 is not installed", what);
+    const body = translate("Choose another program in the console settings (right-click › Configure).");
+    return "notify-send -a " + quote(translate("CDE Front Console")) + " -i dialog-warning " + quote(title)
+        + " " + quote(body) + " 2>/dev/null"
+        + " || kdialog --passivepopup " + quote(title) + " 8";
 }
 
 function binary(program) {
@@ -137,7 +139,7 @@ function binary(program) {
 
 // Shell for one token: default handler, else the first installed fallback.
 // With probe set, nothing is started; it prints ok or missing instead.
-function chain(token, args, probe) {
+function chain(token, args, probe, translate) {
     const spec = TOKENS[token];
     args = spec.fixed || args || (spec.home ? "\"$HOME\"" : "");
     let shell = "";
@@ -154,30 +156,30 @@ function chain(token, args, probe) {
         const keyword = shell === "" && i === 0 ? "if" : "elif";
         shell += keyword + " command -v " + binary(program) + " >/dev/null 2>&1; then " + (probe ? "echo ok" : program + " " + args) + "; ";
     });
-    return shell + "else " + (probe ? "echo missing" : missing(spec.what)) + "; fi";
+    return shell + "else " + (probe ? "echo missing" : missing(spec.what === "XFile" ? spec.what : translate(spec.what), translate)) + "; fi";
 }
 
 // The shell command for a slot command. "@applications" is handled by the
 // console itself and never reaches this.
 // extra: further arguments taken literally (a bookmark's URL, a file path
 // with spaces); they are quoted, not split.
-function resolve(command, extra) {
+function resolve(command, extra, translate) {
     const token = command.trim().split(/\s+/)[0] || "";
     const rest = command.trim().substring(token.length).trim();
     const words = (rest ? rest.split(/\s+/).map(argument) : []).concat((extra || []).map(quote));
     const args = words.join(" ");
     if (TOKENS[token])
-        return chain(token, args, false);
+        return chain(token, args, false, translate);
     if (token === "@arrange")
         return "qdbus-qt6 org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'CDE Copper: Arrange Around Console'";
     if (token.indexOf("app:") === 0) {
         const id = quote(token.substring(4));
         return "gtk-launch " + id + " " + args + " 2>/dev/null || kstart --application " + id + " " + args + " 2>/dev/null || "
-            + missing("The application " + token.substring(4));
+            + missing(translate("The application %1", token.substring(4)), translate);
     }
     // A custom command: check its program before running it.
     const full = command + ((extra || []).length ? " " + extra.map(quote).join(" ") : "");
-    return "if command -v " + quote(token) + " >/dev/null 2>&1; then " + full + "; else " + missing(token) + "; fi";
+    return "if command -v " + quote(token) + " >/dev/null 2>&1; then " + full + "; else " + missing(token, translate) + "; fi";
 }
 
 // For the settings page: prints ok when something can run the command.
@@ -201,3 +203,53 @@ function check(command) {
 function detached(shell) {
     return "systemd-run --user --collect --quiet -p KillMode=process -- sh -c " + quote(shell);
 }
+
+// Translate shipped labels at presentation time; keep user labels and app names.
+function slotLabel(slot, translate) {
+    // A shipped label stays one when the tile gets another program (Files
+    // with XFile, say); anything typed by the user is kept as it is.
+    const preset = LEFT.concat(RIGHT).find(p => p.label === slot.label);
+    return preset ? translate(slot.label) : slot.label;
+}
+
+// Extraction-only markers for strings translated by the QML caller.
+function I18N_NOOP(text) { return text; }
+const TRANSLATABLE_STRINGS = [
+    I18N_NOOP("Apps"),
+    I18N_NOOP("Files"),
+    I18N_NOOP("Terminal"),
+    I18N_NOOP("Editor"),
+    I18N_NOOP("Web"),
+    I18N_NOOP("Mail"),
+    I18N_NOOP("System"),
+    I18N_NOOP("Help"),
+    I18N_NOOP("Trash"),
+    I18N_NOOP("Default web browser"),
+    I18N_NOOP("Default mail client"),
+    I18N_NOOP("Default file manager"),
+    I18N_NOOP("XFile (Motif, as CDE's dtfile)"),
+    I18N_NOOP("Default text editor"),
+    I18N_NOOP("Calendar"),
+    I18N_NOOP("System Settings"),
+    I18N_NOOP("Help Center"),
+    I18N_NOOP("Applications menu"),
+    I18N_NOOP("Arrange windows around the console"),
+    I18N_NOOP("Installed application…"),
+    I18N_NOOP("Custom command…"),
+    I18N_NOOP("None"),
+    I18N_NOOP("Applications"),
+    I18N_NOOP("Places"),
+    I18N_NOOP("Bookmarks"),
+    I18N_NOOP("Recent files"),
+    I18N_NOOP("A web browser"),
+    I18N_NOOP("A mail client"),
+    I18N_NOOP("A file manager"),
+    I18N_NOOP("A text editor"),
+    I18N_NOOP("A terminal"),
+    I18N_NOOP("A calendar application"),
+    I18N_NOOP("An address book"),
+    I18N_NOOP("%1 is not installed"),
+    I18N_NOOP("Choose another program in the console settings (right-click › Configure)."),
+    I18N_NOOP("CDE Front Console"),
+    I18N_NOOP("The application %1")
+];

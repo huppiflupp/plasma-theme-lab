@@ -194,6 +194,7 @@ Plymouth.SetDisplayNormalFunction(normal_callback);
 
 
 MENU_WIDTH, TITLE_HEIGHT = 640, 34
+TERMINAL_HEIGHT = 408       # GRUB's least terminal: 24 lines of Unifont
 
 
 def grub_theme(P):
@@ -210,6 +211,16 @@ desktop-image-scale-method: "crop"
 desktop-color: "{P["desktop"]}"
 title-text: ""
 terminal-font: "IBM Plex Mono Regular 16"
+# Booting an entry switches to GRUB's terminal, black unless terminal.cfg
+# can colour it (signed GRUBs lack gfxterm_background), and never smaller
+# than 80 x 24 characters: it takes the place of the menu window and the
+# countdown, framed alike, until Plymouth starts.
+terminal-left: "50%-{half}"
+terminal-top: "22%+{TITLE_HEIGHT}"
+terminal-width: "{MENU_WIDTH}"
+terminal-height: "{TERMINAL_HEIGHT}"
+terminal-border: "0"
+terminal-box: "menu_*.png"
 
 + image {{
     left = 50%-{half}
@@ -221,7 +232,7 @@ terminal-font: "IBM Plex Mono Regular 16"
     left = 50%-{half}
     top = 22%+{TITLE_HEIGHT}
     width = {MENU_WIDTH}
-    height = 32%
+    height = {TERMINAL_HEIGHT - 42}
     item_font = "IBM Plex Sans Condensed Regular 20"
     item_color = "{ink}"
     selected_item_color = "{ink}"
@@ -239,7 +250,7 @@ terminal-font: "IBM Plex Mono Regular 16"
 + progress_bar {{
     id = "__timeout__"
     left = 50%-{half}
-    top = 54%+{TITLE_HEIGHT + 14}
+    top = 22%+{TITLE_HEIGHT + TERMINAL_HEIGHT - 28}
     width = {MENU_WIDTH}
     height = 28
     font = "IBM Plex Sans Condensed Regular 20"
@@ -290,7 +301,8 @@ def build_system(out: Path, P):
     import backdrops
     import palettes
     base = out / "system"
-    colours = backdrops.colours_for(palettes.copper_desktop())
+    # The backdrop in the palette's workspace colour (Copper: its teal).
+    colours = backdrops.colours_for(palettes.colour_set(P["desktop"]))
     # Plymouth.
     ply = base / "plymouth/cde-copper"
     ply.mkdir(parents=True, exist_ok=True)
@@ -308,6 +320,8 @@ def build_system(out: Path, P):
     grub = base / "grub/cde-copper"
     grub.mkdir(parents=True, exist_ok=True)
     (grub / "theme.txt").write_text(grub_theme(P))
+    # Commands system.py puts into grub.cfg: the terminal's background.
+    (grub / "terminal.cfg").write_text(f'insmod gfxterm_background\nbackground_color "{P["flaeche"]}"\n')
     (grub / "background.png").write_bytes(backdrops.desktop("Lattice", colours, 1920, 1080))
     (grub / "title.png").write_bytes(title_bar(P))
     pieces = {}

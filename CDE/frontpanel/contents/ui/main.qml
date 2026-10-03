@@ -20,6 +20,27 @@ PlasmoidItem {
     // org.kde.plasma.launchermenu (metadata.json) on the active screen.
     activationTogglesExpanded: false
     property Item appsTile: null
+    // Subpanels stay open while the pointer is on them or on the segment
+    // that opened them (DESIGN-SPEC §8); opened or used from the keyboard,
+    // they stay until Escape or a second click.
+    property Item hoveredSegment: null
+    property Item popupSegment: null
+    function hoverSegment(segment, hovered) {
+        if (hovered) hoveredSegment = segment;
+        else if (hoveredSegment === segment) hoveredSegment = null;
+    }
+    component Keeper: Timer {
+        property var dialog
+        property Item segment
+        property bool inside: false
+        property bool keyboard: false
+        readonly property bool keep: inside || keyboard || (segment !== null && root.hoveredSegment === segment)
+        interval: 450
+        running: dialog.visible && !keep
+        onTriggered: dialog.visible = false
+        // The pointer on the segment when it opens: a click, not a key.
+        function opened() { keyboard = !(segment !== null && root.hoveredSegment === segment); }
+    }
     Connections {
         target: Plasmoid
         function onActivated() { root.openApplications(root.appsTile || root.fullRepresentationItem); }
@@ -30,8 +51,8 @@ PlasmoidItem {
     property var entries: []
     property date now: new Date()
     property string activeSection: ""
-    property string networkState: "Network"
-    property string volumeState: "Audio"
+    property string networkState: i18nd("cde-copper", "Network")
+    property string volumeState: i18nd("cde-copper", "Audio")
     property int volume: 0
     property bool muted: false
     readonly property string dbus: "qdbus-qt6"
@@ -65,7 +86,7 @@ PlasmoidItem {
     }
     function launch(slot, anchor) {
         if (slot.command === "@applications") openApplications(anchor);
-        else if (slot.command) run(Launch.resolve(slot.command));
+        else if (slot.command) run(Launch.resolve(slot.command, [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg)));
     }
     function openSection(title, list, anchor) {
         if (popup.visible && activeSection === title) { popup.visible = false; return; }
@@ -76,12 +97,12 @@ PlasmoidItem {
     function openMenu(slot, anchor) {
         switch (slot.menu) {
         case "applications": openApplications(anchor); break;
-        case "places": openSection("Places", placesEntries(slot), anchor); break;
-        case "system": openSection("System", systemEntries(), anchor); break;
-        case "help": openSection("Help", helpEntries(), anchor); break;
-        case "mail": openSection("Mail", mailEntries(slot), anchor); break;
-        case "bookmarks": openListing("bookmarks", "Bookmarks", slot, anchor); break;
-        case "recent": openListing("recent", "Recent Files", slot, anchor); break;
+        case "places": openSection(i18nd("cde-copper", "Places"), placesEntries(slot), anchor); break;
+        case "system": openSection(i18nd("cde-copper", "System"), systemEntries(), anchor); break;
+        case "help": openSection(i18nd("cde-copper", "Help"), helpEntries(), anchor); break;
+        case "mail": openSection(i18nd("cde-copper", "Mail"), mailEntries(slot), anchor); break;
+        case "bookmarks": openListing("bookmarks", i18nd("cde-copper", "Bookmarks"), slot, anchor); break;
+        case "recent": openListing("recent", i18nd("cde-copper", "Recent Files"), slot, anchor); break;
         }
     }
     // Bookmarks and recent files come from contents/code/menus.py, which
@@ -102,7 +123,7 @@ PlasmoidItem {
         const list = result.items.map(item => ({label: item.label, icon: item.icon, command: request.slot.command,
                                                 args: item.args, tip: item.tip}));
         if (list.length === 0)
-            list.push({label: request.kind === "bookmarks" ? "No bookmarks found" : "No recent files", icon: "dialog-information", command: ""});
+            list.push({label: request.kind === "bookmarks" ? i18nd("cde-copper", "No bookmarks found") : i18nd("cde-copper", "No recent files"), icon: "dialog-information", command: ""});
         openSection(request.title + (result.app ? " – " + result.app : ""), list, request.anchor);
         activeSection = request.title + request.slot.command;
     }
@@ -126,37 +147,37 @@ PlasmoidItem {
     // tile's); XFile has no trash, so the trash stays the desktop's.
     function placesEntries(slot) {
         const files = slot && slot.command.indexOf("@xfile") === 0 ? "@xfile" : "@files";
-        return [entry("Home", "user-home", files + " ~"),
-                entry("Documents", "folder-documents", files + " xdg:DOCUMENTS"),
-                entry("Downloads", "folder-download", files + " xdg:DOWNLOAD"),
-                entry("Pictures", "folder-pictures", files + " xdg:PICTURES"),
-                entry("File System", "drive-harddisk", files + " /"),
-                entry("Trash", "user-trash", "@trash")];
+        return [entry(i18nd("cde-copper", "Home"), "user-home", files + " ~"),
+                entry(i18nd("cde-copper", "Documents"), "folder-documents", files + " xdg:DOCUMENTS"),
+                entry(i18nd("cde-copper", "Downloads"), "folder-download", files + " xdg:DOWNLOAD"),
+                entry(i18nd("cde-copper", "Pictures"), "folder-pictures", files + " xdg:PICTURES"),
+                entry(i18nd("cde-copper", "File System"), "drive-harddisk", files + " /"),
+                entry(i18nd("cde-copper", "Trash"), "user-trash", "@trash")];
     }
     function systemEntries() {
-        return [entry("System Settings", "preferences-system", "@settings"),
-                entry("Style Manager…", "preferences-desktop-color", "@style"),
-                entry("Arrange Windows", "view-split-left-right", "@arrange"),
-                entry("Audio", "audio-volume-high", "@settings kcm_pulseaudio"),
-                entry("Network", "network-workgroup", "@settings kcm_networkmanagement"),
-                entry("Display", "computer", "@settings kcm_kscreen"),
-                entry("Lock Screen", "system-lock-screen", dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock"),
-                entry("Leave Session...", "system-log-out", dbus + " org.kde.LogoutPrompt /LogoutPrompt promptAll")];
+        return [entry(i18nd("cde-copper", "System Settings"), "preferences-system", "@settings"),
+                entry(i18nd("cde-copper", "Style Manager…"), "preferences-desktop-color", "@style"),
+                entry(i18nd("cde-copper", "Arrange Windows"), "view-split-left-right", "@arrange"),
+                entry(i18nd("cde-copper", "Audio"), "audio-volume-high", "@settings kcm_pulseaudio"),
+                entry(i18nd("cde-copper", "Network"), "network-workgroup", "@settings kcm_networkmanagement"),
+                entry(i18nd("cde-copper", "Display"), "computer", "@settings kcm_kscreen"),
+                entry(i18nd("cde-copper", "Lock Screen"), "system-lock-screen", dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock"),
+                entry(i18nd("cde-copper", "Leave Session..."), "system-log-out", dbus + " org.kde.LogoutPrompt /LogoutPrompt promptAll")];
     }
     // The mail client's own command with a bare mailto: opens a new message
     // in Thunderbird, KMail and Evolution alike.
     function mailEntries(slot) {
         const mail = slot.command || "@mail";
-        return [entry("New Message", "mail-message-new", mail + " mailto:"),
-                entry("Open Mail", "internet-mail", mail),
-                entry("Appointments", "view-calendar", "@calendar"),
-                entry("Address Book", "x-office-address-book", "@contacts")];
+        return [entry(i18nd("cde-copper", "New Message"), "mail-message-new", mail + " mailto:"),
+                entry(i18nd("cde-copper", "Open Mail"), "internet-mail", mail),
+                entry(i18nd("cde-copper", "Appointments"), "view-calendar", "@calendar"),
+                entry(i18nd("cde-copper", "Address Book"), "x-office-address-book", "@contacts")];
     }
     function helpEntries() {
-        return [entry("Help Center", "help-browser", "@help"),
-                entry("Keyboard Shortcuts", "preferences-desktop-keyboard", "@settings kcm_keys"),
-                entry("System Information", "computer", "kinfocenter"),
-                entry("About CDE Copper", "cde-menu", "xdg-open https://github.com/huppiflupp/plasma-theme-lab/tree/main/CDE")];
+        return [entry(i18nd("cde-copper", "Help Center"), "help-browser", "@help"),
+                entry(i18nd("cde-copper", "Keyboard Shortcuts"), "preferences-desktop-keyboard", "@settings kcm_keys"),
+                entry(i18nd("cde-copper", "System Information"), "computer", "kinfocenter"),
+                entry(i18nd("cde-copper", "About CDE Copper"), "cde-menu", "xdg-open https://github.com/huppiflupp/plasma-theme-lab/tree/main/CDE")];
     }
     function configurePanel() {
         const modes = ["none", "autohide", "dodgewindows"];
@@ -384,12 +405,12 @@ PlasmoidItem {
         interval: 5000
         connectedSources: ["LC_ALL=C nmcli -t -f STATE general", "wpctl get-volume @DEFAULT_AUDIO_SINK@"]
         onNewData: function(sourceName, data) {
-            if (sourceName.indexOf("nmcli") >= 0) root.networkState = data.stdout.trim() === "connected" ? "Connected" : "Offline";
+            if (sourceName.indexOf("nmcli") >= 0) root.networkState = data.stdout.trim() === "connected" ? i18nd("cde-copper", "Connected") : i18nd("cde-copper", "Offline");
             else {
                 const match = data.stdout.match(/Volume: ([0-9.]+)/);
                 root.muted = data.stdout.indexOf("MUTED") >= 0;
                 if (match) root.volume = Math.round(Number(match[1]) * 100);
-                root.volumeState = root.muted ? "Muted" : match ? root.volume + "%" : "Audio";
+                root.volumeState = root.muted ? i18nd("cde-copper", "Muted") : match ? root.volume + "%" : i18nd("cde-copper", "Audio");
             }
         }
     }
@@ -447,25 +468,26 @@ PlasmoidItem {
             text: ""
             enabled: slot.modelData.menu !== ""
             opacity: enabled ? 1 : 0.35
-            Accessible.name: slot.modelData.menu ? "Open " + slot.modelData.menu : ""
+            Accessible.name: slot.modelData.menu ? i18nd("cde-copper", "Open %1", i18nd("cde-copper", (Launch.MENUS.find(m => m.value === slot.modelData.menu) || {text: slot.modelData.menu}).text)) : ""
             selected: popup.visible && popup.visualParent === arrow
             contentItem: Text {
                 text: root.arrowGlyph
                 color: consoleColors.panelText; font.pixelSize: root.u(12)
                 horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
             }
-            onClicked: root.openMenu(slot.modelData, arrow)
+            onClicked: { root.popupSegment = slot; root.openMenu(slot.modelData, arrow); }
         }
         ConsoleButton {
             id: launcher
             Layout.row: root.vertical ? 0 : 1
             Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
             Layout.fillWidth: true; Layout.fillHeight: true
-            text: slot.modelData.label; iconName: slot.modelData.icon
+            text: Launch.slotLabel(slot.modelData, text => i18nd("cde-copper", text)); iconName: slot.modelData.icon
             onClicked: root.launch(slot.modelData, launcher)
             // The Applications tile, where the Meta key opens the menu.
             Component.onCompleted: if (slot.modelData.command === "@applications") root.appsTile = launcher
         }
+        HoverHandler { onHoveredChanged: root.hoverSegment(slot, hovered) }
     }
 
     component ClockTile: ConsoleButton {
@@ -477,9 +499,10 @@ PlasmoidItem {
         selected: calendar.visible
         Accessible.name: Qt.formatDateTime(root.now, Qt.locale().dateTimeFormat(Locale.LongFormat))
         onClicked: {
-            if (Plasmoid.configuration.clockOpensApp) root.run(Launch.resolve(Plasmoid.configuration.calendarCommand || "@calendar"));
+            if (Plasmoid.configuration.clockOpensApp) root.run(Launch.resolve(Plasmoid.configuration.calendarCommand || "@calendar", [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg)));
             else { calendar.visualParent = clock; calendar.visible = !calendar.visible; }
         }
+        HoverHandler { onHoveredChanged: root.hoverSegment(clock, hovered) }
         contentItem: ClockFace {
             style: Plasmoid.configuration.clockStyle
             dial: Plasmoid.configuration.clockDial
@@ -505,7 +528,7 @@ PlasmoidItem {
         ColumnLayout {
             anchors.fill: parent; anchors.margins: 4; spacing: 3
             Text {
-                Layout.fillWidth: true; text: "WORKSPACES"; color: Motif.shades(consoleColors.panel).top
+                Layout.fillWidth: true; text: i18nd("cde-copper", "WORKSPACES"); color: Motif.shades(consoleColors.panel).top
                 font.pixelSize: root.u(9); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter
             }
             GridLayout {
@@ -519,7 +542,7 @@ PlasmoidItem {
                         Layout.fillWidth: true; Layout.fillHeight: true
                         implicitWidth: root.u(root.vertical ? 40 : 70); implicitHeight: root.u(23)
                         text: root.workspaceLabel(index)
-                        Accessible.name: "Workspace " + (index + 1) + " " + (desktops.desktopNames[index] || "")
+                        Accessible.name: i18nd("cde-copper", "Workspace %1 %2", index + 1, desktops.desktopNames[index] || "")
                         selected: desktops.currentDesktop === modelData
                         // As in CDE, each workspace in a colour of its own.
                         readonly property var own: Plasmoid.configuration.workspaceColours && root.workspaceColours.length
@@ -544,19 +567,19 @@ PlasmoidItem {
         Layout.preferredWidth: root.vertical ? -1 : root.u(68)
         Layout.preferredHeight: root.vertical ? root.u(62) : -1
         SmallButton {
-            iconName: "arrow-up"; Accessible.name: "Hidden Icons"
+            iconName: "arrow-up"; Accessible.name: i18nd("cde-copper", "Hidden Icons")
             onClicked: root.showHiddenIcons()
         }
         SmallButton {
-            iconName: "configure"; Accessible.name: "Configure Front Console"
+            iconName: "configure"; Accessible.name: i18nd("cde-copper", "Configure Front Console")
             onClicked: Plasmoid.internalAction("configure").trigger()
         }
         SmallButton {
-            iconName: "system-lock-screen"; Accessible.name: "Lock Screen"
+            iconName: "system-lock-screen"; Accessible.name: i18nd("cde-copper", "Lock Screen")
             onClicked: root.run(root.dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock")
         }
         SmallButton {
-            iconName: "user-desktop"; Accessible.name: "Show Desktop"
+            iconName: "user-desktop"; Accessible.name: i18nd("cde-copper", "Show Desktop")
             // KWin's D-Bus showDesktop(bool) is accepted but does nothing in
             // Plasma 6.7; its own "Show Desktop" shortcut toggles reliably.
             onClicked: root.run(root.dbus + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop'")
@@ -603,7 +626,7 @@ PlasmoidItem {
             height: root.vertical ? root.u(24) : taskList.height
             horizontal: true; iconSize: root.u(18)
             readonly property int windows: model.IsGroupParent ? model.ChildCount : 1
-            text: windows > 1 ? windows + "× " + (model.AppName || model.display) : (model.display || "Window")
+            text: windows > 1 ? i18nd("cde-copper", "%1× %2", windows, model.AppName || model.display) : (model.display || i18nd("cde-copper", "Window"))
             Accessible.name: windows > 1 ? root.groupTitles(index).join("\n") : text
             iconName: ""
             Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: root.u(18); height: width; source: parent.model.decoration; active: false }
@@ -640,8 +663,9 @@ PlasmoidItem {
         Layout.preferredHeight: root.vertical ? root.u(26) : -1
         text: root.volumeState; iconSize: root.u(18); horizontal: true
         iconName: root.muted ? "audio-volume-muted" : "audio-volume-high"
-        Accessible.name: "Volume " + root.volumeState + ", " + root.networkState
+        Accessible.name: i18nd("cde-copper", "Volume %1, %2", root.volumeState, root.networkState)
         onClicked: { volumePopup.visualParent = status; volumePopup.visible = !volumePopup.visible; }
+        HoverHandler { onHoveredChanged: root.hoverSegment(status, hovered) }
         WheelHandler {
             acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
             onWheel: event => root.setVolume(root.volume + (event.angleDelta.y > 0 ? 5 : -5))
@@ -703,6 +727,10 @@ PlasmoidItem {
         onRunRequested: root.run(root.dbus + " org.kde.krunner /App org.kde.krunner.App.display")
     }
 
+    Keeper { id: calendarKeeper; dialog: calendar; segment: calendar.visualParent; inside: calendarHover.hovered }
+    Keeper { id: volumeKeeper; dialog: volumePopup; segment: volumePopup.visualParent; inside: volumeHover.hovered }
+    Keeper { id: popupKeeper; dialog: popup; segment: root.popupSegment; inside: popupHover.hovered }
+
     PlasmaCore.Dialog {
         id: calendar
         visible: false
@@ -712,11 +740,13 @@ PlasmoidItem {
         hideOnWindowDeactivate: true
         backgroundHints: PlasmaCore.Types.NoBackground
         mainItem: CalendarPanel {
+            HoverHandler { id: calendarHover }
+            Keys.onPressed: calendarKeeper.keyboard = true
             pluginsManager: eventPlugins
             onCloseRequested: calendar.visible = false
-            onOpenCalendar: { calendar.visible = false; root.run(Launch.resolve(Plasmoid.configuration.calendarCommand || "@calendar")); }
+            onOpenCalendar: { calendar.visible = false; root.run(Launch.resolve(Plasmoid.configuration.calendarCommand || "@calendar", [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg))); }
         }
-        onVisibleChanged: if (visible) mainItem.forceActiveFocus()
+        onVisibleChanged: if (visible) { calendarKeeper.opened(); mainItem.forceActiveFocus(); }
     }
 
     PlasmaCore.Dialog {
@@ -727,9 +757,11 @@ PlasmoidItem {
         location: Plasmoid.location
         hideOnWindowDeactivate: true
         backgroundHints: PlasmaCore.Types.NoBackground
-        onVisibleChanged: if (visible) volumeBody.forceActiveFocus()
+        onVisibleChanged: if (visible) { volumeKeeper.opened(); volumeBody.forceActiveFocus(); }
         mainItem: Bevel {
             id: volumeBody
+            HoverHandler { id: volumeHover }
+            Keys.onPressed: volumeKeeper.keyboard = true
             width: 276; height: 168
             surface: consoleColors.window
             focus: true
@@ -740,7 +772,7 @@ PlasmoidItem {
                 anchors.fill: parent; anchors.margins: 5; spacing: 4
                 Bevel {
                     Layout.fillWidth: true; Layout.preferredHeight: 27; surface: consoleColors.highlight
-                    Text { anchors.centerIn: parent; text: "Audio  " + root.volumeState; color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
+                    Text { anchors.centerIn: parent; text: i18nd("cde-copper", "Audio  %1", root.volumeState); color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
                 }
                 Slider {
                     Layout.fillWidth: true
@@ -748,22 +780,22 @@ PlasmoidItem {
                     value: Math.min(100, root.volume)
                     enabled: !root.muted
                     onMoved: root.setVolume(value)
-                    Accessible.name: "Volume"
+                    Accessible.name: i18nd("cde-copper", "Volume")
                 }
                 RowLayout {
                     Layout.fillWidth: true
                     ConsoleButton {
                         Layout.fillWidth: true; implicitHeight: 38; horizontal: true; iconSize: 22
-                        text: root.muted ? "Unmute" : "Mute"; iconName: root.muted ? "audio-volume-high" : "audio-volume-muted"
+                        text: root.muted ? i18nd("cde-copper", "Unmute") : i18nd("cde-copper", "Mute"); iconName: root.muted ? "audio-volume-high" : "audio-volume-muted"
                         surface: consoleColors.window; foreground: consoleColors.windowText
                         selected: root.muted
                         onClicked: { root.muted = !root.muted; runner.connectSource("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"); }
                     }
                     ConsoleButton {
                         Layout.fillWidth: true; implicitHeight: 38; horizontal: true; iconSize: 22
-                        text: "Settings…"; iconName: "preferences-system"
+                        text: i18nd("cde-copper", "Settings…"); iconName: "preferences-system"
                         surface: consoleColors.window; foreground: consoleColors.windowText
-                        onClicked: { volumePopup.visible = false; root.run(Launch.resolve("@settings kcm_pulseaudio")); }
+                        onClicked: { volumePopup.visible = false; root.run(Launch.resolve("@settings kcm_pulseaudio", [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg))); }
                     }
                 }
             }
@@ -778,9 +810,11 @@ PlasmoidItem {
         location: Plasmoid.location
         hideOnWindowDeactivate: true
         backgroundHints: PlasmaCore.Types.NoBackground
-        onVisibleChanged: if (visible) popupBody.forceActiveFocus()
+        onVisibleChanged: if (visible) { popupKeeper.opened(); popupBody.forceActiveFocus(); }
         mainItem: Bevel {
             id: popupBody
+            HoverHandler { id: popupHover }
+            Keys.onPressed: popupKeeper.keyboard = true
             width: 320; height: 41 + root.entries.length * 38
             surface: consoleColors.window
             focus: true
@@ -804,7 +838,7 @@ PlasmoidItem {
                             popup.visible = false;
                             // The style manager is a page of the console's settings.
                             if (modelData.command === "@style") Plasmoid.internalAction("configure").trigger();
-                            else root.run(Launch.resolve(modelData.command, modelData.args));
+                            else root.run(Launch.resolve(modelData.command, modelData.args, (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg)));
                         }
                     }
                 }
@@ -826,11 +860,11 @@ PlasmoidItem {
                 anchors.fill: parent; anchors.margins: 6; spacing: 5
                 Bevel {
                     surface: consoleColors.highlight; Layout.fillWidth: true; Layout.preferredHeight: 29
-                    Text { anchors.centerIn: parent; text: "Find Application"; color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 13 }
+                    Text { anchors.centerIn: parent; text: i18nd("cde-copper", "Find Application"); color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 13 }
                 }
                 TextField {
                     id: appSearch
-                    Layout.fillWidth: true; placeholderText: "Search"
+                    Layout.fillWidth: true; placeholderText: i18nd("cde-copper", "Search")
                     color: consoleColors.fieldText; font.pixelSize: 13
                     background: Bevel { sunken: true; surface: consoleColors.field }
                     Keys.onEscapePressed: applications.visible = false
@@ -852,7 +886,7 @@ PlasmoidItem {
                         width: appList.width - 14
                         visible: appSearch.text.length === 0 || text.toLowerCase().indexOf(appSearch.text.toLowerCase()) >= 0
                         height: visible ? 37 : 0
-                        text: model.display || "Application"
+                        text: model.display || i18nd("cde-copper", "Application")
                         iconName: ""
                         Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: 26; height: 26; source: parent.model.decoration; active: false }
                         leftPadding: 40

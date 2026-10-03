@@ -125,18 +125,18 @@ Item {
                     Bevel {
                         Layout.fillWidth: true; Layout.preferredHeight: 27; Layout.bottomMargin: 3
                         surface: consoleColors.highlight
-                        Text { anchors.centerIn: parent; text: "Applications"; color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
+                        Text { anchors.centerIn: parent; text: i18nd("cde-copper", "Applications"); color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
                     }
                     MenuRow {
                         Layout.fillWidth: true
-                        glyph: "edit-find"; label: "Find Application…"
+                        glyph: "edit-find"; label: i18nd("cde-copper", "Find Application…")
                         highlighted: menu.current === 0
                         onHovered: menu.select(0)
                         onActivated: menu.activate(0)
                     }
                     MenuRow {
                         Layout.fillWidth: true
-                        glyph: "system-run"; label: "Run Command…"
+                        glyph: "system-run"; label: i18nd("cde-copper", "Run Command…")
                         highlighted: menu.current === 1
                         onHovered: menu.select(1)
                         onActivated: menu.activate(1)

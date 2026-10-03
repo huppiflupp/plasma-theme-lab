@@ -24,11 +24,11 @@ class Assets(unittest.TestCase):
             self.assertTrue(file.resolve().is_relative_to(ROOT / "build/icons/CDECopper"))
             doc = ET.parse(file).getroot()
             # scalable/ on a 64-unit grid; 16/ and 22/ hold pixel versions
-            # on their own size, whole pixels only.
+            # on their own size, whole pixels only; symbolic/ uses 16 units.
             size = file.parent.parent.name
-            grid = "64" if size == "scalable" else size
+            grid = "64" if size == "scalable" else "16" if size == "symbolic" else size
             self.assertEqual(doc.get("viewBox"), f"0 0 {grid} {grid}", str(file))
-            if size != "scalable":
+            if size in ("16", "22"):
                 for e in doc.iter():
                     for attr in ("x", "y", "width", "height"):
                         if e.get(attr) is not None:
@@ -66,7 +66,7 @@ class Separation(unittest.TestCase):
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
             for item in ("tools", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "wallpapers", "screenshots",
-                         "lookandfeel", "shell", "build.py", "icons.py", "cursors.py", "gtktheme.py", "systemparts.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
+                         "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "systemparts.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
                     shutil.copytree(source, copy / item, symlinks=True,

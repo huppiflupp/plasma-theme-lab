@@ -19,46 +19,46 @@ KCM.SimpleKCM {
     Kirigami.FormLayout {
         ComboBox {
             id: visibility
-            Kirigami.FormData.label: "Visibility:"
-            model: ["Always visible", "Auto-hide / edge reveal", "Dodge windows"]
+            Kirigami.FormData.label: i18nd("cde-copper", "Visibility:")
+            model: [i18nd("cde-copper", "Always visible"), i18nd("cde-copper", "Auto-hide / edge reveal"), i18nd("cde-copper", "Dodge windows")]
         }
         ComboBox {
-            Kirigami.FormData.label: "Screen edge:"
-            model: ["Bottom", "Top", "Left", "Right"]
+            Kirigami.FormData.label: i18nd("cde-copper", "Screen edge:")
+            model: [i18nd("cde-copper", "Bottom"), i18nd("cde-copper", "Top"), i18nd("cde-copper", "Left"), i18nd("cde-copper", "Right")]
             currentIndex: cfg_edge >= 0 ? cfg_edge : (cfg_topEdge ? 1 : 0)
             onActivated: index => { cfg_edge = index; cfg_topEdge = index === 1; }
         }
         CheckBox {
             id: thisScreen
-            Kirigami.FormData.label: "Window list:"
-            text: "Only windows on this console's screen"
+            Kirigami.FormData.label: i18nd("cde-copper", "Window list:")
+            text: i18nd("cde-copper", "Only windows on this console's screen")
         }
         CheckBox {
             id: workspaceColours
-            Kirigami.FormData.label: "Workspaces:"
-            text: "Each button in a colour of its own, as in CDE"
+            Kirigami.FormData.label: i18nd("cde-copper", "Workspaces:")
+            text: i18nd("cde-copper", "Each button in a colour of its own, as in CDE")
         }
         CheckBox {
             id: groupWindows
-            text: "Group windows of one application (\"3× Konsole\")"
+            text: i18nd("cde-copper", "Group windows of one application (\"3× Konsole\")")
         }
         CheckBox {
             id: hideVolume
-            Kirigami.FormData.label: "System tray:"
-            text: "Leave the volume to the console"
+            Kirigami.FormData.label: i18nd("cde-copper", "System tray:")
+            text: i18nd("cde-copper", "Leave the volume to the console")
         }
         CheckBox {
             id: hideIcons
-            text: "Status icons only behind the console's button"
+            text: i18nd("cde-copper", "Status icons only behind the console's button")
         }
         CheckBox {
             id: panelFrame
-            Kirigami.FormData.label: "Panel:"
-            text: "Frame behind the console"
+            Kirigami.FormData.label: i18nd("cde-copper", "Panel:")
+            text: i18nd("cde-copper", "Frame behind the console")
         }
-        TextField { id: label; Kirigami.FormData.label: "Console label:" }
+        TextField { id: label; Kirigami.FormData.label: i18nd("cde-copper", "Console label:") }
         SpinBox {
-            Kirigami.FormData.label: "Size:"
+            Kirigami.FormData.label: i18nd("cde-copper", "Size:")
             Layout.minimumWidth: Kirigami.Units.gridUnit * 7
             from: 75; to: 200; stepSize: 25
             value: Math.round(cfg_consoleScale * 100)

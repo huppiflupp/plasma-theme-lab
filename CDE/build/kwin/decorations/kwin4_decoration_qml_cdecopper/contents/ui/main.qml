@@ -9,10 +9,14 @@ import "motif.js" as Motif
 //    minimize, maximize (and close, which KDE users expect);
 //  - every colour comes from the active colour scheme (WM active/inactive
 //    title colour), the shadows from Motif's own shading rule, so any CDE
-//    palette applied as a colour scheme carries through.
+//    palette applied as a colour scheme carries through;
+//  - the inactive frame is flatter (one-pixel bevels instead of two), so the
+//    focus shows in the frame's structure, not in its colour alone;
+//  - a short, hard shadow to the lower right: Aurorae turns what is drawn in
+//    the padding outside the frame into the window's shadow.
 Decoration {
     id: root
-    alpha: false
+    alpha: true
 
     DecorationOptions { id: options; deco: decoration }
     FontMetrics { id: metrics; font: options.titleFont }
@@ -20,7 +24,13 @@ Decoration {
     property bool coloredBorder: true
     property int fixedTitleHeight: 0
     property int edge: 6
-    readonly property int bevel: 2
+    readonly property int bevel: decoration.client.active ? 2 : 1
+    readonly property int shadowOffset: root.maximized ? 0 : 4
+    onShadowOffsetChanged: root.setPadding()
+    function setPadding() {
+        padding.left = 0; padding.top = 0;
+        padding.right = root.shadowOffset; padding.bottom = root.shadowOffset;
+    }
     readonly property int inner: 1
     readonly property bool maximized: decoration.client.maximized
     // From the title font unless a height is configured; the buttons are
@@ -71,6 +81,22 @@ Decoration {
     onTitleHeightChanged: readBorderSize()
 
     SystemPalette { id: system; colorGroup: SystemPalette.Active }
+
+    // ---- shadow ----------------------------------------------------------
+    Rectangle {
+        x: root.shadowOffset; y: root.shadowOffset
+        width: area.width; height: area.height
+        visible: root.shadowOffset > 0
+        color: "black"
+        opacity: 0.35
+    }
+
+    // Everything but the shadow: the window with its frame.
+    Item {
+    id: area
+    x: 0; y: 0
+    width: parent.width - root.shadowOffset
+    height: parent.height - root.shadowOffset
 
     // ---- frame -----------------------------------------------------------
     Bevel {
@@ -216,6 +242,7 @@ Decoration {
         }
         Component.onCompleted: decoration.installTitleItem(titleRow)
     }
+    }
 
     Component { id: menuButtonComponent; MotifButton { buttonType: DecorationOptions.DecorationButtonMenu; size: root.titleHeight } }
     Component { id: appMenuButtonComponent; MotifButton { buttonType: DecorationOptions.DecorationButtonApplicationMenu; size: root.titleHeight } }
@@ -231,6 +258,7 @@ Decoration {
     Component.onCompleted: {
         readBorderSize();
         readConfig();
+        setPadding();
     }
     Connections {
         target: decoration

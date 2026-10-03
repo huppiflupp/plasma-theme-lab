@@ -35,7 +35,9 @@ from build import PICTURES  # noqa: E402  (build.py is part of the tool copy too
 # them; the rest of a palette is generated when it is applied.
 SCHEMES = tuple(f"color-schemes/CDE{name}.colors" for name in palettes.names())
 TOOL = "cde-copper"
+LANGUAGES = ("de",)        # po/<language>.po, compiled by build.py
 TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "kwin/scripts/cde-copper-arrange",
+           "kwin/tabbox/org.cde.copper.switcher",
            "plasma/desktoptheme/cde-copper", "plasma/look-and-feel/org.cde.copper.desktop",
            "plasma/plasmoids/org.cde.copper.frontpanel", "icons/CDECopper",
            "wallpapers/org.cde.copper", "plasma/wallpapers/org.cde.copper.backdrop",
@@ -43,6 +45,8 @@ TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "
            "konsole/CDECopper.colorscheme", "konsole/CDE Copper.profile",
            "kstyle/themes/kvantum.themerc", "kstyle/themes/kvantum-dark.themerc", "icons/CDECopperCursors",
            "plasma/shells/org.cde.copper.shell", "themes/CDECopper",
+           # The translations (domain cde-copper); fixed, as the tool copy has no po/.
+           *(f"locale/{lang}/LC_MESSAGES/cde-copper.mo" for lang in LANGUAGES),
            "fonts/CDECopper", TOOL) + SCHEMES
 # The tool copy: what applying a palette needs, so the console and System
 # Settings can switch palettes without the extracted archive.
@@ -527,8 +531,8 @@ def update_splash(name):
 
 
 def set_backdrop(manifest, name, scale):
-    """Show one CDE backdrop through the "CDE Backdrop" wallpaper type, or
-    with "none" the plain desktop colour of the palette."""
+    """Show one CDE backdrop or picture through the "CDE Backdrop" wallpaper
+    type, or with "none" the plain desktop colour of the palette."""
     import backdrops
     chosen = manifest.get("palette", "Copper")
     colour_set = workspace_set(chosen)
@@ -538,8 +542,10 @@ def set_backdrop(manifest, name, scale):
                       " d.currentConfigGroup = ['Wallpaper', 'org.kde.color', 'General'];"
                       f" d.writeConfig('Color', '{colour_set['bg']}'); }}")
     else:
-        if name not in backdrops.names():
-            raise RuntimeError(f"Unknown backdrop {name!r}; available: {', '.join(backdrops.names())}")
+        # A picture is "picture:<key>" of the picture wallpapers.
+        known = backdrops.names() + [f"picture:{key}" for key, _, _ in PICTURES]
+        if name not in known:
+            raise RuntimeError(f"Unknown backdrop {name!r}; available: {', '.join(known)}")
         plasma_script("for (var d of desktops()) { d.wallpaperPlugin = 'org.cde.copper.backdrop';"
                       " d.currentConfigGroup = ['Wallpaper', 'org.cde.copper.backdrop', 'General'];"
                       # One backdrop chosen: it replaces backdrops per workspace.
@@ -618,6 +624,7 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
     write_config("kwinrc", "org.kde.kdecoration2", {"library": "org.kde.kwin.aurorae", "theme": DECORATION, "ButtonsOnLeft": "M", "ButtonsOnRight": "IAX", "BorderSize": "Normal"})
     write_config("kwinrc", "WM", {"activeFont": TITLE_FONT})
     write_config("kwinrc", "Plugins", {"cde-copper-arrangeEnabled": "true"})
+    write_config("kwinrc", "TabBox", {"LayoutName": "org.cde.copper.switcher"})
     write_config("konsolerc", "Desktop Entry", {"DefaultProfile": "CDE Copper.profile"})
     dbus("org.kde.KWin", "/KWin", "reconfigure")
     dbus("org.kde.KWin", "/Scripting", "org.kde.kwin.Scripting.start")

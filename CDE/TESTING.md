@@ -311,7 +311,61 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   background loads under Secure Boot. Picture: wallpapers/images/<name>.jpg
   (--grub-background, default altai-dark; lattice for the backdrop).
   screenshots/grub-1280.png. Not checked: the passphrase prompt, BIOS
-  machines, Debian's grub paths. The full test run was not possible at
+  machines, Debian's grub paths.
+- Grip edge (0.8): widgets/glowbar of the desktop theme, read by KWin's
+  screenedge effect. Console set to auto-hide, pointer held 4 px above the
+  bottom edge with uinput: a raised bar (ink, light, active colour, dark)
+  along the console's width, fading in with the approach, in Orchid. KWin
+  shares corner elements between two edges, so the bar has no end caps.
+  Effect reloaded over D-Bus after replacing the file.
+- Alt+Tab (0.8): kwin/tabbox/org.cde.copper.switcher. KWin loads a newly
+  installed switcher package only after logging in again (reconfigure
+  kept the fallback). Seen with Konsole, Dolphin and KWrite: Motif face,
+  title bar with the window's caption, sunken selection. OSD (volume) and
+  notifications already wear the desktop theme's Motif frames; Plasma 6.7
+  loads the OSD from its own QML module, not from the shell package.
+- Controls (0.8): QWidget push buttons, combo boxes and line edits were
+  28 px; Kvantum ignored min_height for dialog buttons, larger text
+  margins (5/4) make them 32 px, measured with kdialog. QML controls
+  (System Settings) were 28–30 px already.
+- Scaling (0.8): 150 % at 1920x1080 and 200 % at 3840x2160 with
+  kscreen-doctor. Seen sharp at both: window frame and title buttons, the
+  console with clock, tiles, workspace buttons and the quarter-size session
+  buttons, Alt+Tab (centred), logout dialog, lock screen
+  (kscreenlocker_greet --testing), Konsole and kdialog. Not checked at
+  these scales: start-up screen, Plymouth and GRUB (fixed pixels), the
+  subpanels.
+- German (0.8): 207 messages in po/de.po (Codex wrapped the strings,
+  domain cde-copper, installed as ~/.local/share/locale/de/LC_MESSAGES/
+  cde-copper.mo). Full install from the package in the VM (de_DE): tiles,
+  workspace heading, subpanels in German. Found: tile labels saved in the
+  configuration stayed English when the tile's program differed from the
+  preset (Files with XFile); shipped labels are now translated whatever
+  the program. "Anwendungen" did not fit a tile: "Programme".
+- Subpanels (0.8): open on the Help arrow, pointer moved into the subpanel
+  (stays open), then far away (closed about half a second later). Opened
+  or used from the keyboard they stay until Escape or a second click.
+  Same rule for the calendar and the volume popup (not seen separately).
+- Pictures as backdrops (0.8): picture:origami through the CDE Backdrop
+  type, set with manage.py; full screen, sharp. Not checked: the dark
+  version under a dark palette, the Style page and per-workspace lists in
+  use (built, not clicked through).
+- Install over hand-copied files: install.sh refused to overwrite the
+  switcher copied in by hand during testing ("Refusing to overwrite
+  unowned path"), as it should; removed by hand, then installed.
+- Boot parts after the palette (0.8): system.py install as tester's sudo
+  drew both in Orchid (manifest palette), boots recorded twice a second
+  with virsh screenshot. The black box between GRUB and Plymouth was GRUB's
+  console (cleared when an entry boots), not the kernel: still there with
+  plymouth.use-simpledrm. GRUB grows a smaller console to 80 x 24 Unifont
+  characters (640 x 408 px, measured; 1 x 1 and one line fell back to its
+  default box), the signed Fedora GRUB has no gfxterm_background
+  (background_color) and color_normal does not reach the cleared area. So
+  the console now covers exactly the menu window and countdown, framed
+  alike: black inside under Secure Boot, the window colour without it
+  (not checked: no VM without Secure Boot). Fedora's BLS entries ignore
+  GRUB_GFXPAYLOAD_LINUX: /etc/grub.d/09_cde_copper_gfxpayload exports
+  gfxpayload=keep (removed by uninstall). The full test run was not possible at
   this commit: the build stops in the picture wallpapers another session
   is adding (wallpapers/images/mrt.jpg not there yet).
   Off by default since; the frame is there for those who want it.

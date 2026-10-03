@@ -92,7 +92,7 @@ KCM.SimpleKCM {
 
     Dialog {
         id: picker
-        title: "Choose an application"
+        title: i18nd("cde-copper", "Choose an application")
         modal: true
         anchors.centerIn: parent
         width: Math.min(page.width - 40, Kirigami.Units.gridUnit * 26)
@@ -101,7 +101,7 @@ KCM.SimpleKCM {
         onOpened: { search.text = ""; search.forceActiveFocus(); }
         ColumnLayout {
             anchors.fill: parent
-            TextField { id: search; Layout.fillWidth: true; placeholderText: "Search" }
+            TextField { id: search; Layout.fillWidth: true; placeholderText: i18nd("cde-copper", "Search") }
             ListView {
                 id: apps
                 Layout.fillWidth: true; Layout.fillHeight: true
@@ -146,19 +146,19 @@ KCM.SimpleKCM {
         Button {
             icon.name: editor.modelData.icon
             icon.width: Kirigami.Units.iconSizes.medium; icon.height: Kirigami.Units.iconSizes.medium
-            ToolTip.text: "Choose icon"; ToolTip.visible: hovered
+            ToolTip.text: i18nd("cde-copper", "Choose icon"); ToolTip.visible: hovered
             onClicked: { page.pickSide = editor.side; page.pickIndex = editor.index; iconDialog.open(); }
         }
         TextField {
             Layout.preferredWidth: Kirigami.Units.gridUnit * 6
-            text: editor.modelData.label
-            placeholderText: "Label"
-            onEditingFinished: if (text !== editor.modelData.label) page.edit(editor.side, editor.index, {label: text})
+            text: Launch.slotLabel(editor.modelData, text => i18nd("cde-copper", text))
+            placeholderText: i18nd("cde-copper", "Label")
+            onEditingFinished: if (text !== Launch.slotLabel(editor.modelData, value => i18nd("cde-copper", value))) page.edit(editor.side, editor.index, {label: text})
         }
         ComboBox {
             id: program
             Layout.preferredWidth: Kirigami.Units.gridUnit * 11
-            model: Launch.PRESETS
+            model: Launch.PRESETS.map(p => Object.assign({}, p, {text: i18nd("cde-copper", p.text)}))
             textRole: "text"
             currentIndex: Math.max(0, Launch.PRESETS.findIndex(p => p.value === editor.preset))
             onActivated: index => {
@@ -174,49 +174,48 @@ KCM.SimpleKCM {
             visible: editor.preset === "" || editor.preset === "app:"
             readOnly: editor.preset === "app:"
             text: editor.modelData.command
-            placeholderText: "Command, e.g. firefox --private-window"
+            placeholderText: i18nd("cde-copper", "Command, e.g. firefox --private-window")
             onEditingFinished: if (!readOnly && text !== editor.modelData.command) page.edit(editor.side, editor.index, {command: text})
         }
         Item { Layout.fillWidth: true; visible: !(editor.preset === "" || editor.preset === "app:") }
         ComboBox {
             Layout.preferredWidth: Kirigami.Units.gridUnit * 7
-            model: Launch.MENUS
+            model: Launch.MENUS.map(m => Object.assign({}, m, {text: i18nd("cde-copper", m.text)}))
             textRole: "text"
             currentIndex: Math.max(0, Launch.MENUS.findIndex(m => m.value === editor.modelData.menu))
             onActivated: index => page.edit(editor.side, editor.index, {menu: Launch.MENUS[index].value})
-            ToolTip.text: "Subpanel opened by the arrow above the tile"; ToolTip.visible: hovered
+            ToolTip.text: i18nd("cde-copper", "Subpanel opened by the arrow above the tile"); ToolTip.visible: hovered
         }
         Kirigami.Icon {
             Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: width
             source: editor.found === "missing" ? "dialog-warning" : editor.found === "ok" ? "dialog-ok-apply" : ""
             HoverHandler { id: stateHover }
             ToolTip.visible: stateHover.hovered && editor.found !== ""
-            ToolTip.text: editor.found === "missing" ? "Not installed: this tile would only show a notification. Choose another program." : "Installed"
+            ToolTip.text: editor.found === "missing" ? i18nd("cde-copper", "Not installed: this tile would only show a notification. Choose another program.") : i18nd("cde-copper", "Installed")
         }
-        ToolButton { icon.name: "go-up"; enabled: editor.index > 0; onClicked: page.move(editor.side, editor.index, -1); ToolTip.text: "Move left"; ToolTip.visible: hovered }
-        ToolButton { icon.name: "go-down"; onClicked: page.move(editor.side, editor.index, 1); ToolTip.text: "Move right"; ToolTip.visible: hovered }
-        ToolButton { icon.name: "list-remove"; onClicked: page.removeAt(editor.side, editor.index); ToolTip.text: "Remove"; ToolTip.visible: hovered }
+        ToolButton { icon.name: "go-up"; enabled: editor.index > 0; onClicked: page.move(editor.side, editor.index, -1); ToolTip.text: i18nd("cde-copper", "Move left"); ToolTip.visible: hovered }
+        ToolButton { icon.name: "go-down"; onClicked: page.move(editor.side, editor.index, 1); ToolTip.text: i18nd("cde-copper", "Move right"); ToolTip.visible: hovered }
+        ToolButton { icon.name: "list-remove"; onClicked: page.removeAt(editor.side, editor.index); ToolTip.text: i18nd("cde-copper", "Remove"); ToolTip.visible: hovered }
     }
 
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing
-        Kirigami.Heading { level: 3; text: "Left of the workspace switch" }
+        Kirigami.Heading { level: 3; text: i18nd("cde-copper", "Left of the workspace switch") }
         Repeater { model: page.leftSlots; delegate: SlotEditor { side: "left" } }
-        Button { text: "Add tile"; icon.name: "list-add"; onClicked: page.add("left") }
+        Button { text: i18nd("cde-copper", "Add tile"); icon.name: "list-add"; onClicked: page.add("left") }
         Kirigami.Separator { Layout.fillWidth: true }
-        Kirigami.Heading { level: 3; text: "Right of the workspace switch" }
+        Kirigami.Heading { level: 3; text: i18nd("cde-copper", "Right of the workspace switch") }
         Repeater { model: page.rightSlots; delegate: SlotEditor { side: "right" } }
-        Button { text: "Add tile"; icon.name: "list-add"; onClicked: page.add("right") }
+        Button { text: i18nd("cde-copper", "Add tile"); icon.name: "list-add"; onClicked: page.add("right") }
         Kirigami.Separator { Layout.fillWidth: true }
         Label {
             Layout.fillWidth: true
             wrapMode: Text.Wrap
             opacity: 0.75
-            text: "\"Default …\" entries follow the applications chosen in System Settings › Default Applications. "
-                + "A custom command runs through the shell; app:<desktop id> starts an installed application."
+            text: i18nd("cde-copper", "\"Default …\" entries follow the applications chosen in System Settings › Default Applications. A custom command runs through the shell; app:<desktop id> starts an installed application.")
         }
         Button {
-            text: "Restore default tiles"
+            text: i18nd("cde-copper", "Restore default tiles")
             icon.name: "edit-undo"
             onClicked: { page.cfg_leftLaunchers = ""; page.cfg_rightLaunchers = ""; page.leftSlots = Launch.parse("", Launch.LEFT); page.rightSlots = Launch.parse("", Launch.RIGHT); }
         }

@@ -23,17 +23,19 @@ KCM.SimpleKCM {
     property string current: ""          // the palette in use
     property string chosen: ""
     property string backdrop: ""         // "" keeps the desktop as it is
+    readonly property bool isPicture: backdrop.startsWith("picture:")
+    readonly property bool isPattern: backdrop !== "" && backdrop !== "none" && !isPicture
     property string cfg_styleRequest: ""
     property string progressInUse: ""    // progress bar style in use
     readonly property var progressStyles: [
-        {value: "outlined", text: "Outlined: dark edge, one-pixel bevel"},
-        {value: "floating", text: "Floating: a pixel inside the groove, two-pixel bevel"},
-        {value: "slim", text: "Slim: 8 pixels high"}]
+        {value: "outlined", text: i18nd("cde-copper", "Outlined: dark edge, one-pixel bevel")},
+        {value: "floating", text: i18nd("cde-copper", "Floating: a pixel inside the groove, two-pixel bevel")},
+        {value: "slim", text: i18nd("cde-copper", "Slim: 8 pixels high")}]
     readonly property var cursorStyles: [
-        {value: "copper", text: "Copper rim"},
-        {value: "palette", text: "Rim in the palette's accent colour"},
-        {value: "white", text: "White rim, as in X11"},
-        {value: "custom", text: "Rim in a colour of my own"}]
+        {value: "copper", text: i18nd("cde-copper", "Copper rim")},
+        {value: "palette", text: i18nd("cde-copper", "Rim in the palette's accent colour")},
+        {value: "white", text: i18nd("cde-copper", "White rim, as in X11")},
+        {value: "custom", text: i18nd("cde-copper", "Rim in a colour of my own")}]
 
     P5Support.DataSource {
         id: shell
@@ -79,11 +81,10 @@ KCM.SimpleKCM {
 
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing
-        Kirigami.Heading { level: 3; text: "Palette" }
+        Kirigami.Heading { level: 3; text: i18nd("cde-copper", "Palette") }
         Label {
             Layout.fillWidth: true; wrapMode: Text.Wrap; opacity: 0.75
-            text: "CDE's 37 palettes and CDE Copper. The stripes: console, windows, text fields, active and inactive title, desktop. "
-                + "Choose one (and a backdrop below), then Apply or OK. ● marks the palette in use."
+            text: i18nd("cde-copper", "CDE's 37 palettes and CDE Copper. The stripes: console, windows, text fields, active and inactive title, desktop. Choose one (and a backdrop below), then Apply or OK. ● marks the palette in use.")
         }
         GridLayout {
             id: palettes
@@ -101,7 +102,7 @@ KCM.SimpleKCM {
                     Layout.preferredHeight: Kirigami.Units.gridUnit * 3.2
                     highlighted: page.chosen === modelData.name
                     onClicked: { page.chosen = modelData.name; page.request(); }
-                    ToolTip.text: modelData.name + (page.current === modelData.name ? " (in use)" : "")
+                    ToolTip.text: page.current === modelData.name ? i18nd("cde-copper", "%1 (in use)", modelData.name) : modelData.name
                     ToolTip.visible: hovered
                     contentItem: ColumnLayout {
                         spacing: 2
@@ -128,7 +129,7 @@ KCM.SimpleKCM {
         }
 
         Kirigami.Separator { Layout.fillWidth: true }
-        Kirigami.Heading { level: 3; text: "Progress bars" }
+        Kirigami.Heading { level: 3; text: i18nd("cde-copper", "Progress bars") }
         RowLayout {
             ComboBox {
                 id: progressBox
@@ -141,11 +142,11 @@ KCM.SimpleKCM {
         }
         Label {
             Layout.fillWidth: true; wrapMode: Text.Wrap; opacity: 0.75
-            text: "In the programs' controls (Kvantum); the bar beside shows the style in use. Programs already open take it when restarted."
+            text: i18nd("cde-copper", "In the programs' controls (Kvantum); the bar beside shows the style in use. Programs already open take it when restarted.")
         }
 
         Kirigami.Separator { Layout.fillWidth: true }
-        Kirigami.Heading { level: 3; text: "Mouse cursors" }
+        Kirigami.Heading { level: 3; text: i18nd("cde-copper", "Mouse cursors") }
         RowLayout {
             ComboBox {
                 id: cursorBox
@@ -158,41 +159,52 @@ KCM.SimpleKCM {
                 id: cursorColour
                 visible: cursorBox.currentIndex === 3
                 color: "#e8874f"
-                dialogTitle: "Cursor rim"
+                dialogTitle: i18nd("cde-copper", "Cursor rim")
                 onAccepted: chosenColour => { cursorColour.color = chosenColour; page.request(); }
             }
         }
         Label {
             Layout.fillWidth: true; wrapMode: Text.Wrap; opacity: 0.75
-            text: "The cursors after the X11 cursor font: black shapes on a coloured rim, with a soft shadow."
+            text: i18nd("cde-copper", "The cursors after the X11 cursor font: black shapes on a coloured rim, with a soft shadow.")
         }
 
         Kirigami.Separator { Layout.fillWidth: true }
-        Kirigami.Heading { level: 3; text: "Lock screen" }
+        Kirigami.Heading { level: 3; text: i18nd("cde-copper", "Lock screen") }
         ComboBox {
             id: lockBox
             Layout.preferredWidth: Kirigami.Units.gridUnit * 20
-            model: ["CDE's: a Motif dialog on the backdrop", "Plasma's own"]
+            model: [i18nd("cde-copper", "CDE's: a Motif dialog on the backdrop"), i18nd("cde-copper", "Plasma's own")]
             onActivated: page.request()
         }
         Label {
             Layout.fillWidth: true; wrapMode: Text.Wrap; opacity: 0.75
-            text: "Plasma takes the lock screen from its shell package; CDE's comes in a shell package of its own that takes everything else from Plasma's. Switching restarts the desktop shell once."
+            text: i18nd("cde-copper", "Plasma takes the lock screen from its shell package; CDE's comes in a shell package of its own that takes everything else from Plasma's. Switching restarts the desktop shell once.")
         }
 
         Kirigami.Separator { Layout.fillWidth: true }
-        Kirigami.Heading { level: 3; text: "Backdrop" }
+        Kirigami.Heading { level: 3; text: i18nd("cde-copper", "Backdrop") }
         RowLayout {
             ComboBox {
                 id: backdrops
                 Layout.preferredWidth: Kirigami.Units.gridUnit * 14
-                model: ["Keep the desktop as it is", "Plain palette colour"].concat(Palettes.BACKDROPS)
-                onActivated: index => { page.backdrop = index === 0 ? "" : index === 1 ? "none" : Palettes.BACKDROPS[index - 2]; page.request(); }
+                // Patterns, then the pictures: those painted for the chosen
+                // palette first.
+                readonly property var choices: [{value: "", text: i18nd("cde-copper", "Keep the desktop as it is")},
+                                                {value: "none", text: i18nd("cde-copper", "Plain palette colour")}]
+                    .concat(Palettes.BACKDROPS.map(name => ({value: name, text: name})))
+                    .concat(Palettes.PICTURES.filter(p => p.palette === page.chosen)
+                            .map(p => ({value: "picture:" + p.key, text: i18nd("cde-copper", "Picture: %1 (for this palette)", p.name)})))
+                    .concat(Palettes.PICTURES.filter(p => p.palette !== page.chosen)
+                            .map(p => ({value: "picture:" + p.key, text: i18nd("cde-copper", "Picture: %1", p.name)})))
+                model: choices
+                textRole: "text"
+                onActivated: index => { page.backdrop = choices[index].value; page.request(); }
+                onChoicesChanged: currentIndex = Math.max(0, choices.findIndex(c => c.value === page.backdrop))
             }
-            Label { text: "Pixel size:"; visible: page.backdrop && page.backdrop !== "none" }
+            Label { text: i18nd("cde-copper", "Pixel size:"); visible: page.isPattern }
             SpinBox {
                 id: pixels
-                visible: page.backdrop && page.backdrop !== "none"
+                visible: page.isPattern
                 from: 1; to: 3; value: 1
                 textFromValue: value => value + " ×"
                 onValueModified: page.request()
@@ -208,7 +220,16 @@ KCM.SimpleKCM {
             border.color: Kirigami.Theme.disabledTextColor
             clip: true
             Image {
+                anchors.fill: parent; anchors.margins: 1
+                visible: page.isPicture
+                source: page.isPicture ? "file://" + page.dataDir + "/wallpapers/org.cde.copper." + page.backdrop.slice(8) + "/contents/images/3840x2160.jpg" : ""
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                sourceSize.width: width
+            }
+            Image {
                 id: preview
+                visible: page.isPattern
                 // The packaged Copper tile when the palette's is not there.
                 property bool fallback: false
                 readonly property string profileTile: "file://" + page.dataDir + "/cde-copper/backdrops/" + (page.current || "Copper") + "/" + page.backdrop + ".png"
@@ -218,13 +239,13 @@ KCM.SimpleKCM {
                 fillMode: Image.Tile
                 smooth: false
                 cache: false
-                source: !page.backdrop || page.backdrop === "none" ? "" : fallback ? packageTile : profileTile
+                source: !page.isPattern ? "" : fallback ? packageTile : profileTile
                 onStatusChanged: if (status === Image.Error && !fallback) fallback = true
             }
         }
         Label {
             Layout.fillWidth: true; wrapMode: Text.Wrap; opacity: 0.75
-            text: "Backdrops are CDE's patterns (The Open Group, CC BY-SA 3.0), coloured with the palette. They can also be chosen in the desktop's wallpaper settings as \"CDE Backdrop\"."
+            text: i18nd("cde-copper", "Backdrops are CDE's patterns (The Open Group, CC BY-SA 3.0), coloured with the palette, or CDE Copper's pictures, each painted for one palette and shown dark under a dark one. They can also be chosen in the desktop's wallpaper settings as \"CDE Backdrop\", one per workspace too.")
         }
 
 

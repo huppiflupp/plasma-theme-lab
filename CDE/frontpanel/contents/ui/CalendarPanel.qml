@@ -7,7 +7,7 @@ import org.kde.plasma.workspace.calendar as PlasmaCalendar
 
 // The clock's subpanel: a month view with the events of the enabled
 // calendar plugins (KOrganizer/Akonadi, holidays, ...) and the agenda of
-// the selected day. "Open Calendar" starts the configured calendar app.
+// the selected day. i18nd("cde-copper", "Open Calendar") starts the configured calendar app.
 Bevel {
     id: panel
     property var pluginsManager
@@ -51,7 +51,7 @@ Bevel {
         }
         Text {
             Layout.fillWidth: true
-            text: panel.agenda.length ? "Events" : "No events"
+            text: panel.agenda.length ? i18nd("cde-copper", "Events") : i18nd("cde-copper", "No events")
             color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold
         }
         ListView {
@@ -68,7 +68,7 @@ Bevel {
                     x: 14; width: parent.width - 18; height: parent.height
                     verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight
                     color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 12
-                    text: (modelData.isAllDay ? "All day" : modelData.startDateTime.toLocaleTimeString(Qt.locale(), Locale.ShortFormat)) + "   " + modelData.title
+                    text: (modelData.isAllDay ? i18nd("cde-copper", "All day") : modelData.startDateTime.toLocaleTimeString(Qt.locale(), Locale.ShortFormat)) + "   " + modelData.title
                 }
             }
         }
@@ -76,13 +76,13 @@ Bevel {
             Layout.fillWidth: true
             ConsoleButton {
                 Layout.fillWidth: true; implicitHeight: 34; horizontal: true; iconSize: 22
-                text: "Today"; iconName: "go-jump-today"
+                text: i18nd("cde-copper", "Today"); iconName: "go-jump-today"
                 surface: consoleColors.window; foreground: consoleColors.windowText
                 onClicked: month.resetToToday()
             }
             ConsoleButton {
                 Layout.fillWidth: true; implicitHeight: 34; horizontal: true; iconSize: 22
-                text: "Open Calendar"; iconName: "view-calendar"
+                text: i18nd("cde-copper", "Open Calendar"); iconName: "view-calendar"
                 surface: consoleColors.window; foreground: consoleColors.windowText
                 onClicked: panel.openCalendar()
             }

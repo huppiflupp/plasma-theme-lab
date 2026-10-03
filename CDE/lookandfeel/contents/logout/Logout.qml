@@ -98,7 +98,7 @@ Item {
                 color: colours.title
                 Text {
                     anchors.centerIn: parent
-                    text: root.action === "restart" ? "Restart" : root.action === "halt" ? "Shut Down" : "Log Out"
+                    text: root.action === "restart" ? i18nd("cde-copper", "Restart") : root.action === "halt" ? i18nd("cde-copper", "Shut Down") : i18nd("cde-copper", "Log Out")
                     font.family: root.font; font.pixelSize: 14; font.weight: Font.DemiBold
                     color: colours.titleText
                 }
@@ -114,14 +114,14 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 4
                         Text {
-                            text: root.action === "restart" ? "Restart the computer?" : root.action === "halt" ? "Shut down the computer?" : "End the session?"
+                            text: root.action === "restart" ? i18nd("cde-copper", "Restart the computer?") : root.action === "halt" ? i18nd("cde-copper", "Shut down the computer?") : i18nd("cde-copper", "End the session?")
                             font.family: root.font; font.pixelSize: 18; color: colours.ink
                         }
                         Text {
                             readonly property int seconds: Math.max(0, Math.ceil(root.remainingTime))
-                            text: (root.action === "restart" ? (softwareUpdatePending ? "Installing updates and restarting" : "Restarting")
-                                   : root.action === "halt" ? (softwareUpdatePending ? "Installing updates and shutting down" : "Shutting down")
-                                   : "Logging out") + " in " + seconds + (seconds === 1 ? " second." : " seconds.")
+                            text: root.action === "restart" ? (softwareUpdatePending ? i18ndp("cde-copper", "Installing updates and restarting in %1 second.", "Installing updates and restarting in %1 seconds.", seconds) : i18ndp("cde-copper", "Restarting in %1 second.", "Restarting in %1 seconds.", seconds))
+                                : root.action === "halt" ? (softwareUpdatePending ? i18ndp("cde-copper", "Installing updates and shutting down in %1 second.", "Installing updates and shutting down in %1 seconds.", seconds) : i18ndp("cde-copper", "Shutting down in %1 second.", "Shutting down in %1 seconds.", seconds))
+                                : i18ndp("cde-copper", "Logging out in %1 second.", "Logging out in %1 seconds.", seconds)
                             font.family: root.font; font.pixelSize: 13; color: colours.ink; opacity: 0.8
                         }
                     }
@@ -130,25 +130,25 @@ Item {
                     id: buttons
                     anchors.right: parent.right
                     spacing: 8
-                    MotifButton { text: "Lock"; visible: root.showAll; onClicked: root.lockScreenRequested() }
-                    MotifButton { text: "Sleep"; visible: root.showAll && spdMethods.SuspendState; onClicked: root.suspendRequested(2) }
-                    MotifButton { text: "Hibernate"; visible: root.showAll && spdMethods.HibernateState; onClicked: root.suspendRequested(4) }
+                    MotifButton { text: i18nd("cde-copper", "Lock"); visible: root.showAll; onClicked: root.lockScreenRequested() }
+                    MotifButton { text: i18nd("cde-copper", "Sleep"); visible: root.showAll && spdMethods.SuspendState; onClicked: root.suspendRequested(2) }
+                    MotifButton { text: i18nd("cde-copper", "Hibernate"); visible: root.showAll && spdMethods.HibernateState; onClicked: root.suspendRequested(4) }
                     MotifButton {
-                        text: "Restart"; isDefault: root.action === "restart"
+                        text: i18nd("cde-copper", "Restart"); isDefault: root.action === "restart"
                         visible: maysd && (root.showAll || root.action === "restart")
                         onClicked: root.act("restart")
                     }
                     MotifButton {
-                        text: "Shut Down"; isDefault: root.action === "halt"
+                        text: i18nd("cde-copper", "Shut Down"); isDefault: root.action === "halt"
                         visible: maysd && (root.showAll || root.action === "halt")
                         onClicked: root.act("halt")
                     }
                     MotifButton {
-                        text: "Log Out"; isDefault: root.action === "logout"
+                        text: i18nd("cde-copper", "Log Out"); isDefault: root.action === "logout"
                         visible: canLogout && (root.showAll || root.action === "logout")
                         onClicked: root.act("logout")
                     }
-                    MotifButton { text: "Cancel"; onClicked: root.cancelRequested() }
+                    MotifButton { text: i18nd("cde-copper", "Cancel"); onClicked: root.cancelRequested() }
                 }
             }
         }

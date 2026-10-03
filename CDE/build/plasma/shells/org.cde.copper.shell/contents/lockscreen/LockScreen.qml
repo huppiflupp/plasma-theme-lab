@@ -77,7 +77,7 @@ Item {
                 color: colours.title
                 Text {
                     anchors.centerIn: parent
-                    text: "Screen Locked"
+                    text: i18nd("cde-copper", "Screen Locked")
                     font.family: root.font; font.pixelSize: 14; font.weight: Font.DemiBold
                     color: colours.titleText
                 }
@@ -100,8 +100,8 @@ Item {
                         }
                         Text {
                             font.family: root.font; font.pixelSize: 13; color: colours.ink
-                            text: kscreenlocker_userName.length === 0 ? "This display is locked."
-                                                                       : "This display is locked by " + kscreenlocker_userName + "."
+                            text: kscreenlocker_userName.length === 0 ? i18nd("cde-copper", "This display is locked.")
+                                                                       : i18nd("cde-copper", "This display is locked by %1.", kscreenlocker_userName)
                         }
                     }
                 }
@@ -129,7 +129,7 @@ Item {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             visible: password.text.length === 0
-                            text: authenticator.promptForSecret || "Password"
+                            text: authenticator.promptForSecret || i18nd("cde-copper", "Password")
                             font: password.font; color: colours.ink; opacity: 0.5
                         }
                     }
@@ -140,7 +140,7 @@ Item {
                     width: parent.width
                     visible: text.length > 0
                     wrapMode: Text.Wrap
-                    text: [root.notification, root.capsLockOn ? "Caps Lock is on." : ""].filter(t => t).join("\n")
+                    text: [root.notification, root.capsLockOn ? i18nd("cde-copper", "Caps Lock is on.") : ""].filter(t => t).join("\n")
                     font.family: root.font; font.pixelSize: 13; font.weight: Font.DemiBold
                     color: colours.ink
                 }
@@ -149,13 +149,13 @@ Item {
                     spacing: 10
                     MotifButton {
                         visible: sessions.canSwitchUser
-                        text: "Switch User"
+                        text: i18nd("cde-copper", "Switch User")
                         onClicked: sessions.switchUser()
                     }
                     MotifButton {
                         isDefault: true
                         enabled: !authenticator.graceLocked
-                        text: "Unlock"
+                        text: i18nd("cde-copper", "Unlock")
                         onClicked: authenticator.startAuthenticating()
                     }
                 }
@@ -165,7 +165,7 @@ Item {
 
     Connections {
         target: authenticator
-        function onFailed() { root.notification = "The password was not accepted."; }
+        function onFailed() { root.notification = i18nd("cde-copper", "The password was not accepted."); }
         function onBusyChanged() {
             if (!authenticator.busy && !root.authSucceeded) {
                 password.selectAll();

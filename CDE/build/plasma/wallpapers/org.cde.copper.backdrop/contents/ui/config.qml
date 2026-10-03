@@ -8,7 +8,9 @@ import org.kde.kquickcontrols as KQuickControls
 import org.kde.taskmanager as TaskManager
 import "backdrops.js" as Backdrops
 
-// Choosing a backdrop: a preview of every pattern in the applied palette.
+// Choosing a backdrop: a preview of every pattern in the applied palette,
+// then CDE Copper's pictures ("picture:<key>"), those painted for the
+// palette first.
 ColumnLayout {
     id: root
     spacing: Kirigami.Units.largeSpacing
@@ -30,6 +32,14 @@ ColumnLayout {
         list[editing] = name;
         cfg_Workspaces = list;
     }
+    readonly property var choices: Backdrops.NAMES
+        .concat(Backdrops.PICTURES.filter(p => p.palette === cfg_Palette).map(p => "picture:" + p.key))
+        .concat(Backdrops.PICTURES.filter(p => p.palette !== cfg_Palette).map(p => "picture:" + p.key))
+    function label(value) {
+        const picture = Backdrops.PICTURES.find(p => "picture:" + p.key === value);
+        return picture ? picture.name : value;
+    }
+    readonly property string pictures: StandardPaths.writableLocation(StandardPaths.GenericDataLocation) + "/wallpapers/"
     readonly property string folder: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
         + "/cde-copper/backdrops/" + cfg_Palette + "/"
 
@@ -38,19 +48,19 @@ ColumnLayout {
         twinFormLayouts: parentLayout
         SpinBox {
             id: pixels
-            Kirigami.FormData.label: "Pixel size:"
+            Kirigami.FormData.label: i18nd("cde-copper", "Pixel size:")
             from: 1; to: 4
             implicitWidth: Kirigami.Units.gridUnit * 6
             textFromValue: value => value + " ×"
         }
         CheckBox {
             id: perWorkspace
-            Kirigami.FormData.label: "Workspaces:"
-            text: "A backdrop for each workspace, as in CDE"
+            Kirigami.FormData.label: i18nd("cde-copper", "Workspaces:")
+            text: i18nd("cde-copper", "A backdrop for each workspace, as in CDE")
         }
         Flow {
             visible: perWorkspace.checked
-            Kirigami.FormData.label: "Choosing for:"
+            Kirigami.FormData.label: i18nd("cde-copper", "Choosing for:")
             spacing: 4
             Repeater {
                 model: desktops.numberOfDesktops
@@ -59,17 +69,17 @@ ColumnLayout {
                     checkable: true
                     checked: root.editing === index
                     onClicked: root.editing = index
-                    text: (index + 1) + "  " + (desktops.desktopNames[index] || "") + " — " + root.chosen(index)
+                    text: (index + 1) + "  " + (desktops.desktopNames[index] || "") + " — " + root.label(root.chosen(index))
                 }
             }
         }
         KQuickControls.ColorButton {
             id: colour
-            Kirigami.FormData.label: "Colour behind the pattern:"
-            dialogTitle: "Backdrop colour"
+            Kirigami.FormData.label: i18nd("cde-copper", "Colour behind the pattern:")
+            dialogTitle: i18nd("cde-copper", "Backdrop colour")
         }
         Label {
-            text: "Patterns from CDE (The Open Group, CC BY-SA 3.0), coloured with the palette " + root.cfg_Palette + "."
+            text: i18nd("cde-copper", "Patterns from CDE (The Open Group, CC BY-SA 3.0), coloured with the palette %1; then the pictures, those for %1 first.", root.cfg_Palette)
             opacity: 0.7
             font: Kirigami.Theme.smallFont
         }
@@ -82,11 +92,12 @@ ColumnLayout {
         clip: true
         cellWidth: Kirigami.Units.gridUnit * 8
         cellHeight: Kirigami.Units.gridUnit * 6
-        model: Backdrops.NAMES
+        model: root.choices
         ScrollBar.vertical: ScrollBar {}
         delegate: ItemDelegate {
             id: cell
             required property string modelData
+            readonly property bool isPicture: modelData.startsWith("picture:")
             width: grid.cellWidth - 6
             height: grid.cellHeight - 6
             highlighted: (perWorkspace.checked ? root.chosen(root.editing) : root.cfg_Backdrop) === modelData
@@ -101,14 +112,23 @@ ColumnLayout {
                     clip: true
                     Image {
                         anchors.fill: parent; anchors.margins: parent.border.width
-                        source: root.folder + cell.modelData + ".png"
+                        visible: cell.isPicture
+                        source: cell.isPicture ? root.pictures + "org.cde.copper." + cell.modelData.slice(8) + "/contents/images/3840x2160.jpg" : ""
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        sourceSize.width: width
+                    }
+                    Image {
+                        anchors.fill: parent; anchors.margins: parent.border.width
+                        visible: !cell.isPicture
+                        source: cell.isPicture ? "" : root.folder + cell.modelData + ".png"
                         fillMode: Image.Tile
                         smooth: false
                         cache: false
                         onStatusChanged: if (status === Image.Error) source = Qt.resolvedUrl("../images/Copper/" + cell.modelData + ".png")
                     }
                 }
-                Label { text: cell.modelData; Layout.alignment: Qt.AlignHCenter; font: Kirigami.Theme.smallFont }
+                Label { text: root.label(cell.modelData); Layout.alignment: Qt.AlignHCenter; font: Kirigami.Theme.smallFont }
             }
         }
     }

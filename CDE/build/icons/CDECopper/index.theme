@@ -2,7 +2,7 @@
 Name=CDE Copper
 Comment=Original workstation pictograms, pixel versions at 16 and 22 px
 Inherits=breeze,hicolor
-Directories=16/all,22/all,scalable/all
+Directories=16/all,22/all,symbolic/all,scalable/all
 
 [16/all]
 Size=16
@@ -12,6 +12,13 @@ Context=Applications
 [22/all]
 Size=22
 Type=Fixed
+Context=Applications
+
+[symbolic/all]
+Size=16
+Type=Scalable
+MinSize=8
+MaxSize=256
 Context=Applications
 
 [scalable/all]

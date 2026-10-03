@@ -10,6 +10,10 @@ hard bevels and original vector workstation icons. Copper identifies the active
 window, selected workspace and focused controls. The desktop stays quiet teal,
 or takes any of CDE's own 37 palettes and backdrops.
 
+The console, its settings, the start-up, lock and logout screens speak
+German where the system does (gettext domain `cde-copper`, `po/`); other
+languages can be added as `po/<language>.po`.
+
 ## Included
 
 - KDE color scheme and 38 Plasma surface SVGs.
@@ -69,7 +73,13 @@ or takes any of CDE's own 37 palettes and backdrops.
   and a GRUB theme (the menu in a Motif window with a copper title bar, on
   one of the theme's pictures or the backdrop). Plymouth needs its script
   module (Fedora: plymouth-plugin-script); under Secure Boot GRUB loads no
-  font files, so the menu then uses GRUB's own Unifont.
+  font files, so the menu then uses GRUB's own Unifont. Both take the
+  colours of the palette you applied (`--palette` picks another); after
+  switching palettes, run `install` again. GRUB keeps its graphics mode
+  for the kernel (gfxpayload=keep), and its console, which it shows while
+  loading the system, sits in the menu window instead of a black box over
+  the screen (in the window colour where GRUB can colour it, black under
+  Secure Boot).
 - CDE's logout confirmation: a Motif dialog with lock, sleep, hibernate,
   restart, shut down and log out, the action it was called for as default
   button and a countdown, in the palette's colours.
@@ -150,6 +160,12 @@ Plasma shows on its own while a dark colour scheme is active:
 All but Strömung are AI-generated decoration without logos or lettering;
 Strömung is a computed potential flow around an airfoil.
 `wallpapers/README.md` records how each was made.
+
+They are backdrops too: the console's Style page and the "CDE Backdrop"
+wallpaper list them after the patterns, the ones painted for the chosen
+palette first, and "A backdrop for each workspace" takes pictures as well as
+patterns (`--backdrop picture:origami` from a shell). Under a dark palette
+the dark version is shown.
 
 The same from a shell:
 
@@ -361,16 +377,14 @@ Not reached:
 - **Controls (§6).** Kvantum's minimum heights are font-relative: push buttons
   and menu rows come out below the 28–34 px and 30–34 px the specification
   gives (derived from the Kvantum configuration, not measured on screen).
-- **Icons (§7).** 248 drawings cover the common names, but Breeze knows
-  several thousand: less common ones (many application-specific actions,
-  rarer document types, monochrome "-symbolic" variants outside the menu)
-  still fall back to Breeze. The icons are one scalable set, not optically
-  tuned per size (16/22/24/32/48/64).
-- **Hidden panel (§8).** No grip edge or copper marker while the console is
-  hidden; KWin's own edge glow is all there is. Showing and hiding use
+- **Icons (§7).** The drawings and the monochrome "-symbolic" set cover the
+  common names, but Breeze knows several thousand: rarer ones (many
+  application-specific actions and document types) still fall back to
+  Breeze.
+- **Hidden panel (§8).** The grip edge is KWin's edge mark, drawn by the
+  theme as a raised bar in the palette's active colour: it shows while the
+  pointer nears the edge, not all the time. Showing and hiding use
   Plasma's timing, not the 140–180 ms of the specification.
-- **Subpanels (§8).** They close on a second click, Escape or when another
-  window is activated; they do not stay open by pointer position.
 - **Keyboard and screen readers (§8, acceptance).** Tiles and menus carry
   accessible names and keys work in the subpanels, but full keyboard operation
   of auto-hide and of the Applications menu has not been verified, nor has a

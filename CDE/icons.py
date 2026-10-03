@@ -139,6 +139,9 @@ def build_icons(out: Path):
             base = base.rsplit("-", 1)[0]
         if base in defs or base in aliases:
             aliases[name + "-symbolic"] = base
+    symbolic, symbolic_aliases = symbolic_icons()
+    symbolic_names = {name + "-symbolic" for name in symbolic.keys() | symbolic_aliases.keys()}
+    aliases = {name: target for name, target in aliases.items() if name not in symbolic_names}
     missing = [f"{name} -> {target}" for name, target in aliases.items() if target not in defs and target not in aliases]
     if missing:
         raise RuntimeError("Icon aliases without a drawing: " + ", ".join(missing))
@@ -146,7 +149,7 @@ def build_icons(out: Path):
     dest = theme / "scalable/all"
     # Start empty: writing a drawing through a link left by an earlier build
     # would overwrite the link's target instead.
-    for folder_ in ("scalable", "16", "22"):
+    for folder_ in ("scalable", "16", "22", "symbolic"):
         if (theme / folder_).exists():
             import shutil
             shutil.rmtree(theme / folder_)
@@ -174,10 +177,20 @@ def build_icons(out: Path):
         for name in aliases:
             if final(name) in PIXEL and name not in PIXEL:
                 (folder_ / f"{name}.svg").symlink_to(final(name) + ".svg")
+    symbolic_dest = theme / "symbolic/all"
+    symbolic_dest.mkdir(parents=True, exist_ok=True)
+    for name, body in symbolic.items():
+        (symbolic_dest / f"{name}-symbolic.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">'
+            '<style id="current-color-scheme">.ColorScheme-Text { color:#10262b; }</style>'
+            + body + '</svg>\n')
+    for name, original in symbolic_aliases.items():
+        (symbolic_dest / f"{name}-symbolic.svg").symlink_to(original + "-symbolic.svg")
     (theme / "index.theme").write_text("[Icon Theme]\nName=CDE Copper\nComment=Original workstation pictograms, pixel versions at 16 and 22 px\n"
-                                       "Inherits=breeze,hicolor\nDirectories=16/all,22/all,scalable/all\n\n"
+                                       "Inherits=breeze,hicolor\nDirectories=16/all,22/all,symbolic/all,scalable/all\n\n"
                                        "[16/all]\nSize=16\nType=Fixed\nContext=Applications\n\n"
                                        "[22/all]\nSize=22\nType=Fixed\nContext=Applications\n\n"
+                                       "[symbolic/all]\nSize=16\nType=Scalable\nMinSize=8\nMaxSize=256\nContext=Applications\n\n"
                                        "[scalable/all]\nSize=48\nType=Scalable\nMinSize=16\nMaxSize=512\nContext=Applications\n")
 
 
@@ -1002,3 +1015,133 @@ PIXEL = {
     "audio-volume-muted": lambda p: px_volume(p, True),
     "cde-menu": px_logo,
 }
+
+
+# ---- monochrome Plasma / Kirigami pictograms -----------------------------
+def symbolic_icons():
+    """Independent 16-unit silhouettes; holes stay transparent in any palette.
+
+    Filled bars and even-odd outlines keep horizontal/vertical edges on whole
+    pixels. The angular arrows, folders, floppy and square frames echo CDE.
+    """
+    def shape(d):
+        return f'<path class="ColorScheme-Text" fill="currentColor" fill-rule="evenodd" d="{d}"/>'
+
+    def box(x, y, w, h, edge=0):
+        d = f"M{x} {y}h{w}v{h}h{-w}Z"
+        if edge:
+            d += f"M{x+edge} {y+edge}v{h-2*edge}h{w-2*edge}v{-h+2*edge}Z"
+        return shape(d)
+
+    def turn(body, degrees):
+        return f'<g transform="rotate({degrees} 8 8)">{body}</g>'
+
+    cross = shape("M3 2L8 7L13 2L14 3L9 8L14 13L13 14L8 9L3 14L2 13L7 8L2 3Z")
+    plus = box(7, 2, 2, 12) + box(2, 7, 12, 2)
+    arrow = shape("M2 8L7 3V6H14V10H7V13Z")
+    home = shape("M1 7L8 1L15 7L14 8L13 7V15H3V7L2 8ZM5 7V13H7V9H10V13H11V6L8 3Z")
+    folder_ = shape("M1 3H6L8 5H15V14H1ZM2 6V13H14V6ZM2 4V5H6L5 4Z")
+    sheet = shape("M3 1H10L14 5V15H3ZM4 2V14H13V6H9V2ZM10 3V5H12Z")
+    info = box(1, 1, 14, 14, 1) + box(7, 4, 2, 2) + box(7, 7, 2, 5)
+    refresh = shape("M13 2V6H9L10.5 4.5A5 5 0 1 0 13 9H15A7 7 0 1 1 12 3Z")
+    eye = shape("M1 8Q8 0 15 8Q8 16 1 8ZM3 8Q8 3 13 8Q8 13 3 8ZM8 5A3 3 0 1 1 8 11A3 3 0 1 1 8 5Z")
+    gear = shape("M6 1H10V3L12 4L14 3L16 6L14 7V9L16 10L14 13L12 12L10 13V15H6V13L4 12L2 13L0 10L2 9V7L0 6L2 3L4 4L6 3ZM8 5A3 3 0 1 0 8 11A3 3 0 1 0 8 5Z")
+    speaker = shape("M1 5H4L8 2V14L4 11H1Z")
+    bell = shape("M7 1H9V3H10L12 5V10L14 12V13H2V12L4 10V5L6 3H7ZM6 5V11H10V5ZM6 14H10V15H6Z")
+    sun = box(5, 5, 6, 6, 1) + box(7, 0, 2, 3) + box(7, 13, 2, 3) + box(0, 7, 3, 2) + box(13, 7, 3, 2) + shape("M2 1L5 4L4 5L1 2ZM11 4L14 1L15 2L12 5ZM1 14L4 11L5 12L2 15ZM11 12L12 11L15 14L14 15Z")
+    bluetooth = shape("M7 1L13 5L9 8L13 11L7 15V10L4 13L3 12L7 8L3 4L4 3L7 6ZM9 4V6L11 5ZM9 10V12L11 11Z")
+    d = {
+        "go-previous": arrow, "go-next": turn(arrow, 180),
+        "go-up": turn(arrow, 90), "go-down": turn(arrow, -90),
+        "go-first": box(1, 3, 2, 10) + shape("M4 8L9 3V6H15V10H9V13Z"),
+        "go-last": turn(box(1, 3, 2, 10) + shape("M4 8L9 3V6H15V10H9V13Z"), 180),
+        "user-home": home, "folder": folder_, "list-add": plus,
+        "list-remove": box(2, 7, 12, 2),
+        "edit-find": shape("M6 1A5 5 0 1 1 6 11A5 5 0 1 1 6 1ZM6 3A3 3 0 1 0 6 9A3 3 0 1 0 6 3ZM10 9L15 14L14 15L9 10Z"),
+        "edit-copy": box(1, 1, 9, 11, 1) + box(5, 5, 9, 10, 1),
+        "edit-cut": shape("M3 1L8 7L13 1L14 2L9 8L11 10A3 3 0 1 1 9 12L8 10L7 12A3 3 0 1 1 5 10L7 8L2 2ZM4 11A1 1 0 1 0 4 13A1 1 0 1 0 4 11ZM12 11A1 1 0 1 0 12 13A1 1 0 1 0 12 11Z"),
+        "edit-paste": shape("M5 1H11V3H14V15H2V3H5ZM6 2V4H10V2ZM3 4V14H13V4H11V5H5V4Z"),
+        "edit-undo": shape("M1 6L6 1V4H9Q15 4 15 10V14H13V10Q13 6 9 6H6V10Z"),
+        "edit-clear": shape("M1 10L10 1L15 6L6 15H4ZM3 10L5 12L9 8L7 6ZM6 14H15V15H6Z"),
+        "document-new": sheet + box(6, 8, 5, 1) + box(8, 6, 1, 5),
+        "document-open": shape("M1 3H6L8 5H14V7H15L12 14H1ZM2 6V11L4 7H13V6ZM5 8L3 13H11L13 8ZM2 4V5H6L5 4Z"),
+        "document-save": shape("M1 1H13L15 3V15H1ZM3 2V6H12V2ZM3 9V14H13V9ZM9 2H11V5H9Z"),
+        "document-edit": shape("M2 1H10V2H3V14H13V9H14V15H2ZM5 11L12 4L15 7L8 14H5ZM7 11V12H8L13 7L12 6Z"),
+        "document-properties": sheet + box(7, 7, 2, 2) + box(7, 10, 2, 3),
+        "view-refresh": refresh,
+        "view-list-details": ''.join(box(1, y, 3, 2) + box(6, y, 9, 2) for y in (2, 7, 12)),
+        "view-list-icons": ''.join(box(x, y, 5, 5, 1) for x in (2, 9) for y in (2, 9)),
+        "view-visible": eye,
+        "view-hidden": eye + shape("M1 14L14 1L15 2L2 15Z"),
+        "view-fullscreen": shape("M1 6V1H6V3H3V6ZM10 1H15V6H13V3H10ZM15 10V15H10V13H13V10ZM6 15H1V10H3V13H6Z"),
+        "window-close": cross, "window-minimize": box(3, 12, 10, 2),
+        "window-maximize": box(2, 2, 12, 12, 2),
+        "window-restore": shape("M5 1H15V11H12V15H1V4H5ZM6 2V4H12V10H14V2ZM2 6V14H11V6Z"),
+        "dialog-ok": shape("M1 8L3 6L6 9L13 2L15 4L6 13Z"),
+        "dialog-cancel": cross, "dialog-information": info,
+        "dialog-warning": shape("M8 1L16 15H0ZM8 4L3 13H13ZM7 7H9V10H7ZM7 11H9V12H7Z"),
+        "dialog-error": box(1, 1, 14, 14, 1) + shape("M4 3L8 7L12 3L13 4L9 8L13 12L12 13L8 9L4 13L3 12L7 8L3 4Z"),
+        "application-menu": box(1, 1, 14, 14, 1) + shape("M5 4H12V6H6V10H12V12H4V4Z"),
+        "open-menu": ''.join(box(2, y, 12, 2) for y in (3, 7, 11)),
+        "overflow-menu": ''.join(box(7, y, 2, 2) for y in (2, 7, 12)),
+        "configure": gear,
+        "user-trash": shape("M6 1H10V3H14V5H2V3H6ZM7 2V3H9V2ZM3 6H13L12 15H4ZM5 7V13H6V7ZM7 7V13H9V7ZM10 7V13H11V7Z"),
+        "media-playback-start": shape("M4 2L14 8L4 14Z"),
+        "media-playback-pause": box(3, 2, 4, 12) + box(9, 2, 4, 12),
+        "media-playback-stop": box(3, 3, 10, 10),
+        "media-skip-forward": shape("M2 3L10 8L2 13Z") + box(11, 3, 2, 10),
+        "audio-volume-low": speaker,
+        "audio-volume-medium": speaker + shape("M10 4Q14 8 10 12L9 11Q12 8 9 5Z"),
+        "audio-volume-high": speaker + shape("M10 4Q14 8 10 12L9 11Q12 8 9 5ZM12 1Q19 8 12 15L11 14Q17 8 11 2Z"),
+        "audio-volume-muted": speaker + shape("M10 5L12 7L14 5L15 6L13 8L15 10L14 11L12 9L10 11L9 10L11 8L9 6Z"),
+        "microphone-sensitivity-high": box(6, 1, 4, 9, 1) + shape("M3 7H4V9Q4 12 8 12Q12 12 12 9V7H13V9Q13 13 9 13V14H12V15H4V14H7V13Q3 13 3 9Z"),
+        "network-wired": shape("M5 1H11V4H13V10H9V15H7V10H3V4H5ZM4 5V9H12V5ZM6 2V4H7V2ZM9 2V4H10V2Z"),
+        "network-offline": shape("M1 1L15 14L14 15L1 2Z") + box(1, 5, 4, 6, 1) + box(11, 5, 4, 6, 1) + box(3, 11, 2, 4) + box(11, 11, 2, 4),
+        "bluetooth-active": bluetooth,
+        "bluetooth-disabled": bluetooth + shape("M1 14L14 1L15 2L2 15Z"),
+        "notifications": bell,
+        "system-lock-screen": shape("M4 7V4Q4 0 8 0Q12 0 12 4V7H14V15H2V7ZM6 7H10V4Q10 2 8 2Q6 2 6 4ZM7 10V13H9V10Z"),
+        "system-log-out": shape("M1 1H9V4H7V3H3V13H7V12H9V15H1ZM6 7H11V4L15 8L11 12V9H6Z"),
+        "system-shutdown": shape("M7 1H9V8H7ZM4 3L5 5A5 5 0 1 0 11 5L12 3A7 7 0 1 1 4 3Z"),
+        "system-reboot": refresh,
+        "starred": shape("M8 1L10 6H15L11 10L13 15L8 12L3 15L5 10L1 6H6Z"),
+        "help-browser": box(1, 1, 14, 14, 1) + shape("M5 4H11V8L9 10H7V8L9 7V6H7V7H5ZM7 11H9V13H7Z"),
+        "input-keyboard": box(0, 3, 16, 11, 1) + ''.join(box(x, y, 2, 2) for x in (2, 5, 8, 11) for y in (5, 8)) + box(4, 11, 8, 1),
+        "video-display": box(1, 1, 14, 10, 1) + box(7, 11, 2, 2) + box(4, 13, 8, 2),
+        "brightness-high": sun,
+    }
+    d["edit-redo"] = f'<g transform="translate(16 0) scale(-1 1)">{d["edit-undo"]}</g>'
+    d["media-skip-backward"] = turn(d["media-skip-forward"], 180)
+    # Stepped radio waves: angular CDE counterpart of the familiar Wi-Fi fan.
+    for name, level in (("excellent", 4), ("good", 3), ("ok", 2), ("weak", 1), ("none", 0)):
+        waves = ["M1 5V3L4 1H12L15 3V5L11 3H5Z", "M3 8V6L5 4H11L13 6V8L10 6H6Z",
+                 "M5 11V9L7 7H9L11 9V11L8 9Z", "M7 12H9V14H7Z"]
+        d["network-wireless-signal-" + name] = ''.join(shape(w) for w in waves[4-level:]) + (shape('M6 11L8 9L10 11L9 12L8 11L7 12Z') if level == 1 else '') if level else box(7, 12, 2, 2) + shape("M5 3L8 6L11 3L12 4L9 7L12 10L11 11L8 8L5 11L4 10L7 7L4 4Z")
+    # Separate charging outline leaves the bolt readable even at full charge.
+    bolt = shape("M9 3L5 9H8L7 13L12 7H9Z")
+    for level in range(0, 101, 10):
+        name = f"battery-{level:03d}"
+        frame = box(1, 4, 13, 9, 1) + box(14, 7, 1, 3)
+        d[name] = frame + (box(3, 6, round(9 * level / 100), 5) if level else '')
+        height = round(5 * level / 100)
+        d[name + "-charging"] = frame + bolt + (box(3, 11-height, 1, height) + box(12, 11-height, 1, height) if height else '')
+    aliases = {
+        "go-home": "user-home", "edit-delete": "user-trash", "settings-configure": "configure",
+        "system-search": "edit-find", "preferences-system": "configure", "help-about": "dialog-information",
+        "preferences-desktop-notification-bell": "notifications", "weather-clear": "brightness-high",
+        "emblem-favorite": "starred", "network-wireless": "network-wireless-signal-excellent",
+        "go-parent-folder": "go-up", "go-top": "go-up", "go-bottom": "go-down",
+        "arrow-left": "go-previous", "arrow-right": "go-next", "arrow-up": "go-up", "arrow-down": "go-down",
+        "show-menu": "open-menu", "view-more": "overflow-menu", "view-close": "window-close",
+        "tab-close": "window-close", "dialog-close": "window-close", "dialog-question": "help-browser",
+        "help-contents": "help-browser", "folder-open": "document-open", "user-trash-full": "user-trash",
+        "audio-input-microphone": "microphone-sensitivity-high", "bluetooth": "bluetooth-active",
+        "preferences-system-bluetooth": "bluetooth-active", "notifications-active": "notifications",
+        "application-exit": "system-log-out", "view-restore": "window-restore", "favorite": "starred",
+        "edit-clear-all": "edit-clear", "edit-clear-history": "edit-clear", "configure-toolbars": "configure",
+        "network-disconnected": "network-offline", "battery-missing": "battery-000",
+    }
+    for strength, label in ((0, "none"), (20, "weak"), (40, "ok"), (60, "good"), (80, "good"), (100, "excellent")):
+        aliases[f"network-wireless-{strength}"] = "network-wireless-signal-" + label
+        aliases[f"network-wireless-connected-{strength}"] = "network-wireless-signal-" + label
+    return d, aliases

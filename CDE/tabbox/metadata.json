@@ -1,0 +1,10 @@
+{
+    "KPackageStructure": "KWin/WindowSwitcher",
+    "KPlugin": {
+        "Id": "org.cde.copper.switcher",
+        "Name": "CDE",
+        "Description": "A compact CDE/Motif window switcher",
+        "License": "GPL-2.0-or-later",
+        "Authors": [{ "Name": "CDE Copper contributors" }]
+    }
+}

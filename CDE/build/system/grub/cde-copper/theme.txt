@@ -5,6 +5,16 @@ desktop-image-scale-method: "crop"
 desktop-color: "#086875"
 title-text: ""
 terminal-font: "IBM Plex Mono Regular 16"
+# Booting an entry switches to GRUB's terminal, black unless terminal.cfg
+# can colour it (signed GRUBs lack gfxterm_background), and never smaller
+# than 80 x 24 characters: it takes the place of the menu window and the
+# countdown, framed alike, until Plymouth starts.
+terminal-left: "50%-320"
+terminal-top: "22%+34"
+terminal-width: "640"
+terminal-height: "408"
+terminal-border: "0"
+terminal-box: "menu_*.png"
 
 + image {
     left = 50%-320
@@ -16,7 +26,7 @@ terminal-font: "IBM Plex Mono Regular 16"
     left = 50%-320
     top = 22%+34
     width = 640
-    height = 32%
+    height = 366
     item_font = "IBM Plex Sans Condensed Regular 20"
     item_color = "#10262b"
     selected_item_color = "#10262b"
@@ -34,7 +44,7 @@ terminal-font: "IBM Plex Mono Regular 16"
 + progress_bar {
     id = "__timeout__"
     left = 50%-320
-    top = 54%+48
+    top = 22%+414
     width = 640
     height = 28
     font = "IBM Plex Sans Condensed Regular 20"
