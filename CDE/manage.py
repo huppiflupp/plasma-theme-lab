@@ -186,14 +186,27 @@ def install_palette(manifest, name):
     for target in manifest.get("palette_config_targets", []):
         remove(CONFIG / target)
     manifest["palette_targets"], manifest["palette_config_targets"] = [], []
+    progress = manifest.get("progress", "outlined")
     if name == "Copper":
         manifest["palette"] = "Copper"
+        if progress != "outlined" or (CONFIG / "Kvantum/CDECopper").exists():
+            # Copper's Kvantum theme is installed from build/; another
+            # progress style regenerates it in place (it is ours).
+            sys.path.insert(0, str(ROOT))
+            import build
+            from kvantum import build_kvantum
+            stage = STATE / "palette-build"
+            remove(stage)
+            build_kvantum(stage, build.P, progress=progress)
+            remove(CONFIG / "Kvantum/CDECopper")
+            copy(stage / "Kvantum/CDECopper", CONFIG / "Kvantum/CDECopper")
+            remove(stage)
         return {"colors": "CDECopper", "plasma": "cde-copper", "kvantum": "CDECopper", "desktop": "#086875"}
     sys.path.insert(0, str(ROOT))
     import build
     stage = STATE / "palette-build"
     remove(stage)
-    result = build.build_palette(name, stage)
+    result = build.build_palette(name, stage, progress=progress)
     for target, base in [(t, DATA) for t in result["targets"]] + [(t, CONFIG) for t in result["config_targets"]]:
         if (base / target).exists() or (base / target).is_symlink():
             raise RuntimeError("Refusing to overwrite unowned path: " + str(base / target))
@@ -397,7 +410,7 @@ def set_backdrop(manifest, name, scale):
     MANIFEST.write_text(json.dumps(manifest, indent=2))
 
 
-def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=False):
+def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=False, progress=None):
     """Switch palette (and backdrop) of an applied installation; with follow,
     take the palette from the colour scheme chosen in System Settings."""
     if not MANIFEST.exists():
@@ -413,6 +426,12 @@ def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=Fa
             name = match.group(1) if match else None
             if name not in ("Copper", *palettes.names()):
                 return
+        if progress:
+            # A progress style, even the same again, rebuilds the controls of
+            # the palette in use (an older installation may lack it).
+            manifest["progress"] = progress
+            name = name or manifest.get("palette", "Copper")
+            follow = False
         # Only an explicit or a changed palette is applied; a backdrop alone
         # keeps the palette as it is.
         if name and (not follow or name != manifest.get("palette", "Copper")):
@@ -514,6 +533,8 @@ def main():
     parser.add_argument("--follow-scheme", action="store_true", help="palette: take the palette from the colour scheme in System Settings")
     parser.add_argument("--notify", action="store_true", help="palette: report the switch as a desktop notification")
     parser.add_argument("--backdrop-scale", type=int, choices=(1, 2, 3), help="pixel size of the backdrop tiles, e.g. 2 for 200 %% displays")
+    parser.add_argument("--progress", choices=("outlined", "floating", "slim"),
+                        help="palette: progress bar style (outlined, floating in the groove, slim)")
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--panel", action="store_true", help="replace the panel layout, backed up on installation")
     parser.add_argument("--dry-run", action="store_true")
@@ -536,7 +557,7 @@ def main():
     elif args.action == "apply":
         apply(args.panel, args.palette, args.backdrop, args.backdrop_scale)
     elif args.action == "palette":
-        palette_action(args.palette, args.backdrop, args.backdrop_scale, args.follow_scheme, args.notify)
+        palette_action(args.palette, args.backdrop, args.backdrop_scale, args.follow_scheme, args.notify, args.progress)
     else:
         uninstall()
 

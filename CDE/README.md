@@ -78,8 +78,10 @@ open take the new controls when restarted; a notification says so.
 
 The **style manager** does the same from the console, after CDE's dtstyle:
 System subpanel › Style Manager (or the console's settings › Style) shows
-every palette as colour stripes and every backdrop pattern; choosing one and
-pressing the settings dialog's Apply or OK applies both.
+every palette as colour stripes and every backdrop pattern, and the style of
+progress bars (outlined, floating in the groove, or slim); choosing and
+pressing the settings dialog's Apply or OK applies them. In System Settings ›
+Application Style the controls are listed as "CDE".
 
 **XFile**, a Motif file manager (fastestcode.org, MIT licence), is the closest
 thing to CDE's own dtfile on a current system: Motif widgets, bevels shaded

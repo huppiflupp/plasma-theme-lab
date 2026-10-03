@@ -243,6 +243,7 @@ PlasmoidItem {
             if (!request || !request.palette) return;
             let command = "python3 " + Launch.quote(root.tool) + " palette --notify --palette " + Launch.quote(request.palette);
             if (request.backdrop) command += " --backdrop " + Launch.quote(request.backdrop) + " --backdrop-scale " + Math.max(1, Math.min(3, request.scale || 1));
+            if (["outlined", "floating", "slim"].indexOf(request.progress) >= 0) command += " --progress " + request.progress;
             root.run(command);
         }
     }

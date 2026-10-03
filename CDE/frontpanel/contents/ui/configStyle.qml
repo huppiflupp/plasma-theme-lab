@@ -23,6 +23,11 @@ KCM.SimpleKCM {
     property string chosen: ""
     property string backdrop: ""         // "" keeps the desktop as it is
     property string cfg_styleRequest: ""
+    property string progressInUse: ""    // progress bar style in use
+    readonly property var progressStyles: [
+        {value: "outlined", text: "Outlined: dark edge, one-pixel bevel"},
+        {value: "floating", text: "Floating: a pixel inside the groove, two-pixel bevel"},
+        {value: "slim", text: "Slim: 8 pixels high"}]
 
     P5Support.DataSource {
         id: shell
@@ -33,14 +38,21 @@ KCM.SimpleKCM {
                 const scheme = data.stdout.trim();
                 page.current = scheme.indexOf("CDE") === 0 ? scheme.substring(3) : "";
                 if (!page.chosen) page.chosen = page.current || "Copper";
+            } else if (source.indexOf("cat ") === 0) {
+                try { page.progressInUse = JSON.parse(data.stdout).progress || "outlined"; } catch (e) { page.progressInUse = "outlined"; }
+                progressBox.currentIndex = Math.max(0, page.progressStyles.findIndex(s => s.value === page.progressInUse));
             }
         }
     }
-    Component.onCompleted: shell.connectSource("kreadconfig6 --group General --key ColorScheme")
+    Component.onCompleted: {
+        shell.connectSource("kreadconfig6 --group General --key ColorScheme");
+        shell.connectSource("cat " + Launch.quote(dataDir + "/cde-copper-install/manifest.json"));
+    }
 
     // Every change makes a new request (the time keeps two equal ones apart).
     function request() {
-        cfg_styleRequest = JSON.stringify({palette: chosen, backdrop: backdrop, scale: pixels.value, at: Date.now()});
+        cfg_styleRequest = JSON.stringify({palette: chosen, backdrop: backdrop, scale: pixels.value,
+                                           progress: progressStyles[progressBox.currentIndex].value, at: Date.now()});
     }
 
     ColumnLayout {
@@ -91,6 +103,23 @@ KCM.SimpleKCM {
                     }
                 }
             }
+        }
+
+        Kirigami.Separator { Layout.fillWidth: true }
+        Kirigami.Heading { level: 3; text: "Progress bars" }
+        RowLayout {
+            ComboBox {
+                id: progressBox
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 20
+                model: page.progressStyles
+                textRole: "text"
+                onActivated: page.request()
+            }
+            ProgressBar { from: 0; to: 100; value: 62; Layout.preferredWidth: Kirigami.Units.gridUnit * 8 }
+        }
+        Label {
+            Layout.fillWidth: true; wrapMode: Text.Wrap; opacity: 0.75
+            text: "In the programs' controls (Kvantum); the bar beside shows the style in use. Programs already open take it when restarted."
         }
 
         Kirigami.Separator { Layout.fillWidth: true }

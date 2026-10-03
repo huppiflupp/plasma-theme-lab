@@ -145,7 +145,7 @@ def palette_schemes():
           + json.dumps(swatches, indent=1) + ";\n\nconst BACKDROPS = " + json.dumps(backdrops.names()) + ";\n")
 
 
-def build_palette(name, base, tools=ROOT / "tools"):
+def build_palette(name, base, tools=ROOT / "tools", progress="outlined"):
     """Colour scheme, Plasma surfaces and Kvantum style for one CDE palette.
 
     Run by manage.py when a palette is applied, not by the release build:
@@ -157,7 +157,7 @@ def build_palette(name, base, tools=ROOT / "tools"):
     ident = "CDE" + name
     display = f"CDE {name}"
     plasma(tools, colours, "cde-" + name.lower(), display, base)
-    build_kvantum(base, colours, ident, f"Motif controls, CDE palette {name}")
+    build_kvantum(base, colours, ident, f"Motif controls, CDE palette {name}", progress)
     return {"colors": ident, "plasma": "cde-" + name.lower(), "kvantum": ident, "desktop": colours["desktop"],
             "targets": ["plasma/desktoptheme/cde-" + name.lower()],
             "config_targets": [f"Kvantum/{ident}"]}

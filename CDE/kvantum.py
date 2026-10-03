@@ -15,6 +15,11 @@ CELL = 8           # interior sample size of every nine-patch
 GAP = 6            # spacing between objects on the sheet
 STATES = ("normal", "focused", "pressed", "toggled")
 SIDES = ("top", "bottom", "left", "right", "topleft", "topright", "bottomleft", "bottomright")
+# Progress bar styles, chosen in the console's Style page (manage.py
+# palette --progress): the filled part outlined in ink with a one-pixel
+# bevel, floating a pixel inside the groove with Motif's two-pixel bevel, or
+# a slim 8-pixel bar.
+PROGRESS = ("outlined", "floating", "slim")
 
 
 class Sheet:
@@ -92,6 +97,43 @@ def box_pixels(rings, interior, w, h):
     return color
 
 
+# The filled part's rings from outside in, per progress style.
+PROGRESS_RINGS = {"outlined": lambda ink, trough, top, bottom: [(ink, ink), (top, bottom)],
+                  "floating": lambda ink, trough, top, bottom: [(trough, trough), (top, bottom), (top, bottom)],
+                  "slim": lambda ink, trough, top, bottom: [(top, bottom)]}
+
+
+def progress_widths(progress):
+    """Frame widths (top, bottom, left, right) of the filled part."""
+    groove = 1 if progress == "slim" else 2
+    rings = len(PROGRESS_RINGS[progress]("", "", "", ""))
+    return groove + rings, groove + rings, groove + rings, rings
+
+
+def progress_pattern(sheet, name, groove, rings, fill):
+    """The filled part of a progress bar. Kvantum draws it over the whole
+    bar, groove edge included, so its frame repeats the groove's top, bottom
+    and left edge outside the fill's own rings; at the right end, where the
+    fill stops inside the groove, only the fill's rings."""
+    g, n = len(groove), len(rings)
+    left, right, top = g + n, n, g + n
+    w, h = left + CELL + right, 2 * top + CELL
+    inner = box_pixels(rings, fill, w - g, h - 2 * g)
+    outer = box_pixels(groove, None, w + g, h)      # no right edge within w
+
+    def color(u, v):
+        if min(u, v, h - 1 - v) < g:
+            return outer(u, v)
+        return inner(u - g, v - g)
+    sheet.add(name, CELL, CELL, [(0, 0, CELL, CELL, fill)])
+    parts = {"topleft": (0, 0, left, top), "top": (left, 0, CELL, top), "topright": (left + CELL, 0, right, top),
+             "left": (0, top, left, CELL), "right": (left + CELL, top, right, CELL),
+             "bottomleft": (0, top + CELL, left, top), "bottom": (left, top + CELL, CELL, top),
+             "bottomright": (left + CELL, top + CELL, right, top)}
+    for side, (ox, oy, pw, ph) in parts.items():
+        sheet.add(f"{name}-{side}", pw, ph, runs(lambda u, v: color(ox + u, oy + v), pw, ph))
+
+
 def motif_shades(color):
     """Motif's top and bottom shadow for a #rrggbb colour (palettes.calculate)."""
     import palettes
@@ -117,7 +159,7 @@ def nine_patch(sheet, name, rings, interior, frame=None):
         sheet.add(f"{name}-{side}", w, h, runs(lambda u, v: color(ox + u, oy + v), w, h))
 
 
-def build_kvantum(out, P, name="CDECopper", comment="Motif workstation controls in teal and copper"):
+def build_kvantum(out, P, name="CDECopper", comment="Motif workstation controls in teal and copper", progress="outlined"):
     # ink draws outlines; text, arrows and check marks use the palette's
     # text colour, which a dark CDE surface turns white. For CDE Copper both
     # are the same ink.
@@ -176,12 +218,13 @@ def build_kvantum(out, P, name="CDECopper", comment="Motif workstation controls 
     nine_patch(s, "slider-normal", [(dark, light), (dark, light)], groove)
     nine_patch(s, "slider-toggled", [(dark, light), (dark, light)], P["panel"])
     s.add("slider-tick-normal", 5, 1, [(0, 0, 5, 1, dark)])
-    nine_patch(s, "progress-normal", [(dark, light), (dark, light)], P["karo"])
-    # The filled part is a raised Motif bar in its own colour: one pixel of
-    # top and bottom shadow, shaded from the fill as Motif shades everything.
+    groove_rings = [(dark, light)] if progress == "slim" else [(dark, light), (dark, light)]
+    nine_patch(s, "progress-normal", groove_rings, P["karo"])
+    # The filled part is a raised Motif bar in its own colour, its shadows
+    # shaded from the fill as Motif shades everything.
     for st, fill in (("normal", copper), ("disabled", P["kopf_inaktiv"])):
         top, bottom = motif_shades(fill)
-        nine_patch(s, f"progress-pattern-{st}", [(top, bottom)], fill)
+        progress_pattern(s, f"progress-pattern-{st}", groove_rings, PROGRESS_RINGS[progress](ink, P["karo"], top, bottom), fill)
     for st, rings, fill in (("normal", raised, face), ("focused", raised, hover_face),
                             ("pressed", sunken, pressed_face), ("disabled", raised, face)):
         color = box_pixels(rings, fill, 16, 16)
@@ -246,7 +289,22 @@ def build_kvantum(out, P, name="CDECopper", comment="Motif workstation controls 
     kv = out / "Kvantum" / name
     kv.mkdir(parents=True, exist_ok=True)
     (kv / f"{name}.svg").write_text(s.svg())
-    (kv / f"{name}.kvconfig").write_text(kvconfig(P, disabled, comment))
+    (kv / f"{name}.kvconfig").write_text(progress_config(kvconfig(P, disabled, comment), progress))
+
+
+def progress_config(text, progress):
+    """Frame widths and bar thickness of the chosen progress style."""
+    groove = 1 if progress == "slim" else 2
+    fill = dict(zip(("frame.top", "frame.bottom", "frame.left", "frame.right"), progress_widths(progress)))
+    text = text.replace("progressbar_thickness=16", "progressbar_thickness=" + ("8" if progress == "slim" else "16"))
+    sections = text.split("\n[")
+    for i, section in enumerate(sections):
+        widths = ({key: groove for key in fill} if section.startswith("Progressbar]")
+                  else fill if section.startswith("ProgressbarContents]") else None)
+        if widths is not None:
+            sections[i] = "\n".join(f"{line.split('=')[0]}={widths[line.split('=')[0]]}"
+                                    if line.split("=")[0] in widths else line for line in section.split("\n"))
+    return "\n[".join(sections)
 
 
 def radio(tl, br, fill, ring):
