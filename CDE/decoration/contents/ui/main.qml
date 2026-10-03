@@ -57,7 +57,7 @@ Decoration {
             borders.setSideBorders(0);
             borders.bottom = 0;
         }
-        borders.setTitle(Math.max(frame, root.bevel) + root.titleHeight + root.inner);
+        borders.setTitle(Math.max(frame, root.bevel) + root.titleHeight);
         maximizedBorders.setTitle(root.titleHeight);
         // Keep at least 6 px to grab even when the visible frame is thin.
         extendedBorders.setAllBorders(Math.max(0, 6 - frame));
@@ -107,16 +107,18 @@ Decoration {
             }
         }
 
-        // The client sits in a one-pixel sunken well.
+        // Title bar and client sit together in a one-pixel sunken well, as
+        // in mwm: dark on top and left, light at the bottom and right. Without
+        // it the raised frame and the raised title parts run into each other.
         Item {
-            x: root.borders.left - root.inner
-            y: root.borders.top - root.inner
-            width: frame.width - root.borders.left - root.borders.right + 2 * root.inner
-            height: frame.height - root.borders.top - root.borders.bottom + 2 * root.inner
-            visible: !decoration.client.shaded
+            x: root.edge - root.inner
+            y: root.edge - root.inner
+            width: frame.width - 2 * x
+            height: frame.height - 2 * y
+            visible: root.edge > root.inner
             Rectangle { width: parent.width; height: 1; color: root.borderShade.bottom }
             Rectangle { width: 1; height: parent.height; color: root.borderShade.bottom }
-            Rectangle { y: parent.height - 1; width: parent.width; height: 1; color: root.borderShade.top }
+            Rectangle { y: parent.height - 1; width: parent.width; height: 1; color: root.borderShade.top; visible: !decoration.client.shaded }
             Rectangle { x: parent.width - 1; width: 1; height: parent.height; color: root.borderShade.top }
         }
     }

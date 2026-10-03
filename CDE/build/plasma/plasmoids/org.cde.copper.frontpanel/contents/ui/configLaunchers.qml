@@ -118,7 +118,7 @@ KCM.SimpleKCM {
                     onClicked: {
                         const id = String(model.favoriteId || "").replace(/^applications:/, "").replace(/\.desktop$/, "");
                         if (id) {
-                            page.edit(page.pickSide, page.pickIndex, {command: "app:" + id, label: (model.display || id).split(" ")[0]});
+                            page.edit(page.pickSide, page.pickIndex, {command: "app:" + id, label: (model.display || id).split(" ")[0], menu: "recent"});
                             page.lookupIcon(id);
                         }
                         picker.close();
@@ -165,7 +165,7 @@ KCM.SimpleKCM {
                 const p = Launch.PRESETS[index];
                 if (p.value === "app:") { page.pickSide = editor.side; page.pickIndex = editor.index; picker.open(); }
                 else if (p.value === "") page.edit(editor.side, editor.index, {command: editor.modelData.command.indexOf("@") === 0 ? "" : editor.modelData.command});
-                else page.edit(editor.side, editor.index, {command: p.value, icon: p.icon});
+                else page.edit(editor.side, editor.index, {command: p.value, icon: p.icon, menu: Launch.menuFor(p.value)});
             }
         }
         TextField {

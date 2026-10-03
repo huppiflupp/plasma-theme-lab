@@ -35,10 +35,14 @@ Item {
     onSubModelChanged: if (subModel === null && wantSub && categories.visible) Qt.callLater(() => select(current))
     readonly property int fixedRows: 2
 
+    property real anchorOffset: 0
     function open(anchor) {
         current = -1; subCurrent = -1;
         categories.visualParent = anchor;
         categories.visible = true;
+        // Upright, the dialog may be pushed against the screen edge; line the
+        // list up with the tile wherever the dialog ended up.
+        Qt.callLater(() => { anchorOffset = anchor.mapToGlobal(0, 0).y - categories.y; });
     }
     function close() {
         wantSub = false;
@@ -82,17 +86,21 @@ Item {
         mainItem: Item {
             id: frame
             readonly property real subHeight: Math.min((menu.subModel ? menu.subModel.count : 0) * 30, 620) + 10
-            readonly property bool down: Plasmoid.configuration.topEdge
+            readonly property int edge: Plasmoid.location
+            readonly property bool upright: edge === PlasmaCore.Types.LeftEdge || edge === PlasmaCore.Types.RightEdge
             readonly property real subY: Math.max(0, Math.min(body.y + menu.subTop, height - subHeight))
-            // Plasma centres the dialog on the tile: keep the category list in
-            // the middle, with room for the applications box on either side.
-            width: body.width + 2 * (appsBox.width - 2)
+            // Plasma centres the dialog on the tile. Across: keep the category
+            // list in the middle, with room for the applications box on either
+            // side. Upright: the list sits against the console, the box away
+            // from it, both centred vertically on the tile.
+            width: upright ? body.width + appsBox.width - 2 : body.width + 2 * (appsBox.width - 2)
             height: Math.max(body.height, 630)
             Bevel {
                 id: body
-                // Next to the console: at the bottom of the dialog for a bottom panel.
-                x: appsBox.width - 2
-                y: frame.down ? 0 : frame.height - height
+                // Next to the console.
+                x: frame.edge === PlasmaCore.Types.LeftEdge ? 0 : appsBox.width - 2
+                y: frame.upright ? Math.max(0, Math.min(frame.height - height, menu.anchorOffset))
+                 : frame.edge === PlasmaCore.Types.TopEdge ? 0 : frame.height - height
                 width: 250
                 height: column.implicitHeight + 10
                 surface: consoleColors.window
@@ -160,7 +168,7 @@ Item {
             Bevel {
                 id: appsBox
                 visible: menu.cascaded
-                x: body.x + body.width - 2
+                x: frame.edge === PlasmaCore.Types.RightEdge ? 0 : body.x + body.width - 2
                 y: frame.subY
                 width: 290
                 height: frame.subHeight

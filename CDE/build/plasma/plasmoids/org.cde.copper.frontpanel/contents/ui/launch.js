@@ -10,10 +10,10 @@ const LEFT = [
     {label: "Apps", icon: "cde-menu", command: "@applications", menu: "applications"},
     {label: "Files", icon: "folder", command: "@files", menu: "places"},
     {label: "Terminal", icon: "utilities-terminal", command: "@terminal", menu: ""},
-    {label: "Editor", icon: "accessories-text-editor", command: "@editor", menu: ""}
+    {label: "Editor", icon: "accessories-text-editor", command: "@editor", menu: "recent"}
 ];
 const RIGHT = [
-    {label: "Web", icon: "internet-web-browser", command: "@browser", menu: ""},
+    {label: "Web", icon: "internet-web-browser", command: "@browser", menu: "bookmarks"},
     {label: "Mail", icon: "internet-mail", command: "@mail", menu: ""},
     {label: "System", icon: "preferences-system", command: "@settings", menu: "system"},
     {label: "Help", icon: "help-browser", command: "@help", menu: "help"},
@@ -42,8 +42,22 @@ const MENUS = [
     {text: "Applications", value: "applications"},
     {text: "Places", value: "places"},
     {text: "System", value: "system"},
-    {text: "Help", value: "help"}
+    {text: "Help", value: "help"},
+    {text: "Bookmarks", value: "bookmarks"},
+    {text: "Recent files", value: "recent"}
 ];
+
+// The subpanel that suits a program, for the settings page.
+function menuFor(command) {
+    const token = command.trim().split(/\s+/)[0] || "";
+    if (token === "@browser") return "bookmarks";
+    if (token === "@editor" || token.indexOf("app:") === 0) return "recent";
+    if (token === "@files" || token === "@trash") return "places";
+    if (token === "@settings") return "system";
+    if (token === "@help") return "help";
+    if (token === "@applications") return "applications";
+    return "";
+}
 
 function parse(json, fallback) {
     if (!json)
@@ -139,10 +153,13 @@ function chain(token, args, probe) {
 
 // The shell command for a slot command. "@applications" is handled by the
 // console itself and never reaches this.
-function resolve(command) {
+// extra: further arguments taken literally (a bookmark's URL, a file path
+// with spaces); they are quoted, not split.
+function resolve(command, extra) {
     const token = command.trim().split(/\s+/)[0] || "";
     const rest = command.trim().substring(token.length).trim();
-    const args = rest ? rest.split(/\s+/).map(argument).join(" ") : "";
+    const words = (rest ? rest.split(/\s+/).map(argument) : []).concat((extra || []).map(quote));
+    const args = words.join(" ");
     if (TOKENS[token])
         return chain(token, args, false);
     if (token === "@arrange")
@@ -153,7 +170,8 @@ function resolve(command) {
             + missing("The application " + token.substring(4));
     }
     // A custom command: check its program before running it.
-    return "if command -v " + quote(token) + " >/dev/null 2>&1; then " + command + "; else " + missing(token) + "; fi";
+    const full = command + ((extra || []).length ? " " + extra.map(quote).join(" ") : "");
+    return "if command -v " + quote(token) + " >/dev/null 2>&1; then " + full + "; else " + missing(token) + "; fi";
 }
 
 // For the settings page: prints ok when something can run the command.

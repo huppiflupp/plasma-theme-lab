@@ -15,7 +15,8 @@ or takes any of CDE's own 37 palettes and backdrops.
 - KDE color scheme and 38 Plasma surface SVGs.
 - Window frame after mwm/dtwm, as a QML Aurorae decoration: raised resize frame
   with separate corner handles, title bar of individually shadowed parts (window
-  menu bar, title, minimize, maximize, close). Its colours come from the active
+  menu bar, title, minimize, maximize, close), title and client together in a
+  sunken well. Its colours come from the active
   colour scheme and its shadows from Motif's own shading rule, so it follows
   every palette. Title-bar height is adjustable; the buttons scale with it.
 - Kvantum widget style with Motif controls: bevelled buttons, sunken fields,
@@ -23,12 +24,15 @@ or takes any of CDE's own 37 palettes and backdrops.
   bevelled scrollbars with arrows, attached tabs and hard-edged menus.
 - IBM Plex Sans Condensed for the interface and titles (semibold), IBM Plex
   Mono for Konsole and fixed-width text; both ship with the theme (SIL OFL).
-- The front console (one per screen): clock with a month calendar and the day's
-  appointments, configurable launcher tiles with subpanels, an Applications menu
-  with cascading categories, Places, System and Help subpanels, four-workspace
-  switcher, window task strip, audio level, network status, screen locking and
-  session controls. The Plasma system tray sits beside it, so status icons
-  (including the hidden ones behind its arrow) and notifications have a home.
+- The front console (one per screen, at any screen edge): clock with a month
+  calendar and the day's appointments, configurable launcher tiles with
+  subpanels, an Applications menu with cascading categories, the browser's
+  bookmarks, the editor's (or LibreOffice's) recently opened files, Places,
+  System and Help subpanels, four-workspace switcher, window task strip, volume
+  control, screen locking and session controls. The Plasma system tray sits
+  beside it, so status icons (including the hidden ones behind its arrow) and
+  notifications have a home; the tray's own volume icon is left out, since the
+  console has one.
 - CDE's 37 colour palettes, shaded with Motif's algorithm, and CDE's 25 desktop
   backdrops, coloured with the chosen palette.
 - A window arrangement around the console: terminals left and right, the main
@@ -84,11 +88,14 @@ instead of being scaled up by Plasma.
 
 Right-click the console and choose its settings.
 
-- **Front Console**: top or bottom edge; Always Visible, Auto-hide / Edge
-  Reveal, or Dodge Windows; window list per screen; label; size (75–200 %,
-  tiles, icons and text scale together).
+- **Front Console**: bottom, top, left or right screen edge (upright at the
+  sides, running the full screen height, subpanels opening towards the middle);
+  Always Visible, Auto-hide / Edge Reveal, or Dodge Windows; window list per
+  screen; whether the tray's volume icon is left to the console; label; size
+  (75–200 %, tiles, icons and text scale together).
 - **Launchers**: the tiles left and right of the workspace switch. Each tile has
-  a label, an icon, a program and the subpanel its arrow opens. Programs are
+  a label, an icon, a program and the subpanel its arrow opens (Applications,
+  Places, System, Help, Bookmarks, Recent files). Programs are
   "Default web browser", "Default mail client", "Default file manager",
   "Default text editor", terminal, calendar and so on, which follow
   System Settings › Default Applications, or an installed application picked
@@ -100,6 +107,18 @@ Right-click the console and choose its settings.
   events, or starts the calendar application right away; which application
   ("@calendar": Merkuro or KOrganizer) and which event sources (appointments,
   holidays, astronomical events, alternate calendars).
+
+**Bookmarks** (the Web tile's arrow) come from the browser the tile starts:
+Firefox and LibreWolf, Chromium, Chrome, Brave, Vivaldi, Edge, Falkon and
+Konqueror; the toolbar first. **Recent files** (the Editor tile's arrow) are the
+files that tile's program opened last, collected from Plasma's activity
+database (KDE programs such as Kate and KWrite), `recently-used.xbel` (GTK
+programs) and LibreOffice's own list, split by module: a Writer tile shows text
+documents, a Calc tile spreadsheets. Choosing another program in the settings
+proposes the matching subpanel.
+
+The volume button: click for a slider, Mute and the audio settings; the mouse
+wheel changes the volume directly.
 
 Subpanels and menus accept Tab, Enter, Space, the arrow keys and Escape. The
 task strip scrolls when many windows are open.
@@ -183,7 +202,7 @@ purpose: a change to one must not alter the other (see `tools/README.md`).
 | `palettes.py`, `palettes/` | CDE palettes and Motif's shading |
 | `backdrops.py`, `backdrops/` | CDE backdrops, coloured per palette |
 | `decoration/` | the QML window frame |
-| `frontpanel/` | the console plasmoid |
+| `frontpanel/` | the console plasmoid; `contents/code/menus.py` reads bookmarks and recent files |
 | `arrange/` | the KWin script for the window arrangement |
 | `fonts/` | IBM Plex |
 
@@ -192,7 +211,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.2.0. The application style is a Kvantum theme, not a
+This is version 0.2.1. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. Less common icon
 names fall back to Breeze and then hicolor; the console's core icons and common

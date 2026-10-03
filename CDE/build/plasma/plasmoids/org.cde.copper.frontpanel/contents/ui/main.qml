@@ -23,6 +23,8 @@ PlasmoidItem {
     property string activeSection: ""
     property string networkState: "Network"
     property string volumeState: "Audio"
+    property int volume: 0
+    property bool muted: false
     readonly property string dbus: "qdbus-qt6"
     readonly property var leftSlots: Launch.parse(Plasmoid.configuration.leftLaunchers, Launch.LEFT)
     readonly property var rightSlots: Launch.parse(Plasmoid.configuration.rightLaunchers, Launch.RIGHT)
@@ -68,8 +70,42 @@ PlasmoidItem {
         case "places": openSection("Places", placesEntries(), anchor); break;
         case "system": openSection("System", systemEntries(), anchor); break;
         case "help": openSection("Help", helpEntries(), anchor); break;
+        case "bookmarks": openListing("bookmarks", "Bookmarks", slot, anchor); break;
+        case "recent": openListing("recent", "Recent Files", slot, anchor); break;
         }
     }
+    // Bookmarks and recent files come from contents/code/menus.py, which
+    // knows where browsers and editors keep them.
+    property var pendingListing: null
+    readonly property string helper: decodeURIComponent(Qt.resolvedUrl("../code/menus.py").toString().replace(/^file:\/\//, ""))
+    function openListing(kind, title, slot, anchor) {
+        if (popup.visible && activeSection === title + slot.command) { popup.visible = false; return; }
+        pendingListing = {title: title, slot: slot, anchor: anchor, kind: kind};
+        listings.connectSource("python3 " + Launch.quote(helper) + " " + kind + " " + Launch.quote(slot.command));
+    }
+    function showListing(stdout) {
+        const request = pendingListing;
+        pendingListing = null;
+        if (!request) return;
+        let result = {app: "", items: []};
+        try { result = JSON.parse(stdout); } catch (e) { console.warn("CDE listing:", e, stdout); }
+        const list = result.items.map(item => ({label: item.label, icon: item.icon, command: request.slot.command,
+                                                args: item.args, tip: item.tip}));
+        if (list.length === 0)
+            list.push({label: request.kind === "bookmarks" ? "No bookmarks found" : "No recent files", icon: "dialog-information", command: ""});
+        openSection(request.title + (result.app ? " – " + result.app : ""), list, request.anchor);
+        activeSection = request.title + request.slot.command;
+    }
+    P5Support.DataSource {
+        id: listings
+        engine: "executable"
+        connectedSources: []
+        onNewData: function(sourceName, data) {
+            disconnectSource(sourceName);
+            root.showListing(data.stdout);
+        }
+    }
+
     function openApplications(anchor) {
         popup.visible = false;
         if (appMenu.opened) appMenu.close();
@@ -103,27 +139,58 @@ PlasmoidItem {
     function configurePanel() {
         const modes = ["none", "autohide", "dodgewindows"];
         const mode = modes[Math.max(0, Math.min(2, Plasmoid.configuration.visibilityMode))];
-        const edge = Plasmoid.configuration.topEdge ? "top" : "bottom";
+        const edges = ["bottom", "top", "left", "right"];
+        const chosen = Plasmoid.configuration.edge;
+        const edge = chosen >= 0 && chosen < 4 ? edges[chosen] : (Plasmoid.configuration.topEdge ? "top" : "bottom");
         const height = Math.round(128 * consoleColors.unit);
-        const script = "for (var p of panels()) { for (var w of p.widgets()) { if (w.type === 'org.cde.copper.frontpanel') { p.hiding = '" + mode + "'; p.location = '" + edge + "'; p.height = " + height + "; } } }";
+        // Upright the console runs the full height, so the window list has room.
+        const length = edge === "left" || edge === "right" ? "fill" : "fit";
+        const script = "for (var p of panels()) { for (var w of p.widgets()) { if (w.type === 'org.cde.copper.frontpanel') { p.hiding = '" + mode + "'; p.location = '" + edge + "'; p.height = " + height + "; p.lengthMode = '" + length + "'; p.alignment = 'center'; p.offset = 0; } } }";
         runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(script));
     }
+    // The tray beside the console would show a second volume control; the
+    // console's own one (wheel, click for slider and mute) replaces it.
+    function syncTray() {
+        const hide = Plasmoid.configuration.hideTrayVolume;
+        const script = "for (var p of panels()) { var ours = p.widgets().some(function (w) { return w.type === 'org.cde.copper.frontpanel'; }); if (!ours) continue;"
+            + " for (var w of p.widgets()) { if (w.type !== 'org.kde.plasma.systemtray') continue; w.currentConfigGroup = ['General'];"
+            + " var items = w.readConfig('extraItems', []); if (typeof items === 'string') items = items ? items.split(',') : [];"
+            + " var has = items.indexOf('org.kde.plasma.volume') >= 0;"
+            + (hide ? " if (has) w.writeConfig('extraItems', items.filter(function (i) { return i !== 'org.kde.plasma.volume'; }));"
+                    : " if (!has && items.length) { items.push('org.kde.plasma.volume'); w.writeConfig('extraItems', items); }")
+            + " } }";
+        runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(script));
+    }
+    function setVolume(percent) {
+        const value = Math.max(0, Math.min(150, Math.round(percent)));
+        root.volume = value;
+        runner.connectSource("wpctl set-volume @DEFAULT_AUDIO_SINK@ " + value + "%");
+    }
+
     // "Arbeitsfläche 1", "Desktop 1": Plasma's default names only repeat
     // the number the button already shows.
     function workspaceLabel(index) {
         const name = (desktops.desktopNames[index] || "").trim();
         const n = String(index + 1);
-        if (name === "" || name === n || new RegExp("^\\D*\\s" + n + "$").test(name)) return n;
+        // Upright the buttons are narrow: the number only, the name in the tooltip.
+        if (root.vertical || name === "" || name === n || new RegExp("^\\D*\\s" + n + "$").test(name)) return n;
         return n + "  " + name;
     }
     Connections {
         target: Plasmoid.configuration
         function onVisibilityModeChanged() { root.configurePanel(); }
         function onTopEdgeChanged() { root.configurePanel(); }
+        function onEdgeChanged() { root.configurePanel(); }
         function onConsoleScaleChanged() { root.configurePanel(); }
+        function onHideTrayVolumeChanged() { root.syncTray(); }
     }
 
-    Component.onCompleted: if (Plasmoid.configuration.consoleScale !== 1) configurePanel()
+    Component.onCompleted: {
+        if (Plasmoid.configuration.consoleScale !== 1) configurePanel();
+        // The tray fills its item list on its first start; look once it has.
+        trayTimer.start();
+    }
+    Timer { id: trayTimer; interval: 4000; onTriggered: root.syncTray() }
 
     Kicker.AppsModel { id: allApps; flat: true; sorted: true; autoPopulate: true; appletInterface: Plasmoid }
     Kicker.AppsModel { id: categoryApps; flat: false; sorted: true; autoPopulate: true; showSeparators: false; appletInterface: Plasmoid }
@@ -153,7 +220,9 @@ PlasmoidItem {
             if (sourceName.indexOf("nmcli") >= 0) root.networkState = data.stdout.trim() === "connected" ? "Connected" : "Offline";
             else {
                 const match = data.stdout.match(/Volume: ([0-9.]+)/);
-                root.volumeState = data.stdout.indexOf("MUTED") >= 0 ? "Muted" : match ? Math.round(Number(match[1])*100) + "%" : "Audio";
+                root.muted = data.stdout.indexOf("MUTED") >= 0;
+                if (match) root.volume = Math.round(Number(match[1]) * 100);
+                root.volumeState = root.muted ? "Muted" : match ? root.volume + "%" : "Audio";
             }
         }
     }
@@ -173,147 +242,218 @@ PlasmoidItem {
     }
     Timer { interval: 1000; running: true; repeat: true; onTriggered: root.now = new Date() }
 
-    component Slot: ColumnLayout {
+    // Upright at the left or right screen edge, across at the top or bottom.
+    readonly property bool vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
+    readonly property bool atRight: Plasmoid.location === PlasmaCore.Types.RightEdge
+    // The subpanel arrows point to where the subpanels open.
+    readonly property string arrowGlyph: {
+        switch (Plasmoid.location) {
+        case PlasmaCore.Types.TopEdge: return "▾";
+        case PlasmaCore.Types.LeftEdge: return "▸";
+        case PlasmaCore.Types.RightEdge: return "◂";
+        default: return "▴";
+        }
+    }
+    function u(pixels) { return Math.round(pixels * consoleColors.unit); }
+
+    // A launcher tile with its subpanel arrow: arrow above the tile across,
+    // beside it (towards the screen) upright.
+    component Slot: GridLayout {
         id: slot
         required property var modelData
-        Layout.fillWidth: true; Layout.preferredWidth: Math.round(68 * consoleColors.unit); Layout.fillHeight: true; spacing: 1
+        rows: root.vertical ? 1 : 2
+        columns: root.vertical ? 2 : 1
+        rowSpacing: 1; columnSpacing: 1
+        Layout.fillWidth: true; Layout.fillHeight: true
+        Layout.preferredWidth: root.vertical ? -1 : root.u(68)
+        Layout.preferredHeight: root.vertical ? root.u(62) : -1
         ConsoleButton {
             id: arrow
-            text: ""; Layout.fillWidth: true; Layout.preferredHeight: Math.round(13 * consoleColors.unit)
+            Layout.row: 0
+            Layout.column: root.vertical && !root.atRight ? 1 : 0
+            Layout.fillWidth: !root.vertical; Layout.fillHeight: root.vertical
+            Layout.preferredHeight: root.vertical ? -1 : root.u(13)
+            Layout.preferredWidth: root.vertical ? root.u(13) : -1
+            text: ""
             enabled: slot.modelData.menu !== ""
             opacity: enabled ? 1 : 0.35
             Accessible.name: slot.modelData.menu ? "Open " + slot.modelData.menu : ""
             selected: popup.visible && popup.visualParent === arrow
             contentItem: Text {
-                text: Plasmoid.configuration.topEdge ? "▾" : "▴"
-                color: consoleColors.panelText; font.pixelSize: Math.round(12 * consoleColors.unit)
+                text: root.arrowGlyph
+                color: consoleColors.panelText; font.pixelSize: root.u(12)
                 horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
             }
             onClicked: root.openMenu(slot.modelData, arrow)
         }
         ConsoleButton {
             id: launcher
+            Layout.row: root.vertical ? 0 : 1
+            Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
             Layout.fillWidth: true; Layout.fillHeight: true
             text: slot.modelData.label; iconName: slot.modelData.icon
             onClicked: root.launch(slot.modelData, launcher)
         }
     }
 
+    component ClockTile: ConsoleButton {
+        id: clock
+        Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
+        Layout.preferredWidth: root.vertical ? -1 : root.u(92)
+        Layout.preferredHeight: root.vertical ? root.u(72) : -1
+        surface: consoleColors.window
+        selected: calendar.visible
+        Accessible.name: Qt.formatDateTime(root.now, Qt.locale().dateTimeFormat(Locale.LongFormat))
+        onClicked: {
+            if (Plasmoid.configuration.clockOpensApp) root.run(Launch.resolve(Plasmoid.configuration.calendarCommand || "@calendar"));
+            else { calendar.visualParent = clock; calendar.visible = !calendar.visible; }
+        }
+        contentItem: Column {
+            spacing: 0
+            readonly property color ink: clock.selected ? consoleColors.highlightText : consoleColors.windowText
+            Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "ddd").toUpperCase(); color: parent.ink; opacity: 0.8; font.pixelSize: root.u(10); font.family: consoleColors.font }
+            Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "HH:mm"); color: parent.ink; font.pixelSize: root.u(24); font.family: "IBM Plex Mono" }
+            Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "dd MMM").toUpperCase(); color: parent.ink; font.pixelSize: root.u(10); font.family: consoleColors.font }
+        }
+    }
+
+    component Workspaces: Bevel {
+        Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
+        Layout.preferredWidth: root.vertical ? -1 : root.u(192)
+        Layout.preferredHeight: root.vertical ? root.u(72) : -1
+        surface: Motif.shades(consoleColors.panel).bottom; sunken: true
+        ColumnLayout {
+            anchors.fill: parent; anchors.margins: 4; spacing: 3
+            Text {
+                Layout.fillWidth: true; text: "WORKSPACES"; color: Motif.shades(consoleColors.panel).top
+                font.pixelSize: root.u(9); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter
+            }
+            GridLayout {
+                columns: 2; rowSpacing: 3; columnSpacing: 3
+                Layout.fillWidth: true; Layout.fillHeight: true
+                Repeater {
+                    model: desktops.desktopIds
+                    delegate: ConsoleButton {
+                        required property int index
+                        required property var modelData
+                        Layout.fillWidth: true; Layout.fillHeight: true
+                        implicitWidth: root.u(root.vertical ? 40 : 70); implicitHeight: root.u(23)
+                        text: root.workspaceLabel(index)
+                        Accessible.name: "Workspace " + (index + 1) + " " + (desktops.desktopNames[index] || "")
+                        selected: desktops.currentDesktop === modelData
+                        onClicked: root.run(root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
+                    }
+                }
+            }
+        }
+    }
+
+    component SessionButtons: GridLayout {
+        rows: root.vertical ? 1 : 2
+        columns: root.vertical ? 2 : 1
+        rowSpacing: 3; columnSpacing: 3
+        Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
+        Layout.preferredWidth: root.vertical ? -1 : root.u(38)
+        Layout.preferredHeight: root.vertical ? root.u(32) : -1
+        ConsoleButton {
+            Layout.fillWidth: true; Layout.fillHeight: true
+            iconName: "system-lock-screen"; text: ""; iconSize: root.u(23)
+            Accessible.name: "Lock Screen"
+            onClicked: root.run(root.dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock")
+        }
+        ConsoleButton {
+            Layout.fillWidth: true; Layout.fillHeight: true
+            iconName: "computer"; text: ""; iconSize: root.u(23)
+            Accessible.name: "Show Desktop"
+            onClicked: root.run(root.dbus + " org.kde.KWin /KWin showDesktop \"$(if [ \"$(" + root.dbus + " org.kde.KWin /KWin org.kde.KWin.showingDesktop)\" = true ]; then echo false; else echo true; fi)\"")
+        }
+    }
+
+    component TaskStrip: ListView {
+        id: taskList
+        Layout.fillWidth: true; Layout.fillHeight: true
+        Layout.minimumHeight: root.vertical ? root.u(80) : 0
+        orientation: root.vertical ? ListView.Vertical : ListView.Horizontal
+        spacing: 3; clip: true
+        model: tasks
+        delegate: ConsoleButton {
+            required property int index
+            required property var model
+            width: root.vertical ? taskList.width
+                 : Math.min(root.u(220), Math.max(root.u(120), (taskList.width - (taskList.count - 1) * 3) / Math.max(1, taskList.count)))
+            height: root.vertical ? root.u(24) : taskList.height
+            horizontal: true; iconSize: root.u(18)
+            text: model.display || "Window"
+            iconName: ""
+            Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: root.u(18); height: width; source: parent.model.decoration; active: false }
+            leftPadding: root.u(30)
+            selected: Boolean(model.IsActive)
+            onClicked: {
+                const idx = tasks.makeModelIndex(index);
+                if (model.IsActive) tasks.requestToggleMinimized(idx); else tasks.requestActivate(idx);
+            }
+        }
+    }
+
+    component VolumeButton: ConsoleButton {
+        id: status
+        Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
+        Layout.preferredWidth: root.vertical ? -1 : root.u(104)
+        Layout.preferredHeight: root.vertical ? root.u(26) : -1
+        text: root.volumeState; iconSize: root.u(18); horizontal: true
+        iconName: root.muted ? "audio-volume-muted" : "audio-volume-high"
+        Accessible.name: "Volume " + root.volumeState + ", " + root.networkState
+        onClicked: { volumePopup.visualParent = status; volumePopup.visible = !volumePopup.visible; }
+        WheelHandler {
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: event => root.setVolume(root.volume + (event.angleDelta.y > 0 ? 5 : -5))
+        }
+    }
+
     fullRepresentation: Bevel {
         id: frontConsole
-        implicitWidth: content.implicitWidth + 10
-        implicitHeight: Math.round(116 * consoleColors.unit)
-        // The panel sizes itself from these (lengthMode 'fit').
+        // Across: as wide as its tiles, 116 high. Upright: 116 wide, and as
+        // tall as the screen allows, the window list taking the rest.
+        implicitWidth: root.vertical ? root.u(116) : content.implicitWidth + 10
+        implicitHeight: root.vertical ? content.implicitHeight + 10 : root.u(116)
+        // The panel sizes itself from these.
         Layout.minimumWidth: implicitWidth
         Layout.preferredWidth: implicitWidth
         Layout.maximumWidth: implicitWidth
         Layout.minimumHeight: implicitHeight
         Layout.preferredHeight: implicitHeight
-        Layout.maximumHeight: implicitHeight
+        Layout.maximumHeight: root.vertical ? Number.POSITIVE_INFINITY : implicitHeight
+        Layout.fillHeight: root.vertical
         surface: consoleColors.panel
         ColumnLayout {
             id: content
             anchors.fill: parent; anchors.margins: 5; spacing: 4
-            RowLayout {
-                Layout.fillWidth: true; Layout.fillHeight: true; spacing: 4
-                ConsoleButton {
-                    id: clock
-                    Layout.preferredWidth: Math.round(92 * consoleColors.unit); Layout.fillHeight: true
-                    surface: consoleColors.window
-                    selected: calendar.visible
-                    Accessible.name: Qt.formatDateTime(root.now, Qt.locale().dateTimeFormat(Locale.LongFormat))
-                    onClicked: {
-                        if (Plasmoid.configuration.clockOpensApp) root.run(Launch.resolve(Plasmoid.configuration.calendarCommand || "@calendar"));
-                        else { calendar.visualParent = clock; calendar.visible = !calendar.visible; }
-                    }
-                    contentItem: Column {
-                        spacing: 0
-                        readonly property color ink: clock.selected ? consoleColors.highlightText : consoleColors.windowText
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "ddd").toUpperCase(); color: parent.ink; opacity: 0.8; font.pixelSize: Math.round(10 * consoleColors.unit); font.family: consoleColors.font }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "HH:mm"); color: parent.ink; font.pixelSize: Math.round(24 * consoleColors.unit); font.family: "IBM Plex Mono" }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "dd MMM").toUpperCase(); color: parent.ink; font.pixelSize: Math.round(10 * consoleColors.unit); font.family: consoleColors.font }
-                    }
-                }
+            GridLayout {
+                // One row of tiles across, one column upright.
+                flow: root.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+                rowSpacing: 4; columnSpacing: 4
+                Layout.fillWidth: true; Layout.fillHeight: !root.vertical
+                ClockTile {}
                 Repeater { model: root.leftSlots; delegate: Slot {} }
-                Bevel {
-                    Layout.preferredWidth: Math.round(192 * consoleColors.unit); Layout.fillHeight: true
-                    surface: Motif.shades(consoleColors.panel).bottom; sunken: true
-                    ColumnLayout {
-                        anchors.fill: parent; anchors.margins: 4; spacing: 3
-                        Text {
-                            Layout.fillWidth: true; text: "WORKSPACES"; color: Motif.shades(consoleColors.panel).top
-                            font.pixelSize: Math.round(9 * consoleColors.unit); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter
-                        }
-                        GridLayout {
-                            columns: 2; rowSpacing: 3; columnSpacing: 3
-                            Layout.fillWidth: true; Layout.fillHeight: true
-                            Repeater {
-                                model: desktops.desktopIds
-                                delegate: ConsoleButton {
-                                    required property int index
-                                    required property var modelData
-                                    Layout.fillWidth: true; Layout.fillHeight: true
-                                    implicitWidth: Math.round(70 * consoleColors.unit); implicitHeight: Math.round(23 * consoleColors.unit)
-                                    text: root.workspaceLabel(index)
-                                    Accessible.name: "Workspace " + (index + 1) + " " + (desktops.desktopNames[index] || "")
-                                    selected: desktops.currentDesktop === modelData
-                                    onClicked: root.run(root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
-                                }
-                            }
-                        }
-                    }
-                }
+                Workspaces {}
                 Repeater { model: root.rightSlots; delegate: Slot {} }
-                ColumnLayout {
-                    Layout.preferredWidth: Math.round(38 * consoleColors.unit); Layout.fillHeight: true; spacing: 3
-                    ConsoleButton {
-                        Layout.fillWidth: true; Layout.fillHeight: true
-                        iconName: "system-lock-screen"; text: ""; iconSize: Math.round(23 * consoleColors.unit)
-                        Accessible.name: "Lock Screen"
-                        onClicked: root.run(root.dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock")
-                    }
-                    ConsoleButton {
-                        Layout.fillWidth: true; Layout.fillHeight: true
-                        iconName: "computer"; text: ""; iconSize: Math.round(23 * consoleColors.unit)
-                        Accessible.name: "Show Desktop"
-                        onClicked: root.run(root.dbus + " org.kde.KWin /KWin showDesktop \"$(if [ \"$(" + root.dbus + " org.kde.KWin /KWin org.kde.KWin.showingDesktop)\" = true ]; then echo false; else echo true; fi)\"")
-                    }
-                }
+                SessionButtons {}
             }
-            RowLayout {
-                Layout.fillWidth: true; Layout.preferredHeight: Math.round(24 * consoleColors.unit); Layout.maximumHeight: Math.round(24 * consoleColors.unit); spacing: 3
+            GridLayout {
+                flow: root.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+                rowSpacing: 3; columnSpacing: 3
+                Layout.fillWidth: true
+                Layout.fillHeight: root.vertical
+                Layout.preferredHeight: root.vertical ? -1 : root.u(24)
+                Layout.maximumHeight: root.vertical ? Number.POSITIVE_INFINITY : root.u(24)
                 Text {
-                    Layout.preferredWidth: Math.round(92 * consoleColors.unit); text: Plasmoid.configuration.consoleLabel; color: consoleColors.panelText
-                    font.pixelSize: Math.round(9 * consoleColors.unit); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
+                    Layout.fillWidth: root.vertical
+                    Layout.preferredWidth: root.vertical ? -1 : root.u(92)
+                    text: Plasmoid.configuration.consoleLabel; color: consoleColors.panelText
+                    font.pixelSize: root.u(9); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
                 }
-                ListView {
-                    id: taskList
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    orientation: ListView.Horizontal; spacing: 3; clip: true
-                    model: tasks
-                    delegate: ConsoleButton {
-                        required property int index
-                        required property var model
-                        width: Math.min(220 * consoleColors.unit, Math.max(120 * consoleColors.unit, (taskList.width - (taskList.count-1)*3) / Math.max(1, taskList.count)))
-                        height: taskList.height; horizontal: true; iconSize: Math.round(18 * consoleColors.unit)
-                        text: model.display || "Window"
-                        iconName: ""
-                        Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: Math.round(18 * consoleColors.unit); height: width; source: parent.model.decoration; active: false }
-                        leftPadding: Math.round(30 * consoleColors.unit)
-                        selected: Boolean(model.IsActive)
-                        onClicked: {
-                            const idx = tasks.makeModelIndex(index);
-                            if (model.IsActive) tasks.requestToggleMinimized(idx); else tasks.requestActivate(idx);
-                        }
-                    }
-                }
-                ConsoleButton {
-                    id: status
-                    Layout.preferredWidth: Math.round(104 * consoleColors.unit); Layout.fillHeight: true
-                    text: root.volumeState; iconName: "audio-volume-high"; iconSize: Math.round(18 * consoleColors.unit); horizontal: true
-                    Accessible.name: root.networkState + ", volume " + root.volumeState + ", session controls"
-                    onClicked: root.openSection("Session", root.systemEntries(), status)
-                }
+                TaskStrip {}
+                VolumeButton {}
             }
         }
     }
@@ -342,6 +482,57 @@ PlasmoidItem {
     }
 
     PlasmaCore.Dialog {
+        id: volumePopup
+        visible: false
+        type: PlasmaCore.Dialog.PopupMenu
+        flags: Qt.WindowStaysOnTopHint
+        location: Plasmoid.location
+        hideOnWindowDeactivate: true
+        backgroundHints: PlasmaCore.Types.NoBackground
+        onVisibleChanged: if (visible) volumeBody.forceActiveFocus()
+        mainItem: Bevel {
+            id: volumeBody
+            width: 276; height: 168
+            surface: consoleColors.window
+            focus: true
+            Keys.onEscapePressed: volumePopup.visible = false
+            Keys.onUpPressed: root.setVolume(root.volume + 5)
+            Keys.onDownPressed: root.setVolume(root.volume - 5)
+            ColumnLayout {
+                anchors.fill: parent; anchors.margins: 5; spacing: 4
+                Bevel {
+                    Layout.fillWidth: true; Layout.preferredHeight: 27; surface: consoleColors.highlight
+                    Text { anchors.centerIn: parent; text: "Audio  " + root.volumeState; color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
+                }
+                Slider {
+                    Layout.fillWidth: true
+                    from: 0; to: 100; stepSize: 1
+                    value: Math.min(100, root.volume)
+                    enabled: !root.muted
+                    onMoved: root.setVolume(value)
+                    Accessible.name: "Volume"
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    ConsoleButton {
+                        Layout.fillWidth: true; implicitHeight: 38; horizontal: true; iconSize: 22
+                        text: root.muted ? "Unmute" : "Mute"; iconName: root.muted ? "audio-volume-high" : "audio-volume-muted"
+                        surface: consoleColors.window; foreground: consoleColors.windowText
+                        selected: root.muted
+                        onClicked: { root.muted = !root.muted; runner.connectSource("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"); }
+                    }
+                    ConsoleButton {
+                        Layout.fillWidth: true; implicitHeight: 38; horizontal: true; iconSize: 22
+                        text: "Settings…"; iconName: "preferences-system"
+                        surface: consoleColors.window; foreground: consoleColors.windowText
+                        onClicked: { volumePopup.visible = false; root.run(Launch.resolve("@settings kcm_pulseaudio")); }
+                    }
+                }
+            }
+        }
+    }
+
+    PlasmaCore.Dialog {
         id: popup
         visible: false
         type: PlasmaCore.Dialog.PopupMenu
@@ -352,7 +543,7 @@ PlasmoidItem {
         onVisibleChanged: if (visible) popupBody.forceActiveFocus()
         mainItem: Bevel {
             id: popupBody
-            width: 276; height: 41 + root.entries.length * 38
+            width: 320; height: 41 + root.entries.length * 38
             surface: consoleColors.window
             focus: true
             Keys.onEscapePressed: popup.visible = false
@@ -369,9 +560,11 @@ PlasmoidItem {
                         Layout.fillWidth: true; Layout.fillHeight: true
                         text: modelData.label; iconName: modelData.icon
                         horizontal: true; iconSize: 28; surface: consoleColors.window; foreground: consoleColors.windowText
+                        enabled: modelData.command !== ""
+                        Accessible.name: modelData.tip || modelData.label
                         onClicked: {
                             popup.visible = false;
-                            root.run(Launch.resolve(modelData.command));
+                            root.run(Launch.resolve(modelData.command, modelData.args));
                         }
                     }
                 }

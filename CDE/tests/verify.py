@@ -122,6 +122,103 @@ class Backdrops(unittest.TestCase):
             self.assertEqual((width, height), (640, 480), name)
 
 
+class ConsoleMenus(unittest.TestCase):
+    """frontpanel/contents/code/menus.py against made-up profiles."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix="cde-menus-")
+        self.home = Path(self.temp.name)
+        apps = self.home / ".local/share/applications"
+        apps.mkdir(parents=True)
+        for app_id, name, exec_line in (("org.mozilla.firefox", "Firefox", "firefox %u"),
+                                        ("org.kde.kwrite", "KWrite", "kwrite %U"),
+                                        ("libreoffice-writer", "LibreOffice Writer", "libreoffice --writer %U"),
+                                        ("libreoffice-calc", "LibreOffice Calc", "libreoffice --calc %U"),
+                                        ("chromium-browser", "Chromium", "chromium-browser %U")):
+            (apps / f"{app_id}.desktop").write_text(f"[Desktop Entry]\nName={name}\nExec={exec_line}\nIcon={app_id}\n")
+        self.env = {**os.environ, "HOME": str(self.home), "XDG_DATA_HOME": str(self.home / ".local/share"),
+                    "XDG_CONFIG_HOME": str(self.home / ".config"), "XDG_DATA_DIRS": str(self.home / "none")}
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def run_menus(self, kind, command):
+        result = subprocess.run([sys.executable, str(ROOT / "frontpanel/contents/code/menus.py"), kind, command],
+                                env=self.env, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout)
+
+    def test_firefox_bookmarks_toolbar_first_without_duplicates(self):
+        import sqlite3
+        root = self.home / ".config/mozilla/firefox"
+        profile = root / "abc.default"
+        profile.mkdir(parents=True)
+        (root / "profiles.ini").write_text("[Profile0]\nName=default\nIsRelative=1\nPath=abc.default\nDefault=1\n")
+        db = sqlite3.connect(profile / "places.sqlite")
+        db.executescript("""
+            CREATE TABLE moz_places (id INTEGER PRIMARY KEY, url TEXT);
+            CREATE TABLE moz_bookmarks (id INTEGER PRIMARY KEY, type INTEGER, fk INTEGER, parent INTEGER,
+                                        position INTEGER, title TEXT, guid TEXT, dateAdded INTEGER);
+            INSERT INTO moz_bookmarks VALUES (2, 2, NULL, 1, 0, 'menu', 'menu________', 0);
+            INSERT INTO moz_bookmarks VALUES (3, 2, NULL, 1, 1, 'toolbar', 'toolbar_____', 0);
+            INSERT INTO moz_places VALUES (1, 'https://menu.example/'), (2, 'https://bar.example/'), (3, 'place:sort=8');
+            INSERT INTO moz_bookmarks VALUES (10, 1, 1, 2, 0, 'Menu', 'a', 5);
+            INSERT INTO moz_bookmarks VALUES (11, 1, 2, 3, 0, 'Bar', 'b', 1);
+            INSERT INTO moz_bookmarks VALUES (12, 1, 2, 2, 1, 'Bar again', 'c', 2);
+            INSERT INTO moz_bookmarks VALUES (13, 1, 3, 3, 1, 'Smart', 'd', 3);
+        """)
+        db.commit(); db.close()
+        result = self.run_menus("bookmarks", "app:org.mozilla.firefox")
+        self.assertEqual([i["args"][0] for i in result["items"]], ["https://bar.example/", "https://menu.example/"])
+
+    def test_chromium_bookmarks(self):
+        path = self.home / ".config/chromium/Default"
+        path.mkdir(parents=True)
+        (path / "Bookmarks").write_text(json.dumps({"roots": {"bookmark_bar": {"children": [
+            {"type": "folder", "children": [{"type": "url", "name": "Deep", "url": "https://deep.example/"}]},
+            {"type": "url", "name": "Top", "url": "https://top.example/"}]}}}))
+        result = self.run_menus("bookmarks", "app:chromium-browser")
+        self.assertEqual([i["label"] for i in result["items"]], ["Deep", "Top"])
+
+    def test_recent_files_from_all_three_sources(self):
+        import sqlite3
+        docs = self.home / "Dokumente"
+        docs.mkdir()
+        for name in ("notiz.txt", "brief.odt", "tabelle.ods", "mit leer.txt", "geloescht.txt"):
+            (docs / name).write_text("x")
+        (docs / "geloescht.txt").unlink()
+        folder = self.home / ".local/share/kactivitymanagerd/resources"
+        folder.mkdir(parents=True)
+        db = sqlite3.connect(folder / "database")
+        db.execute("CREATE TABLE ResourceScoreCache (usedActivity TEXT, initiatingAgent TEXT, targettedResource TEXT,"
+                   " scoreType INTEGER, cachedScore FLOAT, firstUpdate INTEGER, lastUpdate INTEGER)")
+        db.execute("INSERT INTO ResourceScoreCache VALUES ('a', 'org.kde.kwrite', ?, 0, 1, 1, 100)", (str(docs / "notiz.txt"),))
+        db.execute("INSERT INTO ResourceScoreCache VALUES ('a', 'org.kde.kwrite', ?, 0, 1, 1, 50)", (str(docs / "geloescht.txt"),))
+        db.execute("INSERT INTO ResourceScoreCache VALUES ('a', 'org.kde.dolphin', ?, 0, 1, 1, 200)", (str(docs / "brief.odt"),))
+        db.commit(); db.close()
+        (self.home / ".local/share/recently-used.xbel").write_text(f"""<?xml version="1.0"?>
+<xbel version="1.0" xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks"
+      xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info">
+ <bookmark href="file://{docs}/mit%20leer.txt" modified="2026-10-03T10:00:00Z">
+  <info><metadata owner="http://freedesktop.org"><mime:mime-type type="text/plain"/>
+   <bookmark:applications><bookmark:application name="KWrite" exec="'kwrite %u'" modified="2026-10-03T10:00:00Z" count="1"/></bookmark:applications>
+  </metadata></info>
+ </bookmark>
+</xbel>""")
+        office = self.home / ".config/libreoffice/4/user"
+        office.mkdir(parents=True)
+        (office / "registrymodifications.xcu").write_text(f"""<?xml version="1.0" encoding="UTF-8"?>
+<oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<item oor:path="/org.openoffice.Office.Histories/Histories/org.openoffice.Office.Histories:HistoryInfo['PickList']/OrderList"><node oor:name="0" oor:op="replace"><prop oor:name="HistoryItemRef" oor:op="fuse"><value>file://{docs}/tabelle.ods</value></prop></node></item>
+<item oor:path="/org.openoffice.Office.Histories/Histories/org.openoffice.Office.Histories:HistoryInfo['PickList']/OrderList"><node oor:name="1" oor:op="replace"><prop oor:name="HistoryItemRef" oor:op="fuse"><value>file://{docs}/brief.odt</value></prop></node></item>
+</oor:items>""")
+        kwrite = self.run_menus("recent", "app:org.kde.kwrite")
+        self.assertEqual([i["label"] for i in kwrite["items"]], ["mit leer.txt", "notiz.txt"])
+        self.assertEqual(kwrite["items"][0]["args"], [str(docs / "mit leer.txt")])
+        self.assertEqual([i["label"] for i in self.run_menus("recent", "app:libreoffice-writer")["items"]], ["brief.odt"])
+        self.assertEqual([i["label"] for i in self.run_menus("recent", "app:libreoffice-calc")["items"]], ["tabelle.ods"])
+
+
 class Installer(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="cde-test-")

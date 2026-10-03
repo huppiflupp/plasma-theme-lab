@@ -89,8 +89,33 @@ from the installed 0.1.0:
 
 Not verified: two physical screens (one console per screen is written but the
 VM shows one output), real calendar appointments, the decoration settings page
-in System Settings, keyboard navigation of the Applications menu, the console
-at the top edge.
+in System Settings, keyboard navigation of the Applications menu, bookmarks of
+browsers other than Firefox in a live profile (Chromium's format is covered by
+the tests).
+
+Checks of 2026-10-03 afternoon (version 0.2.1, after feedback), same VM:
+
+- `python3 tests/verify.py`: 15 tests pass. New: Firefox bookmarks from a
+  made-up `places.sqlite` (toolbar first, no duplicates, no `place:` queries),
+  nested Chromium bookmarks, recent files from the activity database,
+  `recently-used.xbel` and LibreOffice's pick list (paths with spaces, deleted
+  files left out, Writer and Calc kept apart).
+- Window frame: the raised frame and the raised title parts ran into each
+  other at the top (no dark edge between them) and the title's lower edge was
+  doubled; title and client now share one sunken well. Checked at 4x
+  magnification on both top corners.
+- Bookmarks of the VM's Firefox profile (`~/.config/mozilla/firefox`) in the Web
+  tile's subpanel; recent files of KWrite (the VM's default editor; Kate is
+  not installed) in the Editor tile's subpanel, opened from there; a tile set to
+  LibreOffice Writer lists the document Writer opened last.
+- The tray's volume icon is removed once the tray has started; the console's
+  volume popup (slider, Mute, Settings) opens.
+- Console at the left and the right edge: upright layout, arrows pointing to
+  the screen, Applications menu and cascade opening towards the middle, lined up
+  with the Apps tile; clock and calendar. Back at the bottom the console is
+  centred again (Plasma kept the side offset before).
+- The console was found at the top edge in the VM, as set while it was tried
+  out; the top edge works, and the VM was left there.
 
 The project VM was restored to the original configuration after the destructive
 installation test. The last visual run deliberately leaves CDE Copper applied

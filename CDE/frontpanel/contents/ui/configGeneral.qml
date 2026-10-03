@@ -6,21 +6,33 @@ import org.kde.kcmutils as KCM
 
 KCM.SimpleKCM {
     property alias cfg_visibilityMode: visibility.currentIndex
-    property alias cfg_topEdge: topEdge.checked
+    property bool cfg_topEdge
+    property int cfg_edge: -1
     property alias cfg_windowsOnThisScreen: thisScreen.checked
     property alias cfg_consoleLabel: label.text
     property real cfg_consoleScale: 1.0
+    property alias cfg_hideTrayVolume: hideVolume.checked
     Kirigami.FormLayout {
         ComboBox {
             id: visibility
             Kirigami.FormData.label: "Visibility:"
             model: ["Always visible", "Auto-hide / edge reveal", "Dodge windows"]
         }
-        CheckBox { id: topEdge; text: "Top edge"; Kirigami.FormData.label: "Position:" }
+        ComboBox {
+            Kirigami.FormData.label: "Screen edge:"
+            model: ["Bottom", "Top", "Left", "Right"]
+            currentIndex: cfg_edge >= 0 ? cfg_edge : (cfg_topEdge ? 1 : 0)
+            onActivated: index => { cfg_edge = index; cfg_topEdge = index === 1; }
+        }
         CheckBox {
             id: thisScreen
             Kirigami.FormData.label: "Window list:"
             text: "Only windows on this console's screen"
+        }
+        CheckBox {
+            id: hideVolume
+            Kirigami.FormData.label: "System tray:"
+            text: "Leave the volume to the console"
         }
         TextField { id: label; Kirigami.FormData.label: "Console label:" }
         SpinBox {
