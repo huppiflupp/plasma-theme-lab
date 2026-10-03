@@ -23,6 +23,9 @@ languages can be added as `po/<language>.po`.
   sunken well. Its colours come from the active
   colour scheme and its shadows from Motif's own shading rule, so it follows
   every palette. Title-bar height is adjustable; the buttons scale with it.
+  A short hard shadow at the right and bottom (switchable in the console's
+  Style page or the decoration's settings); inactive frames have a flatter
+  bevel.
 - Kvantum widget style with Motif controls: bevelled buttons, sunken fields,
   diamond radio buttons, copper focus frame, default button and selection,
   bevelled scrollbars with arrows, attached tabs and hard-edged menus.
@@ -372,13 +375,6 @@ Decided differently:
 
 Not reached:
 
-- **Focus without colour (§5).** Active and inactive frames differ in colour
-  and brightness only, not in frame structure.
-- **Window shadow (§3).** The decoration draws no shadow at all, rather than a
-  short, firm one.
-- **Controls (§6).** Kvantum's minimum heights are font-relative: push buttons
-  and menu rows come out below the 28–34 px and 30–34 px the specification
-  gives (derived from the Kvantum configuration, not measured on screen).
 - **Icons (§7).** The drawings and the monochrome "-symbolic" set cover the
   common names, but Breeze knows several thousand: rarer ones (many
   application-specific actions and document types) still fall back to

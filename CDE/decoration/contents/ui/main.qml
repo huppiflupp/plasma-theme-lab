@@ -23,9 +23,10 @@ Decoration {
 
     property bool coloredBorder: true
     property int fixedTitleHeight: 0
+    property bool windowShadow: true
     property int edge: 6
     readonly property int bevel: decoration.client.active ? 2 : 1
-    readonly property int shadowOffset: root.maximized ? 0 : 4
+    readonly property int shadowOffset: root.maximized || !root.windowShadow ? 0 : 4
     onShadowOffsetChanged: root.setPadding()
     function setPadding() {
         padding.left = 0; padding.top = 0;
@@ -77,6 +78,7 @@ Decoration {
     function readConfig() {
         root.coloredBorder = decoration.readConfig("coloredBorder", true);
         root.fixedTitleHeight = decoration.readConfig("titleHeight", 0);
+        root.windowShadow = decoration.readConfig("windowShadow", true);
     }
     onTitleHeightChanged: readBorderSize()
 

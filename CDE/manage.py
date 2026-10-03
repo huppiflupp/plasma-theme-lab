@@ -222,6 +222,14 @@ def cursor_edge(manifest):
     return CURSOR_COLOURS.get(choice, CURSOR_COLOURS["copper"])
 
 
+def cursor_tool():
+    """plasma-apply-cursortheme, when it can run: it needs an X display (it
+    also tells XWayland) and aborts without one, as from a shell over ssh,
+    which Plasma reports as a crash. Without it the cursor written to
+    kcminputrc takes effect at the next login."""
+    return bool(os.environ.get("DISPLAY")) and shutil.which("plasma-apply-cursortheme") is not None
+
+
 def install_cursors(manifest):
     """Rebuild the cursor theme (ours) with the chosen rim colour and make
     Plasma load it again: the same name alone would keep the cached images."""
@@ -233,7 +241,7 @@ def install_cursors(manifest):
     remove(DATA / "icons/CDECopperCursors")
     copy(stage / "icons/CDECopperCursors", DATA / "icons/CDECopperCursors")
     remove(stage)
-    if read_config("kcminputrc", "Mouse", "cursorTheme") == "CDECopperCursors" and shutil.which("plasma-apply-cursortheme"):
+    if read_config("kcminputrc", "Mouse", "cursorTheme") == "CDECopperCursors" and cursor_tool():
         run("plasma-apply-cursortheme", "breeze_cursors", check=False)
         run("plasma-apply-cursortheme", "CDECopperCursors", check=False)
 
@@ -554,7 +562,16 @@ def set_backdrop(manifest, name, scale):
     MANIFEST.write_text(json.dumps(manifest, indent=2))
 
 
-def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=False, progress=None, cursor=None, lockscreen=None):
+def set_window_shadow(manifest, on):
+    """The window frame's short hard shadow, an option of the decoration
+    (auroraerc, the decoration's own group; System Settings shows it too)."""
+    manifest["window_shadow"] = on
+    write_config("auroraerc", DECORATION, {"windowShadow": "true" if on else "false"})
+    dbus("org.kde.KWin", "/KWin", "reconfigure")
+
+
+def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=False, progress=None, cursor=None, lockscreen=None,
+                   window_shadow=None):
     """Switch palette (and backdrop) of an applied installation; with follow,
     take the palette from the colour scheme chosen in System Settings."""
     if not MANIFEST.exists():
@@ -572,6 +589,9 @@ def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=Fa
                 return
         if lockscreen:
             set_lockscreen(manifest, lockscreen)
+            MANIFEST.write_text(json.dumps(manifest, indent=2))
+        if window_shadow is not None:
+            set_window_shadow(manifest, window_shadow)
             MANIFEST.write_text(json.dumps(manifest, indent=2))
         if cursor:
             manifest["cursor"] = cursor
@@ -617,7 +637,7 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
     # running programs and XWayland.
     write_config("kcminputrc", "Mouse", {"cursorTheme": "CDECopperCursors"})
     write_config("ksplashrc", "KSplash", {"Engine": "KSplashQML", "Theme": "org.cde.copper.desktop"})
-    if shutil.which("plasma-apply-cursortheme"):
+    if cursor_tool():
         run("plasma-apply-cursortheme", "CDECopperCursors", check=False)
     write_config("kdeglobals", "General", {"font": UI_FONT, "fixed": MONO_FONT, "menuFont": UI_FONT, "toolBarFont": UI_FONT})
     write_config("kdeglobals", "WM", {"activeFont": TITLE_FONT})
@@ -710,6 +730,7 @@ def main():
                         help="palette: progress bar style (outlined, floating in the groove, slim)")
     parser.add_argument("--cursor", type=lambda v: v if v in ("copper", "palette", "white") or re.fullmatch(r"#[0-9a-fA-F]{6}", v) else parser.error(f"--cursor: {v!r}"),
                         help="palette: rim of the cursors: copper, palette (its accent), white or #rrggbb")
+    parser.add_argument("--window-shadow", choices=("on", "off"), help="palette: the window frame's short hard shadow")
     parser.add_argument("--lockscreen", choices=("cde", "plasma"), help="palette: CDE's lock screen (a shell package of its own) or Plasma's")
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--panel", action="store_true", help="replace the panel layout, backed up on installation")
@@ -733,7 +754,8 @@ def main():
     elif args.action == "apply":
         apply(args.panel, args.palette, args.backdrop, args.backdrop_scale)
     elif args.action == "palette":
-        palette_action(args.palette, args.backdrop, args.backdrop_scale, args.follow_scheme, args.notify, args.progress, args.cursor, args.lockscreen)
+        palette_action(args.palette, args.backdrop, args.backdrop_scale, args.follow_scheme, args.notify, args.progress, args.cursor, args.lockscreen,
+                       None if args.window_shadow is None else args.window_shadow == "on")
     else:
         uninstall()
 

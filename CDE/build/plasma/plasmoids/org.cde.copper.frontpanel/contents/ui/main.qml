@@ -305,6 +305,7 @@ PlasmoidItem {
             if (["outlined", "floating", "slim"].indexOf(request.progress) >= 0) command += " --progress " + request.progress;
             if (/^(copper|palette|white|#[0-9a-fA-F]{6})$/.test(request.cursor || "")) command += " --cursor " + Launch.quote(request.cursor);
             if (request.lockscreen === "cde" || request.lockscreen === "plasma") command += " --lockscreen " + request.lockscreen;
+            if (typeof request.windowShadow === "boolean") command += " --window-shadow " + (request.windowShadow ? "on" : "off");
             root.run(command);
         }
     }

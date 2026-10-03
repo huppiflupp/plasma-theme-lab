@@ -310,10 +310,10 @@ indicator.size=9
 inherits=PanelButtonCommand
 frame.element=scrollbarslider
 interior.element=scrollbarslider
-frame.top=3
-frame.bottom=3
-frame.left=3
-frame.right=3
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
 indicator.element=grip
 indicator.size=8
 

@@ -353,6 +353,16 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
 - Install over hand-copied files: install.sh refused to overwrite the
   switcher copied in by hand during testing ("Refusing to overwrite
   unowned path"), as it should; removed by hand, then installed.
+- Window shadow switch and scroll bar (0.8): manage.py palette
+  --window-shadow off/on writes windowShadow to the decoration's group in
+  auroraerc; off took effect after a new login, on right away (KWin
+  reconfigure). The scroll bar slider now has one bevel ring inside the
+  ink outline instead of two (the GTK slider had one already); seen in
+  Konsole. Errors met on the way: plasma-apply-cursortheme aborted when
+  manage.py ran over ssh (no X display) and Plasma reported it as a crash,
+  now only called with DISPLAY set; plasmashell hung on logout in Klipper's
+  clipboard history (KIO worker thread join), Plasma's own code, and was
+  killed by systemd after the stop timeout.
 - Boot parts after the palette (0.8): system.py install as tester's sudo
   drew both in Orchid (manifest palette), boots recorded twice a second
   with virsh screenshot. The black box between GRUB and Plymouth was GRUB's

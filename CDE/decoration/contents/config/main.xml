@@ -14,5 +14,9 @@
       <min>0</min>
       <max>64</max>
     </entry>
+    <!-- the short hard shadow at the right and bottom -->
+    <entry name="windowShadow" type="Bool">
+      <default>true</default>
+    </entry>
   </group>
 </kcfg>

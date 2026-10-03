@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cde-copper 0.8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 22:46+0200\n"
+"POT-Creation-Date: 2026-10-03 23:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -225,7 +225,7 @@ msgid "Choose an application"
 msgstr ""
 
 #: frontpanel/contents/ui/configLaunchers.qml:104
-#: frontpanel/contents/ui/main.qml:868
+#: frontpanel/contents/ui/main.qml:869
 msgid "Search"
 msgstr ""
 
@@ -319,90 +319,98 @@ msgstr ""
 msgid "Rim in a colour of my own"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:84
+#: frontpanel/contents/ui/configStyle.qml:88
 msgid "Palette"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:87
+#: frontpanel/contents/ui/configStyle.qml:91
 msgid ""
 "CDE's 37 palettes and CDE Copper. The stripes: console, windows, text "
 "fields, active and inactive title, desktop. Choose one (and a backdrop "
 "below), then Apply or OK. ● marks the palette in use."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:105
+#: frontpanel/contents/ui/configStyle.qml:109
 msgid "%1 (in use)"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:132
+#: frontpanel/contents/ui/configStyle.qml:136
 msgid "Progress bars"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:145
+#: frontpanel/contents/ui/configStyle.qml:149
 msgid ""
 "In the programs' controls (Kvantum); the bar beside shows the style in use. "
 "Programs already open take it when restarted."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:149
+#: frontpanel/contents/ui/configStyle.qml:153
 msgid "Mouse cursors"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:162
+#: frontpanel/contents/ui/configStyle.qml:166
 msgid "Cursor rim"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:168
+#: frontpanel/contents/ui/configStyle.qml:172
 msgid ""
 "The cursors after the X11 cursor font: black shapes on a coloured rim, with "
 "a soft shadow."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:172
+#: frontpanel/contents/ui/configStyle.qml:176
+msgid "Windows"
+msgstr ""
+
+#: frontpanel/contents/ui/configStyle.qml:180
+msgid "Short hard shadow at the right and bottom of each window"
+msgstr ""
+
+#: frontpanel/contents/ui/configStyle.qml:185
 msgid "Lock screen"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:176
+#: frontpanel/contents/ui/configStyle.qml:189
 msgid "CDE's: a Motif dialog on the backdrop"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:176
+#: frontpanel/contents/ui/configStyle.qml:189
 msgid "Plasma's own"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:181
+#: frontpanel/contents/ui/configStyle.qml:194
 msgid ""
 "Plasma takes the lock screen from its shell package; CDE's comes in a shell "
 "package of its own that takes everything else from Plasma's. Switching "
 "restarts the desktop shell once."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:185
+#: frontpanel/contents/ui/configStyle.qml:198
 msgid "Backdrop"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:192
+#: frontpanel/contents/ui/configStyle.qml:205
 msgid "Keep the desktop as it is"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:193
+#: frontpanel/contents/ui/configStyle.qml:206
 msgid "Plain palette colour"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:196
+#: frontpanel/contents/ui/configStyle.qml:209
 msgid "Picture: %1 (for this palette)"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:198
+#: frontpanel/contents/ui/configStyle.qml:211
 msgid "Picture: %1"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:204
+#: frontpanel/contents/ui/configStyle.qml:217
 #: backdrop/contents/ui/config.qml:51
 msgid "Pixel size:"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:248
+#: frontpanel/contents/ui/configStyle.qml:261
 msgid ""
 "Backdrops are CDE's patterns (The Open Group, CC BY-SA 3.0), coloured with "
 "the palette, or CDE Copper's pictures, each painted for one palette and "
@@ -415,7 +423,7 @@ msgid "Network"
 msgstr ""
 
 #: frontpanel/contents/ui/main.qml:55 frontpanel/contents/ui/main.qml:162
-#: frontpanel/contents/ui/main.qml:414
+#: frontpanel/contents/ui/main.qml:415
 msgid "Audio"
 msgstr ""
 
@@ -492,7 +500,7 @@ msgstr ""
 msgid "Display"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:165 frontpanel/contents/ui/main.qml:579
+#: frontpanel/contents/ui/main.qml:165 frontpanel/contents/ui/main.qml:580
 msgid "Lock Screen"
 msgstr ""
 
@@ -532,79 +540,79 @@ msgstr ""
 msgid "About CDE Copper"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:409
+#: frontpanel/contents/ui/main.qml:410
 msgid "Connected"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:409
+#: frontpanel/contents/ui/main.qml:410
 msgid "Offline"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:414
+#: frontpanel/contents/ui/main.qml:415
 msgid "Muted"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:472
+#: frontpanel/contents/ui/main.qml:473
 msgid "Open %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:532
+#: frontpanel/contents/ui/main.qml:533
 msgid "WORKSPACES"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:546
+#: frontpanel/contents/ui/main.qml:547
 msgid "Workspace %1 %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:571
+#: frontpanel/contents/ui/main.qml:572
 msgid "Hidden Icons"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:575
+#: frontpanel/contents/ui/main.qml:576
 msgid "Configure Front Console"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:583
+#: frontpanel/contents/ui/main.qml:584
 msgid "Show Desktop"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:630
+#: frontpanel/contents/ui/main.qml:631
 msgid "%1× %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:630
+#: frontpanel/contents/ui/main.qml:631
 msgid "Window"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:667
+#: frontpanel/contents/ui/main.qml:668
 msgid "Volume %1, %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:776
+#: frontpanel/contents/ui/main.qml:777
 msgid "Audio  %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:784
+#: frontpanel/contents/ui/main.qml:785
 msgid "Volume"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:790
+#: frontpanel/contents/ui/main.qml:791
 msgid "Unmute"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:790
+#: frontpanel/contents/ui/main.qml:791
 msgid "Mute"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:797
+#: frontpanel/contents/ui/main.qml:798
 msgid "Settings…"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:864
+#: frontpanel/contents/ui/main.qml:865
 msgid "Find Application"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:890
+#: frontpanel/contents/ui/main.qml:891
 msgid "Application"
 msgstr ""
 

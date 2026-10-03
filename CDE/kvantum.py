@@ -180,7 +180,9 @@ def build_kvantum(out, P, name="CDECopper", comment="Motif workstation controls 
     nine_patch(s, "button-toggled", sunken, pressed_face)
     nine_patch(s, "button-default", [(copper, copper), (light, dark), (light, dark)], None)
     s.add("button-default-indicator", 9, 9, [])
-    for st, rings, fill in (("normal", raised, face), ("focused", raised, hover_face), ("pressed", sunken, pressed_face)):
+    # The slider sits in a narrow groove: one bevel ring inside the ink
+    # outline, not two, or its dark right edge reads heavier than the rest.
+    for st, rings, fill in (("normal", raised[:2], face), ("focused", raised[:2], hover_face), ("pressed", sunken[:2], pressed_face)):
         nine_patch(s, f"scrollbarslider-{st}", rings, fill)
     for st in ("normal", "focused", "pressed"):
         s.add(f"grip-{st}", 8, 8, [])
@@ -626,10 +628,10 @@ indicator.size=9
 inherits=PanelButtonCommand
 frame.element=scrollbarslider
 interior.element=scrollbarslider
-frame.top=3
-frame.bottom=3
-frame.left=3
-frame.right=3
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
 indicator.element=grip
 indicator.size=8
 

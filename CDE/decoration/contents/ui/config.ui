@@ -11,6 +11,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="kcfg_windowShadow">
+     <property name="text">
+      <string>Short hard shadow at the right and bottom</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="titleRow">
      <item>
       <widget class="QLabel" name="titleLabel">

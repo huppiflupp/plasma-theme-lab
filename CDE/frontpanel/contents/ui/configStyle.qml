@@ -56,6 +56,9 @@ KCM.SimpleKCM {
                 let lock = "cde";
                 try { lock = JSON.parse(data.stdout).lockscreen || "cde"; } catch (e) {}
                 lockBox.currentIndex = lock === "plasma" ? 1 : 0;
+                let shadow = true;
+                try { shadow = JSON.parse(data.stdout).window_shadow !== false; } catch (e) {}
+                windowShadow.checked = shadow;
             }
         }
     }
@@ -76,6 +79,7 @@ KCM.SimpleKCM {
                                            progress: progressStyles[progressBox.currentIndex].value,
                                            cursor: cursorBox.currentIndex === 3 ? cursorColour.color.toString().substring(0, 7) : cursorStyles[cursorBox.currentIndex].value,
                                            lockscreen: lockBox.currentIndex === 1 ? "plasma" : "cde",
+                                           windowShadow: windowShadow.checked,
                                            at: Date.now()});
     }
 
@@ -166,6 +170,15 @@ KCM.SimpleKCM {
         Label {
             Layout.fillWidth: true; wrapMode: Text.Wrap; opacity: 0.75
             text: i18nd("cde-copper", "The cursors after the X11 cursor font: black shapes on a coloured rim, with a soft shadow.")
+        }
+
+        Kirigami.Separator { Layout.fillWidth: true }
+        Kirigami.Heading { level: 3; text: i18nd("cde-copper", "Windows") }
+        CheckBox {
+            id: windowShadow
+            checked: true
+            text: i18nd("cde-copper", "Short hard shadow at the right and bottom of each window")
+            onToggled: page.request()
         }
 
         Kirigami.Separator { Layout.fillWidth: true }
