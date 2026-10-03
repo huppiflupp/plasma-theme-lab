@@ -43,7 +43,7 @@ TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "
            "fonts/CDECopper", TOOL) + SCHEMES
 # The tool copy: what applying a palette needs, so the console and System
 # Settings can switch palettes without the extracted archive.
-TOOL_SOURCES = ("manage.py", "build.py", "palettes.py", "backdrops.py", "kvantum.py", "icons.py",
+TOOL_SOURCES = ("manage.py", "build.py", "palettes.py", "backdrops.py", "kvantum.py", "icons.py", "cursors.py",
                 "layout.js", "tools", "palettes", "backdrops")
 # Owned by older installations and removed when they are upgraded.
 LEGACY_TARGETS = ("aurorae/themes/CDECopper", "wallpapers/CDEBackdrops", "wallpapers/org.cde.copper.backdrop")
@@ -168,7 +168,10 @@ def install():
         remove(CONFIG / target)
         copy(ROOT / "build" / target, CONFIG / target)
     MANIFEST.write_text(json.dumps(manifest, indent=2))
-    # The copy from build/ has outlined progress bars; keep the chosen style.
+    # The copy from build/ has copper cursors and outlined progress bars;
+    # keep the chosen ones.
+    if cursor_edge(manifest) != CURSOR_COLOURS["copper"]:
+        install_cursors(manifest)
     if manifest.get("palette", "Copper") == "Copper" and manifest.get("progress", "outlined") != "outlined":
         copper_kvantum(manifest["progress"])
     run("kbuildsycoca6", check=False)
@@ -193,6 +196,37 @@ def copper_kvantum(progress):
     remove(CONFIG / "Kvantum/CDECopper")
     copy(stage / "Kvantum/CDECopper", CONFIG / "Kvantum/CDECopper")
     remove(stage)
+
+
+CURSOR_COLOURS = {"copper": "#e8874f", "white": "#ffffff"}
+
+
+def cursor_edge(manifest):
+    """The rim colour of the cursors: copper, white, the palette's accent
+    (its active title colour, as the controls use it) or #rrggbb."""
+    choice = manifest.get("cursor", "copper")
+    if choice == "palette":
+        name = manifest.get("palette", "Copper")
+        return CURSOR_COLOURS["copper"] if name == "Copper" else palettes.theme(name)["kopf_aktiv"]
+    if re.fullmatch(r"#[0-9a-fA-F]{6}", choice):
+        return choice.lower()
+    return CURSOR_COLOURS.get(choice, CURSOR_COLOURS["copper"])
+
+
+def install_cursors(manifest):
+    """Rebuild the cursor theme (ours) with the chosen rim colour and make
+    Plasma load it again: the same name alone would keep the cached images."""
+    sys.path.insert(0, str(ROOT))
+    from cursors import build_cursors
+    stage = STATE / "cursor-build"
+    remove(stage)
+    build_cursors(stage, edge=cursor_edge(manifest))
+    remove(DATA / "icons/CDECopperCursors")
+    copy(stage / "icons/CDECopperCursors", DATA / "icons/CDECopperCursors")
+    remove(stage)
+    if read_config("kcminputrc", "Mouse", "cursorTheme") == "CDECopperCursors" and shutil.which("plasma-apply-cursortheme"):
+        run("plasma-apply-cursortheme", "breeze_cursors", check=False)
+        run("plasma-apply-cursortheme", "CDECopperCursors", check=False)
 
 
 def install_palette(manifest, name):
@@ -308,6 +342,8 @@ def set_palette(manifest, name):
     (DATA / TOOL).mkdir(parents=True, exist_ok=True)
     (DATA / TOOL / "workspaces.json").write_text(json.dumps(palettes.workspace_colours(name)))
     theme = install_palette(manifest, name)
+    if manifest.get("cursor") == "palette":
+        install_cursors(manifest)
     if current_scheme() != theme["colors"]:
         run("plasma-apply-colorscheme", theme["colors"])
     run("plasma-apply-desktoptheme", theme["plasma"])
@@ -424,7 +460,7 @@ def set_backdrop(manifest, name, scale):
     MANIFEST.write_text(json.dumps(manifest, indent=2))
 
 
-def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=False, progress=None):
+def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=False, progress=None, cursor=None):
     """Switch palette (and backdrop) of an applied installation; with follow,
     take the palette from the colour scheme chosen in System Settings."""
     if not MANIFEST.exists():
@@ -440,6 +476,10 @@ def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=Fa
             name = match.group(1) if match else None
             if name not in ("Copper", *palettes.names()):
                 return
+        if cursor:
+            manifest["cursor"] = cursor
+            install_cursors(manifest)
+            MANIFEST.write_text(json.dumps(manifest, indent=2))
         if progress:
             # A progress style, even the same again, rebuilds the controls of
             # the palette in use (an older installation may lack it).
@@ -554,6 +594,8 @@ def main():
     parser.add_argument("--backdrop-scale", type=int, choices=(1, 2, 3), help="pixel size of the backdrop tiles, e.g. 2 for 200 %% displays")
     parser.add_argument("--progress", choices=("outlined", "floating", "slim"),
                         help="palette: progress bar style (outlined, floating in the groove, slim)")
+    parser.add_argument("--cursor", type=lambda v: v if v in ("copper", "palette", "white") or re.fullmatch(r"#[0-9a-fA-F]{6}", v) else parser.error(f"--cursor: {v!r}"),
+                        help="palette: rim of the cursors: copper, palette (its accent), white or #rrggbb")
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--panel", action="store_true", help="replace the panel layout, backed up on installation")
     parser.add_argument("--dry-run", action="store_true")
@@ -576,7 +618,7 @@ def main():
     elif args.action == "apply":
         apply(args.panel, args.palette, args.backdrop, args.backdrop_scale)
     elif args.action == "palette":
-        palette_action(args.palette, args.backdrop, args.backdrop_scale, args.follow_scheme, args.notify, args.progress)
+        palette_action(args.palette, args.backdrop, args.backdrop_scale, args.follow_scheme, args.notify, args.progress, args.cursor)
     else:
         uninstall()
 

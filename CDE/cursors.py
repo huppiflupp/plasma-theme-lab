@@ -1,11 +1,13 @@
 """Mouse cursors after the X11 cursor font that CDE and Motif used.
 
 The glyphs of the X cursor font are 16 x 16 bitmaps: black shapes with a
-white mask, a few white with a black outline (hand, watch face). They are
-drawn here on the same 16-pixel grid with the pixel painter of icons.py;
-24 px is rasterised on its own, 32, 48 and 64 px are whole-number
-enlargements (of 16, 24 and 16), so the cursors keep their pixel edges.
-The files are written in the Xcursor format directly, without xcursorgen.
+mask around them, a few white with a black outline (hand, watch face).
+They are described here on that 16-pixel grid, in slimmer shapes, and
+rasterised anew for every size with the pixel painter of icons.py, so the
+edges stay sharp. The rim of the black shapes takes a colour (EDGE: copper
+by default, the palette's accent or any other, chosen in the console's
+Style page); a soft shadow falls to the lower right. The files are written
+in the Xcursor format directly, without xcursorgen or an image library.
 """
 import math
 import struct
@@ -14,7 +16,8 @@ from pathlib import Path
 from icons import Pixels, COPPER
 
 BLACK, WHITE = "#000000", "#ffffff"
-SIZES = {24: (24, 1), 32: (16, 2), 48: (24, 2), 64: (16, 4)}   # size: (drawn at, enlarged by)
+EDGE = COPPER          # the rim of the black shapes; set by build_cursors
+SIZES = (24, 32, 48, 64)
 
 
 def turn(points, degrees, centre=(8, 8)):
@@ -27,8 +30,8 @@ def shift(points, dx, dy, scale=1.0):
     return [(dx + x * scale, dy + y * scale) for x, y in points]
 
 
-ARROW = [(1, 1), (1, 14), (4.2, 11), (6.5, 15.8), (8.8, 14.8), (6.6, 10.2), (11, 10.2)]
-DOUBLE = [(0.3, 8), (4.5, 3.8), (4.5, 6.6), (11.5, 6.6), (11.5, 3.8), (15.7, 8), (11.5, 12.2), (11.5, 9.4), (4.5, 9.4), (4.5, 12.2)]
+ARROW = [(1, 1), (1, 13.2), (3.9, 10.6), (5.9, 15), (7.4, 14.4), (5.5, 10), (9.4, 10)]
+DOUBLE = [(0.5, 8), (4, 4.6), (4, 7.2), (12, 7.2), (12, 4.6), (15.5, 8), (12, 11.4), (12, 8.8), (4, 8.8), (4, 11.4)]
 
 
 def rim(p, mask):
@@ -39,8 +42,8 @@ def rim(p, mask):
 
 
 def dark(p, mask):
-    """A black shape on a white rim."""
-    p.fill(rim(p, mask), WHITE)
+    """A black shape on a coloured rim."""
+    p.fill(rim(p, mask), EDGE)
     p.fill(mask, BLACK)
 
 
@@ -61,12 +64,12 @@ def watch(p, x=0, y=0, s=1.0):
     dark(p, q([(5, 0), (11, 0), (11, 4), (5, 4)]) | q([(5, 12), (11, 12), (11, 16), (5, 16)]))
     light(p, p.disc(x + 8 * s, y + 8 * s, 6 * s))
     p.fill(p.line(x + 8 * s, y + 8 * s, x + 8 * s, y + 4 * s) | p.line(x + 8 * s, y + 8 * s, x + 11 * s, y + 9.5 * s), BLACK)
-    p.fill(p.rect(x + 13.8 * s, y + 7 * s, 1.5 * s, 2 * s), COPPER)
+    p.fill(p.rect(x + 13.8 * s, y + 7 * s, 1.5 * s, 2 * s), EDGE)
 
 
 def ibeam(p, angle=0):
-    pts = [[(4.5, 0.5), (11.5, 0.5), (11.5, 2.5), (9, 2.5), (9, 13.5), (11.5, 13.5), (11.5, 15.5), (4.5, 15.5), (4.5, 13.5), (7, 13.5), (7, 2.5), (4.5, 2.5)]]
-    dark(p, p.poly(turn(pts[0], angle)))
+    pts = [(5, 1), (11, 1), (11, 2.3), (8.6, 2.3), (8.6, 13.7), (11, 13.7), (11, 15), (5, 15), (5, 13.7), (7.4, 13.7), (7.4, 2.3), (5, 2.3)]
+    dark(p, p.poly(turn(pts, angle)))
 
 
 def hand(p, fingers="point"):
@@ -104,7 +107,8 @@ def cross(p):
 
 
 def fleur(p):
-    tip = [(8, 0.3), (11.5, 4), (9.2, 4), (9.2, 6.8), (6.8, 6.8), (6.8, 4), (4.5, 4)]
+    # Narrow heads, so the four arrows stay apart at every size.
+    tip = [(8, 0.3), (11, 3.5), (9.2, 3.5), (9.2, 6.8), (6.8, 6.8), (6.8, 3.5), (5, 3.5)]
     mask = p.rect(6.8, 6.8, 2.4, 2.4)
     for a in (0, 90, 180, 270):
         mask |= p.poly(turn(tip, a))
@@ -148,7 +152,7 @@ def lens(p, sign):
 
 def pencil(p):
     light(p, p.poly([(1, 15), (2, 11.5), (11.5, 2), (14, 4.5), (4.5, 14)]))
-    p.fill(p.poly([(10.5, 3), (12.8, 0.8), (15.2, 3.2), (13, 5.5)]), COPPER)
+    p.fill(p.poly([(10.5, 3), (12.8, 0.8), (15.2, 3.2), (13, 5.5)]), EDGE)
     p.fill(p.line(1, 15, 2.5, 13.5), BLACK)
 
 
@@ -219,26 +223,43 @@ ALIASES = {
 }
 
 
+def shadow(opaque, size):
+    """Alpha of a soft shadow: the shape moved down and right, blurred
+    twice with a small box."""
+    shift_, radius = max(1, size // 16), max(1, size // 24)
+    a = [[0.0] * size for _ in range(size)]
+    for j in range(size):
+        for i in range(size):
+            if opaque[j][i] and i + shift_ < size and j + shift_ < size:
+                a[j + shift_][i + shift_] = 1.0
+    for _ in range(2):
+        a = [[sum(a[j][x] for x in range(max(0, i - radius), min(size, i + radius + 1))) / (2 * radius + 1) for i in range(size)] for j in range(size)]
+        a = [[sum(a[y][i] for y in range(max(0, j - radius), min(size, j + radius + 1))) / (2 * radius + 1) for i in range(size)] for j in range(size)]
+    return a
+
+
 def render(draw, size):
-    drawn, factor = SIZES[size]
-    p = Pixels(drawn)
+    """ARGB, premultiplied as Xcursor expects: opaque pixels as drawn, the
+    shadow black at partial alpha."""
+    p = Pixels(size)
     draw(p)
+    opaque = [[bool(c) for c in row] for row in p.grid]
+    soft = shadow(opaque, size)
     rows = []
-    for j in range(drawn):
+    for j in range(size):
         row = []
-        for i in range(drawn):
+        for i in range(size):
             c = p.grid[j][i]
-            row.append(0 if not c else 0xff000000 | int(c[1:], 16))
+            row.append(0xff000000 | int(c[1:], 16) if c else round(soft[j][i] * 0.45 * 255) << 24)
         rows.append(row)
-    # Whole-number enlargement keeps the pixel edges.
-    return [[rows[j // factor][i // factor] for i in range(size)] for j in range(size)]
+    return rows
 
 
 def xcursor(draw, hotspot):
     """One Xcursor file with an image per size (ARGB, unpremultiplied
     values are fine for opaque and fully transparent pixels)."""
     chunks = []
-    for size in sorted(SIZES):
+    for size in SIZES:
         pixels = render(draw, size)
         hx, hy = (min(size - 1, round(v * size / 16)) for v in hotspot)
         header = struct.pack("<9I", 36, 0xfffd0002, size, 1, size, size, hx, hy, 0)
@@ -253,7 +274,9 @@ def xcursor(draw, hotspot):
     return out
 
 
-def build_cursors(out: Path, name="CDECopperCursors"):
+def build_cursors(out: Path, name="CDECopperCursors", edge=COPPER):
+    global EDGE
+    EDGE = edge
     theme = out / "icons" / name
     folder = theme / "cursors"
     if folder.exists():
@@ -266,4 +289,4 @@ def build_cursors(out: Path, name="CDECopperCursors"):
         for alias in names:
             if alias not in CURSORS:
                 (folder / alias).symlink_to(target)
-    (theme / "index.theme").write_text("[Icon Theme]\nName=CDE\nComment=Cursors after the X11 cursor font of CDE and Motif\n")
+    (theme / "index.theme").write_text(f"[Icon Theme]\nName=CDE\nComment=Cursors after the X11 cursor font of CDE and Motif, rim {edge}\n")

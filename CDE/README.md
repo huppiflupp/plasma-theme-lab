@@ -44,7 +44,9 @@ or takes any of CDE's own 37 palettes and backdrops.
   window in the middle above the console (Meta+Ctrl+C).
 - Mouse cursors after the X11 cursor font of CDE and Motif (arrow, I-beam,
   wristwatch, hand, crosshair, resize arrows...), 28 drawings under 99 names,
-  pixel-exact at 24, 32, 48 and 64 px.
+  pixel-exact at 24, 32, 48 and 64 px: slim black shapes on a coloured rim
+  (copper, the palette's accent, white or any colour, chosen in the console's
+  Style page) with a soft shadow.
 - Original SVG icon artwork, 248 drawings under 652 names (applications,
   menu categories, actions, documents, devices, places, battery, network and
   other status icons), with no embedded raster images; the 59 most visible

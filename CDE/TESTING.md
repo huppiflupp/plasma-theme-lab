@@ -232,6 +232,20 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   their colour: the white mask is the shape grown by one pixel, as in the
   cursor font. System Settings lists them as "CDE"; applied in the VM with
   plasma-apply-cursortheme. A test reads the Xcursor headers.
+- Cursors, revised after a proof sheet of ten variants
+  (screenshots/zeiger-varianten.png; chosen: 8 with the shadow of 9): slim
+  shapes rasterised anew at every size, black on a coloured rim, soft
+  shadow (premultiplied ARGB, computed without an image library, as the
+  tool runs on the user's machine). Rim: Style page › Mouse cursors, or
+  `manage.py palette --cursor copper|palette|white|#rrggbb`; "palette"
+  follows every palette change. Plasma keeps a cursor theme's images by
+  name, so the tool switches to Breeze and back. Checked in the VM: palette
+  Arizona gave the rim #d3d178. The fleur's heads are narrower, so the four
+  arrows no longer run together into a diamond.
+- Style page: the backdrop preview stayed white after a palette change
+  while the page was open (it looked for the old palette's tiles, which the
+  tool replaces). The page now rereads the palette in use and falls back to
+  the packaged Copper tile.
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the

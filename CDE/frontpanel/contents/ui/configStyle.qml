@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import QtCore
 import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
+import org.kde.kquickcontrols as KQuickControls
 import org.kde.plasma.plasma5support as P5Support
 import "palettes.js" as Palettes
 import "launch.js" as Launch
@@ -28,6 +29,11 @@ KCM.SimpleKCM {
         {value: "outlined", text: "Outlined: dark edge, one-pixel bevel"},
         {value: "floating", text: "Floating: a pixel inside the groove, two-pixel bevel"},
         {value: "slim", text: "Slim: 8 pixels high"}]
+    readonly property var cursorStyles: [
+        {value: "copper", text: "Copper rim"},
+        {value: "palette", text: "Rim in the palette's accent colour"},
+        {value: "white", text: "White rim, as in X11"},
+        {value: "custom", text: "Rim in a colour of my own"}]
 
     P5Support.DataSource {
         id: shell
@@ -41,8 +47,18 @@ KCM.SimpleKCM {
             } else if (source.indexOf("cat ") === 0) {
                 try { page.progressInUse = JSON.parse(data.stdout).progress || "outlined"; } catch (e) { page.progressInUse = "outlined"; }
                 progressBox.currentIndex = Math.max(0, page.progressStyles.findIndex(s => s.value === page.progressInUse));
+                let cursor = "copper";
+                try { cursor = JSON.parse(data.stdout).cursor || "copper"; } catch (e) {}
+                if (cursor.charAt(0) === "#") { cursorColour.color = cursor; cursor = "custom"; }
+                cursorBox.currentIndex = Math.max(0, page.cursorStyles.findIndex(s => s.value === cursor));
             }
         }
+    }
+    // The palette in use can change while the page is open (Apply, or System
+    // Settings); its tiles replace the old palette's, so look again.
+    Timer {
+        interval: 2500; repeat: true; running: page.visible
+        onTriggered: shell.connectSource("kreadconfig6 --group General --key ColorScheme")
     }
     Component.onCompleted: {
         shell.connectSource("kreadconfig6 --group General --key ColorScheme");
@@ -52,7 +68,9 @@ KCM.SimpleKCM {
     // Every change makes a new request (the time keeps two equal ones apart).
     function request() {
         cfg_styleRequest = JSON.stringify({palette: chosen, backdrop: backdrop, scale: pixels.value,
-                                           progress: progressStyles[progressBox.currentIndex].value, at: Date.now()});
+                                           progress: progressStyles[progressBox.currentIndex].value,
+                                           cursor: cursorBox.currentIndex === 3 ? cursorColour.color.toString().substring(0, 7) : cursorStyles[cursorBox.currentIndex].value,
+                                           at: Date.now()});
     }
 
     ColumnLayout {
@@ -123,6 +141,29 @@ KCM.SimpleKCM {
         }
 
         Kirigami.Separator { Layout.fillWidth: true }
+        Kirigami.Heading { level: 3; text: "Mouse cursors" }
+        RowLayout {
+            ComboBox {
+                id: cursorBox
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 20
+                model: page.cursorStyles
+                textRole: "text"
+                onActivated: page.request()
+            }
+            KQuickControls.ColorButton {
+                id: cursorColour
+                visible: cursorBox.currentIndex === 3
+                color: "#e8874f"
+                dialogTitle: "Cursor rim"
+                onAccepted: chosenColour => { cursorColour.color = chosenColour; page.request(); }
+            }
+        }
+        Label {
+            Layout.fillWidth: true; wrapMode: Text.Wrap; opacity: 0.75
+            text: "The cursors after the X11 cursor font: black shapes on a coloured rim, with a soft shadow."
+        }
+
+        Kirigami.Separator { Layout.fillWidth: true }
         Kirigami.Heading { level: 3; text: "Backdrop" }
         RowLayout {
             ComboBox {
@@ -150,11 +191,18 @@ KCM.SimpleKCM {
             border.color: Kirigami.Theme.disabledTextColor
             clip: true
             Image {
+                id: preview
+                // The packaged Copper tile when the palette's is not there.
+                property bool fallback: false
+                readonly property string profileTile: "file://" + page.dataDir + "/cde-copper/backdrops/" + (page.current || "Copper") + "/" + page.backdrop + ".png"
+                readonly property string packageTile: "file://" + page.dataDir + "/plasma/wallpapers/org.cde.copper.backdrop/contents/images/Copper/" + page.backdrop + ".png"
+                onProfileTileChanged: fallback = false
                 anchors.fill: parent; anchors.margins: 1
                 fillMode: Image.Tile
                 smooth: false
                 cache: false
-                source: page.backdrop ? "file://" + page.dataDir + "/cde-copper/backdrops/" + (page.current || "Copper") + "/" + page.backdrop + ".png" : ""
+                source: !page.backdrop || page.backdrop === "none" ? "" : fallback ? packageTile : profileTile
+                onStatusChanged: if (status === Image.Error && !fallback) fallback = true
             }
         }
         Label {
