@@ -392,5 +392,50 @@ class Installer(unittest.TestCase):
         self.assertTrue((self.data / "icons/CDECopper").exists())
 
 
+class Stability(unittest.TestCase):
+    def test_headless_follow_does_not_start_programs(self):
+        import manage
+        from unittest.mock import patch
+        with patch.dict(os.environ, {}, clear=True), patch.object(manage.subprocess, "run") as run:
+            self.assertFalse(manage.cursor_tool())
+            manage.palette_action(follow=True)
+            run.assert_not_called()
+            with self.assertRaises(RuntimeError):
+                manage.apply()
+            run.assert_not_called()
+
+    def test_failed_kwin_refresh_restores_decoration(self):
+        import manage
+        from unittest.mock import patch
+        values = []
+        with patch.object(manage, "read_config", side_effect=["fusion", manage.DECORATION]), \
+             patch.object(manage, "write_config", side_effect=lambda f, g, v: values.append(v)), \
+             patch.object(manage, "dbus", side_effect=RuntimeError("bus lost")):
+            with self.assertRaises(RuntimeError):
+                manage.refresh_running_windows()
+        self.assertEqual(values[-1], {"library": "org.kde.kwin.aurorae"})
+
+    def test_plymouth_failure_retains_ownership_and_theme(self):
+        import system
+        from unittest.mock import patch
+        manifest = {"parts": {"plymouth": {"previous": "bgrt"}}}
+        with patch.object(system, "which", return_value="plymouth-set-default-theme"), \
+             patch.object(system, "run", side_effect=subprocess.CalledProcessError(1, "rebuild")), \
+             patch.object(system.shutil, "rmtree") as remove, patch.object(system, "save") as save:
+            with self.assertRaises(subprocess.CalledProcessError):
+                system.plymouth_uninstall(manifest)
+            self.assertIn("plymouth", manifest["parts"])
+            remove.assert_not_called()
+            save.assert_not_called()
+
+    def test_unowned_plymouth_is_not_removed(self):
+        import system
+        from unittest.mock import patch
+        with patch.object(system.shutil, "rmtree") as remove, patch.object(system, "save") as save:
+            system.plymouth_uninstall({"parts": {}})
+            remove.assert_not_called()
+            save.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

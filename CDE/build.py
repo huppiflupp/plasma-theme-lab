@@ -329,7 +329,11 @@ Image=org.cde.copper
     # without it, choosing the theme with its layout falls back to Plasma's
     # default panel (Kickoff, task manager, clock) drawn in CDE's surfaces.
     (OUT / lnf / "contents/layouts").mkdir(parents=True, exist_ok=True)
-    shutil.copy2(ROOT / "layout.js", OUT / lnf / "contents/layouts/org.kde.plasma.desktop-layout.js")
+    # Plasma looks for <shell>-layout.js of the shell it runs: Plasma's own,
+    # or CDE Copper's (its lock screen). Without the second, applying the
+    # theme with its layout under CDE's shell left a desktop without panels.
+    for shell in ("org.kde.plasma.desktop", "org.cde.copper.shell"):
+        shutil.copy2(ROOT / "layout.js", OUT / lnf / f"contents/layouts/{shell}-layout.js")
     # Start-up, lock and logout screens; the start-up screen tiles a backdrop
     # and shows the console's logo.
     shutil.copytree(ROOT / "lookandfeel/contents", OUT / lnf / "contents", dirs_exist_ok=True)
@@ -359,6 +363,33 @@ Image=org.cde.copper
         target = OUT / lnf / "contents/previews" / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / "screenshots/desktop-arranged-1920.png", target)
+    night_theme(lnf)
+
+
+# Plasma's day/night switching (Quick Settings, kdeglobals [KDE]
+# DefaultLightLookAndFeel/DefaultDarkLookAndFeel) swaps global themes; the
+# night one is CDE's darkest palette. Its colour scheme set, the console
+# turns the rest (Kvantum, Plasma surfaces, backdrop) to that palette.
+NIGHT = ("org.cde.copper.night", "CDE Night", "NorthernSky")
+
+
+def night_theme(day):
+    ident, name, palette = NIGHT
+    lnf = f"plasma/look-and-feel/{ident}/"
+    shutil.rmtree(OUT / lnf, ignore_errors=True)
+    shutil.copytree(OUT / day, OUT / lnf)
+    meta = metadata(ident, name, f"CDE Copper at night: the {palette} palette, for Plasma's day/night switching")
+    meta["KPackageStructure"] = "Plasma/LookAndFeel"
+    write(lnf + "metadata.json", json.dumps(meta, indent=2))
+    # Only what differs from the day theme; the plasma theme follows when the
+    # console applies the palette, and the backdrop stays as it is.
+    defaults = (OUT / day / "contents/defaults").read_text()
+    defaults = defaults.replace("ColorScheme=CDECopper", f"ColorScheme=CDE{palette}")
+    defaults = defaults.split("[plasmarc][Theme]")[0] + defaults.split("[plasmarc][Theme]")[1].split("\n", 2)[2]
+    defaults = defaults.split("[Wallpaper]")[0]
+    write(lnf + "contents/defaults", defaults)
+    import palettes
+    write(lnf + "contents/splash/Colours.qml", splash_colours(palettes.theme(palette)))
 
 
 def main():

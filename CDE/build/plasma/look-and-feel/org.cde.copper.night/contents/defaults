@@ -1,0 +1,26 @@
+[kdeglobals][General]
+ColorScheme=CDENorthernSky
+font=IBM Plex Sans Condensed,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+fixed=IBM Plex Mono,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+menuFont=IBM Plex Sans Condensed,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+toolBarFont=IBM Plex Sans Condensed,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+[kdeglobals][WM]
+activeFont=IBM Plex Sans Condensed,10,-1,5,600,0,0,0,0,0,0,0,0,0,0,1
+[kdeglobals][KDE]
+widgetStyle=kvantum
+[kdeglobals][Icons]
+Theme=CDECopper
+[kcminputrc][Mouse]
+cursorTheme=CDECopperCursors
+[ksplashrc][KSplash]
+Engine=KSplashQML
+Theme=org.cde.copper.desktop
+[kwinrc][org.kde.kdecoration2]
+library=org.kde.kwin.aurorae
+theme=kwin4_decoration_qml_cdecopper
+ButtonsOnLeft=M
+ButtonsOnRight=IAX
+BorderSize=Normal
+[kwinrc][Desktops]
+Number=4
+Rows=2

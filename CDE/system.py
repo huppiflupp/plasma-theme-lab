@@ -17,6 +17,7 @@ user calling sudo has applied (from their CDE Copper manifest), Copper when
 there is none. After switching palettes, run install again to follow.
 """
 import argparse
+import fcntl
 import json
 import os
 import pwd
@@ -60,7 +61,9 @@ def load():
 
 def save(manifest):
     STATE.mkdir(parents=True, exist_ok=True)
-    MANIFEST.write_text(json.dumps(manifest, indent=2))
+    pending = MANIFEST.with_suffix(".tmp")
+    pending.write_text(json.dumps(manifest, indent=2))
+    pending.replace(MANIFEST)
 
 
 def user_palette():
@@ -102,23 +105,30 @@ def plymouth_install(manifest):
         raise RuntimeError("Plymouth's script module is missing: install plymouth-plugin-script (Fedora) "
                            "or plymouth-themes (Debian, Ubuntu), then run this again")
     previous = run(tool).stdout.strip()
+    if (PLYMOUTH_DIR.exists() or PLYMOUTH_DIR.is_symlink()) and "plymouth" not in manifest["parts"]:
+        raise RuntimeError("Refusing to overwrite unowned path: " + str(PLYMOUTH_DIR))
+    manifest["parts"]["plymouth"] = {"previous": previous if previous != NAME else
+                                     manifest["parts"].get("plymouth", {}).get("previous", "bgrt")}
+    save(manifest)
     if PLYMOUTH_DIR.exists():
         shutil.rmtree(PLYMOUTH_DIR)
     shutil.copytree(BUILD / "plymouth/cde-copper", PLYMOUTH_DIR)
     print("Rebuilding the initramfs; this takes a minute.")
     run(tool, "-R", NAME)
-    manifest["parts"]["plymouth"] = {"previous": previous if previous != NAME else
-                                     manifest["parts"].get("plymouth", {}).get("previous", "bgrt")}
-    save(manifest)
 
 
 def plymouth_uninstall(manifest):
-    part = manifest["parts"].pop("plymouth", None)
+    part = manifest["parts"].get("plymouth")
+    if not part:
+        return
     tool = which("plymouth-set-default-theme")
-    if part and tool:
-        run(tool, "-R", part["previous"], check=False)
+    if not tool:
+        raise RuntimeError("plymouth-set-default-theme missing; ownership retained")
+    # Keep the theme and recovery record until the initramfs is restored.
+    run(tool, "-R", part["previous"])
     if PLYMOUTH_DIR.exists():
         shutil.rmtree(PLYMOUTH_DIR)
+    del manifest["parts"]["plymouth"]
     save(manifest)
 
 
@@ -160,6 +170,16 @@ def grub_install(manifest, background="altai-dark"):
         print("GRUB 2 not found; boot menu skipped")
         return
     theme = folder / "themes" / NAME
+    part = manifest["parts"].get("grub") or {}
+    if not part:
+        for path in (theme, GFXPAYLOAD):
+            if path.exists() or path.is_symlink():
+                raise RuntimeError("Refusing to overwrite unowned path: " + str(path))
+        STATE.mkdir(parents=True, exist_ok=True)
+        shutil.copy2("/etc/default/grub", STATE / "default-grub")
+        part = {"backup": str(STATE / "default-grub"), "folder": str(folder), "prefix": prefix}
+        manifest["parts"]["grub"] = part
+        save(manifest)
     if theme.exists():
         shutil.rmtree(theme)
     shutil.copytree(BUILD / "grub/cde-copper", theme)
@@ -213,15 +233,16 @@ def grub_install(manifest, background="altai-dark"):
 
 
 def grub_uninstall(manifest):
-    part = manifest["parts"].pop("grub", None)
+    part = manifest["parts"].get("grub")
     if part:
         shutil.copy2(part["backup"], "/etc/default/grub")
         folder = Path(part["folder"])
-        if (folder / "themes" / NAME).exists():
-            shutil.rmtree(folder / "themes" / NAME)
         if GFXPAYLOAD.exists():
             GFXPAYLOAD.unlink()
-        run(f"{part['prefix']}-mkconfig", "-o", folder / "grub.cfg", check=False)
+        run(f"{part['prefix']}-mkconfig", "-o", folder / "grub.cfg")
+        if (folder / "themes" / NAME).exists():
+            shutil.rmtree(folder / "themes" / NAME)
+        del manifest["parts"]["grub"]
     save(manifest)
 
 
@@ -267,7 +288,7 @@ def main():
         except subprocess.CalledProcessError as error:
             print(f"{name}: {' '.join(error.cmd)} failed:\n{error.stdout}{error.stderr}", file=sys.stderr)
             return 1
-        except RuntimeError as error:
+        except (RuntimeError, OSError) as error:
             print(f"{name}: {error}", file=sys.stderr)
             return 1
     print("Done.")
@@ -275,4 +296,10 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # Serialize installs and uninstalls; status stays read-only.
+    if "status" in sys.argv or os.geteuid() != 0:
+        sys.exit(main())
+    STATE.mkdir(parents=True, exist_ok=True)
+    with (STATE / "lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        sys.exit(main())

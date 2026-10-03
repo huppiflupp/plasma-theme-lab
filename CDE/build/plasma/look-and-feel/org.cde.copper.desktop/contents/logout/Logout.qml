@@ -12,11 +12,14 @@ Item {
     signal logoutRequested()
     signal haltRequested()
     signal haltUpdateRequested()
+    onSuspendRequested: actionSent = true
     signal suspendRequested(int spdMethod)
     signal rebootRequested()
     signal rebootRequested2(int opt)
     signal rebootUpdateRequested()
+    onCancelRequested: actionSent = true
     signal cancelRequested()
+    onLockScreenRequested: actionSent = true
     signal lockScreenRequested()
     signal cancelSoftwareUpdateRequested()
 
@@ -28,14 +31,17 @@ Item {
     // What the dialog was called for, and what the countdown does.
     readonly property string action: sdtype === ShutdownType.ShutdownTypeReboot ? "restart"
                                     : sdtype === ShutdownType.ShutdownTypeHalt ? "halt" : "logout"
+    property bool actionSent: false
     function act(what) {
+        if (actionSent || ((what === "restart" || what === "halt") ? !maysd : !canLogout)) return;
+        actionSent = true;
         if (what === "restart") softwareUpdatePending ? rebootUpdateRequested() : rebootRequested();
         else if (what === "halt") softwareUpdatePending ? haltUpdateRequested() : haltRequested();
         else logoutRequested();
     }
 
     Timer {
-        interval: 1000; running: true; repeat: true
+        interval: 1000; running: !root.actionSent; repeat: true
         onTriggered: if (--root.remainingTime <= 0) root.act(root.action)
     }
 

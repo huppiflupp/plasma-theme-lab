@@ -205,7 +205,8 @@ function check(command) {
 // once; with systemd's default the program would be killed with them as the
 // rest of the unit's control group.
 function detached(shell) {
-    return "systemd-run --user --collect --quiet -p KillMode=process -- sh -c " + quote(shell);
+    return "systemd-run --user --collect --quiet -p KillMode=process -- sh -c "
+        + quote("[ -n \"$DISPLAY$WAYLAND_DISPLAY\" ] && [ -n \"$DBUS_SESSION_BUS_ADDRESS\" ] || exit 0; " + shell);
 }
 
 // Translate shipped labels at presentation time; keep user labels and app names.

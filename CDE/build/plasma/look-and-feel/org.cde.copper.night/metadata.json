@@ -1,0 +1,16 @@
+{
+  "KPlugin": {
+    "Id": "org.cde.copper.night",
+    "Name": "CDE Night",
+    "Description": "CDE Copper at night: the NorthernSky palette, for Plasma's day/night switching",
+    "Version": "0.8.0",
+    "License": "GPL-2.0-or-later",
+    "Authors": [
+      {
+        "Name": "CDE Copper contributors"
+      }
+    ],
+    "Website": "https://github.com/huppiflupp/plasma-theme-lab"
+  },
+  "KPackageStructure": "Plasma/LookAndFeel"
+}

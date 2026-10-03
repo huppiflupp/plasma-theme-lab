@@ -36,8 +36,8 @@ PlasmoidItem {
         property bool keyboard: false
         readonly property bool keep: inside || keyboard || (segment !== null && root.hoveredSegment === segment)
         interval: 450
-        running: dialog.visible && !keep
-        onTriggered: dialog.visible = false
+        running: dialog && dialog.visible && !keep
+        onTriggered: if (dialog) dialog.visible = false
         // The pointer on the segment when it opens: a click, not a key.
         function opened() { keyboard = !(segment !== null && root.hoveredSegment === segment); }
     }
@@ -55,7 +55,7 @@ PlasmoidItem {
     property string volumeState: i18nd("cde-copper", "Audio")
     property int volume: 0
     property bool muted: false
-    readonly property string dbus: "qdbus-qt6"
+    readonly property string dbus: "$(command -v qdbus6 || command -v qdbus-qt6 || command -v qdbus)"
     readonly property var leftSlots: Launch.parse(Plasmoid.configuration.leftLaunchers, Launch.LEFT)
     readonly property var rightSlots: Launch.parse(Plasmoid.configuration.rightLaunchers, Launch.RIGHT)
 
@@ -405,7 +405,7 @@ PlasmoidItem {
     P5Support.DataSource {
         engine: "executable"
         interval: 5000
-        connectedSources: ["LC_ALL=C nmcli -t -f STATE general", "wpctl get-volume @DEFAULT_AUDIO_SINK@"]
+        connectedSources: ["timeout 3s env LC_ALL=C nmcli -t -f STATE general", "timeout 3s wpctl get-volume @DEFAULT_AUDIO_SINK@"]
         onNewData: function(sourceName, data) {
             if (sourceName.indexOf("nmcli") >= 0) root.networkState = data.stdout.trim() === "connected" ? i18nd("cde-copper", "Connected") : i18nd("cde-copper", "Offline");
             else {
@@ -609,7 +609,7 @@ PlasmoidItem {
     // Opens the system tray's popup (hidden icons) the way a click on it does.
     function showHiddenIcons() {
         for (const applet of Plasmoid.containment.applets) {
-            if (applet.pluginName === "org.kde.plasma.systemtray") { applet.activated(); return; }
+            if (applet && applet.pluginName === "org.kde.plasma.systemtray") { applet.activated(); return; }
         }
     }
 

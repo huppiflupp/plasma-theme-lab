@@ -19,7 +19,7 @@ CONFIG = Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config"))
 STATE = DATA / "cde-copper-install"
 MANIFEST = STATE / "manifest.json"
 CONFIG_FILES = ("kdeglobals", "kwinrc", "plasmarc", "ksplashrc", "kcminputrc",
-                "konsolerc", "plasma-org.kde.plasma.desktop-appletsrc", "kdedefaults",
+                "konsolerc", "auroraerc", "plasma-org.kde.plasma.desktop-appletsrc", "kdedefaults",
                 "Kvantum/kvantum.kvconfig")
 # Owned paths below XDG_CONFIG_HOME: the Kvantum widget style lives there.
 CONFIG_TARGETS = ("Kvantum/CDECopper",)
@@ -39,6 +39,7 @@ LANGUAGES = ("de",)        # po/<language>.po, compiled by build.py
 TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "kwin/scripts/cde-copper-arrange",
            "kwin/tabbox/org.cde.copper.switcher",
            "plasma/desktoptheme/cde-copper", "plasma/look-and-feel/org.cde.copper.desktop",
+           "plasma/look-and-feel/org.cde.copper.night",
            "plasma/plasmoids/org.cde.copper.frontpanel", "icons/CDECopper",
            "wallpapers/org.cde.copper", "plasma/wallpapers/org.cde.copper.backdrop",
            *(f"wallpapers/org.cde.copper.{key}" for key, _, _ in PICTURES),
@@ -63,7 +64,41 @@ MONO_FONT = "IBM Plex Mono,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 
 
 def run(*args, check=True):
-    return subprocess.run(args, check=check, text=True)
+    # These command-line Qt tools need no window. Avoid Qt's fatal display
+    # connection path, including stale DISPLAY values inherited at login.
+    env = dict(os.environ, QT_QPA_PLATFORM="offscreen")
+    try:
+        return subprocess.run(args, check=check, text=True, env=env, timeout=30)
+    except FileNotFoundError:
+        if check:
+            raise RuntimeError("Required program not found: " + str(args[0]))
+        return None
+
+
+def session_ready():
+    """Do not auto-start a bus or run apply tools before Plasma is ready."""
+    if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")) or not os.environ.get("DBUS_SESSION_BUS_ADDRESS"):
+        return False
+    exe = shutil.which("dbus-send")
+    if not exe:
+        return False
+    try:
+        for service in ("org.kde.KWin", "org.kde.plasmashell"):
+            result = subprocess.run([exe, "--session", "--print-reply", "--reply-timeout=2000",
+                                     "--dest=org.freedesktop.DBus", "/org/freedesktop/DBus",
+                                     "org.freedesktop.DBus.NameHasOwner", "string:" + service],
+                                    capture_output=True, text=True, timeout=3)
+            if result.returncode or "boolean true" not in result.stdout:
+                return False
+        return True
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
+def save_manifest(manifest):
+    pending = MANIFEST.with_suffix(".tmp")
+    pending.write_text(json.dumps(manifest, indent=2))
+    pending.replace(MANIFEST)
 
 
 def dbus(*args):
@@ -150,8 +185,8 @@ def install():
                 present.append(file)
         manifest = {"version": 2, "data": str(DATA), "config": str(CONFIG),
                     "targets": list(TARGETS), "config_targets": list(CONFIG_TARGETS),
-                    "config_present": present, "applied": False}
-        MANIFEST.write_text(json.dumps(manifest, indent=2))
+                    "config_present": present, "config_files": list(CONFIG_FILES), "applied": False}
+        save_manifest(manifest)
     for target in [t for t in manifest["targets"] if t in LEGACY_TARGETS]:
         remove(DATA / target)
         manifest["targets"].remove(target)
@@ -164,6 +199,7 @@ def install():
             elif (DATA / target).exists() or (DATA / target).is_symlink():
                 raise RuntimeError("Refusing to overwrite unowned path: " + str(DATA / target))
             manifest["targets"].append(target)
+        save_manifest(manifest)
         if target == TOOL:
             install_tool()
             continue
@@ -171,10 +207,13 @@ def install():
         copy(ROOT / "build" / target, DATA / target)
     for target in CONFIG_TARGETS:
         if target not in manifest.setdefault("config_targets", []):
+            if (CONFIG / target).exists() or (CONFIG / target).is_symlink():
+                raise RuntimeError("Refusing to overwrite unowned path: " + str(CONFIG / target))
             manifest["config_targets"].append(target)
+        save_manifest(manifest)
         remove(CONFIG / target)
         copy(ROOT / "build" / target, CONFIG / target)
-    MANIFEST.write_text(json.dumps(manifest, indent=2))
+    save_manifest(manifest)
     # The copy from build/ has copper cursors and outlined progress bars;
     # keep the chosen ones.
     if cursor_edge(manifest) != CURSOR_COLOURS["copper"]:
@@ -268,6 +307,12 @@ def install_palette(manifest, name):
     for target, base in [(t, DATA) for t in result["targets"]] + [(t, CONFIG) for t in result["config_targets"]]:
         if (base / target).exists() or (base / target).is_symlink():
             raise RuntimeError("Refusing to overwrite unowned path: " + str(base / target))
+    # Record every generated path before copying: a failed copy must still
+    # be recoverable by uninstall or a repeated palette request.
+    manifest["palette"] = name
+    manifest["palette_targets"] = result["targets"]
+    manifest["palette_config_targets"] = result["config_targets"]
+    save_manifest(manifest)
     for target in result["targets"]:
         copy(stage / target, DATA / target)
     for target in result["config_targets"]:
@@ -344,9 +389,11 @@ def refresh_running_windows():
         notify_change(0)
     if read_config("kwinrc", "org.kde.kdecoration2", "theme") == DECORATION:
         write_config("kwinrc", "org.kde.kdecoration2", {"library": "org.kde.breeze"})
-        dbus("org.kde.KWin", "/KWin", "reconfigure")
-        time.sleep(0.5)
-        write_config("kwinrc", "org.kde.kdecoration2", {"library": "org.kde.kwin.aurorae"})
+        try:
+            dbus("org.kde.KWin", "/KWin", "reconfigure")
+            time.sleep(0.5)
+        finally:
+            write_config("kwinrc", "org.kde.kdecoration2", {"library": "org.kde.kwin.aurorae"})
         dbus("org.kde.KWin", "/KWin", "reconfigure")
 
 
@@ -381,7 +428,7 @@ def set_palette(manifest, name):
     integrate_xfile()
     update_splash(name)
     update_gtk(name)
-    MANIFEST.write_text(json.dumps(manifest, indent=2))
+    save_manifest(manifest)
     return theme
 
 
@@ -435,6 +482,8 @@ def integrate_xfile():
               os.environ.get("XDG_DATA_DIRS", "/usr/local/share:/usr/share").split(":")]
     if not any((folder / "xfile.desktop").exists() for folder in system):
         XFILE_DESKTOP.parent.mkdir(parents=True, exist_ok=True)
+        if XFILE_DESKTOP.exists() and "X-CDE-Copper=true" not in XFILE_DESKTOP.read_text(errors="replace"):
+            return
         XFILE_DESKTOP.write_text("""[Desktop Entry]
 Type=Application
 Name=XFile
@@ -454,7 +503,8 @@ X-CDE-Copper=true
 def remove_xfile_integration():
     if XFILE_RESOURCES.exists() and XFILE_MARK in XFILE_RESOURCES.read_text(errors="replace"):
         remove(XFILE_RESOURCES)
-    remove(XFILE_DESKTOP)
+    if XFILE_DESKTOP.exists() and "X-CDE-Copper=true" in XFILE_DESKTOP.read_text(errors="replace"):
+        remove(XFILE_DESKTOP)
 
 
 SHELL, DEFAULT_SHELL = "org.cde.copper.shell", "org.kde.plasma.desktop"
@@ -479,8 +529,11 @@ def set_lockscreen(manifest, kind, running=True):
     manifest["lockscreen"] = kind
     if current == wanted or (kind == "plasma" and current != SHELL):
         return
+    if kind == "cde":
+        manifest["shell_previous"] = current
+    save_manifest(manifest)
     if running:
-        run("systemctl", "--user", "stop", "plasma-plasmashell.service", check=False)
+        run("systemctl", "--user", "stop", "plasma-plasmashell.service")
     source = CONFIG / f"plasma-{current}-appletsrc"
     if source.exists():
         shutil.copy2(source, CONFIG / f"plasma-{wanted}-appletsrc")
@@ -488,7 +541,7 @@ def set_lockscreen(manifest, kind, running=True):
         manifest["shell_previous"] = current
     write_config("plasmashellrc", "Shell", {"ShellPackage": wanted})
     if running:
-        run("systemctl", "--user", "start", "plasma-plasmashell.service", check=False)
+        run("systemctl", "--user", "start", "plasma-plasmashell.service")
 
 
 GTK_THEME = "CDECopper"
@@ -500,7 +553,8 @@ def gtk_theme(name=None):
     if not exe:
         return ""
     args = [exe, "org.kde.GtkConfig", "/GtkConfig", "org.kde.GtkConfig." + ("setGtkTheme" if name else "gtkTheme")] + ([name] if name else [])
-    result = subprocess.run(args, capture_output=True, text=True)
+    result = subprocess.run(args, capture_output=True, text=True, timeout=10,
+                            env=dict(os.environ, QT_QPA_PLATFORM="offscreen"))
     return result.stdout.strip()
 
 
@@ -522,14 +576,17 @@ def update_splash(name):
     in the installed global theme (ours)."""
     sys.path.insert(0, str(ROOT))
     import build
-    splash = DATA / "plasma/look-and-feel/org.cde.copper.desktop/contents/splash"
-    if not splash.exists():
-        return
     colours = build.P if name == "Copper" else palettes.theme(name)
-    (splash / "Colours.qml").write_text(build.splash_colours(colours))
     tile = DATA / TOOL / "backdrops" / name / "Lattice.png"
-    if tile.exists():
-        shutil.copy2(tile, splash / "images/backdrop.png")
+    # Both global themes: the start-up screen comes from the day one, the
+    # logout dialog from whichever is applied.
+    for ident in ("org.cde.copper.desktop", "org.cde.copper.night"):
+        splash = DATA / f"plasma/look-and-feel/{ident}/contents/splash"
+        if not splash.exists():
+            continue
+        (splash / "Colours.qml").write_text(build.splash_colours(colours))
+        if tile.exists():
+            shutil.copy2(tile, splash / "images/backdrop.png")
     # The lock screen (shell package) shares colours and tile.
     lock = DATA / "plasma/shells/org.cde.copper.shell/contents/lockscreen"
     if lock.exists():
@@ -559,7 +616,7 @@ def set_backdrop(manifest, name, scale):
                       # One backdrop chosen: it replaces backdrops per workspace.
                       f" d.writeConfig('Backdrop', '{name}'); d.writeConfig('Palette', '{chosen}'); d.writeConfig('PerWorkspace', false);"
                       f" d.writeConfig('PixelSize', {int(scale)}); d.writeConfig('Color', '{colour_set['bg']}'); }}")
-    MANIFEST.write_text(json.dumps(manifest, indent=2))
+    save_manifest(manifest)
 
 
 def set_window_shadow(manifest, on):
@@ -574,10 +631,14 @@ def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=Fa
                    window_shadow=None):
     """Switch palette (and backdrop) of an applied installation; with follow,
     take the palette from the colour scheme chosen in System Settings."""
+    if not session_ready():
+        if follow:
+            return
+        raise RuntimeError("Apply palettes from a running Plasma session")
     if not MANIFEST.exists():
         raise RuntimeError("Install the theme before choosing a palette")
     STATE.mkdir(parents=True, exist_ok=True)
-    with open(STATE / "lock", "w") as lock:
+    with open(STATE.with_suffix(".lock"), "a") as lock:
         # Two consoles (two screens) may ask at the same moment.
         fcntl.flock(lock, fcntl.LOCK_EX)
         manifest = json.loads(MANIFEST.read_text())
@@ -589,14 +650,14 @@ def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=Fa
                 return
         if lockscreen:
             set_lockscreen(manifest, lockscreen)
-            MANIFEST.write_text(json.dumps(manifest, indent=2))
+            save_manifest(manifest)
         if window_shadow is not None:
             set_window_shadow(manifest, window_shadow)
-            MANIFEST.write_text(json.dumps(manifest, indent=2))
+            save_manifest(manifest)
         if cursor:
             manifest["cursor"] = cursor
             install_cursors(manifest)
-            MANIFEST.write_text(json.dumps(manifest, indent=2))
+            save_manifest(manifest)
         if progress:
             # A progress style, even the same again, rebuilds the controls of
             # the palette in use (an older installation may lack it).
@@ -616,12 +677,14 @@ def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=Fa
 
 
 def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
+    if not session_ready():
+        raise RuntimeError("Apply the theme from a running Plasma session")
     if not MANIFEST.exists():
         raise RuntimeError("Install the theme before applying it")
     manifest = json.loads(MANIFEST.read_text())
     manifest["applied"] = True
     chosen = palette or manifest.get("palette", "Copper")
-    MANIFEST.write_text(json.dumps(manifest, indent=2))
+    save_manifest(manifest)
     run("plasma-apply-lookandfeel", "--apply", "org.cde.copper.desktop")
     set_palette(manifest, chosen)
     # The Motif controls are a Kvantum theme; without the Kvantum style
@@ -631,7 +694,10 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
     else:
         style = "Windows"
         print("Kvantum style plugin not found; using the Qt Windows style. Install 'kvantum' for the Motif controls.")
-    write_config("kdeglobals", "KDE", {"widgetStyle": style, "LookAndFeelPackage": "org.cde.copper.desktop"})
+    # Day and night for Plasma's automatic switching (Quick Settings).
+    write_config("kdeglobals", "KDE", {"widgetStyle": style, "LookAndFeelPackage": "org.cde.copper.desktop",
+                                      "DefaultLightLookAndFeel": "org.cde.copper.desktop",
+                                      "DefaultDarkLookAndFeel": "org.cde.copper.night"})
     write_config("kdeglobals", "Icons", {"Theme": "CDECopper"})
     # Cursors after the X11 cursor font; plasma-apply-cursortheme also tells
     # running programs and XWayland.
@@ -654,7 +720,7 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
     if previous and previous != GTK_THEME:
         manifest["gtk_previous"] = previous
     gtk_theme(GTK_THEME)
-    MANIFEST.write_text(json.dumps(manifest, indent=2))
+    save_manifest(manifest)
     if backdrop:
         set_backdrop(manifest, backdrop, backdrop_scale or manifest.get("backdrop_scale", 1))
     if panel:
@@ -696,7 +762,15 @@ def uninstall():
         set_lockscreen(manifest, "plasma", running=False)
         remove(CONFIG / f"plasma-{SHELL}-appletsrc")
     if manifest["applied"]:
-        for file in CONFIG_FILES:
+        # The pre-install files come back whole; what was changed since is
+        # kept beside them, so nothing set after installing is lost.
+        kept = STATE / "config-at-uninstall"
+        remove(kept)
+        for file in manifest.get("config_files", [f for f in CONFIG_FILES if f != "auroraerc"]):
+            if file not in CONFIG_FILES:
+                raise RuntimeError("Unexpected config backup in ownership manifest")
+            if (CONFIG / file).exists():
+                copy(CONFIG / file, kept / file)
             remove(CONFIG / file)
             if file in manifest["config_present"]:
                 copy(STATE / "config" / file, CONFIG / file)
@@ -715,7 +789,8 @@ def uninstall():
         dbus("org.kde.KWin", "/KWin", "reconfigure")
         run("systemctl", "--user", "start", "plasma-plasmashell.service")
     MANIFEST.rename(STATE / "uninstalled-manifest.json")
-    print("Removed only manifest-owned files and restored pre-install configuration. Backup retained at " + str(STATE))
+    print("Removed only manifest-owned files and restored pre-install configuration. Backup retained at " + str(STATE)
+          + "; the configuration as it was before uninstalling is in " + str(STATE / "config-at-uninstall"))
 
 
 def main():
@@ -747,6 +822,12 @@ def main():
         return
     if os.geteuid() == 0:
         raise RuntimeError("Run as the desktop user, not root")
+    if args.action != "palette":
+        STATE.parent.mkdir(parents=True, exist_ok=True)
+        # Outside STATE, which a reinstall may rename. Palette uses the same
+        # lock below; all mutations of ownership must be serialized.
+        lock = open(STATE.with_suffix(".lock"), "a")
+        fcntl.flock(lock, fcntl.LOCK_EX)
     if args.action == "install":
         install()
         if args.apply:
@@ -763,6 +844,6 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except (RuntimeError, subprocess.CalledProcessError) as error:
+    except (RuntimeError, OSError, subprocess.SubprocessError) as error:
         print(str(error), file=sys.stderr)
         sys.exit(1)

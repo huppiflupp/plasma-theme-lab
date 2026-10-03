@@ -27,6 +27,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.parse
 import xml.etree.ElementTree as ET
 
@@ -337,10 +338,14 @@ def recent(app):
 
 def tray_ids():
     """Ids of the registered status icons, read over D-Bus with gdbus."""
+    deadline = time.monotonic() + 5
     def get(service, path, interface, prop):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise subprocess.TimeoutExpired("status notifier scan", 5)
         result = subprocess.run(["gdbus", "call", "--session", "-d", service, "-o", path,
                                  "-m", "org.freedesktop.DBus.Properties.Get", interface, prop],
-                                capture_output=True, text=True, timeout=3)
+                                capture_output=True, text=True, timeout=min(3, remaining))
         return result.stdout if result.returncode == 0 else ""
     try:
         listing = get("org.kde.StatusNotifierWatcher", "/StatusNotifierWatcher",
