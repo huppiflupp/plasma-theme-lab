@@ -59,6 +59,9 @@ or takes any of CDE's own 37 palettes and backdrops.
   its own (org.cde.copper.shell) that takes everything else from Plasma's;
   applying the theme switches to it, moving the panel and desktop
   configuration along (Style page › Lock screen switches back).
+- CDE's logout confirmation: a Motif dialog with lock, sleep, hibernate,
+  restart, shut down and log out, the action it was called for as default
+  button and a countdown, in the palette's colours.
 - User-only installer, ownership manifest and configuration rollback.
 
 ## Install

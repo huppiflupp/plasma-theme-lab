@@ -277,6 +277,14 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   the console and desktop configuration. A real unlock by password was not
   tried (the VM user's password is not known here); the success path is
   kscreenlocker's own (authenticator.succeeded -> Qt.quit). Texts in English.
+- Logout dialog (contents/logout/Logout.qml of the global theme, which
+  ksmserver-logout-greeter loads, Breeze as fallback): the signals and
+  context properties of Plasma's own (maysd, sdtype, spdMethods, canLogout,
+  softwareUpdatePending), the countdown of 30 s, Enter for the default
+  action, Escape or a click beside the dialog to cancel. Shown with
+  `ksmserver-logout-greeter --windowed` in the VM for 5 s and stopped (the
+  windowed mode carries the actions out for real, so no button was
+  pressed); hibernate is not offered by the VM, so its button stays hidden.
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the
