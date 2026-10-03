@@ -340,6 +340,7 @@ PlasmoidItem {
             style: Plasmoid.configuration.clockStyle
             dial: Plasmoid.configuration.clockDial
             seconds: Plasmoid.configuration.clockSeconds
+            segmentEdge: Plasmoid.configuration.clockSegmentEdge
             now: root.now
             ink: clock.selected ? consoleColors.highlightText : consoleColors.windowText
             // Lit segments and the second hand: the selection (copper) colour,
@@ -382,26 +383,56 @@ PlasmoidItem {
         }
     }
 
+    // Four small buttons in the space of one launcher with its arrow: the
+    // tray's hidden icons, the console's settings, lock and show desktop.
     component SessionButtons: GridLayout {
-        rows: root.vertical ? 1 : 2
-        columns: root.vertical ? 2 : 1
-        rowSpacing: 3; columnSpacing: 3
+        rows: 2; columns: 2
+        rowSpacing: 1; columnSpacing: 1
         Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
-        Layout.preferredWidth: root.vertical ? -1 : root.u(38)
-        Layout.preferredHeight: root.vertical ? root.u(32) : -1
-        ConsoleButton {
-            Layout.fillWidth: true; Layout.fillHeight: true
-            iconName: "system-lock-screen"; text: ""; iconSize: root.u(23)
-            Accessible.name: "Lock Screen"
+        Layout.preferredWidth: root.vertical ? -1 : root.u(68)
+        Layout.preferredHeight: root.vertical ? root.u(62) : -1
+        SmallButton {
+            iconName: "arrow-up"; Accessible.name: "Hidden Icons"
+            onClicked: root.showHiddenIcons()
+        }
+        SmallButton {
+            iconName: "configure"; Accessible.name: "Configure Front Console"
+            onClicked: Plasmoid.internalAction("configure").trigger()
+        }
+        SmallButton {
+            iconName: "system-lock-screen"; Accessible.name: "Lock Screen"
             onClicked: root.run(root.dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock")
         }
-        ConsoleButton {
-            Layout.fillWidth: true; Layout.fillHeight: true
-            iconName: "computer"; text: ""; iconSize: root.u(23)
-            Accessible.name: "Show Desktop"
+        SmallButton {
+            iconName: "user-desktop"; Accessible.name: "Show Desktop"
             // KWin's D-Bus showDesktop(bool) is accepted but does nothing in
             // Plasma 6.7; its own "Show Desktop" shortcut toggles reliably.
             onClicked: root.run(root.dbus + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop'")
+        }
+    }
+    // A quarter launcher: the icon follows the button, whole pixels.
+    component SmallButton: ConsoleButton {
+        id: small
+        Layout.fillWidth: true; Layout.fillHeight: true
+        Layout.preferredWidth: 1; Layout.preferredHeight: 1
+        implicitWidth: 0; implicitHeight: 0
+        padding: 0; text: ""
+        contentItem: Item {
+            Kirigami.Icon {
+                readonly property int side: Math.max(8, Math.floor(Math.min(small.width, small.height) * 0.6))
+                width: side; height: side
+                x: Math.round((parent.width - side) / 2); y: Math.round((parent.height - side) / 2)
+                source: small.iconName
+                active: false
+                // Not snapped down to 16/22/32: the icon grows with the console.
+                roundToIconSize: false
+            }
+        }
+    }
+    // Opens the system tray's popup (hidden icons) the way a click on it does.
+    function showHiddenIcons() {
+        for (const applet of Plasmoid.containment.applets) {
+            if (applet.pluginName === "org.kde.plasma.systemtray") { applet.activated(); return; }
         }
     }
 

@@ -17,6 +17,7 @@ Item {
     property string style: "digital"
     property string dial: "cde"
     property bool seconds: false
+    property bool segmentEdge: false     // black edge round lit segments
     property date now: new Date()
     property color ink: "black"          // text, hands, marks
     property color accent: "orange"      // second hand, lit segments
@@ -98,6 +99,7 @@ Item {
                 target: face
                 function onInkChanged() { segments.requestPaint(); }
                 function onAccentChanged() { segments.requestPaint(); }
+                function onSegmentEdgeChanged() { segments.requestPaint(); }
             }
             // Segments a..g of a digit, as in the usual naming.
             readonly property var lit: ["abcdef", "bc", "abdeg", "abcdg", "bcfg", "acdfg", "acdefg", "abc", "abcdefg", "abcdfg"]
@@ -112,7 +114,7 @@ Item {
                 const mid = Math.round((h - t) / 2);
                 const on = face.accent.toString();
                 const off = Qt.rgba(face.ink.r, face.ink.g, face.ink.b, 0.13).toString();
-                // Lit segments get a thin black edge, a pixel wide at every
+                // Optionally, lit segments get a thin black edge, a pixel wide at every
                 // size; it falls into the gap between segments, so it never
                 // covers a neighbour.
                 const edge = "black";
@@ -149,7 +151,8 @@ Item {
                     }
                 }
                 // Unlit segments, then the edges of the lit ones, then the lit.
-                for (const pass of [[false, 0], [true, 1], [true, 0]]) {
+                const passes = face.segmentEdge ? [[false, 0], [true, 1], [true, 0]] : [[false, 0], [true, 0]];
+                for (const pass of passes) {
                     const lit = pass[0], grow = pass[1];
                     let x = 0;
                     for (let i = 0; i < text.length; i++) {

@@ -14,6 +14,7 @@ KCM.SimpleKCM {
     property string cfg_clockStyle: "digital"
     property string cfg_clockDial: "cde"
     property alias cfg_clockSeconds: seconds.checked
+    property alias cfg_clockSegmentEdge: segmentEdge.checked
     readonly property var styles: [{text: "Digital", value: "digital"}, {text: "Seven-segment", value: "segments"},
                                    {text: "Analog", value: "analog"}]
     readonly property var dials: [{text: "CDE (round, as dtclock)", value: "cde"}, {text: "Motif (square well)", value: "motif"},
@@ -41,6 +42,11 @@ KCM.SimpleKCM {
             onActivated: index => page.cfg_clockDial = page.dials[index].value
         }
         CheckBox { id: seconds; text: "Show seconds" }
+        CheckBox {
+            id: segmentEdge
+            text: "Black edge around lit segments"
+            enabled: page.cfg_clockStyle === "segments"
+        }
         Label {
             text: "Colours follow the palette: dial in the text-field colour, hands in the text colour,\nsecond hand and lit segments in the selection colour."
             opacity: 0.7

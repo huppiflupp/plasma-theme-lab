@@ -129,9 +129,16 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   each other exactly and nothing blurs. Checked at 100, 125 and 150 % console
   size, and at 125 % with seconds; before, 125 % gave soft edges and unlit
   segments offset against the lit ones.
-- Lit segments and colon carry a black edge one pixel wide, at every size;
-  it lies in the one-pixel gap between segments and covers no neighbour.
-  Checked at 75, 100, 125 and 150 %, and at 125 % with seconds.
+- Lit segments and colon can carry a black edge one pixel wide (Clock and
+  Calendar › "Black edge around lit segments", off by default); it lies in
+  the one-pixel gap between segments and covers no neighbour. Checked at 75,
+  100, 125 and 150 %, and at 125 % with seconds. At 75 and 100 % the strokes
+  are two pixels and the edge makes them look like little boxes, hence off.
+- Lock and show desktop are now four quarter-size buttons in the space of one
+  launcher: hidden icons (top left), console settings, lock, show desktop.
+  Their icons scale with the console (checked at 75, 125 and 150 %; before,
+  they were snapped to Kirigami's 22-pixel size). The hidden-icons button
+  opens the tray's popup with the hidden entries, as its arrow does.
 - The VM's wallpaper had been changed to a grey-teal gradient in the meantime;
   it was left as found, as were the console at the top edge and its settings.
 
