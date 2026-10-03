@@ -109,11 +109,15 @@ def nine_patch(sheet, name, rings, interior, frame=None):
         sheet.add(f"{name}-{side}", w, h, runs(lambda u, v: color(ox + u, oy + v), w, h))
 
 
-def build_kvantum(out, P):
+def build_kvantum(out, P, name="CDECopper", comment="Motif workstation controls in teal and copper"):
+    # ink draws outlines; text, arrows and check marks use the palette's
+    # text colour, which a dark CDE surface turns white. For CDE Copper both
+    # are the same ink.
     ink, light, dark = P["rahmen"], P["hell"], P["dunkel"]
+    text = P["text"]
     face, base, copper = P["flaeche"], P["fenster"], P["kopf_aktiv"]
-    hover_face, pressed_face, groove = "#95b1b6", "#78969c", "#6f8f96"
-    disabled = "#6f8588"
+    hover_face, pressed_face, groove = P["knopf_hover"], P["knopf_gedrueckt"], P["rille"]
+    disabled = P["inaktiv_text"]
     raised = [(ink, ink), (light, dark), (light, dark)]
     sunken = [(ink, ink), (dark, light), (dark, light)]
     etched = [(dark, light), (light, dark)]
@@ -187,7 +191,7 @@ def build_kvantum(out, P):
         for st in ("normal", "focused", "pressed", "disabled"):
             if glyph == "menu" and st != "normal":
                 continue
-            color = disabled if st == "disabled" else ink
+            color = disabled if st == "disabled" else text
             body = []
             for (u, v, w, h) in rects:
                 body += [(u, v, w, 1, color), (u, v + h - 1, w, 1, color), (u, v, 1, h, color), (u + w - 1, v, 1, h, color)]
@@ -202,36 +206,36 @@ def build_kvantum(out, P):
     arrow = {"up": "M4.5 1 L8 6 H1 Z", "down": "M4.5 8 L1 3 H8 Z", "left": "M1 4.5 L6 1 V8 Z", "right": "M8 4.5 L3 1 V8 Z"}
     for direction, d in arrow.items():
         for st in ("normal", "focused", "pressed", "disabled"):
-            s.add_path(f"arrow-{direction}-{st}", 9, 9, [(d, disabled if st == "disabled" else ink, "")])
+            s.add_path(f"arrow-{direction}-{st}", 9, 9, [(d, disabled if st == "disabled" else text, "")])
     for sign in ("plus", "minus"):
         for st in ("normal", "focused", "pressed", "disabled"):
-            color = disabled if st == "disabled" else ink
+            color = disabled if st == "disabled" else text
             body = [(0, 0, 9, 1, color), (0, 8, 9, 1, color), (0, 0, 1, 9, color), (8, 0, 1, 9, color), (1, 1, 7, 7, base), (2, 4, 5, 1, color)]
             if sign == "plus":
                 body.append((4, 2, 1, 5, color))
             s.add(f"arrow-{sign}-{st}", 9, 9, body)
     # Tab close and tear indicators.
     for st in ("normal", "focused", "pressed", "disabled"):
-        color = disabled if st == "disabled" else (copper if st == "focused" else ink)
+        color = disabled if st == "disabled" else (copper if st == "focused" else text)
         s.add(f"tab-close-{st}", 9, 9, [(1 + i, 1 + i, 1, 1, color) for i in range(7)] + [(7 - i, 1 + i, 1, 1, color) for i in range(7)])
     s.add("tab-tear", 2, 16, [(0, 0, 1, 16, dark), (1, 0, 1, 16, light)])
     # Check boxes (sunken square) and Motif diamond radio buttons.
     check = "M3 8 L6 11 L13 4 L13 6 L6 13 L3 10 Z"
-    tri = [(4, 7, 8, 2, ink)]
+    tri = [(4, 7, 8, 2, P["fenster_text"])]
     for st in ("normal", "focused"):
         rings = [(dark, light), (copper, copper) if st == "focused" else (dark, light)]
         body = list(runs(box_pixels(rings, base, 16, 16), 16, 16))
         s.add(f"checkbox-{st}", 16, 16, body)
-        s.add_path(f"checkbox-checked-{st}", 16, 16, [(f"M{x} {y} h{w} v{h} h-{w} Z", c, "") for (x, y, w, h, c) in body if c] + [(check, ink, "")])
+        s.add_path(f"checkbox-checked-{st}", 16, 16, [(f"M{x} {y} h{w} v{h} h-{w} Z", c, "") for (x, y, w, h, c) in body if c] + [(check, P["fenster_text"], "")])
         s.add(f"checkbox-tristate-{st}", 16, 16, body + tri)
         diamond_ring = copper if st == "focused" else None
         s.add_path(f"radio-{st}", 16, 16, radio(light, dark, face, diamond_ring))
         s.add_path(f"radio-checked-{st}", 16, 16, radio(dark, light, pressed_face, diamond_ring) + [("M8 5 L11 8 L8 11 L5 8 Z", copper, "")])
 
-    kv = out / "Kvantum/CDECopper"
+    kv = out / "Kvantum" / name
     kv.mkdir(parents=True, exist_ok=True)
-    (kv / "CDECopper.svg").write_text(s.svg())
-    (kv / "CDECopper.kvconfig").write_text(kvconfig(P, disabled))
+    (kv / f"{name}.svg").write_text(s.svg())
+    (kv / f"{name}.kvconfig").write_text(kvconfig(P, disabled, comment))
 
 
 def radio(tl, br, fill, ring):
@@ -243,12 +247,12 @@ def radio(tl, br, fill, ring):
     return paths
 
 
-def kvconfig(P, disabled):
-    ink, face, base, copper = P["rahmen"], P["flaeche"], P["fenster"], P["kopf_aktiv"]
+def kvconfig(P, disabled, comment):
+    ink, face, base, copper = P["text"], P["flaeche"], P["fenster"], P["kopf_aktiv"]
     text = f"text.normal.color={ink}\ntext.focus.color={ink}\ntext.press.color={ink}\ntext.toggle.color={ink}\ntext.shadow=false\n"
     return f"""[%General]
 author=CDE Copper contributors
-comment=Motif workstation controls in teal and copper
+comment={comment}
 respect_DE=true
 x11drag=false
 alt_mnemonic=true
@@ -299,22 +303,22 @@ click_behavior=0
 [GeneralColors]
 window.color={face}
 base.color={base}
-alt.base.color=#b9cac9
+alt.base.color={P['alt_fenster']}
 button.color={face}
 light.color={P['hell']}
 mid.light.color={P['karo']}
-dark.color={ink}
+dark.color={P['rahmen']}
 mid.color={P['dunkel']}
 highlight.color={copper}
 inactive.highlight.color={P['hover']}
 tooltip.base.color={base}
-text.color={ink}
+text.color={P['fenster_text']}
 window.text.color={ink}
 button.text.color={ink}
 disabled.text.color={disabled}
-tooltip.text.color={ink}
-highlight.text.color={ink}
-link.color={P['desktop']}
+tooltip.text.color={P['fenster_text']}
+highlight.text.color={P['auswahl_text']}
+link.color={P['link']}
 link.visited.color={P['dunkel']}
 
 [Hacks]

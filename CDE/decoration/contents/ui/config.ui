@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CDECopperConfig</class>
+ <widget class="QWidget" name="CDECopperConfig">
+  <layout class="QVBoxLayout" name="layout">
+   <item>
+    <widget class="QCheckBox" name="kcfg_coloredBorder">
+     <property name="text">
+      <string>Colour the whole frame like the title bar (CDE)</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="titleRow">
+     <item>
+      <widget class="QLabel" name="titleLabel">
+       <property name="text"><string>Title bar height (buttons follow):</string></property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="kcfg_titleHeight">
+       <property name="specialValueText"><string>From title font</string></property>
+       <property name="suffix"><string> px</string></property>
+       <property name="minimum"><number>0</number></property>
+       <property name="maximum"><number>64</number></property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="borderHint">
+     <property name="text"><string>The frame width follows "Border size" on the previous page.</string></property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="spacer">
+     <property name="orientation"><enum>Qt::Vertical</enum></property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

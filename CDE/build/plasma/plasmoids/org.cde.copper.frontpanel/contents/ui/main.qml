@@ -5,19 +5,18 @@ import QtQuick.Layouts
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasma5support as P5Support
+import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager
 import org.kde.plasma.private.kicker as Kicker
+import org.kde.plasma.workspace.calendar as PlasmaCalendar
+import "launch.js" as Launch
+import "motif.js" as Motif
 
 PlasmoidItem {
     id: root
     preferredRepresentation: fullRepresentation
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
-    Layout.minimumWidth: 760
-    Layout.preferredWidth: 1040
-    Layout.maximumWidth: 1040
-    Layout.minimumHeight: 116
-    Layout.preferredHeight: 116
-    Layout.maximumHeight: 116
+
     property string popupTitle: ""
     property var entries: []
     property date now: new Date()
@@ -25,10 +24,37 @@ PlasmoidItem {
     property string networkState: "Network"
     property string volumeState: "Audio"
     readonly property string dbus: "qdbus-qt6"
+    readonly property var leftSlots: Launch.parse(Plasmoid.configuration.leftLaunchers, Launch.LEFT)
+    readonly property var rightSlots: Launch.parse(Plasmoid.configuration.rightLaunchers, Launch.RIGHT)
+
+    // Every colour comes from the active colour scheme: the console is the
+    // Complementary set (CDE colour set 8 with a CDE palette), popups use
+    // Window/View, the selection is the active-window colour.
+    Item { id: complementary; Kirigami.Theme.colorSet: Kirigami.Theme.Complementary; Kirigami.Theme.inherit: false }
+    Item { id: windowSet; Kirigami.Theme.colorSet: Kirigami.Theme.Window; Kirigami.Theme.inherit: false }
+    Item { id: viewSet; Kirigami.Theme.colorSet: Kirigami.Theme.View; Kirigami.Theme.inherit: false }
+    QtObject {
+        id: consoleColors
+        readonly property color panel: complementary.Kirigami.Theme.backgroundColor
+        readonly property color panelText: complementary.Kirigami.Theme.textColor
+        readonly property color window: windowSet.Kirigami.Theme.backgroundColor
+        readonly property color windowText: windowSet.Kirigami.Theme.textColor
+        readonly property color field: viewSet.Kirigami.Theme.backgroundColor
+        readonly property color fieldText: viewSet.Kirigami.Theme.textColor
+        readonly property color highlight: windowSet.Kirigami.Theme.highlightColor
+        readonly property color highlightText: windowSet.Kirigami.Theme.highlightedTextColor
+        readonly property string font: Kirigami.Theme.defaultFont.family
+        readonly property date now: root.now
+        // Console scale (settings): every size below is a multiple of it.
+        readonly property real unit: Math.max(0.5, Math.min(3, Plasmoid.configuration.consoleScale || 1))
+    }
 
     function run(command) {
-        if (command.indexOf("kstart ") === 0) command = "systemd-run --user --collect --quiet -- " + command.substring(7);
-        runner.connectSource(command);
+        runner.connectSource(Launch.detached(command));
+    }
+    function launch(slot, anchor) {
+        if (slot.command === "@applications") openApplications(anchor);
+        else if (slot.command) run(Launch.resolve(slot.command));
     }
     function openSection(title, list, anchor) {
         if (popup.visible && activeSection === title) { popup.visible = false; return; }
@@ -36,45 +62,80 @@ PlasmoidItem {
         popup.visualParent = anchor;
         popup.visible = true;
     }
+    function openMenu(slot, anchor) {
+        switch (slot.menu) {
+        case "applications": openApplications(anchor); break;
+        case "places": openSection("Places", placesEntries(), anchor); break;
+        case "system": openSection("System", systemEntries(), anchor); break;
+        case "help": openSection("Help", helpEntries(), anchor); break;
+        }
+    }
+    function openApplications(anchor) {
+        popup.visible = false;
+        if (appMenu.opened) appMenu.close();
+        else appMenu.open(anchor || root.fullRepresentationItem);
+    }
     function entry(label, icon, command) { return {label: label, icon: icon, command: command}; }
+    function placesEntries() {
+        return [entry("Home", "user-home", "@files ~"),
+                entry("Documents", "folder-documents", "@files xdg:DOCUMENTS"),
+                entry("Downloads", "folder-download", "@files xdg:DOWNLOAD"),
+                entry("Pictures", "folder-pictures", "@files xdg:PICTURES"),
+                entry("File System", "drive-harddisk", "@files /"),
+                entry("Trash", "user-trash", "@trash")];
+    }
+    function systemEntries() {
+        return [entry("System Settings", "preferences-system", "@settings"),
+                entry("Arrange Windows", "view-split-left-right", "@arrange"),
+                entry("Colours", "preferences-desktop-color", "@settings kcm_colors"),
+                entry("Audio", "audio-volume-high", "@settings kcm_pulseaudio"),
+                entry("Network", "network-workgroup", "@settings kcm_networkmanagement"),
+                entry("Display", "computer", "@settings kcm_kscreen"),
+                entry("Lock Screen", "system-lock-screen", dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock"),
+                entry("Leave Session...", "system-log-out", dbus + " org.kde.LogoutPrompt /LogoutPrompt promptAll")];
+    }
+    function helpEntries() {
+        return [entry("Help Center", "help-browser", "@help"),
+                entry("Keyboard Shortcuts", "preferences-desktop-keyboard", "@settings kcm_keys"),
+                entry("System Information", "computer", "kinfocenter"),
+                entry("About CDE Copper", "cde-menu", "xdg-open https://github.com/huppiflupp/plasma-theme-lab/tree/main/CDE")];
+    }
     function configurePanel() {
         const modes = ["none", "autohide", "dodgewindows"];
         const mode = modes[Math.max(0, Math.min(2, Plasmoid.configuration.visibilityMode))];
         const edge = Plasmoid.configuration.topEdge ? "top" : "bottom";
-        const script = "for (var p of panels()) { for (var w of p.widgets()) { if (w.type === 'org.cde.copper.frontpanel') { p.hiding = '" + mode + "'; p.location = '" + edge + "'; } } }";
-        run(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + "'" + script.replace(/'/g, "'\\''") + "'");
+        const height = Math.round(128 * consoleColors.unit);
+        const script = "for (var p of panels()) { for (var w of p.widgets()) { if (w.type === 'org.cde.copper.frontpanel') { p.hiding = '" + mode + "'; p.location = '" + edge + "'; p.height = " + height + "; } } }";
+        runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(script));
+    }
+    // "Arbeitsfläche 1", "Desktop 1": Plasma's default names only repeat
+    // the number the button already shows.
+    function workspaceLabel(index) {
+        const name = (desktops.desktopNames[index] || "").trim();
+        const n = String(index + 1);
+        if (name === "" || name === n || new RegExp("^\\D*\\s" + n + "$").test(name)) return n;
+        return n + "  " + name;
     }
     Connections {
         target: Plasmoid.configuration
         function onVisibilityModeChanged() { root.configurePanel(); }
         function onTopEdgeChanged() { root.configurePanel(); }
+        function onConsoleScaleChanged() { root.configurePanel(); }
     }
-    function appEntries() {
-        return [entry("All Applications...", "cde-menu", "@applications"),
-                entry("File Manager", "folder", "kstart dolphin"),
-                entry("Terminal", "utilities-terminal", "kstart konsole --profile 'CDE Copper'"),
-                entry("Text Editor", "accessories-text-editor", "kstart kate"),
-                entry("Web Browser", "internet-web-browser", "xdg-open https://www.kde.org"),
-                entry("System Settings", "preferences-system", "kstart systemsettings"),
-                entry("Run Application...", "edit-find", dbus + " org.kde.krunner /App org.kde.krunner.App.display")];
-    }
+
+    Component.onCompleted: if (Plasmoid.configuration.consoleScale !== 1) configurePanel()
+
     Kicker.AppsModel { id: allApps; flat: true; sorted: true; autoPopulate: true; appletInterface: Plasmoid }
-    function fileEntries() {
-        return [entry("Home", "user-home", "kstart dolphin ~"),
-                entry("Documents", "folder-documents", "kstart dolphin ~/Documents"),
-                entry("Downloads", "folder-download", "kstart dolphin ~/Downloads"),
-                entry("Pictures", "folder-pictures", "kstart dolphin ~/Pictures"),
-                entry("File System", "drive-harddisk", "kstart dolphin /"),
-                entry("Trash", "user-trash", "kstart dolphin trash:/")];
+    Kicker.AppsModel { id: categoryApps; flat: false; sorted: true; autoPopulate: true; showSeparators: false; appletInterface: Plasmoid }
+    PlasmaCalendar.EventPluginsManager {
+        id: eventPlugins
+        Component.onCompleted: populateEnabledPluginsList(Plasmoid.configuration.enabledCalendarPlugins)
     }
-    function systemEntries() {
-        return [entry("System Settings", "preferences-system", "kstart systemsettings"),
-                entry("Audio", "audio-volume-high", "kstart systemsettings kcm_pulseaudio"),
-                entry("Network", "network-workgroup", "kstart systemsettings kcm_networkmanagement"),
-                entry("Display", "computer", "kstart systemsettings kcm_kscreen"),
-                entry("Lock Screen", "system-lock-screen", dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock"),
-                entry("Leave Session...", "system-log-out", dbus + " org.kde.LogoutPrompt /LogoutPrompt promptAll")];
+    Connections {
+        target: Plasmoid.configuration
+        function onEnabledCalendarPluginsChanged() { eventPlugins.populateEnabledPluginsList(Plasmoid.configuration.enabledCalendarPlugins); }
     }
+
     P5Support.DataSource {
         id: runner
         engine: "executable"
@@ -97,68 +158,91 @@ PlasmoidItem {
         }
     }
     TaskManager.VirtualDesktopInfo { id: desktops }
+    TaskManager.ActivityInfo { id: activities }
     TaskManager.TasksModel {
         id: tasks
         virtualDesktop: desktops.currentDesktop
+        activity: activities.currentActivity
+        screenGeometry: Plasmoid.containment.screenGeometry
         filterByVirtualDesktop: true
+        filterByActivity: true
+        // With one console per screen, each lists the windows on its own screen.
+        filterByScreen: Plasmoid.configuration.windowsOnThisScreen
         groupMode: TaskManager.TasksModel.GroupDisabled
         sortMode: TaskManager.TasksModel.SortVirtualDesktop
     }
     Timer { interval: 1000; running: true; repeat: true; onTriggered: root.now = new Date() }
 
+    component Slot: ColumnLayout {
+        id: slot
+        required property var modelData
+        Layout.fillWidth: true; Layout.preferredWidth: Math.round(68 * consoleColors.unit); Layout.fillHeight: true; spacing: 1
+        ConsoleButton {
+            id: arrow
+            text: ""; Layout.fillWidth: true; Layout.preferredHeight: Math.round(13 * consoleColors.unit)
+            enabled: slot.modelData.menu !== ""
+            opacity: enabled ? 1 : 0.35
+            Accessible.name: slot.modelData.menu ? "Open " + slot.modelData.menu : ""
+            selected: popup.visible && popup.visualParent === arrow
+            contentItem: Text {
+                text: Plasmoid.configuration.topEdge ? "▾" : "▴"
+                color: consoleColors.panelText; font.pixelSize: Math.round(12 * consoleColors.unit)
+                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+            }
+            onClicked: root.openMenu(slot.modelData, arrow)
+        }
+        ConsoleButton {
+            id: launcher
+            Layout.fillWidth: true; Layout.fillHeight: true
+            text: slot.modelData.label; iconName: slot.modelData.icon
+            onClicked: root.launch(slot.modelData, launcher)
+        }
+    }
+
     fullRepresentation: Bevel {
         id: frontConsole
-        implicitWidth: 1040; implicitHeight: 116
-        surface: "#367785"
+        implicitWidth: content.implicitWidth + 10
+        implicitHeight: Math.round(116 * consoleColors.unit)
+        // The panel sizes itself from these (lengthMode 'fit').
+        Layout.minimumWidth: implicitWidth
+        Layout.preferredWidth: implicitWidth
+        Layout.maximumWidth: implicitWidth
+        Layout.minimumHeight: implicitHeight
+        Layout.preferredHeight: implicitHeight
+        Layout.maximumHeight: implicitHeight
+        surface: consoleColors.panel
         ColumnLayout {
+            id: content
             anchors.fill: parent; anchors.margins: 5; spacing: 4
             RowLayout {
                 Layout.fillWidth: true; Layout.fillHeight: true; spacing: 4
-                Bevel {
-                    Layout.preferredWidth: 92; Layout.fillHeight: true
-                    surface: "#86a4aa"
-                    Column {
-                        anchors.centerIn: parent; spacing: 0
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "ddd").toUpperCase(); color: "#38565c"; font.pixelSize: 10; font.family: "IBM Plex Sans Condensed" }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "HH:mm"); color: "#10262b"; font.pixelSize: 24; font.family: "IBM Plex Mono" }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "dd MMM").toUpperCase(); color: "#10262b"; font.pixelSize: 10; font.family: "IBM Plex Sans Condensed" }
+                ConsoleButton {
+                    id: clock
+                    Layout.preferredWidth: Math.round(92 * consoleColors.unit); Layout.fillHeight: true
+                    surface: consoleColors.window
+                    selected: calendar.visible
+                    Accessible.name: Qt.formatDateTime(root.now, Qt.locale().dateTimeFormat(Locale.LongFormat))
+                    onClicked: {
+                        if (Plasmoid.configuration.clockOpensApp) root.run(Launch.resolve(Plasmoid.configuration.calendarCommand || "@calendar"));
+                        else { calendar.visualParent = clock; calendar.visible = !calendar.visible; }
+                    }
+                    contentItem: Column {
+                        spacing: 0
+                        readonly property color ink: clock.selected ? consoleColors.highlightText : consoleColors.windowText
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "ddd").toUpperCase(); color: parent.ink; opacity: 0.8; font.pixelSize: Math.round(10 * consoleColors.unit); font.family: consoleColors.font }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "HH:mm"); color: parent.ink; font.pixelSize: Math.round(24 * consoleColors.unit); font.family: "IBM Plex Mono" }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "dd MMM").toUpperCase(); color: parent.ink; font.pixelSize: Math.round(10 * consoleColors.unit); font.family: consoleColors.font }
                     }
                 }
-                Repeater {
-                    model: [
-                        {label: "Tools", icon: "cde-menu", command: "", group: "Applications"},
-                        {label: "Files", icon: "folder", command: "kstart dolphin", group: "Places"},
-                        {label: "Terminal", icon: "utilities-terminal", command: "kstart konsole --profile 'CDE Copper'", group: "Terminal"},
-                        {label: "Editor", icon: "accessories-text-editor", command: "kstart kate", group: "Editor"}
-                    ]
-                    delegate: ColumnLayout {
-                        id: leftModule
-                        required property var modelData
-                        Layout.fillWidth: true; Layout.preferredWidth: 68; Layout.fillHeight: true; spacing: 1
-                        ConsoleButton {
-                            id: arrow
-                            text: ""; Layout.fillWidth: true; Layout.preferredHeight: 13
-                            Accessible.name: "Open " + leftModule.modelData.group
-                            contentItem: Text { text: "▴"; color: "#c9dedb"; font.pixelSize: 12; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
-                            onClicked: root.openSection(leftModule.modelData.group, leftModule.modelData.group === "Places" ? root.fileEntries() : root.appEntries(), arrow)
-                        }
-                        ConsoleButton {
-                            id: launch
-                            Layout.fillWidth: true; Layout.fillHeight: true
-                            text: leftModule.modelData.label; iconName: leftModule.modelData.icon
-                            selected: popup.visible && (popup.visualParent === arrow || popup.visualParent === launch)
-                            onClicked: leftModule.modelData.command ? root.run(leftModule.modelData.command) : root.openSection("Applications", root.appEntries(), launch)
-                        }
-                    }
-                }
+                Repeater { model: root.leftSlots; delegate: Slot {} }
                 Bevel {
-                    Layout.preferredWidth: 192; Layout.fillHeight: true
-                    surface: "#174c55"; sunken: true
+                    Layout.preferredWidth: Math.round(192 * consoleColors.unit); Layout.fillHeight: true
+                    surface: Motif.shades(consoleColors.panel).bottom; sunken: true
                     ColumnLayout {
                         anchors.fill: parent; anchors.margins: 4; spacing: 3
                         Text {
-                            Layout.fillWidth: true; text: "WORKSPACES"; color: "#c9dedb"
-                            font.pixelSize: 9; horizontalAlignment: Text.AlignHCenter
+                            Layout.fillWidth: true; text: "WORKSPACES"; color: Motif.shades(consoleColors.panel).top
+                            font.pixelSize: Math.round(9 * consoleColors.unit); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter
                         }
                         GridLayout {
                             columns: 2; rowSpacing: 3; columnSpacing: 3
@@ -169,8 +253,9 @@ PlasmoidItem {
                                     required property int index
                                     required property var modelData
                                     Layout.fillWidth: true; Layout.fillHeight: true
-                                    implicitWidth: 70; implicitHeight: 23
-                                    text: (index + 1) + "  " + (desktops.desktopNames[index] || "Workspace")
+                                    implicitWidth: Math.round(70 * consoleColors.unit); implicitHeight: Math.round(23 * consoleColors.unit)
+                                    text: root.workspaceLabel(index)
+                                    Accessible.name: "Workspace " + (index + 1) + " " + (desktops.desktopNames[index] || "")
                                     selected: desktops.currentDesktop === modelData
                                     onClicked: root.run(root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
                                 }
@@ -178,53 +263,28 @@ PlasmoidItem {
                         }
                     }
                 }
-                Repeater {
-                    model: [
-                        {label: "Web", icon: "internet-web-browser", command: "xdg-open https://www.kde.org", group: "Internet"},
-                        {label: "Mail", icon: "internet-mail", command: "xdg-email", group: "Mail"},
-                        {label: "System", icon: "preferences-system", command: "kstart systemsettings", group: "System"},
-                        {label: "Trash", icon: "user-trash", command: "kstart dolphin trash:/", group: "Places"}
-                    ]
-                    delegate: ColumnLayout {
-                        id: rightModule
-                        required property var modelData
-                        Layout.fillWidth: true; Layout.preferredWidth: 68; Layout.fillHeight: true; spacing: 1
-                        ConsoleButton {
-                            id: rightArrow
-                            text: ""; Layout.fillWidth: true; Layout.preferredHeight: 13
-                            Accessible.name: "Open " + rightModule.modelData.group
-                            contentItem: Text { text: "▴"; color: "#c9dedb"; font.pixelSize: 12; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter }
-                            onClicked: root.openSection(rightModule.modelData.group, rightModule.modelData.group === "Places" ? root.fileEntries() : root.systemEntries(), rightArrow)
-                        }
-                        ConsoleButton {
-                            Layout.fillWidth: true; Layout.fillHeight: true
-                            text: rightModule.modelData.label; iconName: rightModule.modelData.icon
-                            selected: popup.visible && popup.visualParent === rightArrow
-                            onClicked: root.run(rightModule.modelData.command)
-                        }
-                    }
-                }
+                Repeater { model: root.rightSlots; delegate: Slot {} }
                 ColumnLayout {
-                    Layout.preferredWidth: 38; Layout.fillHeight: true; spacing: 3
+                    Layout.preferredWidth: Math.round(38 * consoleColors.unit); Layout.fillHeight: true; spacing: 3
                     ConsoleButton {
                         Layout.fillWidth: true; Layout.fillHeight: true
-                        iconName: "system-lock-screen"; text: ""; iconSize: 23
+                        iconName: "system-lock-screen"; text: ""; iconSize: Math.round(23 * consoleColors.unit)
                         Accessible.name: "Lock Screen"
                         onClicked: root.run(root.dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock")
                     }
                     ConsoleButton {
                         Layout.fillWidth: true; Layout.fillHeight: true
-                        iconName: "computer"; text: ""; iconSize: 23
+                        iconName: "computer"; text: ""; iconSize: Math.round(23 * consoleColors.unit)
                         Accessible.name: "Show Desktop"
                         onClicked: root.run(root.dbus + " org.kde.KWin /KWin showDesktop \"$(if [ \"$(" + root.dbus + " org.kde.KWin /KWin org.kde.KWin.showingDesktop)\" = true ]; then echo false; else echo true; fi)\"")
                     }
                 }
             }
             RowLayout {
-                Layout.fillWidth: true; Layout.preferredHeight: 24; Layout.maximumHeight: 24; spacing: 3
+                Layout.fillWidth: true; Layout.preferredHeight: Math.round(24 * consoleColors.unit); Layout.maximumHeight: Math.round(24 * consoleColors.unit); spacing: 3
                 Text {
-                    Layout.preferredWidth: 92; text: "CDE / COPPER"; color: "#d0ded9"
-                    font.pixelSize: 9; font.family: "IBM Plex Sans Condensed"; horizontalAlignment: Text.AlignHCenter
+                    Layout.preferredWidth: Math.round(92 * consoleColors.unit); text: Plasmoid.configuration.consoleLabel; color: consoleColors.panelText
+                    font.pixelSize: Math.round(9 * consoleColors.unit); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
                 }
                 ListView {
                     id: taskList
@@ -234,10 +294,12 @@ PlasmoidItem {
                     delegate: ConsoleButton {
                         required property int index
                         required property var model
-                        width: Math.min(220, Math.max(120, (taskList.width - (taskList.count-1)*3) / Math.max(1, taskList.count)))
-                        height: 24; horizontal: true; iconSize: 18
+                        width: Math.min(220 * consoleColors.unit, Math.max(120 * consoleColors.unit, (taskList.width - (taskList.count-1)*3) / Math.max(1, taskList.count)))
+                        height: taskList.height; horizontal: true; iconSize: Math.round(18 * consoleColors.unit)
                         text: model.display || "Window"
-                        iconName: model.AppId && model.AppId.indexOf("konsole") >= 0 ? "utilities-terminal" : model.AppId && model.AppId.indexOf("dolphin") >= 0 ? "folder" : model.AppId && model.AppId.indexOf("kate") >= 0 ? "accessories-text-editor" : "application-x-executable"
+                        iconName: ""
+                        Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: Math.round(18 * consoleColors.unit); height: width; source: parent.model.decoration; active: false }
+                        leftPadding: Math.round(30 * consoleColors.unit)
                         selected: Boolean(model.IsActive)
                         onClicked: {
                             const idx = tasks.makeModelIndex(index);
@@ -247,13 +309,36 @@ PlasmoidItem {
                 }
                 ConsoleButton {
                     id: status
-                    Layout.preferredWidth: 104; Layout.fillHeight: true
-                    text: root.volumeState; iconName: "audio-volume-high"; iconSize: 18; horizontal: true
+                    Layout.preferredWidth: Math.round(104 * consoleColors.unit); Layout.fillHeight: true
+                    text: root.volumeState; iconName: "audio-volume-high"; iconSize: Math.round(18 * consoleColors.unit); horizontal: true
                     Accessible.name: root.networkState + ", volume " + root.volumeState + ", session controls"
                     onClicked: root.openSection("Session", root.systemEntries(), status)
                 }
             }
         }
+    }
+
+    AppMenu {
+        id: appMenu
+        appsModel: categoryApps
+        onFindRequested: { applications.visualParent = root.fullRepresentationItem; applications.visible = true; }
+        onRunRequested: root.run(root.dbus + " org.kde.krunner /App org.kde.krunner.App.display")
+    }
+
+    PlasmaCore.Dialog {
+        id: calendar
+        visible: false
+        type: PlasmaCore.Dialog.PopupMenu
+        flags: Qt.WindowStaysOnTopHint
+        location: Plasmoid.location
+        hideOnWindowDeactivate: true
+        backgroundHints: PlasmaCore.Types.NoBackground
+        mainItem: CalendarPanel {
+            pluginsManager: eventPlugins
+            onCloseRequested: calendar.visible = false
+            onOpenCalendar: { calendar.visible = false; root.run(Launch.resolve(Plasmoid.configuration.calendarCommand || "@calendar")); }
+        }
+        onVisibleChanged: if (visible) mainItem.forceActiveFocus()
     }
 
     PlasmaCore.Dialog {
@@ -268,14 +353,14 @@ PlasmoidItem {
         mainItem: Bevel {
             id: popupBody
             width: 276; height: 41 + root.entries.length * 38
-            surface: "#86a4aa"
+            surface: consoleColors.window
             focus: true
             Keys.onEscapePressed: popup.visible = false
             ColumnLayout {
                 anchors.fill: parent; anchors.margins: 5; spacing: 2
                 Bevel {
-                    Layout.fillWidth: true; Layout.preferredHeight: 27; surface: "#e8874f"
-                    Text { anchors.centerIn: parent; text: root.popupTitle; color: "#10262b"; font.pixelSize: 12; font.weight: Font.DemiBold }
+                    Layout.fillWidth: true; Layout.preferredHeight: 27; surface: consoleColors.highlight
+                    Text { anchors.centerIn: parent; text: root.popupTitle; color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
                 }
                 Repeater {
                     model: root.entries
@@ -283,13 +368,10 @@ PlasmoidItem {
                         required property var modelData
                         Layout.fillWidth: true; Layout.fillHeight: true
                         text: modelData.label; iconName: modelData.icon
-                        horizontal: true; iconSize: 28; surface: "#86a4aa"; foreground: "#10262b"
+                        horizontal: true; iconSize: 28; surface: consoleColors.window; foreground: consoleColors.windowText
                         onClicked: {
                             popup.visible = false;
-                            if (modelData.command === "@applications") {
-                                applications.visualParent = popup.visualParent;
-                                applications.visible = true;
-                            } else root.run(modelData.command);
+                            root.run(Launch.resolve(modelData.command));
                         }
                     }
                 }
@@ -303,21 +385,22 @@ PlasmoidItem {
         location: Plasmoid.location
         hideOnWindowDeactivate: true
         backgroundHints: PlasmaCore.Types.NoBackground
-        onVisibleChanged: if (visible) appSearch.forceActiveFocus()
+        onVisibleChanged: if (visible) { appSearch.text = ""; appSearch.forceActiveFocus(); }
         mainItem: Bevel {
-            width: 340; height: 480; surface: "#86a4aa"
+            width: 340; height: 480; surface: consoleColors.window
             Keys.onEscapePressed: applications.visible = false
             ColumnLayout {
                 anchors.fill: parent; anchors.margins: 6; spacing: 5
                 Bevel {
-                    surface: "#e8874f"; Layout.fillWidth: true; Layout.preferredHeight: 29
-                    Text { anchors.centerIn: parent; text: "Applications"; color: "#10262b"; font.pixelSize: 13 }
+                    surface: consoleColors.highlight; Layout.fillWidth: true; Layout.preferredHeight: 29
+                    Text { anchors.centerIn: parent; text: "Find Application"; color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 13 }
                 }
                 TextField {
                     id: appSearch
                     Layout.fillWidth: true; placeholderText: "Search"
-                    color: "#10262b"; font.pixelSize: 13
-                    background: Bevel { sunken: true; surface: "#c4d2d0" }
+                    color: consoleColors.fieldText; font.pixelSize: 13
+                    background: Bevel { sunken: true; surface: consoleColors.field }
+                    Keys.onEscapePressed: applications.visible = false
                     onAccepted: {
                         for (let i = 0; i < appList.count; i++) {
                             const item = appList.itemAtIndex(i);
@@ -337,8 +420,10 @@ PlasmoidItem {
                         visible: appSearch.text.length === 0 || text.toLowerCase().indexOf(appSearch.text.toLowerCase()) >= 0
                         height: visible ? 37 : 0
                         text: model.display || "Application"
-                        iconName: "application-x-executable"
-                        horizontal: true; iconSize: 26; surface: "#86a4aa"; foreground: "#10262b"
+                        iconName: ""
+                        Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: 26; height: 26; source: parent.model.decoration; active: false }
+                        leftPadding: 40
+                        horizontal: true; surface: consoleColors.window; foreground: consoleColors.windowText
                         onClicked: { allApps.trigger(index, "", null); applications.visible = false; }
                     }
                 }

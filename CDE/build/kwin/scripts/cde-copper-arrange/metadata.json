@@ -1,0 +1,19 @@
+{
+  "KPlugin": {
+    "Id": "cde-copper-arrange",
+    "Name": "CDE Copper Window Arrangement",
+    "Description": "Terminals left and right of the front console, the main window above it (Meta+Ctrl+C)",
+    "Version": "0.2.0",
+    "License": "GPL-2.0-or-later",
+    "Authors": [
+      {
+        "Name": "CDE Copper contributors"
+      }
+    ],
+    "Website": "https://github.com/huppiflupp/plasma-theme-lab",
+    "EnabledByDefault": true
+  },
+  "KPackageStructure": "KWin/Script",
+  "X-Plasma-API": "javascript",
+  "X-Plasma-MainScript": "code/main.js"
+}

@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import struct
 import unittest
 import xml.etree.ElementTree as ET
 
@@ -39,7 +40,8 @@ class Separation(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="cde-copy-") as temp:
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
-            for item in ("tools", "frontpanel", "fonts", "build.py", "icons.py", "kvantum.py", "layout.js"):
+            for item in ("tools", "frontpanel", "decoration", "arrange", "fonts", "palettes", "backdrops",
+                         "build.py", "icons.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
                     shutil.copytree(source, copy / item, symlinks=True,
@@ -61,11 +63,63 @@ class Separation(unittest.TestCase):
 
     def test_no_reference_to_sibling_themes(self):
         for name in ("build.py", "icons.py", "manage.py", "package.py", "install.sh",
-                     "apply.sh", "uninstall.sh"):
+                     "apply.sh", "uninstall.sh", "palettes.py", "backdrops.py", "kvantum.py"):
             text = (ROOT / name).read_text()
             self.assertNotIn("ROOT.parent", text, name)
             self.assertNotIn("../tools", text, name)
             self.assertNotIn("nt-legacy", text, name)
+
+
+class Palettes(unittest.TestCase):
+    """The 37 CDE palettes: readable, and complete enough to build from."""
+
+    def test_every_text_colour_is_readable(self):
+        sys.path.insert(0, str(ROOT))
+        import palettes
+        self.assertEqual(len(palettes.names()), 37)
+        pairs = [("text", "flaeche"), ("text2", "flaeche"), ("link", "flaeche"), ("fenster_text", "fenster"),
+                 ("auswahl_text", "auswahl"), ("kopf_aktiv_text", "kopf_aktiv"),
+                 ("kopf_inaktiv_text", "kopf_inaktiv"), ("panel_text", "panel")]
+        for name in palettes.names():
+            colours = palettes.theme(name)
+            for fg, bg in pairs:
+                self.assertGreaterEqual(palettes.contrast(colours[fg], colours[bg]), 4.5, f"{name}: {fg} on {bg}")
+
+    def test_motif_shading_matches_the_reference(self):
+        # Worked by hand through Motif's CalculateColorsRGB for Broica's set 5
+        # (#c600 b2d2 a87e): brightness 46639, a medium background, so the
+        # top shadow lightens by 57 % and the bottom shadow darkens by
+        # 60 + trunc(-14.2) = 46 % (C truncation, not floor).
+        sys.path.insert(0, str(ROOT))
+        import palettes
+        s = palettes.load("Broica")[4]
+        self.assertEqual((s["ts"], s["bs"]), ("#e7deda", "#6a605a"))
+
+    def test_palette_builds_and_lints(self):
+        sys.path.insert(0, str(ROOT))
+        import build
+        with tempfile.TemporaryDirectory(prefix="cde-palette-") as temp:
+            result = build.build_palette("Alpine", Path(temp))
+            for target in result["targets"] + result["config_targets"]:
+                self.assertTrue((Path(temp) / target).exists(), target)
+            lint = subprocess.run([sys.executable, str(ROOT / "tools/lint-plasma-svg.py"),
+                                   str(Path(temp) / "plasma/desktoptheme/cde-alpine")], capture_output=True, text=True)
+            self.assertEqual(lint.returncode, 0, lint.stdout + lint.stderr)
+
+
+class Backdrops(unittest.TestCase):
+    def test_every_backdrop_renders(self):
+        sys.path.insert(0, str(ROOT))
+        import backdrops
+        import palettes
+        colours = backdrops.colours_for(palettes.load("Default")[2])
+        self.assertGreaterEqual(len(backdrops.names()), 25)
+        for name in backdrops.names():
+            tile = backdrops.render(name, colours)
+            self.assertTrue(tile.startswith(b"\x89PNG"), name)
+            screen = backdrops.desktop(name, colours, 640, 480, 2)
+            width, height = struct.unpack(">II", screen[16:24])
+            self.assertEqual((width, height), (640, 480), name)
 
 
 class Installer(unittest.TestCase):
@@ -103,6 +157,8 @@ class Installer(unittest.TestCase):
             self.assertTrue((self.data / "icons/CDECopper/scalable/all/folder.svg").is_file())
             self.assertTrue((self.data / "fonts/CDECopper/IBMPlexSansCondensed-Regular.otf").is_file())
             self.assertTrue((self.config / "Kvantum/CDECopper/CDECopper.kvconfig").is_file())
+            self.assertTrue((self.data / "kwin/decorations/kwin4_decoration_qml_cdecopper/contents/ui/main.qml").is_file())
+            self.assertTrue((self.data / "kwin/scripts/cde-copper-arrange/contents/code/main.js").is_file())
             result = self.command("install")
             self.assertEqual(result.returncode, 0, result.stderr)
             result = self.command("uninstall")
@@ -111,6 +167,39 @@ class Installer(unittest.TestCase):
             self.assertFalse((self.config / "Kvantum/CDECopper").exists())
             self.assertEqual(unrelated.read_text(), "keep")
             self.assertEqual((self.config / "kdeglobals").read_bytes(), before)
+
+    def test_upgrade_from_0_1_drops_the_svg_decoration(self):
+        self.assertEqual(self.command("install").returncode, 0)
+        manifest = self.data / "cde-copper-install/manifest.json"
+        value = json.loads(manifest.read_text())
+        # A 0.1.0 installation: SVG decoration owned, no QML decoration, no script.
+        value["targets"] = [t for t in value["targets"] if not t.startswith("kwin/")] + ["aurorae/themes/CDECopper"]
+        manifest.write_text(json.dumps(value))
+        legacy = self.data / "aurorae/themes/CDECopper"
+        legacy.mkdir(parents=True)
+        (legacy / "decoration.svg").write_text("<svg/>")
+        import shutil as sh
+        sh.rmtree(self.data / "kwin")
+        result = self.command("install")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(legacy.exists())
+        self.assertNotIn("aurorae/themes/CDECopper", json.loads(manifest.read_text())["targets"])
+        self.assertEqual(self.command("uninstall").returncode, 0)
+        self.assertFalse((self.data / "kwin/decorations/kwin4_decoration_qml_cdecopper").exists())
+
+    def test_palette_targets_are_owned_and_removed(self):
+        self.assertEqual(self.command("install").returncode, 0)
+        code = ("import json, manage; m = json.loads(manage.MANIFEST.read_text()); "
+                "manage.install_palette(m, 'Lilac'); manage.MANIFEST.write_text(json.dumps(m)); "
+                "manage.install_palette(m, 'Desert'); manage.MANIFEST.write_text(json.dumps(m))")
+        result = subprocess.run([sys.executable, "-c", code], cwd=ROOT, env=self.env, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse((self.data / "color-schemes/CDELilac.colors").exists())
+        self.assertTrue((self.data / "color-schemes/CDEDesert.colors").is_file())
+        self.assertTrue((self.config / "Kvantum/CDEDesert/CDEDesert.svg").is_file())
+        self.assertEqual(self.command("uninstall").returncode, 0)
+        self.assertFalse((self.data / "plasma/desktoptheme/cde-desert").exists())
+        self.assertFalse((self.config / "Kvantum/CDEDesert").exists())
 
     def test_collision_is_not_overwritten(self):
         existing = self.data / "icons/CDECopper"

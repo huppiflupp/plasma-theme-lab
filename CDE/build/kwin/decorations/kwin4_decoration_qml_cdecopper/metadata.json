@@ -1,0 +1,16 @@
+{
+  "KPlugin": {
+    "Id": "kwin4_decoration_qml_cdecopper",
+    "Name": "CDE Copper",
+    "Description": "Motif window frame: corner handles, shadowed title parts",
+    "Version": "0.2.0",
+    "License": "GPL-2.0-or-later",
+    "Authors": [
+      {
+        "Name": "CDE Copper contributors"
+      }
+    ],
+    "Website": "https://github.com/huppiflupp/plasma-theme-lab"
+  },
+  "KPackageStructure": "KWin/Decoration"
+}

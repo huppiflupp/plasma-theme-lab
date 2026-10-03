@@ -7,7 +7,7 @@ import struct
 import time
 
 ap = argparse.ArgumentParser()
-ap.add_argument("action", choices=("click", "move", "key"))
+ap.add_argument("action", choices=("click", "rightclick", "move", "key"))
 ap.add_argument("values", nargs="+", type=int)
 args = ap.parse_args()
 fd = os.open("/dev/uinput", os.O_WRONLY | os.O_NONBLOCK)
@@ -45,9 +45,10 @@ else:
     event(3, 1, round(y / height * 32767))
     sync()
     time.sleep(0.25)
-    if args.action == "click":
-        event(1, 272, 1); sync(); time.sleep(0.08)
-        event(1, 272, 0); sync()
+    if args.action in ("click", "rightclick"):
+        button = 272 if args.action == "click" else 273
+        event(1, button, 1); sync(); time.sleep(0.08)
+        event(1, button, 0); sync()
 time.sleep(0.3)
 fcntl.ioctl(fd, 0x5502)
 os.close(fd)

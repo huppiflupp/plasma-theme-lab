@@ -14,7 +14,7 @@ Theme=CDECopper
 name=cde-copper
 [kwinrc][org.kde.kdecoration2]
 library=org.kde.kwin.aurorae
-theme=__aurorae__svg__CDECopper
+theme=kwin4_decoration_qml_cdecopper
 ButtonsOnLeft=M
 ButtonsOnRight=IAX
 BorderSize=Normal

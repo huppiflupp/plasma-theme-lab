@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "build"
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 # Qt 6 font strings (16 fields): family, size, pixel, hint, weight, style, ...
 UI_FONT = "IBM Plex Sans Condensed,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 TITLE_FONT = "IBM Plex Sans Condensed,10,-1,5,600,0,0,0,0,0,0,0,0,0,0,1"
@@ -20,11 +20,15 @@ P = dict(flaeche="#86a4aa", fenster="#c4d2d0", panel="#2e7180",
          text2="#38565c", aktiv="#e8874f", auswahl="#e8874f", auswahl_text="#10262b",
          hover="#f0b184", warnung="#aa571b", fehler="#a32626",
          positiv="#24643d", desktop="#086875", hell="#c9dedb",
-         dunkel="#41646a", rahmen="#10262b", karo="#afc2c2")
+         dunkel="#41646a", rahmen="#10262b", karo="#afc2c2",
+         fenster_text="#10262b", panel_text="#c9dedb", kopf_aktiv_text="#10262b",
+         kopf_inaktiv_text="#10262b", knopf_hover="#95b1b6", knopf_gedrueckt="#78969c",
+         rille="#6f8f96", inaktiv_text="#6f8588", alt_fenster="#b9cac9", link="#086875")
+DECORATION = "kwin4_decoration_qml_cdecopper"
 
 
-def write(path, content):
-    path = OUT / path
+def write(path, content, base=None):
+    path = (base or OUT) / path
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
 
@@ -43,89 +47,92 @@ def metadata(id_, name, description):
                        "Website": "https://github.com/huppiflupp/plasma-theme-lab"}}
 
 
-def colors():
+def colors(P, scheme="CDECopper", name="CDE Copper", base=None):
     def rgb(value):
         return ",".join(str(int(value[i:i+2], 16)) for i in (1, 3, 5))
-    lines = ["[General]", "Name=CDE Copper", "ColorScheme=CDECopper", "shadeSortColumn=true", "", "[KDE]", "contrast=7"]
+    lines = ["[General]", f"Name={name}", f"ColorScheme={scheme}", "shadeSortColumn=true", "", "[KDE]", "contrast=7"]
     groups = {"Window": ("flaeche", "text"), "Button": ("flaeche", "text"),
-              "View": ("fenster", "text"), "Selection": ("auswahl", "text"),
-              "Tooltip": ("fenster", "text"), "Complementary": ("panel", "hell"),
+              "View": ("fenster", "fenster_text"), "Selection": ("auswahl", "auswahl_text"),
+              "Tooltip": ("fenster", "fenster_text"), "Complementary": ("panel", "panel_text"),
               "Header": ("flaeche", "text")}
     for group, (bg, fg) in groups.items():
         lines += ["", f"[Colors:{group}]"]
         for key, value in {"BackgroundNormal": bg, "BackgroundAlternate": bg,
                            "ForegroundNormal": fg, "ForegroundInactive": "text2",
-                           "ForegroundActive": fg, "ForegroundLink": "desktop",
+                           "ForegroundActive": fg, "ForegroundLink": "link",
                            "ForegroundVisited": "dunkel", "ForegroundNegative": "fehler",
                            "ForegroundNeutral": "warnung", "ForegroundPositive": "positiv",
                            "DecorationFocus": "auswahl", "DecorationHover": "panel"}.items():
             lines.append(f"{key}={rgb(P[value])}")
     lines += ["", "[WM]", f"activeBackground={rgb(P['kopf_aktiv'])}",
-              f"activeForeground={rgb(P['text'])}", f"inactiveBackground={rgb(P['kopf_inaktiv'])}",
-              f"inactiveForeground={rgb(P['text'])}", "", "[ColorEffects:Disabled]",
-              "Color=111,133,136", "ColorEffect=0", "ContrastEffect=1", "ContrastAmount=0.55",
+              f"activeForeground={rgb(P['kopf_aktiv_text'])}", f"inactiveBackground={rgb(P['kopf_inaktiv'])}",
+              f"inactiveForeground={rgb(P['kopf_inaktiv_text'])}", "", "[ColorEffects:Disabled]",
+              f"Color={rgb(P['inaktiv_text'])}", "ColorEffect=0", "ContrastEffect=1", "ContrastAmount=0.55",
               "IntensityEffect=0", "", "[ColorEffects:Inactive]", "Enable=false"]
-    write("color-schemes/CDECopper.colors", "\n".join(lines) + "\n")
+    write(f"color-schemes/{scheme}.colors", "\n".join(lines) + "\n", base)
 
 
-def plasma(tools):
+def plasma(tools, P, theme="cde-copper", name="CDE Copper", base=None):
     mod = load(tools / "gen-plasma-svg.py", "plasma_svg")
     generator = mod.Generator(P, rahmen=1, aussenrahmen=1, rundung=0)
-    for name, spec in mod.WIDGETS.items():
-        svg = generator.erzeuge(name, spec)
-        path = f"{spec.get('ordner', 'widgets')}/{spec.get('datei', name)}.svg"
-        write(f"plasma/desktoptheme/cde-copper/{path}", svg)
-        if name in ("panel-background", "background", "background-dialog", "tooltip"):
+    for widget, spec in mod.WIDGETS.items():
+        svg = generator.erzeuge(widget, spec)
+        path = f"{spec.get('ordner', 'widgets')}/{spec.get('datei', widget)}.svg"
+        write(f"plasma/desktoptheme/{theme}/{path}", svg, base)
+        if widget in ("panel-background", "background", "background-dialog", "tooltip"):
             for mode in ("solid", "opaque", "translucent"):
-                write(f"plasma/desktoptheme/cde-copper/{mode}/{path}", svg)
-    write("plasma/desktoptheme/cde-copper/metadata.json", json.dumps(metadata(
-        "cde-copper", "CDE Copper", "Motif surfaces in teal and copper"), indent=2))
-    write("plasma/desktoptheme/cde-copper/plasmarc", "[Settings]\nFallbackTheme=default\n[ContrastEffect]\nenabled=false\n[BlurBehindEffect]\nenabled=false\n")
+                write(f"plasma/desktoptheme/{theme}/{mode}/{path}", svg, base)
+    description = "Motif surfaces in teal and copper" if theme == "cde-copper" else f"Motif surfaces, {name}"
+    write(f"plasma/desktoptheme/{theme}/metadata.json", json.dumps(metadata(theme, name, description), indent=2), base)
+    write(f"plasma/desktoptheme/{theme}/plasmarc", "[Settings]\nFallbackTheme=default\n[ContrastEffect]\nenabled=false\n[BlurBehindEffect]\nenabled=false\n", base)
 
 
-def decoration(tools):
-    mod = load(tools / "gen-aurorae.py", "aurorae_svg")
-    class Motif(mod.Aurorae):
-        def _symbol(self, art, m, n, s, sw, color):
-            if art in ("menu", "minimize", "maximize"):
-                width = 5 if art == "minimize" else 12
-                height = 5 if art != "maximize" else 12
-                x, y = m - width / 2, n - height / 2
-                return (f'<rect x="{x}" y="{y}" width="{width}" height="{height}" fill="{color}"/>'
-                        f'<path d="M{x+1} {y+height-1}V{y+1}H{x+width-1}" fill="none" stroke="#f0b184"/>')
-            return super()._symbol(art, m, n, s, sw, color)
+def decoration():
+    """The Motif frame is a QML Aurorae decoration; it reads its colours from
+    the active colour scheme, so it needs no per-palette build."""
+    base = f"kwin/decorations/{DECORATION}/"
+    shutil.copytree(ROOT / "decoration/contents", OUT / base / "contents", dirs_exist_ok=True)
+    meta = metadata(DECORATION, "CDE Copper", "Motif window frame: corner handles, shadowed title parts")
+    meta["KPackageStructure"] = "KWin/Decoration"
+    write(base + "metadata.json", json.dumps(meta, indent=2))
 
-    deco = Motif(P, titelhoehe=34, rahmen=6, aussen=1, bevel=1, buttongroesse=24)
-    base = "aurorae/themes/CDECopper/"
-    ns = "{http://www.w3.org/2000/svg}"
-    ET.register_namespace("", ns[1:-1])
-    svg = ET.fromstring(deco.decoration())
-    # Motif title rails and corner grips stay inside the native nine-patch IDs.
-    for group in svg.findall(f"{ns}g"):
-        id_ = group.get("id", "")
-        rect = group.find(f"{ns}rect")
-        if rect is None:
-            continue
-        x, y, w, h = [float(rect.get(k)) for k in ("x", "y", "width", "height")]
-        if id_.endswith("-top"):
-            for dy, fill in ((h-2, P["dunkel"]), (h-1, P["hell"]), (4, P["hell"])):
-                ET.SubElement(group, f"{ns}rect", dict(x=str(x), y=str(y+dy), width=str(w), height="1", fill=fill))
-        if id_.endswith(("-topleft", "-topright")):
-            ET.SubElement(group, f"{ns}rect", dict(x=str(x+1), y=str(y+22), width=str(w-2), height="1", fill=P["rahmen"]))
-    write(base + "decoration.svg", ET.tostring(svg, encoding="unicode"))
-    for button in mod.BUTTONS:
-        svg = ET.fromstring(deco.button(button))
-        for group in svg.findall(f"{ns}g"):
-            state = group.get("id", "").split("-")[0]
-            rect = group.find(f"{ns}rect")
-            if rect is not None:
-                rect.set("fill", P["kopf_inaktiv"] if state == "inactive" else P["kopf_aktiv"])
-        write(base + button + ".svg", ET.tostring(svg, encoding="unicode"))
-    rc = deco.rc("CDECopper").replace("TitleAlignment=Left", "TitleAlignment=Center")
-    rc = rc.replace("InactiveTextColor=196,210,208", "InactiveTextColor=16,38,43")
-    rc = rc.replace("Shadow=true", "Shadow=false")
-    write(base + "CDECopperrc", rc)
-    write(base + "metadata.desktop", deco.metadata("CDECopper", "CDE Copper", "Motif workstation decoration", "CDE Copper contributors", "GPL-2.0-or-later", VERSION))
+
+def arrange():
+    """KWin script: terminals beside the console, the main window above it."""
+    base = "kwin/scripts/cde-copper-arrange/"
+    shutil.copytree(ROOT / "arrange/contents", OUT / base / "contents", dirs_exist_ok=True)
+    meta = metadata("cde-copper-arrange", "CDE Copper Window Arrangement",
+                    "Terminals left and right of the front console, the main window above it (Meta+Ctrl+C)")
+    meta["KPackageStructure"] = "KWin/Script"
+    meta["X-Plasma-API"] = "javascript"
+    meta["X-Plasma-MainScript"] = "code/main.js"
+    meta["KPlugin"]["EnabledByDefault"] = True
+    write(base + "metadata.json", json.dumps(meta, indent=2))
+
+
+def backdrops_copper():
+    """CDE's backdrop tiles in CDE Copper's desktop colours."""
+    import backdrops
+    import palettes
+    backdrops.write_all(palettes.copper_desktop(), OUT / "wallpapers/CDEBackdrops")
+
+
+def build_palette(name, base, tools=ROOT / "tools"):
+    """Colour scheme, Plasma surfaces and Kvantum style for one CDE palette.
+
+    Run by manage.py when a palette is applied, not by the release build:
+    37 palettes times three generated sets would only bloat build/."""
+    import palettes
+    from kvantum import build_kvantum
+    colours = palettes.theme(name)
+    ident = "CDE" + name
+    display = f"CDE {name}"
+    colors(colours, ident, display, base)
+    plasma(tools, colours, "cde-" + name.lower(), display, base)
+    build_kvantum(base, colours, ident, f"Motif controls, CDE palette {name}")
+    return {"colors": ident, "plasma": "cde-" + name.lower(), "kvantum": ident, "desktop": colours["desktop"],
+            "targets": [f"color-schemes/{ident}.colors", "plasma/desktoptheme/cde-" + name.lower()],
+            "config_targets": [f"Kvantum/{ident}"]}
 
 
 def other_assets():
@@ -149,7 +156,7 @@ Theme=CDECopper
 name=cde-copper
 [kwinrc][org.kde.kdecoration2]
 library=org.kde.kwin.aurorae
-theme=__aurorae__svg__CDECopper
+theme={DECORATION}
 ButtonsOnLeft=M
 ButtonsOnRight=IAX
 BorderSize=Normal
@@ -181,9 +188,11 @@ def main():
     # influence each other (see tools/README.md).
     ap.add_argument("--tools", type=Path, default=ROOT / "tools")
     args = ap.parse_args()
-    colors()
-    plasma(args.tools)
-    decoration(args.tools)
+    colors(P)
+    plasma(args.tools, P)
+    decoration()
+    arrange()
+    backdrops_copper()
     from icons import build_icons
     build_icons(OUT)
     from kvantum import build_kvantum

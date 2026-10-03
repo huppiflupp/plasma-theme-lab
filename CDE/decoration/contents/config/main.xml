@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+  <kcfgfile name=""/>
+  <group name="">
+    <entry name="coloredBorder" type="Bool">
+      <default>true</default>
+    </entry>
+    <!-- 0 follows the title font; otherwise the height in pixels -->
+    <entry name="titleHeight" type="Int">
+      <default>0</default>
+      <min>0</min>
+      <max>64</max>
+    </entry>
+  </group>
+</kcfg>

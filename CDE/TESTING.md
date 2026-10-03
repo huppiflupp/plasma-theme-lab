@@ -41,12 +41,63 @@ Checks of 2026-09-30 (fonts and Kvantum widget style), same VM at 1920x1080:
 - Four `kioworker` core dumps appeared at the second the test killed Dolphin
   with `pkill`; none at any other time, so they are not attributed to the style.
 
+Checks of 2026-10-03 (version 0.2.0), same VM at 1920x1080, upgraded in place
+from the installed 0.1.0:
+
+- `python3 tests/verify.py`: 12 tests pass on the host and in the VM. New:
+  contrast of all 37 palettes, Motif shading against a value worked by hand,
+  a palette build passing the Plasma SVG lint, every backdrop rendering,
+  upgrade from 0.1.0 (the SVG decoration is removed, the QML one installed),
+  palette files owned and replaced/removed with the manifest.
+- The 0.1.0 installation in the VM was upgraded by `install.sh`; the old
+  Aurorae SVG theme was removed, nothing else touched.
+- Window frame: active and inactive frames, corner grooves, menu bar,
+  minimize/maximize squares and close; maximize pressed in when maximized.
+  Title height 32 px and "colour only the title bar" (`coloredBorder false`)
+  set through `auroraerc` and seen in the VM. The settings page inside System
+  Settings › Window Decorations was not opened.
+- Palettes: `--palette Default` and `--palette Broica`: colour scheme, Plasma
+  surfaces, Kvantum, window frames and console follow; the console background
+  measured exactly CDE colour set 8 (#93abbf). Back to Copper restores the
+  built-in set; the generated files of the previous palette are removed.
+- Backdrops: `--backdrop Pebbles` with Default and Broica; pixels unscaled after
+  writing a screen-size picture (Plasma scales a tile to the screen before
+  tiling it). `--backdrop none` restores the plain colour.
+- Console: default tiles; a changed list via the configuration applies at once
+  and the console width follows; size 125 % (tiles, icons, text, panel height).
+  Workspace 1 shows "1" instead of the truncated "Arbeitsfläche 1".
+- Settings pages Front Console, Launchers (ticks for installed programs) and
+  Clock and Calendar open and show their values.
+- Launching: Files (default file manager, Dolphin in the home folder), Web
+  (default browser, Firefox), Terminal, an application from the Applications
+  submenu (KolourPaint). A tile with a missing program (`foobar`) shows a
+  notification.
+- Applications menu: categories with icons; hover and click open the
+  cascade beside the category, also after the application database changed
+  while the menu was open.
+- Clock: month view (German day names), "Today", localized date; no real
+  appointments were tested (no Akonadi data in the VM).
+- System tray beside the console: status icons, the arrow for hidden ones,
+  and notifications (without a tray Plasma showed none at all).
+- Window arrangement (Meta+Ctrl+C, invoked through KGlobalAccel): two
+  terminals left and right of the console down to the screen bottom, Dolphin
+  in the middle above the console.
+- File managers tried in the theme for the recommendation: PCManFM-Qt and Xfe
+  (installed for the test, removed afterwards).
+- Each `pkill dolphin` in the test scripts left kioworker core dumps (signal 11)
+  and DrKonqi tray entries, as on 2026-09-30; they appear only then.
+
+Not verified: two physical screens (one console per screen is written but the
+VM shows one output), real calendar appointments, the decoration settings page
+in System Settings, keyboard navigation of the Applications menu, the console
+at the top edge.
+
 The project VM was restored to the original configuration after the destructive
 installation test. The last visual run deliberately leaves CDE Copper applied
 in the VM so it can be opened with `vm/vmctl.sh viewer`; remove it with
 `./uninstall.sh` inside `/home/tester/cde-copper` when finished viewing.
 
-Known scope: this release uses the native Qt Windows widget style, relies on
-Aurorae for the KWin frame, and does not replace the general system tray,
-login screen, cursor theme, or third-party client-side decorations. The custom
-front console is the supported panel experience.
+Known scope: the Motif controls need Kvantum (fallback: Qt Windows style); the
+login screen, cursor theme and third-party client-side decorations are not
+replaced. The custom front console with the Plasma system tray beside it is
+the supported panel experience.

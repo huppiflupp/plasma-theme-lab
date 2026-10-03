@@ -7,14 +7,15 @@ import tarfile
 ROOT = Path(__file__).resolve().parent
 DIST = ROOT / "dist"
 DIST.mkdir(exist_ok=True)
-archive = DIST / "cde-copper-0.1.0.tar.xz"
-items = ["build", "frontpanel", "fonts", "tools", "build.py", "icons.py", "kvantum.py", "manage.py", "install.sh",
+archive = DIST / "cde-copper-0.2.0.tar.xz"
+items = ["build", "frontpanel", "decoration", "arrange", "fonts", "palettes", "backdrops", "tools", "build.py", "icons.py",
+         "kvantum.py", "palettes.py", "backdrops.py", "manage.py", "install.sh",
          "apply.sh", "uninstall.sh", "layout.js", "README.md", "LICENSE", "TESTING.md", "tests"]
 with tarfile.open(archive, "w:xz") as tar:
     for item in items:
         tar.add(ROOT / item, arcname="cde-copper/" + item,
                 filter=lambda info: None if "__pycache__" in info.name else info)
-    tar.add(ROOT / "screenshots/desktop-kvantum-1920.png", arcname="cde-copper/preview.png")
+    tar.add(ROOT / "screenshots/desktop-arranged-1920.png", arcname="cde-copper/preview.png")
 digest = hashlib.sha256(archive.read_bytes()).hexdigest()
 (DIST / "SHA256SUMS").write_text(f"{digest}  {archive.name}\n")
 print(f"{archive}: {archive.stat().st_size:,} bytes")
