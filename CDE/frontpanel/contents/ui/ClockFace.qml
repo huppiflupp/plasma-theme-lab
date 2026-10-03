@@ -80,10 +80,12 @@ Item {
             onPaint: {
                 const ctx = getContext("2d");
                 ctx.reset();
-                const h = height, w = h * 0.55, t = Math.max(1.5, h * 0.11), g = Math.max(0.5, t * 0.15);
+                // Bars meet at the corners with a real gap between them, as on
+                // an LCD; unlit bars first, so they never dull a lit end.
+                const h = Math.round(height), w = h * 0.55, t = Math.max(1.5, h * 0.11), g = Math.max(1, t * 0.55);
                 const on = face.accent, off = Qt.rgba(face.ink.r, face.ink.g, face.ink.b, 0.12);
                 function bar(x, y, len, horizontal, colour) {
-                    // A segment with bevelled ends.
+                    // A segment with pointed ends.
                     ctx.fillStyle = colour;
                     ctx.beginPath();
                     if (horizontal) {
@@ -96,27 +98,32 @@ Item {
                     ctx.closePath();
                     ctx.fill();
                 }
-                function digit(x, value) {
-                    const segs = lit[value];
+                function digit(x, value, lit) {
+                    const segs = segments.lit[value];
                     const top = t / 2, mid = h / 2, bottom = h - t / 2, left = x + t / 2, right = x + w - t / 2;
                     const parts = {a: [left, top, right - left, true], g: [left, mid, right - left, true], d: [left, bottom, right - left, true],
                                    f: [left, top, mid - top, false], b: [right, top, mid - top, false],
                                    e: [left, mid, bottom - mid, false], c: [right, mid, bottom - mid, false]};
                     for (const key in parts) {
+                        if ((segs.indexOf(key) >= 0) !== lit) continue;
                         const p = parts[key];
-                        bar(p[0], p[1], p[2], p[3], segs.indexOf(key) >= 0 ? on : off);
+                        bar(p[0], p[1], p[2], p[3], lit ? on : off);
                     }
                 }
-                let x = 0;
-                for (let i = 0; i < text.length; i++) {
-                    digit(x, Number(text[i]));
-                    x += h * 0.62;
-                    if (i % 2 === 1 && i < text.length - 1) {
-                        ctx.fillStyle = on;
-                        const r = t * 0.45, cx = x + h * 0.08;
-                        ctx.beginPath(); ctx.arc(cx, h * 0.3, r, 0, 2 * Math.PI); ctx.fill();
-                        ctx.beginPath(); ctx.arc(cx, h * 0.7, r, 0, 2 * Math.PI); ctx.fill();
-                        x += h * 0.22;
+                for (const lit of [false, true]) {
+                    let x = 0;
+                    for (let i = 0; i < text.length; i++) {
+                        digit(Math.round(x), Number(text[i]), lit);
+                        x += h * 0.62;
+                        if (i % 2 === 1 && i < text.length - 1) {
+                            if (lit) {
+                                ctx.fillStyle = on;
+                                const r = t * 0.45, cx = Math.round(x + h * 0.08);
+                                ctx.beginPath(); ctx.arc(cx, h * 0.3, r, 0, 2 * Math.PI); ctx.fill();
+                                ctx.beginPath(); ctx.arc(cx, h * 0.7, r, 0, 2 * Math.PI); ctx.fill();
+                            }
+                            x += h * 0.22;
+                        }
                     }
                 }
             }
