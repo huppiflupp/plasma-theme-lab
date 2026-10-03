@@ -124,6 +124,11 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   every display stays inside its tile, the type and dials scaling with it.
   Checked in Copper only; the colours come from the same theme colours as the
   rest of the console.
+- Seven-segment, reworked: the segments are whole-pixel rectangles on a
+  canvas of whole-pixel size and position, so lit and unlit segments cover
+  each other exactly and nothing blurs. Checked at 100, 125 and 150 % console
+  size, and at 125 % with seconds; before, 125 % gave soft edges and unlit
+  segments offset against the lit ones.
 - The VM's wallpaper had been changed to a grey-teal gradient in the meantime;
   it was left as found, as were the console at the top edge and its settings.
 

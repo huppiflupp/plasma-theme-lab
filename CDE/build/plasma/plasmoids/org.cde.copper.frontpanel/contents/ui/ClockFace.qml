@@ -54,22 +54,45 @@ Item {
     }
 
     // ---- seven segments -----------------------------------------------
-    Column {
+    // Drawn on whole pixels only: integer canvas size and position, and every
+    // segment an axis-aligned rectangle on the pixel grid. Bevelled segment
+    // tips and a canvas at fractional size or position were smoothed by the
+    // renderer, which at 125 % gave blurred segments with a dark fringe.
+    Item {
+        id: segmentsFace
         visible: face.style === "segments"
-        anchors.centerIn: parent
-        spacing: Math.round(face.height * 0.05)
+        anchors.fill: parent
+        readonly property bool showDate: face.height > 40
+        readonly property int dateHeight: showDate ? Math.ceil(face.small * 1.3) : 0
+        readonly property int gapBelow: showDate ? Math.round(face.height * 0.05) : 0
+        // Proportions of one digit cell, scaled from its height h.
+        readonly property int digits: face.seconds ? 6 : 4
+        readonly property int colons: face.seconds ? 2 : 1
+        function geometry(h) {
+            const t = Math.max(2, Math.round(h * 0.09));          // stroke
+            const w = Math.max(3 * t, Math.round(h * 0.5));       // digit width
+            const s = Math.max(1, Math.round(h * 0.1));           // digit spacing
+            return {t: t, w: w, s: s, width: digits * w + (digits - 1) * s + colons * (t + s)};
+        }
+        // The largest digit height that fits the room, in whole pixels.
+        readonly property int digitHeight: {
+            let h = Math.max(7, Math.floor(Math.min(face.height - dateHeight - gapBelow, face.height * 0.62)));
+            while (h > 7 && geometry(h).width > face.width) h--;
+            return h;
+        }
+        readonly property var g: geometry(digitHeight)
+
         Canvas {
             id: segments
-            // Digit cells of 0.55:1, colons a third as wide.
-            readonly property int digits: face.seconds ? 6 : 4
-            readonly property int colons: face.seconds ? 2 : 1
-            readonly property real unitsWide: digits * 0.62 + colons * 0.22
-            height: Math.max(8, Math.min(face.height * 0.62, face.width / unitsWide))
-            width: height * unitsWide
-            anchors.horizontalCenter: parent.horizontalCenter
+            width: segmentsFace.g.width
+            height: segmentsFace.digitHeight
+            x: Math.round((segmentsFace.width - width) / 2)
+            y: Math.round((segmentsFace.height - height - segmentsFace.dateHeight - segmentsFace.gapBelow) / 2)
+            antialiasing: false
             readonly property string text: Qt.formatDateTime(face.now, face.seconds ? "HHmmss" : "HHmm")
             onTextChanged: requestPaint()
             onWidthChanged: requestPaint()
+            onHeightChanged: requestPaint()
             Connections {
                 target: face
                 function onInkChanged() { segments.requestPaint(); }
@@ -80,57 +103,65 @@ Item {
             onPaint: {
                 const ctx = getContext("2d");
                 ctx.reset();
-                // Bars meet at the corners with a real gap between them, as on
-                // an LCD; unlit bars first, so they never dull a lit end.
-                const h = Math.round(height), w = h * 0.55, t = Math.max(1.5, h * 0.11), g = Math.max(1, t * 0.55);
-                const on = face.accent, off = Qt.rgba(face.ink.r, face.ink.g, face.ink.b, 0.12);
-                function bar(x, y, len, horizontal, colour) {
-                    // A segment with pointed ends.
-                    ctx.fillStyle = colour;
-                    ctx.beginPath();
-                    if (horizontal) {
-                        ctx.moveTo(x + g, y); ctx.lineTo(x + g + t / 2, y - t / 2); ctx.lineTo(x + len - g - t / 2, y - t / 2);
-                        ctx.lineTo(x + len - g, y); ctx.lineTo(x + len - g - t / 2, y + t / 2); ctx.lineTo(x + g + t / 2, y + t / 2);
-                    } else {
-                        ctx.moveTo(x, y + g); ctx.lineTo(x + t / 2, y + g + t / 2); ctx.lineTo(x + t / 2, y + len - g - t / 2);
-                        ctx.lineTo(x, y + len - g); ctx.lineTo(x - t / 2, y + len - g - t / 2); ctx.lineTo(x - t / 2, y + g + t / 2);
-                    }
-                    ctx.closePath();
-                    ctx.fill();
-                }
+                const geo = segmentsFace.g, h = height, t = geo.t, w = geo.w;
+                // Segments end one pixel short of each other, so they read as
+                // separate bars, as on an LCD.
+                const gap = 1;
+                const mid = Math.round((h - t) / 2);
+                const on = face.accent.toString();
+                const off = Qt.rgba(face.ink.r, face.ink.g, face.ink.b, 0.13).toString();
                 function digit(x, value, lit) {
                     const segs = segments.lit[value];
-                    const top = t / 2, mid = h / 2, bottom = h - t / 2, left = x + t / 2, right = x + w - t / 2;
-                    const parts = {a: [left, top, right - left, true], g: [left, mid, right - left, true], d: [left, bottom, right - left, true],
-                                   f: [left, top, mid - top, false], b: [right, top, mid - top, false],
-                                   e: [left, mid, bottom - mid, false], c: [right, mid, bottom - mid, false]};
+                    const inner = w - 2 * t;                  // horizontal bar length
+                    const upper = mid - t, lower = h - t - mid - t;
+                    const parts = {
+                        a: [x + t, 0, inner, t], g: [x + t, mid, inner, t], d: [x + t, h - t, inner, t],
+                        f: [x, t, t, upper], b: [x + w - t, t, t, upper],
+                        e: [x, mid + t, t, lower], c: [x + w - t, mid + t, t, lower]
+                    };
+                    ctx.fillStyle = lit ? on : off;
                     for (const key in parts) {
                         if ((segs.indexOf(key) >= 0) !== lit) continue;
                         const p = parts[key];
-                        bar(p[0], p[1], p[2], p[3], lit ? on : off);
+                        // Shortened by the gap at both ends; from a 3-pixel
+                        // stroke on, the ends are cut back a pixel at the
+                        // edges - a bevelled tip that stays on the grid.
+                        const horizontal = p[2] > p[3];
+                        const x0 = horizontal ? p[0] + gap : p[0], y0 = horizontal ? p[1] : p[1] + gap;
+                        const len = (horizontal ? p[2] : p[3]) - 2 * gap;
+                        const cut = t >= 3 ? 1 : 0;
+                        if (horizontal) {
+                            ctx.fillRect(x0 + cut, y0, len - 2 * cut, t);
+                            if (cut) ctx.fillRect(x0, y0 + 1, len, t - 2);
+                        } else {
+                            ctx.fillRect(x0, y0 + cut, t, len - 2 * cut);
+                            if (cut) ctx.fillRect(x0 + 1, y0, t - 2, len);
+                        }
                     }
                 }
                 for (const lit of [false, true]) {
                     let x = 0;
                     for (let i = 0; i < text.length; i++) {
-                        digit(Math.round(x), Number(text[i]), lit);
-                        x += h * 0.62;
+                        digit(x, Number(text[i]), lit);
+                        x += w + geo.s;
                         if (i % 2 === 1 && i < text.length - 1) {
+                            // Colon: two square dots, a stroke wide, with one
+                            // spacing on either side (as in geometry()).
                             if (lit) {
                                 ctx.fillStyle = on;
-                                const r = t * 0.45, cx = Math.round(x + h * 0.08);
-                                ctx.beginPath(); ctx.arc(cx, h * 0.3, r, 0, 2 * Math.PI); ctx.fill();
-                                ctx.beginPath(); ctx.arc(cx, h * 0.7, r, 0, 2 * Math.PI); ctx.fill();
+                                ctx.fillRect(x, Math.round(h * 0.28), t, t);
+                                ctx.fillRect(x, Math.round(h * 0.72) - t, t, t);
                             }
-                            x += h * 0.22;
+                            x += t + geo.s;
                         }
                     }
                 }
             }
         }
         Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            visible: face.height > 40
+            visible: segmentsFace.showDate
+            x: Math.round((segmentsFace.width - width) / 2)
+            y: segments.y + segments.height + segmentsFace.gapBelow
             text: Qt.formatDateTime(face.now, "ddd dd MMM").toUpperCase()
             color: face.ink
             font.pixelSize: face.small; font.family: face.font
