@@ -236,6 +236,7 @@ PlasmoidItem {
         function onConsoleScaleChanged() { root.configurePanel(); }
         function onHideTrayVolumeChanged() { root.syncTray(); }
         function onHideTrayIconsChanged() { root.syncTray(); root.placeTray(); }
+        function onPanelFrameChanged() { root.placePanelFrame(); }
         // The Style page's choice, taken by the settings dialog's Apply/OK.
         function onStyleRequestChanged() {
             let request = null;
@@ -263,8 +264,27 @@ PlasmoidItem {
             const applet = item.applet ? item.applet.plasmoid : null;
             if (applet && applet.pluginName === "org.kde.plasma.systemtray") item.visible = !Plasmoid.configuration.hideTrayIcons;
         }
+        // The panel's layout keeps its spacing after the console, before an
+        // invisible end spacer: four pixels more panel on one side.
+        if (Plasmoid.configuration.hideTrayIcons) { layout.columnSpacing = 0; layout.rowSpacing = 0; }
     }
-    Timer { id: trayTimer; interval: 4000; onTriggered: { root.placeTray(); trayIds.connectSource("python3 " + Launch.quote(root.helper) + " tray"); } }
+    // The panel's own background (the theme's panel-background frame) behind
+    // the console. Without it the console stands on the desktop by itself;
+    // the panel keeps its size, so the margin around stays, transparent.
+    function placePanelFrame() {
+        let item = root.parent;
+        while (item && item.parent) item = item.parent;     // the panel window's root
+        const show = Plasmoid.configuration.panelFrame;
+        function walk(node, depth) {
+            if (!node || depth > 3 || !node.children) return;
+            for (const child of node.children) {
+                if (child.imagePath !== undefined && String(child.imagePath).indexOf("panel-background") >= 0) child.opacity = show ? 1 : 0;
+                else walk(child, depth + 1);
+            }
+        }
+        walk(item, 0);
+    }
+    Timer { id: trayTimer; interval: 4000; onTriggered: { root.placeTray(); root.placePanelFrame(); trayIds.connectSource("python3 " + Launch.quote(root.helper) + " tray"); } }
     // Applications add status icons while the session runs: look again
     // every half minute while the tray's entries are kept behind the button.
     property var statusIds: []

@@ -14,6 +14,7 @@ KCM.SimpleKCM {
     property real cfg_consoleScale: 1.0
     property alias cfg_hideTrayVolume: hideVolume.checked
     property alias cfg_hideTrayIcons: hideIcons.checked
+    property alias cfg_panelFrame: panelFrame.checked
     Kirigami.FormLayout {
         ComboBox {
             id: visibility
@@ -43,6 +44,11 @@ KCM.SimpleKCM {
         CheckBox {
             id: hideIcons
             text: "Status icons only behind the console's button"
+        }
+        CheckBox {
+            id: panelFrame
+            Kirigami.FormData.label: "Panel:"
+            text: "Frame behind the console"
         }
         TextField { id: label; Kirigami.FormData.label: "Console label:" }
         SpinBox {

@@ -35,7 +35,8 @@ or takes any of CDE's own 37 palettes and backdrops.
   icons, console settings, lock screen, show desktop. The Plasma system tray
   stays in the console's panel for notifications, but by default it is out of
   sight: its entries open from the console's button; the tray's own volume
-  icon is left out, since the console has one.
+  icon is left out, since the console has one. The panel's own frame around
+  the console can be switched off; the console then stands by itself.
 - CDE's 37 colour palettes, shaded with Motif's algorithm, and CDE's 25 desktop
   backdrops, coloured with the chosen palette.
 - A window arrangement around the console: terminals left and right, the main

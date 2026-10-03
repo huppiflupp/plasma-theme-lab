@@ -176,6 +176,13 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   bar, groove edge included, so its frame repeats the groove's top, bottom
   and left edge (asymmetric: the right end carries only the fill's rings).
   All three checked in a kdialog progress window under Mustard.
+- Panel around the console (reported: wider on the right): the panel's
+  layout kept its 4 px spacing after the console, before an invisible end
+  spacer. With the tray behind the console's button the spacing is now 0;
+  measured 3 px of panel frame on both sides. General › Panel › "Frame
+  behind the console" hides the panel's own background (its panel-background
+  frames, in this panel only); the console then stands by itself, with the
+  panel's margin around it transparent. Checked in the VM both ways.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the
   menu entry. Not checked: the Files tile switched to XFile (the launcher
