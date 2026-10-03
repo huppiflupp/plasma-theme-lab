@@ -129,6 +129,9 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   each other exactly and nothing blurs. Checked at 100, 125 and 150 % console
   size, and at 125 % with seconds; before, 125 % gave soft edges and unlit
   segments offset against the lit ones.
+- Lit segments and colon carry a black edge one pixel wide, at every size;
+  it lies in the one-pixel gap between segments and covers no neighbour.
+  Checked at 75, 100, 125 and 150 %, and at 125 % with seconds.
 - The VM's wallpaper had been changed to a grey-teal gradient in the meantime;
   it was left as found, as were the console at the top edge and its settings.
 

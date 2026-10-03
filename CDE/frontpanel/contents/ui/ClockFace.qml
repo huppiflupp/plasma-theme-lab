@@ -77,15 +77,16 @@ Item {
         // The largest digit height that fits the room, in whole pixels.
         readonly property int digitHeight: {
             let h = Math.max(7, Math.floor(Math.min(face.height - dateHeight - gapBelow, face.height * 0.62)));
-            while (h > 7 && geometry(h).width > face.width) h--;
+            while (h > 7 && geometry(h).width + 2 > face.width) h--;
             return h;
         }
         readonly property var g: geometry(digitHeight)
 
         Canvas {
             id: segments
-            width: segmentsFace.g.width
-            height: segmentsFace.digitHeight
+            // One pixel extra all round for the outline of the lit segments.
+            width: segmentsFace.g.width + 2
+            height: segmentsFace.digitHeight + 2
             x: Math.round((segmentsFace.width - width) / 2)
             y: Math.round((segmentsFace.height - height - segmentsFace.dateHeight - segmentsFace.gapBelow) / 2)
             antialiasing: false
@@ -103,14 +104,22 @@ Item {
             onPaint: {
                 const ctx = getContext("2d");
                 ctx.reset();
-                const geo = segmentsFace.g, h = height, t = geo.t, w = geo.w;
+                const geo = segmentsFace.g, h = segmentsFace.digitHeight, t = geo.t, w = geo.w;
+                ctx.translate(1, 1);
                 // Segments end one pixel short of each other, so they read as
                 // separate bars, as on an LCD.
                 const gap = 1;
                 const mid = Math.round((h - t) / 2);
                 const on = face.accent.toString();
                 const off = Qt.rgba(face.ink.r, face.ink.g, face.ink.b, 0.13).toString();
-                function digit(x, value, lit) {
+                // Lit segments get a thin black edge, a pixel wide at every
+                // size; it falls into the gap between segments, so it never
+                // covers a neighbour.
+                const edge = "black";
+                function rect(x, y, rw, rh, grow) {
+                    ctx.fillRect(x - grow, y - grow, rw + 2 * grow, rh + 2 * grow);
+                }
+                function digit(x, value, lit, grow) {
                     const segs = segments.lit[value];
                     const inner = w - 2 * t;                  // horizontal bar length
                     const upper = mid - t, lower = h - t - mid - t;
@@ -119,7 +128,7 @@ Item {
                         f: [x, t, t, upper], b: [x + w - t, t, t, upper],
                         e: [x, mid + t, t, lower], c: [x + w - t, mid + t, t, lower]
                     };
-                    ctx.fillStyle = lit ? on : off;
+                    ctx.fillStyle = grow ? edge : lit ? on : off;
                     for (const key in parts) {
                         if ((segs.indexOf(key) >= 0) !== lit) continue;
                         const p = parts[key];
@@ -131,26 +140,28 @@ Item {
                         const len = (horizontal ? p[2] : p[3]) - 2 * gap;
                         const cut = t >= 3 ? 1 : 0;
                         if (horizontal) {
-                            ctx.fillRect(x0 + cut, y0, len - 2 * cut, t);
-                            if (cut) ctx.fillRect(x0, y0 + 1, len, t - 2);
+                            rect(x0 + cut, y0, len - 2 * cut, t, grow);
+                            if (cut) rect(x0, y0 + 1, len, t - 2, grow);
                         } else {
-                            ctx.fillRect(x0, y0 + cut, t, len - 2 * cut);
-                            if (cut) ctx.fillRect(x0 + 1, y0, t - 2, len);
+                            rect(x0, y0 + cut, t, len - 2 * cut, grow);
+                            if (cut) rect(x0 + 1, y0, t - 2, len, grow);
                         }
                     }
                 }
-                for (const lit of [false, true]) {
+                // Unlit segments, then the edges of the lit ones, then the lit.
+                for (const pass of [[false, 0], [true, 1], [true, 0]]) {
+                    const lit = pass[0], grow = pass[1];
                     let x = 0;
                     for (let i = 0; i < text.length; i++) {
-                        digit(x, Number(text[i]), lit);
+                        digit(x, Number(text[i]), lit, grow);
                         x += w + geo.s;
                         if (i % 2 === 1 && i < text.length - 1) {
                             // Colon: two square dots, a stroke wide, with one
                             // spacing on either side (as in geometry()).
                             if (lit) {
-                                ctx.fillStyle = on;
-                                ctx.fillRect(x, Math.round(h * 0.28), t, t);
-                                ctx.fillRect(x, Math.round(h * 0.72) - t, t, t);
+                                ctx.fillStyle = grow ? edge : on;
+                                rect(x, Math.round(h * 0.28), t, t, grow);
+                                rect(x, Math.round(h * 0.72) - t, t, t, grow);
                             }
                             x += t + geo.s;
                         }
