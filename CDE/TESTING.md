@@ -127,6 +127,18 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
 - The VM's wallpaper had been changed to a grey-teal gradient in the meantime;
   it was left as found, as were the console at the top edge and its settings.
 
+Auto-hide (reported: the console could not be brought back):
+
+- Plasma reserves the screen edge that reveals a hidden panel when the hiding
+  mode is set and does not move it with the panel. The console's settings set
+  mode and edge in one script, the mode first. Reproduced: with auto-hide on,
+  moved from the top to the bottom, pressing against the bottom edge did
+  nothing; setting the mode again at the bottom made it work.
+- Now the console is placed while it stays visible and hidden 1.5 s later.
+  Pressing against the edge (40 pointer events over two seconds; a single jump
+  to the edge only shows KWin's edge glow) revealed it at the top, after moving
+  to the bottom, and after moving back to the top.
+
 The project VM was restored to the original configuration after the destructive
 installation test. The last visual run deliberately leaves CDE Copper applied
 in the VM so it can be opened with `vm/vmctl.sh viewer`; remove it with

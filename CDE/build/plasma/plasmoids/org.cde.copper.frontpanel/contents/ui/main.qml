@@ -145,9 +145,23 @@ PlasmoidItem {
         const height = Math.round(128 * consoleColors.unit);
         // Upright the console runs the full height, so the window list has room.
         const length = edge === "left" || edge === "right" ? "fill" : "fit";
-        const script = "for (var p of panels()) { for (var w of p.widgets()) { if (w.type === 'org.cde.copper.frontpanel') { p.hiding = '" + mode + "'; p.location = '" + edge + "'; p.height = " + height + "; p.lengthMode = '" + length + "'; p.alignment = 'center'; p.offset = 0; } } }";
-        runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(script));
+        // Plasma reserves the screen edge that reveals a hidden panel when the
+        // hiding mode is set, and does not move it with the panel: moved
+        // afterwards (or in the same breath), the console could not be brought
+        // back. So: place it while it stays visible, then hide it.
+        const ours = "for (var p of panels()) { for (var w of p.widgets()) { if (w.type === 'org.cde.copper.frontpanel') { ";
+        const place = ours + "p.hiding = 'none'; p.location = '" + edge + "'; p.height = " + height + "; p.lengthMode = '" + length + "'; p.alignment = 'center'; p.offset = 0; } } }";
+        runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(place));
+        pendingHiding = mode === "none" ? "" : ours + "p.hiding = '" + mode + "'; } } }";
+        if (pendingHiding) hidingTimer.restart();
     }
+    property string pendingHiding: ""
+    Timer {
+        id: hidingTimer
+        interval: 1500
+        onTriggered: if (root.pendingHiding) runner.connectSource(root.dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(root.pendingHiding))
+    }
+
     // The tray beside the console would show a second volume control; the
     // console's own one (wheel, click for slider and mute) replaces it.
     function syncTray() {
