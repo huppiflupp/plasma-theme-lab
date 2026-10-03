@@ -200,7 +200,9 @@ Right-click the console and choose its settings.
 - **Launchers**: the tiles left and right of the workspace switch. Each tile has
   a label, an icon, a program and the subpanel its arrow opens (Applications,
   Places, System, Help, Mail, Bookmarks, Recent files). Programs are
-  "Default web browser", "Default mail client", "Default file manager", XFile,
+  "Default web browser", "Default mail client", "Default file manager",
+  PCManFM (the Files tile's default: PCManFM-Qt takes the Motif controls,
+  else the GTK PCManFM, else the desktop's file manager), XFile,
   "Default text editor", terminal, calendar and so on, which follow
   System Settings › Default Applications, or an installed application picked
   from a list, or any command. A tick or a warning shows whether the program is

@@ -8,7 +8,7 @@
 
 const LEFT = [
     {label: "Apps", icon: "cde-menu", command: "@applications", menu: "applications"},
-    {label: "Files", icon: "folder", command: "@files", menu: "places"},
+    {label: "Files", icon: "folder", command: "@pcmanfm", menu: "places"},
     {label: "Terminal", icon: "utilities-terminal", command: "@terminal", menu: ""},
     {label: "Editor", icon: "accessories-text-editor", command: "@editor", menu: "recent"}
 ];
@@ -25,6 +25,7 @@ const PRESETS = [
     {text: "Default web browser", value: "@browser", icon: "internet-web-browser"},
     {text: "Default mail client", value: "@mail", icon: "internet-mail"},
     {text: "Default file manager", value: "@files", icon: "folder"},
+    {text: "PCManFM (follows the Motif style best)", value: "@pcmanfm", icon: "system-file-manager"},
     {text: "XFile (Motif, as CDE's dtfile)", value: "@xfile", icon: "system-file-manager"},
     {text: "Terminal", value: "@terminal", icon: "utilities-terminal"},
     {text: "Default text editor", value: "@editor", icon: "accessories-text-editor"},
@@ -55,7 +56,7 @@ function menuFor(command) {
     if (token === "@browser") return "bookmarks";
     if (token === "@mail") return "mail";
     if (token === "@editor" || token.indexOf("app:") === 0) return "recent";
-    if (token === "@files" || token === "@xfile" || token === "@trash") return "places";
+    if (token === "@files" || token === "@pcmanfm" || token === "@xfile" || token === "@trash") return "places";
     if (token === "@settings") return "system";
     if (token === "@help") return "help";
     if (token === "@applications") return "applications";
@@ -108,6 +109,9 @@ const TOKENS = {
               programs: ["kmail", "thunderbird", "evolution"]},
     "@files": {what: "A file manager", query: "xdg-mime query default inode/directory",
                programs: ["dolphin", "pcmanfm-qt", "nautilus", "thunar", "xdg-open"], home: true},
+    // The console's file manager: PCManFM-Qt takes the Kvantum controls,
+    // the GTK PCManFM the GTK theme; without either the desktop's default.
+    "@pcmanfm": {what: "PCManFM", programs: ["pcmanfm-qt", "pcmanfm", "dolphin", "xdg-open"], home: true},
     "@xfile": {what: "XFile", programs: ["xfile"], home: true},
     "@trash": {what: "A file manager", query: "xdg-mime query default inode/directory",
                programs: ["dolphin", "kioclient exec"], fixed: "trash:/"},
@@ -227,6 +231,7 @@ const TRANSLATABLE_STRINGS = [
     I18N_NOOP("Default web browser"),
     I18N_NOOP("Default mail client"),
     I18N_NOOP("Default file manager"),
+    I18N_NOOP("PCManFM (follows the Motif style best)"),
     I18N_NOOP("XFile (Motif, as CDE's dtfile)"),
     I18N_NOOP("Default text editor"),
     I18N_NOOP("Calendar"),

@@ -146,7 +146,8 @@ PlasmoidItem {
     // The places open in the slot's file manager (XFile, if that is the
     // tile's); XFile has no trash, so the trash stays the desktop's.
     function placesEntries(slot) {
-        const files = slot && slot.command.indexOf("@xfile") === 0 ? "@xfile" : "@files";
+        const files = slot && slot.command.indexOf("@xfile") === 0 ? "@xfile"
+                    : slot && slot.command.indexOf("@pcmanfm") === 0 ? "@pcmanfm" : "@files";
         return [entry(i18nd("cde-copper", "Home"), "user-home", files + " ~"),
                 entry(i18nd("cde-copper", "Documents"), "folder-documents", files + " xdg:DOCUMENTS"),
                 entry(i18nd("cde-copper", "Downloads"), "folder-download", files + " xdg:DOWNLOAD"),
