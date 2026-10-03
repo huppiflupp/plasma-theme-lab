@@ -40,6 +40,7 @@ TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "
            "wallpapers/org.cde.copper", "plasma/wallpapers/org.cde.copper.backdrop",
            "konsole/CDECopper.colorscheme", "konsole/CDE Copper.profile",
            "kstyle/themes/kvantum.themerc", "kstyle/themes/kvantum-dark.themerc", "icons/CDECopperCursors",
+           "plasma/shells/org.cde.copper.shell",
            "fonts/CDECopper", TOOL) + SCHEMES
 # The tool copy: what applying a palette needs, so the console and System
 # Settings can switch palettes without the extracted archive.
@@ -441,6 +442,40 @@ def remove_xfile_integration():
     remove(XFILE_DESKTOP)
 
 
+SHELL, DEFAULT_SHELL = "org.cde.copper.shell", "org.kde.plasma.desktop"
+
+
+def current_shell():
+    return read_config("plasmashellrc", "Shell", "ShellPackage") or os.environ.get("PLASMA_DEFAULT_SHELL", DEFAULT_SHELL)
+
+
+def set_lockscreen(manifest, kind, running=True):
+    """CDE's lock screen ("cde") or Plasma's ("plasma").
+
+    Plasma 6 takes the lock screen from the shell package that plasmashell
+    runs (plasmashellrc [Shell] ShellPackage), and kscreenlocker reads the
+    same key. CDE's lives in the shell package org.cde.copper.shell, which
+    takes everything else from org.kde.plasma.desktop. plasmashell names its
+    panel and desktop configuration after the shell, so the configuration
+    moves with it: plasmashell is stopped (it writes its file), the file is
+    copied to the other name, the key set, plasmashell started again."""
+    current = current_shell()
+    wanted = SHELL if kind == "cde" else manifest.get("shell_previous", DEFAULT_SHELL)
+    manifest["lockscreen"] = kind
+    if current == wanted or (kind == "plasma" and current != SHELL):
+        return
+    if running:
+        run("systemctl", "--user", "stop", "plasma-plasmashell.service", check=False)
+    source = CONFIG / f"plasma-{current}-appletsrc"
+    if source.exists():
+        shutil.copy2(source, CONFIG / f"plasma-{wanted}-appletsrc")
+    if kind == "cde":
+        manifest["shell_previous"] = current
+    write_config("plasmashellrc", "Shell", {"ShellPackage": wanted})
+    if running:
+        run("systemctl", "--user", "start", "plasma-plasmashell.service", check=False)
+
+
 def update_splash(name):
     """The start-up screen in the palette: its Colours.qml and backdrop tile
     in the installed global theme (ours)."""
@@ -454,6 +489,12 @@ def update_splash(name):
     tile = DATA / TOOL / "backdrops" / name / "Lattice.png"
     if tile.exists():
         shutil.copy2(tile, splash / "images/backdrop.png")
+    # The lock screen (shell package) shares colours and tile.
+    lock = DATA / "plasma/shells/org.cde.copper.shell/contents/lockscreen"
+    if lock.exists():
+        (lock / "Colours.qml").write_text(build.splash_colours(colours))
+        if tile.exists():
+            shutil.copy2(tile, lock / "images/backdrop.png")
 
 
 def set_backdrop(manifest, name, scale):
@@ -478,7 +519,7 @@ def set_backdrop(manifest, name, scale):
     MANIFEST.write_text(json.dumps(manifest, indent=2))
 
 
-def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=False, progress=None, cursor=None):
+def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=False, progress=None, cursor=None, lockscreen=None):
     """Switch palette (and backdrop) of an applied installation; with follow,
     take the palette from the colour scheme chosen in System Settings."""
     if not MANIFEST.exists():
@@ -494,6 +535,9 @@ def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=Fa
             name = match.group(1) if match else None
             if name not in ("Copper", *palettes.names()):
                 return
+        if lockscreen:
+            set_lockscreen(manifest, lockscreen)
+            MANIFEST.write_text(json.dumps(manifest, indent=2))
         if cursor:
             manifest["cursor"] = cursor
             install_cursors(manifest)
@@ -548,6 +592,8 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
     write_config("konsolerc", "Desktop Entry", {"DefaultProfile": "CDE Copper.profile"})
     dbus("org.kde.KWin", "/KWin", "reconfigure")
     dbus("org.kde.KWin", "/Scripting", "org.kde.kwin.Scripting.start")
+    set_lockscreen(manifest, manifest.get("lockscreen", "cde"))
+    MANIFEST.write_text(json.dumps(manifest, indent=2))
     if backdrop:
         set_backdrop(manifest, backdrop, backdrop_scale or manifest.get("backdrop_scale", 1))
     if panel:
@@ -581,6 +627,12 @@ def uninstall():
         raise RuntimeError("Unexpected config target in ownership manifest")
     if manifest["applied"]:
         run("systemctl", "--user", "stop", "plasma-plasmashell.service")
+    # Back to Plasma's shell package (and lock screen) with the panel
+    # configuration, before the saved configuration is restored.
+    if current_shell() == SHELL:
+        set_lockscreen(manifest, "plasma", running=False)
+        remove(CONFIG / f"plasma-{SHELL}-appletsrc")
+    if manifest["applied"]:
         for file in CONFIG_FILES:
             remove(CONFIG / file)
             if file in manifest["config_present"]:
@@ -615,6 +667,7 @@ def main():
                         help="palette: progress bar style (outlined, floating in the groove, slim)")
     parser.add_argument("--cursor", type=lambda v: v if v in ("copper", "palette", "white") or re.fullmatch(r"#[0-9a-fA-F]{6}", v) else parser.error(f"--cursor: {v!r}"),
                         help="palette: rim of the cursors: copper, palette (its accent), white or #rrggbb")
+    parser.add_argument("--lockscreen", choices=("cde", "plasma"), help="palette: CDE's lock screen (a shell package of its own) or Plasma's")
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--panel", action="store_true", help="replace the panel layout, backed up on installation")
     parser.add_argument("--dry-run", action="store_true")
@@ -637,7 +690,7 @@ def main():
     elif args.action == "apply":
         apply(args.panel, args.palette, args.backdrop, args.backdrop_scale)
     elif args.action == "palette":
-        palette_action(args.palette, args.backdrop, args.backdrop_scale, args.follow_scheme, args.notify, args.progress, args.cursor)
+        palette_action(args.palette, args.backdrop, args.backdrop_scale, args.follow_scheme, args.notify, args.progress, args.cursor, args.lockscreen)
     else:
         uninstall()
 

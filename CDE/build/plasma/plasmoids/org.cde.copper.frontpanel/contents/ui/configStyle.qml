@@ -51,6 +51,9 @@ KCM.SimpleKCM {
                 try { cursor = JSON.parse(data.stdout).cursor || "copper"; } catch (e) {}
                 if (cursor.charAt(0) === "#") { cursorColour.color = cursor; cursor = "custom"; }
                 cursorBox.currentIndex = Math.max(0, page.cursorStyles.findIndex(s => s.value === cursor));
+                let lock = "cde";
+                try { lock = JSON.parse(data.stdout).lockscreen || "cde"; } catch (e) {}
+                lockBox.currentIndex = lock === "plasma" ? 1 : 0;
             }
         }
     }
@@ -70,6 +73,7 @@ KCM.SimpleKCM {
         cfg_styleRequest = JSON.stringify({palette: chosen, backdrop: backdrop, scale: pixels.value,
                                            progress: progressStyles[progressBox.currentIndex].value,
                                            cursor: cursorBox.currentIndex === 3 ? cursorColour.color.toString().substring(0, 7) : cursorStyles[cursorBox.currentIndex].value,
+                                           lockscreen: lockBox.currentIndex === 1 ? "plasma" : "cde",
                                            at: Date.now()});
     }
 
@@ -161,6 +165,19 @@ KCM.SimpleKCM {
         Label {
             Layout.fillWidth: true; wrapMode: Text.Wrap; opacity: 0.75
             text: "The cursors after the X11 cursor font: black shapes on a coloured rim, with a soft shadow."
+        }
+
+        Kirigami.Separator { Layout.fillWidth: true }
+        Kirigami.Heading { level: 3; text: "Lock screen" }
+        ComboBox {
+            id: lockBox
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 20
+            model: ["CDE's: a Motif dialog on the backdrop", "Plasma's own"]
+            onActivated: page.request()
+        }
+        Label {
+            Layout.fillWidth: true; wrapMode: Text.Wrap; opacity: 0.75
+            text: "Plasma takes the lock screen from its shell package; CDE's comes in a shell package of its own that takes everything else from Plasma's. Switching restarts the desktop shell once."
         }
 
         Kirigami.Separator { Layout.fillWidth: true }

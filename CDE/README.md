@@ -54,6 +54,11 @@ or takes any of CDE's own 37 palettes and backdrops.
   also as pixel versions for 16 and 22 px.
 - Konsole profile and color scheme, global-theme bundle with a Motif start-up
   screen, and teal wallpaper.
+- CDE's lock screen: a Motif dialog on the palette's backdrop. Plasma 6 takes
+  the lock screen from its shell package, so it comes as a shell package of
+  its own (org.cde.copper.shell) that takes everything else from Plasma's;
+  applying the theme switches to it, moving the panel and desktop
+  configuration along (Style page › Lock screen switches back).
 - User-only installer, ownership manifest and configuration rollback.
 
 ## Install
@@ -285,7 +290,7 @@ compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,
 document, device and status names; less common names fall back to Breeze and
-then hicolor. Login/lock-screen replacement is outside this release. Native Plasma manages panel hiding and
+then hicolor. A login screen (SDDM) is outside this release. Native Plasma manages panel hiding and
 screen-edge reveal; there is no separate retractable handle.
 
 Popups from the console open at the size they first appear with: under Wayland
@@ -339,7 +344,7 @@ Not reached:
   accessible names and keys work in the subpanels, but full keyboard operation
   of auto-hide and of the Applications menu has not been verified, nor has a
   screen reader been used.
-- **Theme coverage (phase 3).** No lock screen or SDDM theme;
+- **Theme coverage (phase 3).** No SDDM theme;
   notifications and calendar follow only through the Plasma surfaces.
 - **Test matrix.** 150 % and 200 % scaling were checked for 0.1 only, not for
   the QML window frame, the console and the popups that came later. X11 was

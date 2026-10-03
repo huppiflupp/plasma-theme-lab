@@ -96,7 +96,7 @@ def splash_colours(P):
     """Colours.qml of the start-up screen, from a palette's colours."""
     values = {"desktop": P["desktop"], "face": P["flaeche"], "light": P["hell"], "dark": P["dunkel"],
               "ink": P["text"], "accent": P["kopf_aktiv"], "title": P["kopf_aktiv"],
-              "titleText": P["kopf_aktiv_text"], "trough": P["rille"]}
+              "titleText": P["kopf_aktiv_text"], "trough": P["rille"], "field": P["fenster"]}
     lines = "\n".join(f'    readonly property color {key}: "{value}"' for key, value in values.items())
     return f"import QtQuick\n\n// Written by CDE Copper for the palette in use.\nQtObject {{\n{lines}\n}}\n"
 
@@ -248,6 +248,17 @@ Image=org.cde.copper
         shutil.copy2(OUT / f"icons/CDECopper/22/all/{icon}.svg" if (OUT / f"icons/CDECopper/22/all/{icon}.svg").exists()
                      else OUT / f"icons/CDECopper/scalable/all/{icon}.svg", images / f"{part}.svg")
     write(lnf + "contents/splash/Colours.qml", splash_colours(P))
+    # The lock screen: a shell package of its own (see shell/), with the same
+    # colours, tile and logo.
+    shell = "plasma/shells/org.cde.copper.shell/"
+    shutil.copytree(ROOT / "shell", OUT / shell, dirs_exist_ok=True)
+    meta = json.loads((ROOT / "shell/metadata.json").read_text())
+    meta["KPlugin"]["Version"] = VERSION
+    write(shell + "metadata.json", json.dumps(meta, indent=2))
+    write(shell + "contents/lockscreen/Colours.qml", splash_colours(P))
+    (OUT / shell / "contents/lockscreen/images").mkdir(parents=True, exist_ok=True)
+    for name in ("backdrop.png", "logo.svg"):
+        shutil.copy2(images / name, OUT / shell / "contents/lockscreen/images" / name)
     (OUT / lnf / "contents/previews").mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "screenshots/splash-1920.png", OUT / lnf / "contents/previews/splash.png")
     # Shown in System Settings › Global Theme.

@@ -282,6 +282,7 @@ PlasmoidItem {
             if (request.backdrop) command += " --backdrop " + Launch.quote(request.backdrop) + " --backdrop-scale " + Math.max(1, Math.min(3, request.scale || 1));
             if (["outlined", "floating", "slim"].indexOf(request.progress) >= 0) command += " --progress " + request.progress;
             if (/^(copper|palette|white|#[0-9a-fA-F]{6})$/.test(request.cursor || "")) command += " --cursor " + Launch.quote(request.cursor);
+            if (request.lockscreen === "cde" || request.lockscreen === "plasma") command += " --lockscreen " + request.lockscreen;
             root.run(command);
         }
     }

@@ -262,6 +262,21 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   count), and the line below names it. Colours and backdrop tile follow the
   palette: the tool writes splash/Colours.qml and the Lattice tile with
   every palette (and after a reinstall). Checked under Orchid and Copper.
+- Lock screen: Plasma 6 loads it from the shell package plasmashell runs
+  (plasmashellrc [Shell] ShellPackage, read by kscreenlocker too), not from
+  the global theme, so a lockscreen/ in the global theme is ignored. CDE's
+  is the shell package org.cde.copper.shell: lockscreen/ only, everything
+  else from org.kde.plasma.desktop (libplasma's X-Plasma-FallbackPackage).
+  plasmashell names its configuration after the shell, so switching stops
+  plasmashell, copies plasma-<shell>-appletsrc to the other name, sets the
+  key and starts it again; uninstall switches back first. Checked in the VM:
+  kscreenlocker_greet --testing --shell org.cde.copper.shell (a wrong
+  password shows the failure line, the field is ready again); a real lock
+  with loginctl lock-session showed the dialog in Orchid's colours,
+  unlock-session ended it; switching to Plasma's lock screen and back kept
+  the console and desktop configuration. A real unlock by password was not
+  tried (the VM user's password is not known here); the success path is
+  kscreenlocker's own (authenticator.succeeded -> Qt.quit). Texts in English.
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the
