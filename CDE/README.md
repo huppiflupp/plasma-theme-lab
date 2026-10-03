@@ -41,7 +41,9 @@ or takes any of CDE's own 37 palettes and backdrops.
   backdrops, coloured with the chosen palette.
 - A window arrangement around the console: terminals left and right, the main
   window in the middle above the console (Meta+Ctrl+C).
-- Original SVG icon artwork and semantic aliases, with no embedded raster images.
+- Original SVG icon artwork, 248 drawings under 652 names (applications,
+  menu categories, actions, documents, devices, places, battery, network and
+  other status icons), with no embedded raster images.
 - Konsole profile and color scheme, global-theme bundle, and teal wallpaper.
 - User-only installer, ownership manifest and configuration rollback.
 
@@ -268,9 +270,10 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 This is version 0.3.0. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
-can supply their own controls or client-side decorations. Less common icon
-names fall back to Breeze and then hicolor; the console's core icons and common
-file-manager icons are custom SVGs. Login/lock-screen replacement and a custom
+can supply their own controls or client-side decorations. The icon set covers
+the installed applications, the menu categories and the common action,
+document, device and status names; less common names fall back to Breeze and
+then hicolor. Login/lock-screen replacement and a custom
 cursor theme are outside this release. Native Plasma manages panel hiding and
 screen-edge reveal; there is no separate retractable handle.
 
@@ -311,10 +314,11 @@ Not reached:
 - **Controls (§6).** Kvantum's minimum heights are font-relative: push buttons
   and menu rows come out below the 28–34 px and 30–34 px the specification
   gives (derived from the Kvantum configuration, not measured on screen).
-- **Icons (§7).** Less common icon names fall back to Breeze, and the system
-  tray shows the icons of the applets and applications in it, so Breeze icons
-  do appear. The icons are one scalable set, not optically tuned per size
-  (16/22/24/32/48/64).
+- **Icons (§7).** 248 drawings cover the common names, but Breeze knows
+  several thousand: less common ones (many application-specific actions,
+  rarer document types, monochrome "-symbolic" variants outside the menu)
+  still fall back to Breeze. The icons are one scalable set, not optically
+  tuned per size (16/22/24/32/48/64).
 - **Hidden panel (§8).** No grip edge or copper marker while the console is
   hidden; KWin's own edge glow is all there is. Showing and hiding use
   Plasma's timing, not the 140–180 ms of the specification.

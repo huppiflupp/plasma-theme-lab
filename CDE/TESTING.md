@@ -183,6 +183,17 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   behind the console" hides the panel's own background (its panel-background
   frames, in this panel only); the console then stands by itself, with the
   panel's margin around it transparent. Checked in the VM both ways.
+- Icons: 51 drawings became 248, under 652 names. Chosen from what the VM
+  asks for: the icons of every installed application with a menu entry, the
+  menu's category icons (asked for as "-symbolic", which Breeze has and so
+  won over our drawing; now linked), tray and status names (battery levels
+  with charging, wireless strength, wired/offline, Bluetooth, notifications,
+  brightness, vault), devices, places, document types and the common
+  freedesktop action names. Contact sheets at 16/22/32/48 px checked; the
+  Applications menu shows our icons for the categories and the applications
+  in Multimedia and System. Build fix: the icon folder is emptied first; a
+  drawing written through a link of an earlier build had overwritten the
+  link's target (folder, edit-find and dialog-cancel showed other pictures).
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the
