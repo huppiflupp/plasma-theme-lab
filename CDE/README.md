@@ -60,12 +60,19 @@ languages can be added as `po/<language>.po`.
   other status icons), with no embedded raster images; the 59 most visible
   also as pixel versions for 16 and 22 px.
 - Konsole profile and color scheme, global-theme bundle with a Motif start-up
-  screen, and teal wallpaper.
+  screen, and teal wallpaper. A second global theme, CDE Night (CDE's
+  NorthernSky palette), is set as the night theme of Plasma's day/night
+  switching (Quick Settings), CDE Copper as the day theme; the console
+  follows each switch with its controls, surfaces and desktop colour.
 - CDE's lock screen: a Motif dialog on the palette's backdrop. Plasma 6 takes
   the lock screen from its shell package, so it comes as a shell package of
   its own (org.cde.copper.shell) that takes everything else from Plasma's;
   applying the theme switches to it, moving the panel and desktop
-  configuration along (Style page › Lock screen switches back).
+  configuration along (Style page › Lock screen switches back). It talks to
+  the authenticator as Plasma's lock screen does (one entry per prompt, a
+  short wait after a failure, fingerprint readers left alone). Global
+  themes other than CDE's, applied with their layout while this shell
+  runs, get Plasma's default panel from the shell's own default layout.
 - A GTK 3 and GTK 4 theme (CDECopper) from the same palette, so GTK
   programs such as Firefox or PCManFM get the Motif controls too; it is
   rebuilt with every palette. Libadwaita programs ignore GTK themes and only
@@ -337,7 +344,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.8.0. The application style is a Kvantum theme, not a
+This is version 0.8.1. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

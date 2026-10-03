@@ -363,6 +363,47 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   now only called with DISPLAY set; plasmashell hung on logout in Klipper's
   clipboard history (KIO worker thread join), Plasma's own code, and was
   killed by systemd after the stop timeout.
+- Stability pass (0.8.1), lab VM, Plasma 6.7.4 then 6.7.5, Wayland and
+  X11. A check script after every step: global theme, colour scheme,
+  shell, panels and consoles (plasma scripting), wallpaper plugin, new
+  coredumps, journal warnings from the theme's files.
+  - Global theme with layout under CDE's shell left a desktop without any
+    panel, both ways: CDE Copper shipped only org.kde.plasma.desktop-layout.js
+    (now also org.cde.copper.shell-layout.js), and Breeze and every other
+    theme only have that one (the shell package now has a default layout:
+    Plasma's panel template). Breeze ↔ CDE with and without layout: panel
+    resp. console each time.
+  - Day/night: CDE Night applied without layout (as Plasma's automatic
+    switch does through KLookAndFeelManager): palette NorthernSky followed
+    (Kvantum, Plasma surfaces, manifest), the plain desktop colour too;
+    back to day: Copper. Plasma's automatic switch itself did not fire in
+    the VM (night light not running), so it is simulated.
+  - Lock screen: real unlock with wrong, then right password, on Wayland
+    and X11 (an X11 lock failed once with "Could not establish screen
+    lock" while the Alt+Tab test still held the keyboard; again without it,
+    fine). Flow rebuilt after Plasma's (see README).
+  - Shell switch cde → plasma → cde through the palette tool: console kept.
+  - Logout dialog: Escape cancels (no logout after the countdown time),
+    Enter logs out.
+  - Login twice, then a reboot, then X11: no warnings from the theme's
+    files at start, no coredumps; plasmashell stopped within 2 s.
+  - Uninstall: restored the state before the first install (here NT
+    Legacy's global theme and panel); all theme files gone; found and fixed:
+    the decoration's auroraerc group and the lock file stayed. Reinstall
+    with --apply --panel: console back; found and fixed: one workspace
+    after the next login (KWin kept four in memory, kwinrc had one).
+  - Fresh user (useradd, autologin switched, reboot): package installed and
+    applied in that session, login again: console, frames, controls, German
+    labels; then removed again.
+  - Eight palette switches in a row: 3–4 s each, no errors; KWin grew by
+    100 MB once (caches) and stayed there over eight more.
+  - Settings dialog: half the "does not have a property called cfg_..."
+    warnings gone (defaults declared); the rest are settings a page does
+    not show, left undeclared on purpose (Plasma's saveConfig writes back
+    every cfg_ property of the open page).
+  Not checked: several screens (QEMU connects a second virtio head only for
+  a viewer that asks for it), Plasma's automatic day/night trigger, a
+  second PAM prompt (one-time code), an account without a password.
 - Boot parts after the palette (0.8): system.py install as tester's sudo
   drew both in Orchid (manifest palette), boots recorded twice a second
   with virsh screenshot. The black box between GRUB and Plymouth was GRUB's

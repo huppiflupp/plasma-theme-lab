@@ -3,7 +3,7 @@
     "Id": "org.cde.copper.mrt",
     "Name": "CDE MRT",
     "Description": "MRI films on a lightbox, Alpine palette, light and dark",
-    "Version": "0.8.0",
+    "Version": "0.8.1",
     "License": "GPL-2.0-or-later",
     "Authors": [
       {

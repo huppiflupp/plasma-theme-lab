@@ -23,15 +23,20 @@ Item {
     property bool awaiting: false        // a secret prompt waits for an answer
     property bool answered: false        // this conversation got one already
     property bool pendingSubmit: false   // entered before the prompt came
+    property string pendingPassword: ""
     property bool noPassword: false      // succeeded without any prompt
-    function submit() {
+    function submit(secret) {
+        if (graceTimer.running || authenticator.graceLocked) return;
         if (root.noPassword) { Qt.quit(); return; }
         if (root.awaiting) {
             root.awaiting = false;
             root.answered = true;
-            authenticator.respond(password.text);
-        } else {
+            root.pendingSubmit = false;
+            root.pendingPassword = "";
+            authenticator.respond(secret === undefined ? password.text : secret);
+        } else if (!root.answered) {
             root.pendingSubmit = true;
+            root.pendingPassword = password.text;
             if (!authenticator.busy) authenticator.startAuthenticating();
         }
     }
@@ -147,13 +152,18 @@ Item {
                         font.family: root.font; font.pixelSize: 15
                         color: colours.ink
                         selectionColor: colours.accent
-                        enabled: !authenticator.graceLocked
+                        enabled: !graceTimer.running && !authenticator.graceLocked
                         focus: true
                         text: PasswordSync.password
                         onTextChanged: PasswordSync.password = text
                         Keys.onReturnPressed: root.submit()
                         Keys.onEnterPressed: root.submit()
-                        Keys.onEscapePressed: text = ""
+                        Keys.onEscapePressed: {
+                            root.pendingSubmit = false;
+                            root.pendingPassword = "";
+                            text = "";
+                            text = Qt.binding(() => PasswordSync.password);
+                        }
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             visible: password.text.length === 0
@@ -182,7 +192,7 @@ Item {
                     }
                     MotifButton {
                         isDefault: true
-                        enabled: !authenticator.graceLocked
+                        enabled: !graceTimer.running && !authenticator.graceLocked
                         text: i18nd("cde-copper", "Unlock")
                         onClicked: root.submit()
                     }
@@ -201,6 +211,7 @@ Item {
             root.awaiting = false;
             root.answered = false;
             root.pendingSubmit = false;
+            root.pendingPassword = "";
             graceTimer.restart();
         }
         function onBusyChanged() {
@@ -215,12 +226,16 @@ Item {
         function onPromptForSecretChanged() {
             // A further secret prompt in the same conversation wants its own
             // entry, not the password again.
-            if (root.answered) password.text = "";
+            if (root.answered) {
+                password.text = "";
+                password.text = Qt.binding(() => PasswordSync.password);
+            }
             root.awaiting = true;
             password.forceActiveFocus();
-            if (root.pendingSubmit && password.text.length > 0) {
+            if (root.pendingSubmit) {
+                const secret = root.pendingPassword;
                 root.pendingSubmit = false;
-                root.submit();
+                root.submit(secret);
             }
         }
         function onSucceeded() {

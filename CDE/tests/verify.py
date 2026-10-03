@@ -393,6 +393,132 @@ class Installer(unittest.TestCase):
 
 
 class Stability(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, str(ROOT))
+
+    @unittest.skipUnless(shutil.which("node"), "Node.js needed for generated wallpaper script checks")
+    def test_palette_wallpaper_script(self):
+        import manage
+        import backdrops
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory(prefix="cde-script-") as temp, \
+             patch.object(manage, "DATA", Path(temp)), \
+             patch.object(manage, "install_palette", return_value={"colors": "test", "plasma": "test"}), \
+             patch.object(manage, "run"), patch.object(manage, "kvantum_available", return_value=False), \
+             patch.object(manage, "current_scheme", return_value="test"), \
+             patch.object(backdrops, "write_all"), patch.object(manage, "integrate_xfile"), \
+             patch.object(manage, "update_splash"), patch.object(manage, "update_gtk"), \
+             patch.object(manage, "save_manifest"), patch.object(manage, "plasma_script") as script:
+            manage.set_palette({}, "NorthernSky")
+            generated = script.call_args.args[0]
+            expected = manage.workspace_set("NorthernSky")["bg"]
+            copper = manage.workspace_set("Copper")["bg"].upper()
+        harness = """
+const assert = require('assert');
+function desktop(plugin, color) {
+    return {wallpaperPlugin: plugin, values: {Color: color},
+            readConfig(key) { return this.values[key]; },
+            writeConfig(key, value) { this.values[key] = value; }};
+}
+const missing = desktop('org.kde.color', undefined);
+const custom = desktop('org.kde.color', '#123456');
+const ours = desktop('org.kde.color', COPPER);
+const backdrop = desktop('org.cde.copper.backdrop', undefined);
+function desktops() { return [missing, custom, ours, backdrop]; }
+""".replace("COPPER", json.dumps(copper))
+        harness += generated + "\n" + """
+assert.strictEqual(missing.values.Color, undefined);
+assert.strictEqual(custom.values.Color, '#123456');
+assert.strictEqual(ours.values.Color, EXPECTED);
+assert.strictEqual(backdrop.values.Color, EXPECTED);
+assert.strictEqual(backdrop.values.Palette, 'NorthernSky');
+""".replace("EXPECTED", json.dumps(expected))
+        result = subprocess.run(["node", "-e", harness], text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    @unittest.skipUnless(shutil.which("node"), "Node.js needed for authentication event checks")
+    def test_lock_screen_prompt_sequence(self):
+        import re
+        source = (ROOT / "shell/contents/lockscreen/LockScreen.qml").read_text()
+        functions = []
+        for name, indent in (("submit", 4), ("onPromptForSecretChanged", 8), ("onFailed", 8), ("onSucceeded", 8)):
+            match = re.search(r"^ {%d}function %s\([^)]*\) \{.*?^ {%d}\}" % (indent, name, indent), source, re.M | re.S)
+            self.assertIsNotNone(match, name)
+            functions.append(match.group())
+        script = "\n".join(functions) + """
+const assert = require('assert');
+const root = {awaiting: false, answered: false, pendingSubmit: false, noPassword: false, submit};
+const replies = [];
+const password = {text: 'wrong', forceActiveFocus() {}};
+const authenticator = {busy: true, graceLocked: false, respond(p) { replies.push(p); }, startAuthenticating() {}};
+const graceTimer = {running: false, restart() { this.running = true; }};
+const Qt = {binding(f) { return f(); }, quit() { root.authSucceeded = true; }};
+const PasswordSync = {get password() { return password.text; }};
+function i18nd(domain, text) { return text; }
+submit(); password.text = 'unfinished edit'; onPromptForSecretChanged();
+assert.deepStrictEqual(replies, ['wrong']);
+submit(); // double press while the first answer is being checked
+assert.strictEqual(root.pendingSubmit, false);
+onPromptForSecretChanged(); // OTP must wait for its own entry
+assert.strictEqual(password.text, '');
+assert.deepStrictEqual(replies, ['wrong']);
+password.text = '123456'; submit();
+assert.deepStrictEqual(replies, ['wrong', '123456']);
+onFailed(1); assert.strictEqual(graceTimer.running, false);
+onFailed(0); submit(); assert.strictEqual(root.pendingSubmit, false);
+graceTimer.running = false; password.text = 'right';
+onPromptForSecretChanged(); submit();
+assert.deepStrictEqual(replies, ['wrong', '123456', 'right']);
+onFailed(0); graceTimer.running = false; password.text = '';
+submit(); onPromptForSecretChanged();
+assert.strictEqual(replies[3], ''); // an explicitly submitted empty answer
+authenticator.hadPrompt = false; onSucceeded();
+assert.strictEqual(root.authSucceeded, undefined);
+submit(); assert.strictEqual(root.authSucceeded, true);
+"""
+        result = subprocess.run(["node", "-e", script], text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_uninstall_preserves_current_and_original_configuration(self):
+        import manage
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory(prefix="cde-uninstall-") as temp:
+            home = Path(temp)
+            config, data = home / "config", home / "data"
+            state = data / "cde-copper-install"
+            (state / "config").mkdir(parents=True)
+            config.mkdir()
+            default_panel = "plasma-org.kde.plasma.desktop-appletsrc"
+            cde_panel = f"plasma-{manage.SHELL}-appletsrc"
+            original = f"[{manage.DECORATION}]\nButtonSize=original\n[Other]\nValue=keep\n"
+            (state / "config/auroraerc").write_text(original)
+            (state / "config" / default_panel).write_text("pre-install panel")
+            (config / "auroraerc").write_text("current decoration options")
+            (config / default_panel).write_text("current default panel")
+            (config / cde_panel).write_text("current CDE panel")
+            lock = state.with_suffix(".lock")
+            lock.touch()
+            inode = lock.stat().st_ino
+            manifest = {"data": str(data), "config": str(config), "applied": True,
+                        "targets": [], "config_files": ["auroraerc", default_panel],
+                        "config_present": ["auroraerc", default_panel]}
+            (state / "manifest.json").write_text(json.dumps(manifest))
+            with patch.multiple(manage, HOME=home, CONFIG=config, DATA=data, STATE=state,
+                                MANIFEST=state / "manifest.json"), \
+                 patch.object(manage, "run"), patch.object(manage, "dbus"), \
+                 patch.object(manage, "gtk_theme", return_value=""), \
+                 patch.object(manage, "current_shell", return_value=manage.SHELL), \
+                 patch.object(manage, "remove_xfile_integration"):
+                manage.uninstall()
+            self.assertEqual((config / "auroraerc").read_text(), original)
+            self.assertEqual((config / default_panel).read_text(), "pre-install panel")
+            kept = state / "config-at-uninstall"
+            self.assertEqual((kept / default_panel).read_text(), "current default panel")
+            self.assertEqual((kept / cde_panel).read_text(), "current CDE panel")
+            self.assertEqual((kept / "auroraerc").read_text(), "current decoration options")
+            self.assertEqual(lock.stat().st_ino, inode)
+
     def test_headless_follow_does_not_start_programs(self):
         import manage
         from unittest.mock import patch

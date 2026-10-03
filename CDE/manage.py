@@ -762,8 +762,21 @@ def uninstall():
         raise RuntimeError("Unexpected palette target in ownership manifest")
     if any(target not in CONFIG_TARGETS for target in manifest.get("config_targets", [])):
         raise RuntimeError("Unexpected config target in ownership manifest")
+    config_files = manifest.get("config_files", [f for f in CONFIG_FILES if f != "auroraerc"])
+    if any(file not in CONFIG_FILES for file in config_files):
+        raise RuntimeError("Unexpected config backup in ownership manifest")
     if manifest["applied"]:
         run("systemctl", "--user", "stop", "plasma-plasmashell.service")
+        # Keep the current files before switching shells copies panel config
+        # over the default shell's file.
+        kept = STATE / "config-at-uninstall"
+        remove(kept)
+        for file in CONFIG_FILES:
+            if (CONFIG / file).exists():
+                copy(CONFIG / file, kept / file)
+        shell_config = f"plasma-{SHELL}-appletsrc"
+        if (CONFIG / shell_config).exists():
+            copy(CONFIG / shell_config, kept / shell_config)
     if gtk_theme() == GTK_THEME:
         gtk_theme(manifest.get("gtk_previous", "Breeze"))
     # Back to Plasma's shell package (and lock screen) with the panel
@@ -774,13 +787,7 @@ def uninstall():
     if manifest["applied"]:
         # The pre-install files come back whole; what was changed since is
         # kept beside them, so nothing set after installing is lost.
-        kept = STATE / "config-at-uninstall"
-        remove(kept)
-        for file in manifest.get("config_files", [f for f in CONFIG_FILES if f != "auroraerc"]):
-            if file not in CONFIG_FILES:
-                raise RuntimeError("Unexpected config backup in ownership manifest")
-            if (CONFIG / file).exists():
-                copy(CONFIG / file, kept / file)
+        for file in config_files:
             remove(CONFIG / file)
             if file in manifest["config_present"]:
                 copy(STATE / "config" / file, CONFIG / file)
@@ -800,7 +807,9 @@ def uninstall():
         run("systemctl", "--user", "start", "plasma-plasmashell.service")
     # The decoration's own group in auroraerc (its options), written by the
     # theme; the rest of that file belongs to other decorations.
-    if (CONFIG / "auroraerc").exists():
+    # New installs restored this file whole, including any pre-existing CDE
+    # options. Only older installs without a backup need group cleanup.
+    if manifest["applied"] and "auroraerc" not in config_files and (CONFIG / "auroraerc").exists():
         aurorae = configparser.ConfigParser(interpolation=None, strict=False)
         aurorae.optionxform = str
         aurorae.read(CONFIG / "auroraerc")
@@ -808,7 +817,7 @@ def uninstall():
             with (CONFIG / "auroraerc").open("w") as out:
                 aurorae.write(out, space_around_delimiters=False)
     MANIFEST.rename(STATE / "uninstalled-manifest.json")
-    remove(STATE.with_suffix(".lock"))
+    # Keep the lock inode: a waiting process may already have it open.
     print("Removed only manifest-owned files and restored pre-install configuration. Backup retained at " + str(STATE)
           + "; the configuration as it was before uninstalling is in " + str(STATE / "config-at-uninstall"))
 
