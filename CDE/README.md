@@ -29,10 +29,12 @@ or takes any of CDE's own 37 palettes and backdrops.
   subpanels, an Applications menu with cascading categories, the browser's
   bookmarks, the editor's (or LibreOffice's) recently opened files, Places,
   System and Help subpanels, four-workspace switcher, window task strip, volume
-  control, screen locking and session controls. The Plasma system tray sits
-  beside it, so status icons (including the hidden ones behind its arrow) and
-  notifications have a home; the tray's own volume icon is left out, since the
-  console has one.
+  control, and four small buttons in the space of one launcher: hidden tray
+  icons, console settings, lock screen, show desktop. The Plasma system tray
+  stays beside it for notifications, but by default its entries are all
+  hidden and open from the console's button, so only its arrow (and anything
+  asking for attention) shows there; the tray's own volume icon is left out,
+  since the console has one.
 - CDE's 37 colour palettes, shaded with Motif's algorithm, and CDE's 25 desktop
   backdrops, coloured with the chosen palette.
 - A window arrangement around the console: terminals left and right, the main
@@ -143,7 +145,8 @@ wheel changes the volume directly.
 ![The clock displays](screenshots/clock-faces-200.png)
 
 **Clock and Calendar** also chooses the clock display: digital, seven-segment
-(unlit segments faintly visible) or analog with one of four dials: CDE (round,
+(unlit segments faintly visible, optionally a black edge round the lit ones)
+or analog with one of four dials: CDE (round,
 after CDE's own front-panel clock), Motif (a square sunken well), Roman
 numerals, or plain marks on the tile. Seconds can be shown on every display.
 The dial takes the text-field colour, hands and digits the text colour, the

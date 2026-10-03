@@ -139,6 +139,12 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   Their icons scale with the console (checked at 75, 125 and 150 %; before,
   they were snapped to Kirigami's 22-pixel size). The hidden-icons button
   opens the tray's popup with the hidden entries, as its arrow does.
+- "Status icons only behind the console's button" (General, on by default):
+  every entry the tray knows and every application's status icon (read over
+  D-Bus, every 30 s) goes to the tray's hidden list. Beside the console only
+  the tray's arrow is left; the console's button lists all entries, Discover's
+  update icon included. The arrow itself cannot be switched off in Plasma's
+  tray; removing the tray would take notifications with it.
 - The VM's wallpaper had been changed to a grey-teal gradient in the meantime;
   it was left as found, as were the console at the top edge and its settings.
 

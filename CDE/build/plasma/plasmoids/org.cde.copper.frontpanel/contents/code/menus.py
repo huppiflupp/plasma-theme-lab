@@ -4,6 +4,7 @@ application's recently opened files.
 
     menus.py bookmarks <slot command>
     menus.py recent <slot command>
+    menus.py tray
 
 The slot command is what the tile starts: "@browser", "@editor", "app:<id>"
 or a shell command. It is resolved to the application the desktop would
@@ -11,11 +12,15 @@ actually start (System Settings › Default Applications for the "@" tokens).
 Output is a JSON list of {label, icon, args, tip}; args are passed to the
 slot's command when an entry is chosen.
 
+"tray" prints the ids of the applications' status icons (StatusNotifierItem)
+now registered, as a JSON list, so the console can hide them in the tray.
+
 Standard library only; it runs inside the user's session on demand.
 """
 import configparser
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import sqlite3
@@ -330,7 +335,31 @@ def recent(app):
     return result[:LIMIT]
 
 
+def tray_ids():
+    """Ids of the registered status icons, read over D-Bus with gdbus."""
+    def get(service, path, interface, prop):
+        result = subprocess.run(["gdbus", "call", "--session", "-d", service, "-o", path,
+                                 "-m", "org.freedesktop.DBus.Properties.Get", interface, prop],
+                                capture_output=True, text=True, timeout=3)
+        return result.stdout if result.returncode == 0 else ""
+    try:
+        listing = get("org.kde.StatusNotifierWatcher", "/StatusNotifierWatcher",
+                      "org.kde.StatusNotifierWatcher", "RegisteredStatusNotifierItems")
+        ids = []
+        for entry in re.findall(r"'([^']+)'", listing):
+            service, _, path = entry.partition("/")
+            found = re.search(r"'([^']*)'", get(service, "/" + path, "org.kde.StatusNotifierItem", "Id"))
+            if found and found.group(1) and found.group(1) not in ids:
+                ids.append(found.group(1))
+        return ids
+    except (OSError, subprocess.SubprocessError):
+        return []
+
+
 def main():
+    if len(sys.argv) == 2 and sys.argv[1] == "tray":
+        print(json.dumps(tray_ids()))
+        return 0
     if len(sys.argv) < 3 or sys.argv[1] not in ("bookmarks", "recent"):
         print(__doc__, file=sys.stderr)
         return 2

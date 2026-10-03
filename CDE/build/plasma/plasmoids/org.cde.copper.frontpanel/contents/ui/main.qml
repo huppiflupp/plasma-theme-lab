@@ -180,12 +180,23 @@ PlasmoidItem {
     // console's own one (wheel, click for slider and mute) replaces it.
     function syncTray() {
         const hide = Plasmoid.configuration.hideTrayVolume;
+        // With hideTrayIcons every entry the tray knows goes to its hidden
+        // list: the tray beside the console shrinks to its arrow (and what
+        // asks for attention), the entries open from the console's button.
+        const icons = Plasmoid.configuration.hideTrayIcons;
+        // Applications' status icons are not in the tray's list; their ids
+        // come from the helper (statusIds, refreshed by trayIds below).
         const script = "for (var p of panels()) { var ours = p.widgets().some(function (w) { return w.type === 'org.cde.copper.frontpanel'; }); if (!ours) continue;"
             + " for (var w of p.widgets()) { if (w.type !== 'org.kde.plasma.systemtray') continue; w.currentConfigGroup = ['General'];"
             + " var items = w.readConfig('extraItems', []); if (typeof items === 'string') items = items ? items.split(',') : [];"
             + " var has = items.indexOf('org.kde.plasma.volume') >= 0;"
             + (hide ? " if (has) w.writeConfig('extraItems', items.filter(function (i) { return i !== 'org.kde.plasma.volume'; }));"
                     : " if (!has && items.length) { items.push('org.kde.plasma.volume'); w.writeConfig('extraItems', items); }")
+            + " var known = w.readConfig('knownItems', []); if (typeof known === 'string') known = known ? known.split(',') : [];"
+            + (icons ? " var want = known.concat(" + JSON.stringify(root.statusIds) + ");"
+                       + " var now = w.readConfig('hiddenItems', []); if (typeof now === 'string') now = now ? now.split(',') : [];"
+                       + " if (want.some(function (i) { return now.indexOf(i) < 0; })) w.writeConfig('hiddenItems', now.concat(want.filter(function (i) { return now.indexOf(i) < 0; })));"
+                     : " w.writeConfig('hiddenItems', []);")
             + " } }";
         runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(script));
     }
@@ -211,6 +222,7 @@ PlasmoidItem {
         function onEdgeChanged() { root.configurePanel(); }
         function onConsoleScaleChanged() { root.configurePanel(); }
         function onHideTrayVolumeChanged() { root.syncTray(); }
+        function onHideTrayIconsChanged() { root.syncTray(); }
     }
 
     Component.onCompleted: {
@@ -218,7 +230,28 @@ PlasmoidItem {
         // The tray fills its item list on its first start; look once it has.
         trayTimer.start();
     }
-    Timer { id: trayTimer; interval: 4000; onTriggered: root.syncTray() }
+    Timer { id: trayTimer; interval: 4000; onTriggered: trayIds.connectSource("python3 " + Launch.quote(root.helper) + " tray") }
+    // Applications add status icons while the session runs: look again
+    // every half minute while the tray's entries are kept behind the button.
+    property var statusIds: []
+    Timer {
+        interval: 30000; repeat: true
+        running: Plasmoid.configuration.hideTrayIcons
+        onTriggered: trayIds.connectSource("python3 " + Launch.quote(root.helper) + " tray")
+    }
+    P5Support.DataSource {
+        id: trayIds
+        engine: "executable"
+        onNewData: function(sourceName, data) {
+            disconnectSource(sourceName);
+            let ids = [];
+            try { ids = JSON.parse(data.stdout); } catch (e) {}
+            if (!root.traySynced || JSON.stringify(ids) !== JSON.stringify(root.statusIds)) {
+                root.statusIds = ids; root.traySynced = true; root.syncTray();
+            }
+        }
+    }
+    property bool traySynced: false
 
     Kicker.AppsModel { id: allApps; flat: true; sorted: true; autoPopulate: true; appletInterface: Plasmoid }
     Kicker.AppsModel { id: categoryApps; flat: false; sorted: true; autoPopulate: true; showSeparators: false; appletInterface: Plasmoid }

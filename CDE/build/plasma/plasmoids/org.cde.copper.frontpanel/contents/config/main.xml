@@ -11,6 +11,8 @@
     <entry name="consoleScale" type="Double"><default>1.0</default></entry>
     <!-- The console shows the volume; keep the tray from showing it twice -->
     <entry name="hideTrayVolume" type="Bool"><default>true</default></entry>
+    <!-- Tray entries only behind the console's hidden-icons button -->
+    <entry name="hideTrayIcons" type="Bool"><default>true</default></entry>
   </group>
   <group name="Launchers">
     <!-- JSON lists of {label, icon, command, menu}; empty means the defaults in launch.js -->
