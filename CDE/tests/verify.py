@@ -40,7 +40,7 @@ class Separation(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="cde-copy-") as temp:
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
-            for item in ("tools", "frontpanel", "decoration", "arrange", "fonts", "palettes", "backdrops",
+            for item in ("tools", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops",
                          "build.py", "icons.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
@@ -117,6 +117,11 @@ class Backdrops(unittest.TestCase):
         for name in backdrops.names():
             tile = backdrops.render(name, colours)
             self.assertTrue(tile.startswith(b"\x89PNG"), name)
+            # The image data must hold every declared row (SkyLight.pm is one short).
+            import zlib
+            width, height = struct.unpack(">II", tile[16:24])
+            data = zlib.decompress(tile[tile.index(b"IDAT") + 4:tile.index(b"IEND") - 8])
+            self.assertEqual(len(data), height * (1 + 3 * width), name)
             screen = backdrops.desktop(name, colours, 640, 480, 2)
             width, height = struct.unpack(">II", screen[16:24])
             self.assertEqual((width, height), (640, 480), name)
@@ -256,6 +261,12 @@ class Installer(unittest.TestCase):
             self.assertTrue((self.config / "Kvantum/CDECopper/CDECopper.kvconfig").is_file())
             self.assertTrue((self.data / "kwin/decorations/kwin4_decoration_qml_cdecopper/contents/ui/main.qml").is_file())
             self.assertTrue((self.data / "kwin/scripts/cde-copper-arrange/contents/code/main.js").is_file())
+            self.assertTrue((self.data / "plasma/wallpapers/org.cde.copper.backdrop/contents/images/Copper/Pebbles.png").is_file())
+            self.assertEqual(len(list((self.data / "color-schemes").glob("CDE*.colors"))), 38)
+            # The palette tool runs from the profile, without the archive.
+            tool = self.data / "cde-copper/tool/manage.py"
+            listing = subprocess.run([sys.executable, str(tool), "palettes"], env=self.env, text=True, capture_output=True)
+            self.assertIn("Broica", listing.stdout, listing.stderr)
             result = self.command("install")
             self.assertEqual(result.returncode, 0, result.stderr)
             result = self.command("uninstall")
@@ -291,12 +302,32 @@ class Installer(unittest.TestCase):
                 "manage.install_palette(m, 'Desert'); manage.MANIFEST.write_text(json.dumps(m))")
         result = subprocess.run([sys.executable, "-c", code], cwd=ROOT, env=self.env, text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertFalse((self.data / "color-schemes/CDELilac.colors").exists())
-        self.assertTrue((self.data / "color-schemes/CDEDesert.colors").is_file())
+        # Colour schemes of all palettes are installed; the generated parts of
+        # the previous palette go.
+        self.assertTrue((self.data / "color-schemes/CDELilac.colors").is_file())
+        self.assertFalse((self.data / "plasma/desktoptheme/cde-lilac").exists())
+        self.assertFalse((self.config / "Kvantum/CDELilac").exists())
+        self.assertTrue((self.data / "plasma/desktoptheme/cde-desert/metadata.json").is_file())
         self.assertTrue((self.config / "Kvantum/CDEDesert/CDEDesert.svg").is_file())
         self.assertEqual(self.command("uninstall").returncode, 0)
         self.assertFalse((self.data / "plasma/desktoptheme/cde-desert").exists())
+        self.assertFalse((self.data / "color-schemes/CDEDesert.colors").exists())
+        self.assertFalse((self.data / "cde-copper").exists())
         self.assertFalse((self.config / "Kvantum/CDEDesert").exists())
+
+    def test_upgrade_from_0_2_keeps_its_generated_scheme(self):
+        self.assertEqual(self.command("install").returncode, 0)
+        manifest = self.data / "cde-copper-install/manifest.json"
+        value = json.loads(manifest.read_text())
+        # 0.2 with Broica applied: its scheme was a palette target.
+        value["targets"].remove("color-schemes/CDEBroica.colors")
+        value["palette"], value["palette_targets"] = "Broica", ["color-schemes/CDEBroica.colors"]
+        manifest.write_text(json.dumps(value))
+        result = self.command("install")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        value = json.loads(manifest.read_text())
+        self.assertIn("color-schemes/CDEBroica.colors", value["targets"])
+        self.assertNotIn("color-schemes/CDEBroica.colors", value["palette_targets"])
 
     def test_collision_is_not_overwritten(self):
         existing = self.data / "icons/CDECopper"

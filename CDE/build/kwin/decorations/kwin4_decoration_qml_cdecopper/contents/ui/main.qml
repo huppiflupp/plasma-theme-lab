@@ -25,7 +25,7 @@ Decoration {
     readonly property bool maximized: decoration.client.maximized
     // From the title font unless a height is configured; the buttons are
     // squares of this height, so they scale with it.
-    readonly property int titleHeight: fixedTitleHeight >= 16 ? fixedTitleHeight : Math.max(24, Math.ceil(metrics.height) + 12)
+    readonly property int titleHeight: fixedTitleHeight >= 16 ? fixedTitleHeight : Math.max(20, Math.ceil(metrics.height) + 6)
     readonly property int corner: titleHeight + edge
 
     readonly property color frameColor: options.titleBarColor

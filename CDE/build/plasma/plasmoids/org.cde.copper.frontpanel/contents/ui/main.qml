@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtCore
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasma5support as P5Support
@@ -122,8 +123,8 @@ PlasmoidItem {
     }
     function systemEntries() {
         return [entry("System Settings", "preferences-system", "@settings"),
+                entry("Style Manager…", "preferences-desktop-color", "@style"),
                 entry("Arrange Windows", "view-split-left-right", "@arrange"),
-                entry("Colours", "preferences-desktop-color", "@settings kcm_colors"),
                 entry("Audio", "audio-volume-high", "@settings kcm_pulseaudio"),
                 entry("Network", "network-workgroup", "@settings kcm_networkmanagement"),
                 entry("Display", "computer", "@settings kcm_kscreen"),
@@ -155,6 +156,19 @@ PlasmoidItem {
         pendingHiding = mode === "none" ? "" : ours + "p.hiding = '" + mode + "'; } } }";
         if (pendingHiding) hidingTimer.restart();
     }
+    // The palette tool in the profile (installed with the theme).
+    readonly property string tool: decodeURIComponent(StandardPaths.writableLocation(StandardPaths.GenericDataLocation).toString().replace(/^file:\/\//, "")) + "/cde-copper/tool/manage.py"
+    // A colour scheme chosen in System Settings changes these colours; if it
+    // is a CDE palette, the tool brings Kvantum, the Plasma surfaces and the
+    // backdrop along. Unchanged palettes cost nothing: the tool compares.
+    readonly property string schemeKey: consoleColors.panel + consoleColors.window + consoleColors.highlight + consoleColors.field
+    onSchemeKeyChanged: schemeTimer.restart()
+    Timer {
+        id: schemeTimer
+        interval: 2000
+        onTriggered: root.run("python3 " + Launch.quote(root.tool) + " palette --follow-scheme --notify")
+    }
+
     property string pendingHiding: ""
     Timer {
         id: hidingTimer
@@ -584,7 +598,9 @@ PlasmoidItem {
                         Accessible.name: modelData.tip || modelData.label
                         onClicked: {
                             popup.visible = false;
-                            root.run(Launch.resolve(modelData.command, modelData.args));
+                            // The style manager is a page of the console's settings.
+                            if (modelData.command === "@style") Plasmoid.internalAction("configure").trigger();
+                            else root.run(Launch.resolve(modelData.command, modelData.args));
                         }
                     }
                 }

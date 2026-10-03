@@ -67,22 +67,42 @@ through Plasma's normal widget picker.
 
 ### CDE palettes and backdrops
 
+The 37 palettes of CDE are listed in **System Settings › Colours** as
+"CDE Alpine" … "CDE Wheat", beside "CDE Copper". Choosing one there is enough:
+the console notices the new colours and brings the rest along, the Plasma
+surfaces, the Kvantum controls and the backdrop. Applications that are already
+open take the new controls when restarted; a notification says so.
+
+The **style manager** does the same from the console, after CDE's dtstyle:
+System subpanel › Style Manager (or the console's settings › Style) shows
+every palette as colour stripes and every backdrop pattern, and applies both.
+
+CDE's 25 backdrops are a wallpaper type of their own: desktop settings ›
+Wallpaper type **CDE Backdrop**, a grid of the patterns in the palette's
+colours, a pixel size for 200 % screens and the colour behind the pattern.
+They are tiled pixel for pixel; Plasma's picture wallpaper would scale the
+small patterns up into a blur.
+
+The same from a shell:
+
 ```sh
-python3 manage.py palettes                       # list both
-bash apply.sh --palette Broica                   # one of CDE's palettes
+python3 manage.py palettes                        # list both
+bash apply.sh --palette Broica                    # one of CDE's palettes
 bash apply.sh --palette Copper --backdrop Pebbles
-bash apply.sh --backdrop none                    # plain desktop colour again
-bash apply.sh --backdrop WaterDrops --backdrop-scale 2   # for 200 % displays
+bash apply.sh --backdrop none                     # plain palette colour again
+python3 ~/.local/share/cde-copper/tool/manage.py palette --palette Lilac --backdrop WaterDrops
 ```
+
+The last form uses the copy of the tool that the installer puts into the
+profile; it needs no extracted archive.
 
 A palette recolours everything: colour scheme, Plasma surfaces, Kvantum
 controls, window frames, the console (CDE colour set 8) and, as in CDE, the
-backdrop (set 3). Its files are generated when it is applied and replace the
-previously applied palette. Text colours are chosen for contrast: every
-text/background pair of every palette reaches at least 4.5:1, where Motif's
-fixed threshold would put white on several mid-tone surfaces. A backdrop is
-written once as a picture of the screen's size, so its pixels stay pixels
-instead of being scaled up by Plasma.
+backdrop (set 3). Its Plasma surfaces and Kvantum style are generated when it
+is applied and replace those of the previously applied palette. Text colours
+are chosen for contrast: every text/background pair of every palette reaches
+at least 4.5:1, where Motif's fixed threshold would put white on several
+mid-tone surfaces.
 
 ## Configure the console
 
@@ -160,8 +180,8 @@ toolkit and runs through XWayland, so it ignores the widget style and palette.
 
 ### Window frame
 
-Two settings: the title-bar height (0 follows the title font; the buttons
-follow the height) and whether the whole frame takes the title colour (CDE) or
+Two settings: the title-bar height (0 follows the title font, about 23 px with
+IBM Plex at 10 pt; the buttons follow the height) and whether the whole frame takes the title colour (CDE) or
 only the title bar. The decoration ships a settings page for System Settings ›
 Window Decorations; the same values can be set directly:
 
@@ -213,6 +233,7 @@ purpose: a change to one must not alter the other (see `tools/README.md`).
 | `palettes.py`, `palettes/` | CDE palettes and Motif's shading |
 | `backdrops.py`, `backdrops/` | CDE backdrops, coloured per palette |
 | `decoration/` | the QML window frame |
+| `backdrop/` | the "CDE Backdrop" wallpaper type |
 | `frontpanel/` | the console plasmoid; `contents/code/menus.py` reads bookmarks and recent files |
 | `arrange/` | the KWin script for the window arrangement |
 | `fonts/` | IBM Plex |
@@ -222,7 +243,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.2.2. The application style is a Kvantum theme, not a
+This is version 0.3.0. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. Less common icon
 names fall back to Breeze and then hicolor; the console's core icons and common

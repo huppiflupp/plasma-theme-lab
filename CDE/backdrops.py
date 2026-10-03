@@ -67,6 +67,9 @@ def read_xpm(path, colours):
     rows = []
     for line in strings[1 + ncolours:1 + ncolours + height]:
         rows.append([table.get(line[i:i + cpp], colours["background"]) for i in range(0, width * cpp, cpp)])
+    # SkyLight.pm declares 1024 rows and holds 1023: repeat the last one.
+    while len(rows) < height:
+        rows.append(list(rows[-1]))
     return width, height, rows
 
 

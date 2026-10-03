@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0">
+  <kcfgfile name=""/>
+  <group name="General">
+    <entry name="Backdrop" type="String"><default>Pebbles</default></entry>
+    <!-- Set by CDE Copper's tool when a palette is applied -->
+    <entry name="Palette" type="String"><default>Copper</default></entry>
+    <entry name="PixelSize" type="Int"><default>1</default></entry>
+    <entry name="Color" type="Color"><default>#086875</default></entry>
+  </group>
+</kcfg>

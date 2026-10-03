@@ -139,6 +139,35 @@ Auto-hide (reported: the console could not be brought back):
   to the edge only shows KWin's edge glow) revealed it at the top, after moving
   to the bottom, and after moving back to the top.
 
+Checks of 2026-10-03 (version 0.3.0, palettes and backdrops in Plasma), same VM,
+upgraded in place:
+
+- `python3 tests/verify.py`: 16 tests pass. New: 38 colour schemes installed,
+  the palette tool runs from the profile copy, an upgrade from 0.2 takes over a
+  colour scheme 0.2 had generated for an applied palette.
+- `plasma-apply-colorscheme CDEBroica` (what System Settings › Colours does):
+  within seconds the console's tool switched the Plasma theme to cde-broica,
+  Kvantum to CDEBroica and generated Broica's backdrop tiles; a newly started
+  Dolphin showed Broica's controls.
+- "CDE Backdrop" wallpaper: Pebbles in Broica's colours, pixels unscaled at 4x
+  magnification. The plugin first lay under `~/.local/share/wallpapers` and was
+  not found (black desktop); it belongs under `~/.local/share/plasma/wallpapers`.
+  Plasma remembered the failed load until the wallpaper type was switched away
+  and back.
+- Style manager page: every palette with its stripes, the palette in use
+  marked. Its Apply button was not clicked in the VM (the same command was run
+  from a shell).
+- Desktop settings › Wallpaper type lists "CDE Backdrop"; its page shows all
+  25 patterns in the palette's colours with the current one marked (dialog
+  cancelled afterwards). CDE's `SkyLight.pm` declares 1024 rows and holds
+  1023, which made a truncated PNG; missing rows are now repeated and a test
+  checks every tile's row count. The widened pixel-size field was not looked
+  at again after the fix.
+- Title bar height by default now the title font + 6 px (about 23 px, before
+  29 px), on request.
+- Restored afterwards: palette Copper and the wallpaper the VM had (the NT
+  Legacy picture "ntlegacy-win98-flaeche").
+
 The project VM was restored to the original configuration after the destructive
 installation test. The last visual run deliberately leaves CDE Copper applied
 in the VM so it can be opened with `vm/vmctl.sh viewer`; remove it with
