@@ -182,6 +182,9 @@ widgetStyle=kvantum
 Theme=CDECopper
 [kcminputrc][Mouse]
 cursorTheme=CDECopperCursors
+[ksplashrc][KSplash]
+Engine=KSplashQML
+Theme=org.cde.copper.desktop
 [plasmarc][Theme]
 name=cde-copper
 [kwinrc][org.kde.kdecoration2]
@@ -220,6 +223,15 @@ Image=org.cde.copper
     # default panel (Kickoff, task manager, clock) drawn in CDE's surfaces.
     (OUT / lnf / "contents/layouts").mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "layout.js", OUT / lnf / "contents/layouts/org.kde.plasma.desktop-layout.js")
+    # Start-up, lock and logout screens; the start-up screen tiles a backdrop
+    # and shows the console's logo.
+    shutil.copytree(ROOT / "lookandfeel/contents", OUT / lnf / "contents", dirs_exist_ok=True)
+    images = OUT / lnf / "contents/splash/images"
+    images.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(OUT / "plasma/wallpapers/org.cde.copper.backdrop/contents/images/Copper/Lattice.png", images / "backdrop.png")
+    shutil.copy2(OUT / "icons/CDECopper/scalable/all/cde-menu.svg", images / "logo.svg")
+    (OUT / lnf / "contents/previews").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT / "screenshots/splash-1920.png", OUT / lnf / "contents/previews/splash.png")
     # Shown in System Settings › Global Theme.
     for name in ("preview.png", "fullscreenpreview.png"):
         target = OUT / lnf / "contents/previews" / name

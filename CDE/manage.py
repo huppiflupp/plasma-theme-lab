@@ -519,6 +519,7 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
     # Cursors after the X11 cursor font; plasma-apply-cursortheme also tells
     # running programs and XWayland.
     write_config("kcminputrc", "Mouse", {"cursorTheme": "CDECopperCursors"})
+    write_config("ksplashrc", "KSplash", {"Engine": "KSplashQML", "Theme": "org.cde.copper.desktop"})
     if shutil.which("plasma-apply-cursortheme"):
         run("plasma-apply-cursortheme", "CDECopperCursors", check=False)
     write_config("kdeglobals", "General", {"font": UI_FONT, "fixed": MONO_FONT, "menuFont": UI_FONT, "toolBarFont": UI_FONT})

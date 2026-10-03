@@ -52,7 +52,8 @@ or takes any of CDE's own 37 palettes and backdrops.
   menu categories, actions, documents, devices, places, battery, network and
   other status icons), with no embedded raster images; the 59 most visible
   also as pixel versions for 16 and 22 px.
-- Konsole profile and color scheme, global-theme bundle, and teal wallpaper.
+- Konsole profile and color scheme, global-theme bundle with a Motif start-up
+  screen, and teal wallpaper.
 - User-only installer, ownership manifest and configuration rollback.
 
 ## Install

@@ -66,7 +66,7 @@ class Separation(unittest.TestCase):
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
             for item in ("tools", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "screenshots",
-                         "build.py", "icons.py", "cursors.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
+                         "lookandfeel", "build.py", "icons.py", "cursors.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
                     shutil.copytree(source, copy / item, symlinks=True,

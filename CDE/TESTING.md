@@ -250,6 +250,12 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   activates it on the active screen; it opens the Applications menu above
   the Apps tile. Checked in the VM with a real Meta key press (uinput) and
   with PlasmaShell.activateLauncherMenu; a second press closes the menu.
+- Start-up screen (KSplash, contents/splash in the global theme): a Motif
+  dialog with copper title bar, logo and a meter of six blocks, one lit per
+  KSplash stage, on the Lattice backdrop in Copper's teal. Applying the
+  theme sets ksplashrc to it. Checked with `ksplashqml org.cde.copper.desktop
+  --test --window` in the VM (screenshots/splash-1920.png, also its
+  preview in System Settings); a real login not yet.
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the

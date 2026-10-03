@@ -12,6 +12,9 @@ widgetStyle=kvantum
 Theme=CDECopper
 [kcminputrc][Mouse]
 cursorTheme=CDECopperCursors
+[ksplashrc][KSplash]
+Engine=KSplashQML
+Theme=org.cde.copper.desktop
 [plasmarc][Theme]
 name=cde-copper
 [kwinrc][org.kde.kdecoration2]
