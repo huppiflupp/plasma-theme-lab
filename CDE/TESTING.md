@@ -183,6 +183,7 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   behind the console" hides the panel's own background (its panel-background
   frames, in this panel only); the console then stands by itself, with the
   panel's margin around it transparent. Checked in the VM both ways.
+  Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the
   menu entry. Not checked: the Files tile switched to XFile (the launcher
