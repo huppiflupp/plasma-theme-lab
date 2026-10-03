@@ -419,12 +419,17 @@ def set_palette(manifest, name):
     remove(folder)
     backdrops.write_all(colour_set, folder / name)
     # Desktops showing a backdrop follow the palette; a plain desktop colour
-    # follows it only when the theme set it (apply.sh --backdrop none).
-    plain = "if (d.wallpaperPlugin === 'org.kde.color') { d.currentConfigGroup = ['Wallpaper', 'org.kde.color', 'General']; d.writeConfig('Color', '%s'); }" % colour_set["bg"]
+    # follows it only when the theme set it: --backdrop none, or the colour
+    # is a palette's desktop colour (the global theme's layout sets Copper's).
+    ours = sorted({workspace_set(p)["bg"].lower() for p in ("Copper", *palettes.names())})
+    always = "true" if manifest.get("backdrop") == "none" else "false"
+    plain = ("if (d.wallpaperPlugin === 'org.kde.color') { d.currentConfigGroup = ['Wallpaper', 'org.kde.color', 'General'];"
+             f" if ({always} || {json.dumps(ours)}.indexOf(String(d.readConfig('Color')).toLowerCase()) >= 0)"
+             f" d.writeConfig('Color', '{colour_set['bg']}'); }}")
     plasma_script("for (var d of desktops()) { if (d.wallpaperPlugin === 'org.cde.copper.backdrop') {"
                   " d.currentConfigGroup = ['Wallpaper', 'org.cde.copper.backdrop', 'General'];"
                   f" d.writeConfig('Palette', '{name}'); d.writeConfig('Color', '{colour_set['bg']}'); }}"
-                  + (" else " + plain if manifest.get("backdrop") == "none" else "") + " }")
+                  " else " + plain + " }")
     integrate_xfile()
     update_splash(name)
     update_gtk(name)
@@ -729,6 +734,11 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
         count = int(subprocess.check_output([exe, "org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager.count"], text=True).strip())
         for i in range(count, 4):
             dbus("org.kde.KWin", "/VirtualDesktopManager", "createDesktop", str(i), ("One", "Two", "Three", "Four")[i])
+        # KWin keeps its workspaces in memory and writes kwinrc only when they
+        # change: after an uninstall restored an older kwinrc, four running
+        # workspaces would need no change and the next login find one.
+        # KWin adds the ids for missing entries itself.
+        write_config("kwinrc", "Desktops", {"Number": str(max(4, count)), "Rows": "2"})
         dbus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell.evaluateScript", (ROOT / "layout.js").read_text())
     print(f"Applied with palette {chosen}. Log out and back in to reload all application styles and the decoration.")
 
@@ -788,7 +798,17 @@ def uninstall():
     if manifest["applied"]:
         dbus("org.kde.KWin", "/KWin", "reconfigure")
         run("systemctl", "--user", "start", "plasma-plasmashell.service")
+    # The decoration's own group in auroraerc (its options), written by the
+    # theme; the rest of that file belongs to other decorations.
+    if (CONFIG / "auroraerc").exists():
+        aurorae = configparser.ConfigParser(interpolation=None, strict=False)
+        aurorae.optionxform = str
+        aurorae.read(CONFIG / "auroraerc")
+        if aurorae.remove_section(DECORATION):
+            with (CONFIG / "auroraerc").open("w") as out:
+                aurorae.write(out, space_around_delimiters=False)
     MANIFEST.rename(STATE / "uninstalled-manifest.json")
+    remove(STATE.with_suffix(".lock"))
     print("Removed only manifest-owned files and restored pre-install configuration. Backup retained at " + str(STATE)
           + "; the configuration as it was before uninstalling is in " + str(STATE / "config-at-uninstall"))
 

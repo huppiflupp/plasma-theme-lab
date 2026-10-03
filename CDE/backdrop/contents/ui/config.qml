@@ -13,6 +13,16 @@ import "backdrops.js" as Backdrops
 // palette first.
 ColumnLayout {
     id: root
+    // Plasma hands every settings page every setting's default; declared so
+    // it takes them quietly. (Not the settings themselves: Plasma saves every
+    // cfg_ property a page has, and an unshown one would write back a stale
+    // value over what the console changed meanwhile.)
+    property var cfg_BackdropDefault
+    property var cfg_PerWorkspaceDefault
+    property var cfg_WorkspacesDefault
+    property var cfg_PaletteDefault
+    property var cfg_PixelSizeDefault
+    property var cfg_ColorDefault
     spacing: Kirigami.Units.largeSpacing
     property alias formLayout: form
     property string cfg_Backdrop: "Pebbles"

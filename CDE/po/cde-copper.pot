@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cde-copper 0.8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-03 23:09+0200\n"
+"POT-Creation-Date: 2026-10-03 23:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: frontpanel/contents/ui/AppMenu.qml:128 frontpanel/contents/ui/launch.js:245
+#: frontpanel/contents/ui/AppMenu.qml:128 frontpanel/contents/ui/launch.js:246
 msgid "Applications"
 msgstr ""
 
@@ -427,23 +427,23 @@ msgstr ""
 msgid "Audio"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:100 frontpanel/contents/ui/launch.js:246
+#: frontpanel/contents/ui/main.qml:100 frontpanel/contents/ui/launch.js:247
 msgid "Places"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:101 frontpanel/contents/ui/launch.js:228
+#: frontpanel/contents/ui/main.qml:101 frontpanel/contents/ui/launch.js:229
 msgid "System"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:102 frontpanel/contents/ui/launch.js:229
+#: frontpanel/contents/ui/main.qml:102 frontpanel/contents/ui/launch.js:230
 msgid "Help"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:103 frontpanel/contents/ui/launch.js:227
+#: frontpanel/contents/ui/main.qml:103 frontpanel/contents/ui/launch.js:228
 msgid "Mail"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:104 frontpanel/contents/ui/launch.js:247
+#: frontpanel/contents/ui/main.qml:104 frontpanel/contents/ui/launch.js:248
 msgid "Bookmarks"
 msgstr ""
 
@@ -479,11 +479,11 @@ msgstr ""
 msgid "File System"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:156 frontpanel/contents/ui/launch.js:230
+#: frontpanel/contents/ui/main.qml:156 frontpanel/contents/ui/launch.js:231
 msgid "Trash"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:159 frontpanel/contents/ui/launch.js:238
+#: frontpanel/contents/ui/main.qml:159 frontpanel/contents/ui/launch.js:239
 msgid "System Settings"
 msgstr ""
 
@@ -524,7 +524,7 @@ msgstr ""
 msgid "Address Book"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:178 frontpanel/contents/ui/launch.js:239
+#: frontpanel/contents/ui/main.qml:178 frontpanel/contents/ui/launch.js:240
 msgid "Help Center"
 msgstr ""
 
@@ -616,120 +616,120 @@ msgstr ""
 msgid "Application"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:222
+#: frontpanel/contents/ui/launch.js:223
 msgid "Apps"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:223
+#: frontpanel/contents/ui/launch.js:224
 msgid "Files"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:224
+#: frontpanel/contents/ui/launch.js:225
 msgid "Terminal"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:225
+#: frontpanel/contents/ui/launch.js:226
 msgid "Editor"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:226
+#: frontpanel/contents/ui/launch.js:227
 msgid "Web"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:231
+#: frontpanel/contents/ui/launch.js:232
 msgid "Default web browser"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:232
+#: frontpanel/contents/ui/launch.js:233
 msgid "Default mail client"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:233
+#: frontpanel/contents/ui/launch.js:234
 msgid "Default file manager"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:234
+#: frontpanel/contents/ui/launch.js:235
 msgid "PCManFM (follows the Motif style best)"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:235
+#: frontpanel/contents/ui/launch.js:236
 msgid "XFile (Motif, as CDE's dtfile)"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:236
+#: frontpanel/contents/ui/launch.js:237
 msgid "Default text editor"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:237
+#: frontpanel/contents/ui/launch.js:238
 msgid "Calendar"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:240
+#: frontpanel/contents/ui/launch.js:241
 msgid "Applications menu"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:241
+#: frontpanel/contents/ui/launch.js:242
 msgid "Arrange windows around the console"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:242
+#: frontpanel/contents/ui/launch.js:243
 msgid "Installed application…"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:243
+#: frontpanel/contents/ui/launch.js:244
 msgid "Custom command…"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:244
+#: frontpanel/contents/ui/launch.js:245
 msgid "None"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:248
+#: frontpanel/contents/ui/launch.js:249
 msgid "Recent files"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:249
+#: frontpanel/contents/ui/launch.js:250
 msgid "A web browser"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:250
+#: frontpanel/contents/ui/launch.js:251
 msgid "A mail client"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:251
+#: frontpanel/contents/ui/launch.js:252
 msgid "A file manager"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:252
+#: frontpanel/contents/ui/launch.js:253
 msgid "A text editor"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:253
+#: frontpanel/contents/ui/launch.js:254
 msgid "A terminal"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:254
+#: frontpanel/contents/ui/launch.js:255
 msgid "A calendar application"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:255
+#: frontpanel/contents/ui/launch.js:256
 msgid "An address book"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:256
+#: frontpanel/contents/ui/launch.js:257
 msgid "%1 is not installed"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:257
+#: frontpanel/contents/ui/launch.js:258
 msgid ""
 "Choose another program in the console settings (right-click › Configure)."
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:258
+#: frontpanel/contents/ui/launch.js:259
 msgid "CDE Front Console"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:259
+#: frontpanel/contents/ui/launch.js:260
 msgid "The application %1"
 msgstr ""
 
@@ -799,107 +799,111 @@ msgstr ""
 msgid "Starting the desktop …"
 msgstr ""
 
-#: lookandfeel/contents/logout/Logout.qml:101
-#: lookandfeel/contents/logout/Logout.qml:137
+#: lookandfeel/contents/logout/Logout.qml:107
+#: lookandfeel/contents/logout/Logout.qml:143
 msgid "Restart"
 msgstr ""
 
-#: lookandfeel/contents/logout/Logout.qml:101
-#: lookandfeel/contents/logout/Logout.qml:142
+#: lookandfeel/contents/logout/Logout.qml:107
+#: lookandfeel/contents/logout/Logout.qml:148
 msgid "Shut Down"
 msgstr ""
 
-#: lookandfeel/contents/logout/Logout.qml:101
-#: lookandfeel/contents/logout/Logout.qml:147
+#: lookandfeel/contents/logout/Logout.qml:107
+#: lookandfeel/contents/logout/Logout.qml:153
 msgid "Log Out"
 msgstr ""
 
-#: lookandfeel/contents/logout/Logout.qml:117
+#: lookandfeel/contents/logout/Logout.qml:123
 msgid "Restart the computer?"
 msgstr ""
 
-#: lookandfeel/contents/logout/Logout.qml:117
+#: lookandfeel/contents/logout/Logout.qml:123
 msgid "Shut down the computer?"
 msgstr ""
 
-#: lookandfeel/contents/logout/Logout.qml:117
+#: lookandfeel/contents/logout/Logout.qml:123
 msgid "End the session?"
 msgstr ""
 
-#: lookandfeel/contents/logout/Logout.qml:122
+#: lookandfeel/contents/logout/Logout.qml:128
 msgid "Installing updates and restarting in %1 second."
 msgid_plural "Installing updates and restarting in %1 seconds."
 msgstr[0] ""
 msgstr[1] ""
 
-#: lookandfeel/contents/logout/Logout.qml:122
+#: lookandfeel/contents/logout/Logout.qml:128
 msgid "Restarting in %1 second."
 msgid_plural "Restarting in %1 seconds."
 msgstr[0] ""
 msgstr[1] ""
 
-#: lookandfeel/contents/logout/Logout.qml:123
+#: lookandfeel/contents/logout/Logout.qml:129
 msgid "Installing updates and shutting down in %1 second."
 msgid_plural "Installing updates and shutting down in %1 seconds."
 msgstr[0] ""
 msgstr[1] ""
 
-#: lookandfeel/contents/logout/Logout.qml:123
+#: lookandfeel/contents/logout/Logout.qml:129
 msgid "Shutting down in %1 second."
 msgid_plural "Shutting down in %1 seconds."
 msgstr[0] ""
 msgstr[1] ""
 
-#: lookandfeel/contents/logout/Logout.qml:124
+#: lookandfeel/contents/logout/Logout.qml:130
 msgid "Logging out in %1 second."
 msgid_plural "Logging out in %1 seconds."
 msgstr[0] ""
 msgstr[1] ""
 
-#: lookandfeel/contents/logout/Logout.qml:133
+#: lookandfeel/contents/logout/Logout.qml:139
 msgid "Lock"
 msgstr ""
 
-#: lookandfeel/contents/logout/Logout.qml:134
+#: lookandfeel/contents/logout/Logout.qml:140
 msgid "Sleep"
 msgstr ""
 
-#: lookandfeel/contents/logout/Logout.qml:135
+#: lookandfeel/contents/logout/Logout.qml:141
 msgid "Hibernate"
 msgstr ""
 
-#: lookandfeel/contents/logout/Logout.qml:151
+#: lookandfeel/contents/logout/Logout.qml:157
 msgid "Cancel"
 msgstr ""
 
-#: shell/contents/lockscreen/LockScreen.qml:80
+#: shell/contents/lockscreen/LockScreen.qml:108
 msgid "Screen Locked"
 msgstr ""
 
-#: shell/contents/lockscreen/LockScreen.qml:103
+#: shell/contents/lockscreen/LockScreen.qml:131
 msgid "This display is locked."
 msgstr ""
 
-#: shell/contents/lockscreen/LockScreen.qml:104
+#: shell/contents/lockscreen/LockScreen.qml:132
 msgid "This display is locked by %1."
 msgstr ""
 
-#: shell/contents/lockscreen/LockScreen.qml:132
+#: shell/contents/lockscreen/LockScreen.qml:160
 msgid "Password"
 msgstr ""
 
-#: shell/contents/lockscreen/LockScreen.qml:143
+#: shell/contents/lockscreen/LockScreen.qml:171
 msgid "Caps Lock is on."
 msgstr ""
 
-#: shell/contents/lockscreen/LockScreen.qml:152
+#: shell/contents/lockscreen/LockScreen.qml:180
 msgid "Switch User"
 msgstr ""
 
-#: shell/contents/lockscreen/LockScreen.qml:158
+#: shell/contents/lockscreen/LockScreen.qml:186
 msgid "Unlock"
 msgstr ""
 
-#: shell/contents/lockscreen/LockScreen.qml:168
+#: shell/contents/lockscreen/LockScreen.qml:200
 msgid "The password was not accepted."
+msgstr ""
+
+#: shell/contents/lockscreen/LockScreen.qml:231
+msgid "No password is needed: press Unlock."
 msgstr ""

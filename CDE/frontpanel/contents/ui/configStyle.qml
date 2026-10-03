@@ -18,6 +18,33 @@ import "launch.js" as Launch
 // Colours; choosing one there has the same effect.
 KCM.SimpleKCM {
     id: page
+    // Plasma hands every settings page every setting's default; declared so
+    // it takes them quietly. (Not the settings themselves: Plasma saves every
+    // cfg_ property a page has, and an unshown one would write back a stale
+    // value over what the console changed meanwhile.)
+    property var cfg_visibilityModeDefault
+    property var cfg_topEdgeDefault
+    property var cfg_edgeDefault
+    property var cfg_windowsOnThisScreenDefault
+    property var cfg_workspaceColoursDefault
+    property var cfg_groupWindowsDefault
+    property var cfg_consoleLabelDefault
+    property var cfg_consoleScaleDefault
+    property var cfg_hideTrayVolumeDefault
+    property var cfg_hideTrayIconsDefault
+    property var cfg_trayHiddenByConsoleDefault
+    property var cfg_panelFrameDefault
+    property var cfg_styleRequestDefault
+    property var cfg_leftLaunchersDefault
+    property var cfg_rightLaunchersDefault
+    property var cfg_clockOpensAppDefault
+    property var cfg_clockStyleDefault
+    property var cfg_clockDialDefault
+    property var cfg_clockSecondsDefault
+    property var cfg_clockSegmentEdgeDefault
+    property var cfg_clockSegmentShadowDefault
+    property var cfg_calendarCommandDefault
+    property var cfg_enabledCalendarPluginsDefault
     readonly property string dataDir: decodeURIComponent(StandardPaths.writableLocation(StandardPaths.GenericDataLocation).toString().replace(/^file:\/\//, ""))
     readonly property string tool: dataDir + "/cde-copper/tool/manage.py"
     property string current: ""          // the palette in use

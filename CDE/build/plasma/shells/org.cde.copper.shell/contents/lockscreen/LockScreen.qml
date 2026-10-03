@@ -16,6 +16,34 @@ Item {
     property bool locked: false
     property bool authSucceeded: false
     property string notification: ""
+    // The conversation as Plasma's own lock screen keeps it: authentication
+    // starts when the screen shows, every secret prompt is answered by what
+    // the user enters then (a second one, say a one-time code, gets its own
+    // entry), a failure waits three seconds and starts again.
+    property bool awaiting: false        // a secret prompt waits for an answer
+    property bool answered: false        // this conversation got one already
+    property bool pendingSubmit: false   // entered before the prompt came
+    property bool noPassword: false      // succeeded without any prompt
+    function submit() {
+        if (root.noPassword) { Qt.quit(); return; }
+        if (root.awaiting) {
+            root.awaiting = false;
+            root.answered = true;
+            authenticator.respond(password.text);
+        } else {
+            root.pendingSubmit = true;
+            if (!authenticator.busy) authenticator.startAuthenticating();
+        }
+    }
+    Timer {
+        id: graceTimer
+        interval: 3000
+        onTriggered: {
+            password.selectAll();
+            password.forceActiveFocus();
+            authenticator.startAuthenticating();
+        }
+    }
 
     Colours { id: colours }
     readonly property string font: "IBM Plex Sans Condensed"
@@ -119,12 +147,12 @@ Item {
                         font.family: root.font; font.pixelSize: 15
                         color: colours.ink
                         selectionColor: colours.accent
-                        enabled: !authenticator.busy
+                        enabled: !authenticator.graceLocked
                         focus: true
                         text: PasswordSync.password
                         onTextChanged: PasswordSync.password = text
-                        Keys.onReturnPressed: authenticator.startAuthenticating()
-                        Keys.onEnterPressed: authenticator.startAuthenticating()
+                        Keys.onReturnPressed: root.submit()
+                        Keys.onEnterPressed: root.submit()
                         Keys.onEscapePressed: text = ""
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
@@ -156,7 +184,7 @@ Item {
                         isDefault: true
                         enabled: !authenticator.graceLocked
                         text: i18nd("cde-copper", "Unlock")
-                        onClicked: authenticator.startAuthenticating()
+                        onClicked: root.submit()
                     }
                 }
             }
@@ -165,7 +193,16 @@ Item {
 
     Connections {
         target: authenticator
-        function onFailed() { root.notification = i18nd("cde-copper", "The password was not accepted."); }
+        function onFailed(kind) {
+            // Fingerprint or smart card readers fail on their own; only the
+            // password conversation reports here.
+            if (kind !== undefined && kind !== 0) return;
+            root.notification = i18nd("cde-copper", "The password was not accepted.");
+            root.awaiting = false;
+            root.answered = false;
+            root.pendingSubmit = false;
+            graceTimer.restart();
+        }
         function onBusyChanged() {
             if (!authenticator.busy && !root.authSucceeded) {
                 password.selectAll();
@@ -174,11 +211,32 @@ Item {
         }
         function onInfoMessageChanged() { root.notification = authenticator.infoMessage; }
         function onErrorMessageChanged() { root.notification = authenticator.errorMessage; }
-        function onPromptForSecretChanged() { authenticator.respond(password.text); }
+        function onPromptChanged() { if (authenticator.prompt) root.notification = authenticator.prompt; }
+        function onPromptForSecretChanged() {
+            // A further secret prompt in the same conversation wants its own
+            // entry, not the password again.
+            if (root.answered) password.text = "";
+            root.awaiting = true;
+            password.forceActiveFocus();
+            if (root.pendingSubmit && password.text.length > 0) {
+                root.pendingSubmit = false;
+                root.submit();
+            }
+        }
         function onSucceeded() {
+            // Without any prompt (an account with no password) Plasma asks
+            // for a click instead of unlocking at once.
+            if (authenticator.hadPrompt === false) {
+                root.noPassword = true;
+                root.notification = i18nd("cde-copper", "No password is needed: press Unlock.");
+                return;
+            }
             root.authSucceeded = true;
             Qt.quit();
         }
     }
-    Component.onCompleted: password.forceActiveFocus()
+    Component.onCompleted: {
+        password.forceActiveFocus();
+        authenticator.startAuthenticating();
+    }
 }
