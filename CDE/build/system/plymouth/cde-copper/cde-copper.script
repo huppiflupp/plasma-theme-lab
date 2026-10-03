@@ -1,0 +1,109 @@
+# CDE Copper boot splash: a Motif dialog on the tiled backdrop, a meter
+# of six blocks for the boot progress, and the passphrase prompt.
+
+W = Window.GetWidth();
+H = Window.GetHeight();
+Window.SetBackgroundTopColor(0.031, 0.408, 0.459);
+Window.SetBackgroundBottomColor(0.031, 0.408, 0.459);
+
+tile = Image("backdrop.png");
+tiles_y = 0;
+count = 0;
+while (tiles_y < H) {
+    tiles_x = 0;
+    while (tiles_x < W) {
+        tiles[count] = Sprite(tile);
+        tiles[count].SetPosition(tiles_x, tiles_y, -100);
+        count++;
+        tiles_x += tile.GetWidth();
+    }
+    tiles_y += tile.GetHeight();
+}
+
+ink = Image("ink.png"); face = Image("face.png"); light = Image("light.png");
+dark = Image("dark.png"); copper = Image("copper.png"); trough = Image("trough.png"); field = Image("field.png");
+
+fun box(image, x, y, w, h, z) {
+    s = Sprite(image.Scale(w, h));
+    s.SetPosition(x, y, z);
+    return s;
+}
+
+dw = 460; dh = 210;
+dx = Math.Int((W - dw) / 2);
+dy = Math.Int((H - dh) / 2);
+parts[0] = box(ink, dx, dy, dw, dh, 1);
+parts[1] = box(face, dx + 1, dy + 1, dw - 2, dh - 2, 2);
+parts[2] = box(light, dx + 1, dy + 1, dw - 2, 2, 3);
+parts[3] = box(light, dx + 1, dy + 1, 2, dh - 2, 3);
+parts[4] = box(dark, dx + 1, dy + dh - 3, dw - 2, 2, 3);
+parts[5] = box(dark, dx + dw - 3, dy + 1, 2, dh - 2, 3);
+parts[6] = box(copper, dx + 5, dy + 5, dw - 10, 26, 4);
+
+title_text = Image.Text("CDE Copper", 0.063, 0.149, 0.169, 1, "Sans Bold 12");
+parts[7] = Sprite(title_text);
+parts[7].SetPosition(dx + Math.Int((dw - title_text.GetWidth()) / 2), dy + 18 - Math.Int(title_text.GetHeight() / 2), 5);
+
+logo = Sprite(Image("logo.png"));
+logo.SetPosition(dx + 20, dy + 48, 4);
+
+heading = Sprite(Image.Text("Common Desktop Environment", 0.063, 0.149, 0.169, 1, "Sans 15"));
+heading.SetPosition(dx + 100, dy + 54, 4);
+status = Sprite(Image.Text("Starting the system ...", 0.063, 0.149, 0.169, 1, "Sans 11"));
+status.SetPosition(dx + 100, dy + 84, 4);
+
+# The meter: a sunken well with six blocks.
+mx = dx + 18; my = dy + dh - 56; mw = dw - 36; mh = 38;
+parts[8] = box(trough, mx, my, mw, mh, 4);
+parts[9] = box(dark, mx, my, mw, 2, 5);
+parts[10] = box(dark, mx, my, 2, mh, 5);
+parts[11] = box(light, mx, my + mh - 2, mw, 2, 5);
+parts[12] = box(light, mx + mw - 2, my, 2, mh, 5);
+bw = Math.Int((mw - 10 - 5 * 5) / 6);
+bh = mh - 10;
+lit = copper.Scale(bw, bh);
+unlit = face.Scale(bw, bh);
+i = 0;
+while (i < 6) {
+    blocks[i] = Sprite(unlit);
+    blocks[i].SetPosition(mx + 5 + i * (bw + 5), my + 5, 6);
+    i++;
+}
+
+fun progress_callback(duration, progress) {
+    n = Math.Int(progress * 6 + 0.999);
+    i = 0;
+    while (i < 6) {
+        if (i < n) blocks[i].SetImage(lit); else blocks[i].SetImage(unlit);
+        i++;
+    }
+}
+Plymouth.SetBootProgressFunction(progress_callback);
+
+fun message_callback(text) {
+    status.SetImage(Image.Text(text, 0.063, 0.149, 0.169, 1, "Sans 11"));
+}
+Plymouth.SetMessageFunction(message_callback);
+
+# The passphrase of an encrypted disk: a sunken field in the dialog.
+fun password_callback(prompt, bullets) {
+    status.SetImage(Image.Text(prompt, 0.063, 0.149, 0.169, 1, "Sans 11"));
+    if (!pw_field) {
+        pw_field = box(field, dx + 100, dy + 108, dw - 120, 26, 6);
+        pw_edge = box(dark, dx + 100, dy + 108, dw - 120, 2, 7);
+    }
+    pw_field.SetOpacity(1); pw_edge.SetOpacity(1);
+    stars = "";
+    i = 0;
+    while (i < bullets) { stars += "*"; i++; }
+    pw_text = Sprite(Image.Text(stars + " ", 0.063, 0.149, 0.169, 1, "Sans 14"));
+    pw_text.SetPosition(dx + 108, dy + 112, 8);
+}
+Plymouth.SetDisplayPasswordFunction(password_callback);
+
+fun normal_callback() {
+    if (pw_field) { pw_field.SetOpacity(0); pw_edge.SetOpacity(0); }
+    pw_text = NULL;
+    status.SetImage(Image.Text("Starting the system ...", 0.063, 0.149, 0.169, 1, "Sans 11"));
+}
+Plymouth.SetDisplayNormalFunction(normal_callback);

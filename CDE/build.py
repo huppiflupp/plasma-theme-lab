@@ -286,6 +286,8 @@ def main():
     build_cursors(OUT)
     from gtktheme import build_gtk
     build_gtk(OUT, P)
+    from systemparts import build_system
+    build_system(OUT, P)
     from kvantum import build_kvantum
     build_kvantum(OUT, P)
     other_assets()

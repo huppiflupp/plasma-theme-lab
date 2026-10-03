@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=CDE Copper
+Description=A Motif dialog on the CDE backdrop with a meter for the boot progress
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/cde-copper
+ScriptFile=/usr/share/plymouth/themes/cde-copper/cde-copper.script

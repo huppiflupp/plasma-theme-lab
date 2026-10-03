@@ -63,6 +63,13 @@ or takes any of CDE's own 37 palettes and backdrops.
   programs such as Firefox or PCManFM get the Motif controls too; it is
   rebuilt with every palette. Libadwaita programs ignore GTK themes and only
   take Plasma's colours.
+- System parts, installed apart with `sudo python3 system.py install` (and
+  undone with `uninstall`): a Plymouth boot splash (a Motif dialog with a
+  meter on the backdrop, the passphrase prompt of an encrypted disk in it)
+  and a GRUB theme (the menu in a Motif window with a copper title bar, on
+  one of the theme's pictures or the backdrop). Plymouth needs its script
+  module (Fedora: plymouth-plugin-script); under Secure Boot GRUB loads no
+  font files, so the menu then uses GRUB's own Unifont.
 - CDE's logout confirmation: a Motif dialog with lock, sleep, hibernate,
   restart, shut down and log out, the action it was called for as default
   button and a countdown, in the palette's colours.
@@ -351,7 +358,8 @@ Not reached:
   accessible names and keys work in the subpanels, but full keyboard operation
   of auto-hide and of the Applications menu has not been verified, nor has a
   screen reader been used.
-- **Theme coverage (phase 3).** No SDDM theme;
+- **Theme coverage (phase 3).** No login screen theme yet (Fedora 44 uses
+  Plasma's new login manager, not SDDM);
   notifications and calendar follow only through the Plasma surfaces.
 - **Test matrix.** 150 % and 200 % scaling were checked for 0.1 only, not for
   the QML window frame, the console and the popups that came later. X11 was

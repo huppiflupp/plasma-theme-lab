@@ -296,6 +296,24 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   programs reload; uninstall restores the previous GTK theme. Checked in the
   VM with gtk3-widget-factory, gtk4-widget-factory and PCManFM under
   Orchid. Not checked: Firefox, libadwaita programs (they ignore themes).
+- System parts (system.py as root, manifest /var/lib/cde-copper/system.json;
+  VM snapshot vor-system taken first). Plymouth: script theme from small
+  PNG pieces, text set by Plymouth; the VM lacked the script module
+  (plymouth-plugin-script), now checked before anything changes. Seen in a
+  real boot: the dialog on the Lattice backdrop, the meter filling. GRUB:
+  backdrop or picture, menu in a nine-piece Motif frame, title bar and
+  countdown. Findings in real boots: under Secure Boot (on in the VM) GRUB
+  loads no font files (lsfonts at the GRUB prompt showed only Unifont), so
+  the theme falls back to "Unifont Regular 16" there; GRUB draws image
+  components over everything, a label on the title image included, and
+  draws no progress bar without the timeout id, so the title is set into
+  the title image at build time (Pillow on the build machine). A JPEG
+  background loads under Secure Boot. Picture: wallpapers/images/<name>.jpg
+  (--grub-background, default altai-dark; lattice for the backdrop).
+  screenshots/grub-1280.png. Not checked: the passphrase prompt, BIOS
+  machines, Debian's grub paths. The full test run was not possible at
+  this commit: the build stops in the picture wallpapers another session
+  is adding (wallpapers/images/mrt.jpg not there yet).
   Off by default since; the frame is there for those who want it.
 - XFile 1.2.1 built from source in the VM (motif-devel, libXinerama-devel,
   libXft-devel); a palette change wrote `~/XFile` in that palette and the
