@@ -1,0 +1,228 @@
+import QtQuick
+import "motif.js" as Motif
+
+// The clock tile's face, sized to whatever room the tile has: every size is
+// taken from the face's own width and height, so it shrinks with the console
+// (75 %) and fits the upright console.
+//
+//   style  "digital"   day, time and date in type
+//          "segments"  a seven-segment time, unlit segments faintly visible
+//          "analog"    hands on a dial:
+//   dial   "cde"       round, after CDE's front-panel clock (dtclock)
+//          "motif"     square, a sunken Motif well with hour bars
+//          "roman"     round with Roman numerals
+//          "plain"     no dial, four marks on the tile itself
+Item {
+    id: face
+    property string style: "digital"
+    property string dial: "cde"
+    property bool seconds: false
+    property date now: new Date()
+    property color ink: "black"          // text, hands, marks
+    property color accent: "orange"      // second hand, lit segments
+    property color dialColor: "white"    // the dial's surface
+    property color tile: "gray"          // the tile around it
+    property string font: "IBM Plex Sans Condensed"
+
+    readonly property real small: Math.max(6, Math.min(height * 0.16, width / 6.5))
+
+    // ---- digital ------------------------------------------------------
+    Column {
+        visible: face.style === "digital"
+        anchors.centerIn: parent
+        spacing: 0
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: Qt.formatDateTime(face.now, "ddd").toUpperCase()
+            color: face.ink; opacity: 0.8
+            font.pixelSize: face.small; font.family: face.font
+        }
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: Qt.formatDateTime(face.now, face.seconds ? "HH:mm:ss" : "HH:mm")
+            color: face.ink
+            // Mono digits are 0.6 em wide: n characters need 0.6·n em.
+            font.pixelSize: Math.max(7, Math.min(face.height * 0.42, face.width / ((face.seconds ? 8 : 5) * 0.62)))
+            font.family: "IBM Plex Mono"
+        }
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: Qt.formatDateTime(face.now, "dd MMM").toUpperCase()
+            color: face.ink
+            font.pixelSize: face.small; font.family: face.font
+        }
+    }
+
+    // ---- seven segments -----------------------------------------------
+    Column {
+        visible: face.style === "segments"
+        anchors.centerIn: parent
+        spacing: Math.round(face.height * 0.05)
+        Canvas {
+            id: segments
+            // Digit cells of 0.55:1, colons a third as wide.
+            readonly property int digits: face.seconds ? 6 : 4
+            readonly property int colons: face.seconds ? 2 : 1
+            readonly property real unitsWide: digits * 0.62 + colons * 0.22
+            height: Math.max(8, Math.min(face.height * 0.62, face.width / unitsWide))
+            width: height * unitsWide
+            anchors.horizontalCenter: parent.horizontalCenter
+            readonly property string text: Qt.formatDateTime(face.now, face.seconds ? "HHmmss" : "HHmm")
+            onTextChanged: requestPaint()
+            onWidthChanged: requestPaint()
+            Connections {
+                target: face
+                function onInkChanged() { segments.requestPaint(); }
+                function onAccentChanged() { segments.requestPaint(); }
+            }
+            // Segments a..g of a digit, as in the usual naming.
+            readonly property var lit: ["abcdef", "bc", "abdeg", "abcdg", "bcfg", "acdfg", "acdefg", "abc", "abcdefg", "abcdfg"]
+            onPaint: {
+                const ctx = getContext("2d");
+                ctx.reset();
+                const h = height, w = h * 0.55, t = Math.max(1.5, h * 0.11), g = Math.max(0.5, t * 0.15);
+                const on = face.accent, off = Qt.rgba(face.ink.r, face.ink.g, face.ink.b, 0.12);
+                function bar(x, y, len, horizontal, colour) {
+                    // A segment with bevelled ends.
+                    ctx.fillStyle = colour;
+                    ctx.beginPath();
+                    if (horizontal) {
+                        ctx.moveTo(x + g, y); ctx.lineTo(x + g + t / 2, y - t / 2); ctx.lineTo(x + len - g - t / 2, y - t / 2);
+                        ctx.lineTo(x + len - g, y); ctx.lineTo(x + len - g - t / 2, y + t / 2); ctx.lineTo(x + g + t / 2, y + t / 2);
+                    } else {
+                        ctx.moveTo(x, y + g); ctx.lineTo(x + t / 2, y + g + t / 2); ctx.lineTo(x + t / 2, y + len - g - t / 2);
+                        ctx.lineTo(x, y + len - g); ctx.lineTo(x - t / 2, y + len - g - t / 2); ctx.lineTo(x - t / 2, y + g + t / 2);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                function digit(x, value) {
+                    const segs = lit[value];
+                    const top = t / 2, mid = h / 2, bottom = h - t / 2, left = x + t / 2, right = x + w - t / 2;
+                    const parts = {a: [left, top, right - left, true], g: [left, mid, right - left, true], d: [left, bottom, right - left, true],
+                                   f: [left, top, mid - top, false], b: [right, top, mid - top, false],
+                                   e: [left, mid, bottom - mid, false], c: [right, mid, bottom - mid, false]};
+                    for (const key in parts) {
+                        const p = parts[key];
+                        bar(p[0], p[1], p[2], p[3], segs.indexOf(key) >= 0 ? on : off);
+                    }
+                }
+                let x = 0;
+                for (let i = 0; i < text.length; i++) {
+                    digit(x, Number(text[i]));
+                    x += h * 0.62;
+                    if (i % 2 === 1 && i < text.length - 1) {
+                        ctx.fillStyle = on;
+                        const r = t * 0.45, cx = x + h * 0.08;
+                        ctx.beginPath(); ctx.arc(cx, h * 0.3, r, 0, 2 * Math.PI); ctx.fill();
+                        ctx.beginPath(); ctx.arc(cx, h * 0.7, r, 0, 2 * Math.PI); ctx.fill();
+                        x += h * 0.22;
+                    }
+                }
+            }
+        }
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: face.height > 40
+            text: Qt.formatDateTime(face.now, "ddd dd MMM").toUpperCase()
+            color: face.ink
+            font.pixelSize: face.small; font.family: face.font
+        }
+    }
+
+    // ---- analog -------------------------------------------------------
+    Canvas {
+        id: analog
+        visible: face.style === "analog"
+        readonly property real side: Math.min(face.width, face.height)
+        width: side; height: side
+        anchors.centerIn: parent
+        readonly property int stamp: face.now.getHours() * 3600 + face.now.getMinutes() * 60 + (face.seconds ? face.now.getSeconds() : 0)
+        onStampChanged: requestPaint()
+        onSideChanged: requestPaint()
+        Connections {
+            target: face
+            function onDialChanged() { analog.requestPaint(); }
+            function onInkChanged() { analog.requestPaint(); }
+            function onDialColorChanged() { analog.requestPaint(); }
+            function onAccentChanged() { analog.requestPaint(); }
+            function onStyleChanged() { analog.requestPaint(); }
+        }
+        onPaint: {
+            if (face.style !== "analog") return;
+            const ctx = getContext("2d");
+            ctx.reset();
+            const s = side, c = s / 2, r = s / 2 - 1;
+            const shade = Motif.shades(face.dialColor);
+            const ink = face.ink.toString(), accent = face.accent.toString();
+
+            function line(angle, from, to, width, colour) {
+                ctx.strokeStyle = colour; ctx.lineWidth = width; ctx.lineCap = "butt";
+                ctx.beginPath();
+                ctx.moveTo(c + Math.sin(angle) * from, c - Math.cos(angle) * from);
+                ctx.lineTo(c + Math.sin(angle) * to, c - Math.cos(angle) * to);
+                ctx.stroke();
+            }
+            function hand(angle, length, width, tail, colour) {
+                // A flat Motif hand: a long, slightly tapered bar.
+                ctx.fillStyle = colour;
+                ctx.save();
+                ctx.translate(c, c);
+                ctx.rotate(angle);
+                ctx.beginPath();
+                ctx.moveTo(-width / 2, tail); ctx.lineTo(-width * 0.35, -length);
+                ctx.lineTo(width * 0.35, -length); ctx.lineTo(width / 2, tail);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+
+            if (face.dial === "motif") {
+                // A square, sunken well with hour bars.
+                const b = Math.max(1, Math.round(s / 24));
+                ctx.fillStyle = face.dialColor.toString(); ctx.fillRect(0, 0, s, s);
+                ctx.fillStyle = shade.bottom.toString(); ctx.fillRect(0, 0, s, b); ctx.fillRect(0, 0, b, s);
+                ctx.fillStyle = shade.top.toString(); ctx.fillRect(0, s - b, s, b); ctx.fillRect(s - b, 0, b, s);
+                for (let i = 0; i < 12; i++)
+                    line(i * Math.PI / 6, r * (i % 3 === 0 ? 0.62 : 0.74), r * 0.88, Math.max(1, s / (i % 3 === 0 ? 22 : 40)), ink);
+            } else if (face.dial === "plain") {
+                for (let i = 0; i < 4; i++)
+                    line(i * Math.PI / 2, r * 0.78, r * 0.98, Math.max(1.5, s / 26), ink);
+            } else {
+                // Round: raised rim, dial, minute and hour ticks.
+                ctx.fillStyle = shade.top.toString();
+                ctx.beginPath(); ctx.arc(c, c, r, Math.PI * 0.75, Math.PI * 1.75); ctx.fill();
+                ctx.fillStyle = shade.bottom.toString();
+                ctx.beginPath(); ctx.arc(c, c, r, Math.PI * 1.75, Math.PI * 2.75); ctx.fill();
+                ctx.fillStyle = face.dialColor.toString();
+                ctx.beginPath(); ctx.arc(c, c, r - Math.max(1.5, s / 28), 0, 2 * Math.PI); ctx.fill();
+                if (face.dial === "roman") {
+                    const numerals = ["XII", "III", "VI", "IX"];
+                    ctx.fillStyle = ink;
+                    ctx.font = "600 " + Math.max(5, Math.round(s * 0.15)) + "px '" + face.font + "'";
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    for (let i = 0; i < 4; i++) {
+                        const a = i * Math.PI / 2;
+                        ctx.fillText(numerals[i], c + Math.sin(a) * r * 0.68, c - Math.cos(a) * r * 0.68);
+                    }
+                    for (let i = 0; i < 12; i++)
+                        if (i % 3 !== 0) line(i * Math.PI / 6, r * 0.74, r * 0.86, Math.max(1, s / 40), ink);
+                } else {
+                    for (let i = 0; i < 60; i++) {
+                        if (s < 48 && i % 5 !== 0) continue;   // too small for minute ticks
+                        line(i * Math.PI / 30, r * (i % 5 === 0 ? 0.72 : 0.82), r * 0.88,
+                             Math.max(1, s / (i % 15 === 0 ? 22 : i % 5 === 0 ? 34 : 70)), ink);
+                    }
+                }
+            }
+            const h = face.now.getHours() % 12, m = face.now.getMinutes(), sec = face.now.getSeconds();
+            hand((h + m / 60) * Math.PI / 6, r * 0.5, Math.max(2, s / 13), r * 0.08, ink);
+            hand((m + (face.seconds ? sec / 60 : 0)) * Math.PI / 30, r * 0.78, Math.max(1.5, s / 18), r * 0.08, ink);
+            if (face.seconds) {
+                line(sec * Math.PI / 30, -r * 0.15, r * 0.84, Math.max(1, s / 60), accent);
+            }
+            ctx.fillStyle = face.seconds ? accent : ink;
+            ctx.beginPath(); ctx.arc(c, c, Math.max(1.5, s / 28), 0, 2 * Math.PI); ctx.fill();
+        }
+    }
+}

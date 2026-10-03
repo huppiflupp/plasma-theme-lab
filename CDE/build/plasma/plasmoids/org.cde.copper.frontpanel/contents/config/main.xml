@@ -19,6 +19,10 @@
   </group>
   <group name="Clock">
     <entry name="clockOpensApp" type="Bool"><default>false</default></entry>
+    <!-- digital, segments, analog; the dial for analog: cde, motif, roman, plain -->
+    <entry name="clockStyle" type="String"><default>digital</default></entry>
+    <entry name="clockDial" type="String"><default>cde</default></entry>
+    <entry name="clockSeconds" type="Bool"><default>false</default></entry>
     <entry name="calendarCommand" type="String"><default>@calendar</default></entry>
     <entry name="enabledCalendarPlugins" type="StringList"><default>pimevents</default></entry>
   </group>

@@ -117,6 +117,16 @@ Checks of 2026-10-03 afternoon (version 0.2.1, after feedback), same VM:
 - The console was found at the top edge in the VM, as set while it was tried
   out; the top edge works, and the VM was left there.
 
+Checks of 2026-10-03 (version 0.2.2, clock), same VM:
+
+- Digital, seven-segment (with and without seconds) and the four analog dials
+  at 100 % and 75 % console size, and in the upright console at the left edge;
+  every display stays inside its tile, the type and dials scaling with it.
+  Checked in Copper only; the colours come from the same theme colours as the
+  rest of the console.
+- The VM's wallpaper had been changed to a grey-teal gradient in the meantime;
+  it was left as found, as were the console at the top edge and its settings.
+
 The project VM was restored to the original configuration after the destructive
 installation test. The last visual run deliberately leaves CDE Copper applied
 in the VM so it can be opened with `vm/vmctl.sh viewer`; remove it with

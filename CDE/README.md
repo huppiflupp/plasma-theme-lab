@@ -120,6 +120,17 @@ proposes the matching subpanel.
 The volume button: click for a slider, Mute and the audio settings; the mouse
 wheel changes the volume directly.
 
+![The clock displays](screenshots/clock-faces-200.png)
+
+**Clock and Calendar** also chooses the clock display: digital, seven-segment
+(unlit segments faintly visible) or analog with one of four dials: CDE (round,
+after CDE's own front-panel clock), Motif (a square sunken well), Roman
+numerals, or plain marks on the tile. Seconds can be shown on every display.
+The dial takes the text-field colour, hands and digits the text colour, the
+second hand and lit segments the selection colour, so every palette dresses
+the clock to match. All sizes follow the tile, so the clock fits at 75 % and
+in the upright console.
+
 Subpanels and menus accept Tab, Enter, Space, the arrow keys and Escape. The
 task strip scrolls when many windows are open.
 
@@ -211,7 +222,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.2.1. The application style is a Kvantum theme, not a
+This is version 0.2.2. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. Less common icon
 names fall back to Breeze and then hicolor; the console's core icons and common

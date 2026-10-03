@@ -308,12 +308,18 @@ PlasmoidItem {
             if (Plasmoid.configuration.clockOpensApp) root.run(Launch.resolve(Plasmoid.configuration.calendarCommand || "@calendar"));
             else { calendar.visualParent = clock; calendar.visible = !calendar.visible; }
         }
-        contentItem: Column {
-            spacing: 0
-            readonly property color ink: clock.selected ? consoleColors.highlightText : consoleColors.windowText
-            Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "ddd").toUpperCase(); color: parent.ink; opacity: 0.8; font.pixelSize: root.u(10); font.family: consoleColors.font }
-            Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "HH:mm"); color: parent.ink; font.pixelSize: root.u(24); font.family: "IBM Plex Mono" }
-            Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatDateTime(root.now, "dd MMM").toUpperCase(); color: parent.ink; font.pixelSize: root.u(10); font.family: consoleColors.font }
+        contentItem: ClockFace {
+            style: Plasmoid.configuration.clockStyle
+            dial: Plasmoid.configuration.clockDial
+            seconds: Plasmoid.configuration.clockSeconds
+            now: root.now
+            ink: clock.selected ? consoleColors.highlightText : consoleColors.windowText
+            // Lit segments and the second hand: the selection (copper) colour,
+            // swapped while the tile itself is highlighted.
+            accent: clock.selected ? consoleColors.highlightText : consoleColors.highlight
+            dialColor: consoleColors.field
+            tile: clock.selected ? consoleColors.highlight : consoleColors.window
+            font: consoleColors.font
         }
     }
 
