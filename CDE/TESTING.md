@@ -195,6 +195,17 @@ another one was used):
   repeated cleanly: the VM was in use at the time (Delphinium was chosen in
   between; the state was consistent afterwards).
 
+Decoration preview in System Settings (reported: it showed a broken title
+bar):
+
+- The preview uses KDE's default buttons, which include a context-help button;
+  the preview window offers no help, so the button was hidden but kept its
+  room, leaving a gap in the title bar. Hidden buttons now take no room.
+- Under the client the frame colour was drawn; the preview (and a window
+  being resized) showed copper there. Now the window colour of the scheme.
+- Checked in a new `kcmshell6 kcm_kwindecoration` window; a System Settings
+  window open before keeps the old preview until the page is opened again.
+
 Against the specification's test matrix (`IMPLEMENTATION-GUIDE.md`), as of
 0.3:
 

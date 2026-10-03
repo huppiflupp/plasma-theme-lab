@@ -12,7 +12,9 @@ DecorationButton {
     readonly property var shade: root.shade
     readonly property bool maximized: decoration.client.maximized
     readonly property bool down: pressed || (toggled && buttonType !== DecorationOptions.DecorationButtonMaximizeRestore)
-    width: size
+    // A hidden button (help without context help, application menu without
+    // a menu) takes no room; otherwise it left a gap in the title bar.
+    width: visible ? size : 0
     height: size
 
     Bevel {

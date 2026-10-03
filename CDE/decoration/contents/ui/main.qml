@@ -70,6 +70,8 @@ Decoration {
     }
     onTitleHeightChanged: readBorderSize()
 
+    SystemPalette { id: system; colorGroup: SystemPalette.Active }
+
     // ---- frame -----------------------------------------------------------
     Bevel {
         id: frame
@@ -107,6 +109,17 @@ Decoration {
                 x: modelData.x; y: modelData.y; width: modelData.w; height: modelData.h
                 color: modelData.a ? root.borderShade.bottom : root.borderShade.top
             }
+        }
+
+        // Behind the client: the window colour, not the frame's. Real windows
+        // cover it; the preview in System Settings and a window being resized
+        // showed the copper frame colour there.
+        Rectangle {
+            x: root.borders.left
+            y: root.borders.top
+            width: frame.width - root.borders.left - root.borders.right
+            height: frame.height - root.borders.top - root.borders.bottom
+            color: system.window
         }
 
         // Title bar and client sit together in a one-pixel sunken well, as
