@@ -118,7 +118,18 @@ KCM.SimpleKCM {
         prober.connectSource(shell);
     }
 
-    Kicker.AppsModel { id: installed; flat: true; sorted: true; autoPopulate: true }
+    // Plasma 6.7's flat AppsModel at the menu root stays empty; the root
+    // model's "All Applications" row (the first, as nothing else is shown)
+    // lists every installed application.
+    Kicker.RootModel {
+        id: menuRoot
+        flat: true; sorted: true; autoPopulate: true
+        appNameFormat: 0
+        showAllApps: true; showAllAppsCategorized: false
+        showRecentApps: false; showRecentDocs: false; showPowerSession: false
+        showSeparators: false; showFavoritesPlaceholder: false
+    }
+    readonly property var installed: menuRoot.count > 0 ? menuRoot.modelForRow(0) : null
 
     Dialog {
         id: picker
@@ -135,7 +146,7 @@ KCM.SimpleKCM {
             ListView {
                 id: apps
                 Layout.fillWidth: true; Layout.fillHeight: true
-                clip: true; model: installed
+                clip: true; model: page.installed
                 ScrollBar.vertical: ScrollBar {}
                 delegate: ItemDelegate {
                     required property var model
@@ -148,7 +159,9 @@ KCM.SimpleKCM {
                     onClicked: {
                         const id = String(model.favoriteId || "").replace(/^applications:/, "").replace(/\.desktop$/, "");
                         if (id) {
-                            page.edit(page.pickSide, page.pickIndex, {command: "app:" + id, label: (model.display || id).split(" ")[0], menu: "recent"});
+                            // A mail tile keeps its mail subpanel with the chosen client.
+                            const slot = (page.pickSide === "left" ? page.leftSlots : page.rightSlots)[page.pickIndex] || {};
+                            page.edit(page.pickSide, page.pickIndex, {command: "app:" + id, label: (model.display || id).split(" ")[0], menu: slot.menu === "mail" ? "mail" : "recent"});
                             page.lookupIcon(id);
                         }
                         picker.close();

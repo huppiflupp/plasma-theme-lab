@@ -51,7 +51,8 @@ languages can be added as `po/<language>.po`.
 - CDE's 37 colour palettes, shaded with Motif's algorithm, and CDE's 25 desktop
   backdrops, coloured with the chosen palette.
 - A window arrangement around the console: terminals left and right, the main
-  window in the middle above the console (Meta+Ctrl+C).
+  window in the middle above the console (Meta+Ctrl+C), and sets of three,
+  four or seven terminals opened in their places from the Terminal subpanel.
 - Mouse cursors after the X11 cursor font of CDE and Motif (arrow, I-beam,
   wristwatch, hand, crosshair, resize arrows...), 28 drawings under 99 names,
   pixel-exact at 24, 32, 48 and 64 px: slim black shapes on a coloured rim
@@ -277,6 +278,23 @@ program "Arrange windows around the console": terminals take the space left
 and right of the console down to the bottom of the screen, the active window
 (or a web browser) stands in the middle above the console. Other windows stay
 where they are.
+
+### Terminal sets
+
+The arrow above the Terminal tile opens a new terminal or a whole set of
+Konsole windows, each put in its place as it appears:
+
+- **Three Terminals Around the Console**: left and right of the console down
+  to the bottom edge, and the middle above the console, on the console's
+  screen.
+- **Four Terminals on the Other Screen**: one window across the top half,
+  split into two terminals side by side, and two quarters below it. With one
+  screen, on that screen above the console.
+- **Seven Terminals on Both Screens**: both sets at once (two screens only).
+
+The console starts the windows and the arrangement script places the next
+terminal windows to appear, in the order they were started; it waits 20
+seconds for them. The sets need Konsole (the split is a Konsole layout).
 
 ### File manager
 

@@ -9,7 +9,7 @@
 const LEFT = [
     {label: "Apps", icon: "cde-menu", command: "@applications", menu: "applications"},
     {label: "Files", icon: "folder", command: "@pcmanfm", menu: "places"},
-    {label: "Terminal", icon: "utilities-terminal", command: "@terminal", menu: ""},
+    {label: "Terminal", icon: "utilities-terminal", command: "@terminal", menu: "terminals"},
     {label: "Editor", icon: "accessories-text-editor", command: "@editor", menu: "recent"}
 ];
 const RIGHT = [
@@ -46,6 +46,7 @@ const MENUS = [
     {text: "System", value: "system"},
     {text: "Help", value: "help"},
     {text: "Mail", value: "mail"},
+    {text: "Terminals", value: "terminals"},
     {text: "Bookmarks", value: "bookmarks"},
     {text: "Recent files", value: "recent"}
 ];
@@ -55,6 +56,7 @@ function menuFor(command) {
     const token = command.trim().split(/\s+/)[0] || "";
     if (token === "@browser") return "bookmarks";
     if (token === "@mail") return "mail";
+    if (token === "@terminal") return "terminals";
     if (token === "@editor" || token.indexOf("app:") === 0) return "recent";
     if (token === "@files" || token === "@pcmanfm" || token === "@xfile" || token === "@trash") return "places";
     if (token === "@settings") return "system";
@@ -180,6 +182,8 @@ function resolve(command, extra, translate) {
     const args = words.join(" ");
     if (TOKENS[token])
         return chain(token, args, false, translate);
+    if (token === "@terminals")
+        return terminalSet(rest, translate);
     if (token === "@arrange")
         return DBUS + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'CDE Copper: Arrange Around Console'";
     if (token.indexOf("app:") === 0) {
@@ -192,10 +196,33 @@ function resolve(command, extra, translate) {
     return "if command -v " + quote(token) + " >/dev/null 2>&1; then " + full + "; else " + missing(token, translate) + "; fi";
 }
 
+// Terminal sets ("@terminals three|four|seven"): the window arrangement
+// script is told which set comes, then the Konsole windows start in the
+// order of its places. "split" is one window holding two terminals side by
+// side, from a Konsole layout file.
+const TERMINAL_SETS = {
+    three: {shortcut: "CDE Copper: Three Terminals", windows: ["plain", "plain", "plain"]},
+    four: {shortcut: "CDE Copper: Four Terminals", windows: ["split", "plain", "plain"]},
+    seven: {shortcut: "CDE Copper: Seven Terminals", windows: ["plain", "plain", "plain", "split", "plain", "plain"]}
+};
+const SPLIT_LAYOUT = '{"Orientation": "Horizontal", "Widgets": [{"SessionRestoreId": 0}, {"SessionRestoreId": 0}]}';
+
+function terminalSet(kind, translate) {
+    const set = TERMINAL_SETS[kind] || TERMINAL_SETS.three;
+    const konsole = "konsole --profile 'CDE Copper'";
+    const starts = set.windows.map(w => (w === "split" ? konsole + " --layout \"$layout\"" : konsole) + " & sleep 0.3").join("; ");
+    return "if command -v konsole >/dev/null 2>&1; then "
+        + "layout=\"${XDG_RUNTIME_DIR:-/tmp}/cde-copper-split.json\"; printf '%s' " + quote(SPLIT_LAYOUT) + " > \"$layout\"; "
+        + DBUS + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut " + quote(set.shortcut) + "; "
+        + starts + "; "
+        + "else " + missing("Konsole", translate) + "; fi";
+}
+
 // For the settings page: prints ok when something can run the command.
 function check(command) {
     const token = command.trim().split(/\s+/)[0] || "";
     if (token === "") return "echo missing";
+    if (token === "@terminals") return "command -v konsole >/dev/null 2>&1 && echo ok || echo missing";
     if (token === "@applications" || token === "@arrange" || token.indexOf("$(") === 0) return "echo ok";
     if (TOKENS[token]) return chain(token, "", true);
     if (token.indexOf("app:") === 0) {
@@ -252,6 +279,7 @@ const TRANSLATABLE_STRINGS = [
     I18N_NOOP("Applications"),
     I18N_NOOP("Places"),
     I18N_NOOP("Bookmarks"),
+    I18N_NOOP("Terminals"),
     I18N_NOOP("Recent files"),
     I18N_NOOP("A web browser"),
     I18N_NOOP("A mail client"),

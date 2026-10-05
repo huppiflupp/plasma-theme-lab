@@ -82,6 +82,15 @@ from the installed 0.1.0:
 - Window arrangement (Meta+Ctrl+C, invoked through KGlobalAccel): two
   terminals left and right of the console down to the screen bottom, Dolphin
   in the middle above the console.
+- Terminal sets (2026-10-05, VM with two outputs 1920×1080 and 1280×800):
+  three, four and seven terminals from the Terminal subpanel each landed in
+  their places at the first try (three columns around the console; top half
+  split into two terminals, two quarters below on the second screen).
+  Floating console: Plasma lowers it when a window touches it, leaving the
+  float gap under the middle terminal.
+- Console settings › Launchers › "Installed application…": the list was empty
+  under Plasma 6.7 (Kicker.AppsModel); now from Kicker.RootModel, Thunderbird
+  picked for the Mail tile keeps the Mail subpanel and starts.
 - File managers tried in the theme for the recommendation: PCManFM-Qt and Xfe
   (installed for the test, removed afterwards).
 - Each `pkill dolphin` in the test scripts left kioworker core dumps (signal 11)

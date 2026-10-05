@@ -112,6 +112,7 @@ PlasmoidItem {
         case "system": openSection(i18nd("cde-copper", "System"), systemEntries(), anchor); break;
         case "help": openSection(i18nd("cde-copper", "Help"), helpEntries(), anchor); break;
         case "mail": openSection(i18nd("cde-copper", "Mail"), mailEntries(slot), anchor); break;
+        case "terminals": openSection(i18nd("cde-copper", "Terminals"), terminalEntries(slot), anchor); break;
         case "bookmarks": openListing("bookmarks", i18nd("cde-copper", "Bookmarks"), slot, anchor); break;
         case "recent": openListing("recent", i18nd("cde-copper", "Recent Files"), slot, anchor); break;
         }
@@ -186,6 +187,19 @@ PlasmoidItem {
                 entry(i18nd("cde-copper", "Open Mail"), "internet-mail", mail),
                 entry(i18nd("cde-copper", "Appointments"), "view-calendar", "@calendar"),
                 entry(i18nd("cde-copper", "Address Book"), "x-office-address-book", "@contacts")];
+    }
+    // A new terminal, or a set of them in their places (see arrange/):
+    // three around the console, four on the other screen, or both.
+    function terminalEntries(slot) {
+        const list = [entry(i18nd("cde-copper", "New Terminal"), "utilities-terminal", slot.command || "@terminal"),
+                      entry(i18nd("cde-copper", "Three Terminals Around the Console"), "view-split-left-right", "@terminals three")];
+        if (Qt.application.screens.length > 1) {
+            list.push(entry(i18nd("cde-copper", "Four Terminals on the Other Screen"), "view-grid", "@terminals four"));
+            list.push(entry(i18nd("cde-copper", "Seven Terminals on Both Screens"), "view-grid", "@terminals seven"));
+        } else {
+            list.push(entry(i18nd("cde-copper", "Four Terminals"), "view-grid", "@terminals four"));
+        }
+        return list;
     }
     function helpEntries() {
         return [entry(i18nd("cde-copper", "Help Center"), "help-browser", "@help"),
