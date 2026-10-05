@@ -23,6 +23,7 @@ KCM.SimpleKCM {
     property var cfg_panelFrameDefault
     property var cfg_hardContrastDefault
     property var cfg_floatingDefault
+    property var cfg_everyScreenDefault
     property var cfg_styleRequestDefault
     property var cfg_leftLaunchersDefault
     property var cfg_rightLaunchersDefault
@@ -47,6 +48,7 @@ KCM.SimpleKCM {
     property alias cfg_panelFrame: panelFrame.checked
     property alias cfg_hardContrast: hardContrast.checked
     property alias cfg_floating: floating.checked
+    property alias cfg_everyScreen: everyScreen.checked
     Kirigami.FormLayout {
         ComboBox {
             id: visibility
@@ -62,6 +64,11 @@ KCM.SimpleKCM {
         CheckBox {
             id: floating
             text: i18nd("cde-copper", "Floating, a gap from the screen edge (off: on the edge)")
+        }
+        CheckBox {
+            id: everyScreen
+            Kirigami.FormData.label: i18nd("cde-copper", "Screens:")
+            text: i18nd("cde-copper", "A console on every screen (off: one console for all)")
         }
         CheckBox {
             id: thisScreen

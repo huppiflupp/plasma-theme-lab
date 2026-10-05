@@ -574,7 +574,129 @@ def set_lockscreen(manifest, kind, running=True):
         manifest["shell_previous"] = current
     write_config("plasmashellrc", "Shell", {"ShellPackage": wanted})
     if running:
+        start_shell()
+
+
+# The shell follows the global theme. A global theme applied with its
+# layout looks for <shell>-layout.js; other themes (Breeze, NT Legacy, ...)
+# only ship one for Plasma's shell, so under CDE's shell they got Plasma's
+# default panel instead of their own. A systemd path unit watches kdeglobals
+# and runs "follow-theme": away from CDE's global themes back to the shell
+# before, with the theme's layout loaded there if the layout was replaced;
+# back to CDE (with CDE's lock screen chosen) into CDE's shell.
+OUR_THEMES = ("org.cde.copper.desktop", "org.cde.copper.night")
+WATCH = "cde-copper-theme"
+
+
+def move_shell(current, wanted):
+    """plasmashell under another shell package, its configuration moved."""
+    run("systemctl", "--user", "stop", "plasma-plasmashell.service")
+    source = CONFIG / f"plasma-{current}-appletsrc"
+    if source.exists():
+        shutil.copy2(source, CONFIG / f"plasma-{wanted}-appletsrc")
+    write_config("plasmashellrc", "Shell", {"ShellPackage": wanted})
+    start_shell()
+
+
+def start_shell():
+    """Start plasmashell; quick theme switches could hit systemd's start
+    limit (start-limit-hit), which left the desktop without a shell."""
+    run("systemctl", "--user", "reset-failed", "plasma-plasmashell.service", check=False)
+    if run("systemctl", "--user", "start", "plasma-plasmashell.service", check=False).returncode:
+        time.sleep(2)
+        run("systemctl", "--user", "reset-failed", "plasma-plasmashell.service", check=False)
         run("systemctl", "--user", "start", "plasma-plasmashell.service")
+
+
+def wait_for_shell(seconds=30):
+    exe = shutil.which("qdbus6") or shutil.which("qdbus-qt6") or shutil.which("qdbus")
+    for _ in range(seconds * 2):
+        result = subprocess.run([exe, "org.kde.plasmashell", "/PlasmaShell"], capture_output=True, text=True,
+                                env=dict(os.environ, QT_QPA_PLATFORM="offscreen"))
+        if "loadLookAndFeelDefaultLayout" in result.stdout:
+            break
+        time.sleep(0.5)
+    else:
+        return False
+    # A layout script needs every screen's desktop: run too early, its
+    # panels for further screens found no screen (screen -1) and were gone.
+    probe = "var s = {}; for (var d of desktops()) if (d.screen >= 0) s[d.screen] = 1; print(Object.keys(s).length + ' ' + screenCount)"
+    for _ in range(seconds * 2):
+        result = subprocess.run([exe, "org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell.evaluateScript", probe],
+                                capture_output=True, text=True, env=dict(os.environ, QT_QPA_PLATFORM="offscreen"))
+        found = result.stdout.split()
+        if len(found) == 2 and found[0] == found[1] and found[1] != "0":
+            time.sleep(1)
+            return True
+        time.sleep(0.5)
+    return True
+
+
+def follow_theme():
+    if not MANIFEST.exists() or not session_ready():
+        return
+    manifest = json.loads(MANIFEST.read_text())
+    if not manifest.get("applied"):
+        return
+    # System Settings writes the theme first and then has the layout applied.
+    time.sleep(3)
+    theme = read_config("kdeglobals", "KDE", "LookAndFeelPackage") or ""
+    shell = current_shell()
+    if theme not in OUR_THEMES and shell == SHELL:
+        panels = CONFIG / f"plasma-{SHELL}-appletsrc"
+        console_kept = panels.exists() and "org.cde.copper.frontpanel" in panels.read_text(errors="replace")
+        previous = manifest.get("shell_previous", DEFAULT_SHELL)
+        move_shell(SHELL, previous if previous != SHELL else DEFAULT_SHELL)
+        # The layout was replaced (the console is gone): the theme's own,
+        # loaded under the shell it was written for.
+        if not console_kept and theme and wait_for_shell():
+            dbus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell.loadLookAndFeelDefaultLayout", theme)
+    elif theme in OUR_THEMES and shell != SHELL and manifest.get("lockscreen", "cde") == "cde":
+        manifest["shell_previous"] = shell
+        save_manifest(manifest)
+        move_shell(shell, SHELL)
+    rescue_lost_panels()
+
+
+def lost_panels():
+    exe = shutil.which("qdbus6") or shutil.which("qdbus-qt6") or shutil.which("qdbus")
+    result = subprocess.run([exe, "org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell.evaluateScript",
+                             "print(panels().filter(function (p) { return p.screen < 0; }).length)"],
+                            capture_output=True, text=True, env=dict(os.environ, QT_QPA_PLATFORM="offscreen"))
+    return result.stdout.strip() not in ("", "0")
+
+
+def rescue_lost_panels():
+    """A layout loaded while plasmashell runs, on two screens, could leave a
+    panel on no screen (screen -1) and the desktops black until plasmashell
+    started again (seen with NT Legacy's layout script, which sets each
+    panel's screen). Checked twice; then plasmashell is restarted once."""
+    if not wait_for_shell(15) or not lost_panels():
+        return
+    time.sleep(3)
+    if lost_panels():
+        run("systemctl", "--user", "stop", "plasma-plasmashell.service", check=False)
+        start_shell()
+
+
+def watch_units(enable):
+    """The path unit that runs follow-theme, and its service."""
+    folder = CONFIG / "systemd/user"
+    path, service = folder / f"{WATCH}.path", folder / f"{WATCH}.service"
+    if not enable:
+        run("systemctl", "--user", "disable", "--now", f"{WATCH}.path", check=False)
+        remove(path)
+        remove(service)
+        run("systemctl", "--user", "daemon-reload", check=False)
+        return
+    folder.mkdir(parents=True, exist_ok=True)
+    path.write_text("[Unit]\nDescription=CDE Copper: the shell follows the global theme\n\n"
+                    "[Path]\nPathChanged=%h/.config/kdeglobals\nPathChanged=%h/.config/kdedefaults/kdeglobals\n\n"
+                    "[Install]\nWantedBy=default.target\n")
+    service.write_text("[Unit]\nDescription=CDE Copper: the shell follows the global theme\n\n"
+                       "[Service]\nType=oneshot\nExecStart=/usr/bin/python3 %h/.local/share/cde-copper/tool/manage.py follow-theme\n")
+    run("systemctl", "--user", "daemon-reload", check=False)
+    run("systemctl", "--user", "enable", "--now", f"{WATCH}.path", check=False)
 
 
 GTK_THEME = "CDECopper"
@@ -748,6 +870,7 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
     dbus("org.kde.KWin", "/KWin", "reconfigure")
     dbus("org.kde.KWin", "/Scripting", "org.kde.kwin.Scripting.start")
     set_lockscreen(manifest, manifest.get("lockscreen", "cde"))
+    watch_units(True)
     # GTK programs: Motif controls too (Plasma's gtkconfig sets GTK 3/4).
     previous = gtk_theme()
     if previous and previous != GTK_THEME:
@@ -793,6 +916,8 @@ def uninstall():
     config_files = manifest.get("config_files", [f for f in CONFIG_FILES if f != "auroraerc"])
     if any(file not in CONFIG_FILES for file in config_files):
         raise RuntimeError("Unexpected config backup in ownership manifest")
+    # The watcher first, or restoring kdeglobals would set it off.
+    watch_units(False)
     if manifest["applied"]:
         run("systemctl", "--user", "stop", "plasma-plasmashell.service")
         # Keep the current files before switching shells copies panel config
@@ -832,7 +957,7 @@ def uninstall():
     remove_xfile_integration()
     if manifest["applied"]:
         dbus("org.kde.KWin", "/KWin", "reconfigure")
-        run("systemctl", "--user", "start", "plasma-plasmashell.service")
+        start_shell()
     # The decoration's own group in auroraerc (its options), written by the
     # theme; the rest of that file belongs to other decorations.
     # New installs restored this file whole, including any pre-existing CDE
@@ -852,7 +977,7 @@ def uninstall():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=("install", "apply", "uninstall", "palettes", "palette"))
+    parser.add_argument("action", choices=("install", "apply", "uninstall", "palettes", "palette", "follow-theme"))
     parser.add_argument("--palette", help="CDE palette to apply (see the 'palettes' action); Copper is the default")
     parser.add_argument("--backdrop", help="CDE backdrop to tile on the desktop (see 'palettes'), or 'none'")
     parser.add_argument("--follow-scheme", action="store_true", help="palette: take the palette from the colour scheme in System Settings")
@@ -891,6 +1016,8 @@ def main():
             apply(args.panel, args.palette, args.backdrop, args.backdrop_scale)
     elif args.action == "apply":
         apply(args.panel, args.palette, args.backdrop, args.backdrop_scale)
+    elif args.action == "follow-theme":
+        follow_theme()
     elif args.action == "palette":
         palette_action(args.palette, args.backdrop, args.backdrop_scale, args.follow_scheme, args.notify, args.progress, args.cursor, args.lockscreen,
                        None if args.window_shadow is None else args.window_shadow == "on")

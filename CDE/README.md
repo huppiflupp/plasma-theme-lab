@@ -80,6 +80,11 @@ languages can be added as `po/<language>.po`.
   short wait after a failure, fingerprint readers left alone). Global
   themes other than CDE's, applied with their layout while this shell
   runs, get Plasma's default panel from the shell's own default layout.
+  A small systemd path unit (cde-copper-theme.path, set up by apply and
+  removed by uninstall) lets the shell follow the global theme: switching
+  to another global theme goes back to Plasma's shell and, if the layout
+  was replaced, loads that theme's own layout there (NT Legacy's taskbar,
+  Breeze's panel); switching back to CDE returns to CDE's shell.
 - A GTK 3 and GTK 4 theme (CDECopper) from the same palette, so GTK
   programs such as Firefox or PCManFM get the Motif controls too; it is
   rebuilt with every palette. Libadwaita programs ignore GTK themes and only
@@ -212,7 +217,8 @@ Right-click the console and choose its settings.
 - **Front Console**: bottom, top, left or right screen edge (upright at the
   sides, running the full screen height, subpanels opening towards the middle);
   Always Visible, Auto-hide / Edge Reveal, or Dodge Windows; window list per
-  screen; floating with a gap or sitting on the screen edge; whether the
+  screen; floating with a gap or sitting on the screen edge; one console
+  for all screens (default) or one on every screen; whether the
   tray's volume icon is left to the console; hard
   contrast (pure black text, white on dark surfaces, labels in semibold);
   label; size

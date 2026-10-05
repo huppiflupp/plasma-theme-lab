@@ -193,6 +193,26 @@ PlasmoidItem {
                 entry(i18nd("cde-copper", "System Information"), "computer", "kinfocenter"),
                 entry(i18nd("cde-copper", "About CDE Copper"), "cde-menu", "xdg-open https://github.com/huppiflupp/plasma-theme-lab/tree/main/CDE")];
     }
+    // One console, or one on every screen: consoles are added to screens
+    // without one (as the panel this one sits in) or removed from all
+    // screens but the first that has one. The choice goes to cdecopperrc,
+    // where the global theme's layout script reads it.
+    function placeConsoles() {
+        const every = Plasmoid.configuration.everyScreen;
+        run("kwriteconfig6 --file cdecopperrc --group Console --key AllScreens " + (every ? "true" : "false"));
+        const script = "var every = " + (every ? "true" : "false") + "; var have = {}; var proto = null; var keep = -1;"
+            + " for (var p of panels()) for (var w of p.widgets()) if (w.type === 'org.cde.copper.frontpanel') {"
+            + " have[p.screen] = true; if (!proto || p.screen < proto.screen) proto = p; if (keep < 0 || p.screen < keep) keep = p.screen; }"
+            + " if (proto && every) { for (var s = 0; s < screenCount; ++s) if (!have[s]) {"
+            + " var n = new Panel; n.screen = s; n.location = proto.location; n.height = proto.height;"
+            + " n.lengthMode = proto.lengthMode; n.floating = proto.floating; n.hiding = proto.hiding; n.alignment = 'center';"
+            + " var c = n.addWidget('org.cde.copper.frontpanel'); c.currentConfigGroup = ['General']; c.writeConfig('everyScreen', true);"
+            + " if (n.screen !== s) n.remove(); } }"
+            + " if (proto && !every) { for (var q of panels()) { var mine = false;"
+            + " for (var x of q.widgets()) if (x.type === 'org.cde.copper.frontpanel') mine = true;"
+            + " if (mine && q.screen !== keep) q.remove(); } }";
+        runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(script));
+    }
     function configurePanel() {
         const modes = ["none", "autohide", "dodgewindows"];
         const mode = modes[Math.max(0, Math.min(2, Plasmoid.configuration.visibilityMode))];
@@ -312,6 +332,7 @@ PlasmoidItem {
         function onEdgeChanged() { root.configurePanel(); }
         function onConsoleScaleChanged() { root.configurePanel(); }
         function onFloatingChanged() { root.configurePanel(); }
+        function onEveryScreenChanged() { root.placeConsoles(); }
         function onHideTrayVolumeChanged() { root.syncTray(); }
         function onHideTrayIconsChanged() { root.syncTray(); root.placeTray(); }
         function onPanelFrameChanged() { root.placePanelFrame(); }

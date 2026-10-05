@@ -363,6 +363,31 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   now only called with DISPLAY set; plasmashell hung on logout in Klipper's
   clipboard history (KIO worker thread join), Plasma's own code, and was
   killed by systemd after the stop timeout.
+- Switching with NT Legacy, two screens (0.8.4): the VM got a second
+  graphics card (Virtual-1 1920x1080, Virtual-2 1280x800). Global themes
+  applied with plasma-apply-lookandfeel, with and without --resetLayout,
+  as System Settings does; after each step the shell, the panels and their
+  widgets per screen, plasmashell's state, coredumps and warnings.
+  - Under CDE's shell NT Legacy's layout (org.kde.plasma.desktop only) gave
+    Plasma's default panel: the shell now follows the global theme
+    (cde-copper-theme.path, manage.py follow-theme). 17 steps through all
+    NT variants, CDE day/night and Breeze, with and without layout: shell
+    right in every step, each theme its own panel, no coredumps.
+  - Quick switches hit systemd's start limit for plasmashell
+    (start-limit-hit, desktop without a shell): reset-failed before every
+    start, one retry.
+  - NT Legacy's layout on two screens left, in about every second switch,
+    its panel on no screen (screen -1) and both screens black until
+    plasmashell restarted - without CDE involved too (Breeze -> NT). Cause:
+    applied in a running Plasma, the second screen has no desktop yet; the
+    panel created for it was removed again and took the first along. One
+    panel only: 8 of 8 clean. Fix in nt-legacy/build.py (and CDE's
+    layout.js): further screens only where desktopForScreen(s) exists.
+    The watcher also restarts plasmashell once if a panel stays on no
+    screen, whatever the theme.
+  - One console for all screens (default) or one per screen (console
+    settings, cdecopperrc): switched on and off at runtime, a console was
+    added to and removed from the second screen.
 - Console on the screen edge (0.8.4): option "floating" (default on). Off,
   the console set p.floating = false, yet 4 px of panel stayed between it
   and the edge. Codex traced it in plasma-desktop's panel containment:
