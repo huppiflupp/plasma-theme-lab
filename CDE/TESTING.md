@@ -363,6 +363,16 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   now only called with DISPLAY set; plasmashell hung on logout in Klipper's
   clipboard history (KIO worker thread join), Plasma's own code, and was
   killed by systemd after the stop timeout.
+- Console on the screen edge (0.8.4): option "floating" (default on). Off,
+  the console set p.floating = false, yet 4 px of panel stayed between it
+  and the edge. Codex traced it in plasma-desktop's panel containment:
+  every applet gets top and bottom layout margins from the panel
+  background's fixedMargins, on the screen-edge side too, unless it sets
+  Plasmoid.CanFillArea. With that (only when not floating) and the panel
+  as thick as the console (116 px) it reaches the edge: measured, the
+  console's outline is the last screen row; floating on keeps 12 px.
+  Default button of the logout dialog and lock screen: a 1 px ring with a
+  pixel of air instead of the 3 px dark Motif frame.
 - Leave Session (0.8.3): the System subpanel's D-Bus entries did nothing:
   the D-Bus caller had become a shell expression ($(command -v qdbus6 ...))
   and the entries' check took "$(command" for a program and gave up.

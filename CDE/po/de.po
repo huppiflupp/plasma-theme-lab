@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cde-copper 0.8.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-04 00:59+0200\n"
+"POT-Creation-Date: 2026-10-04 01:08+0200\n"
 "PO-Revision-Date: 2026-10-03 12:00+0200\n"
 "Last-Translator: CDE Copper contributors\n"
 "Language-Team: German\n"
@@ -46,55 +46,55 @@ msgstr "Heute"
 msgid "Open Calendar"
 msgstr "Kalender öffnen"
 
-#: frontpanel/contents/ui/configCalendar.qml:47
+#: frontpanel/contents/ui/configCalendar.qml:48
 msgid "Digital"
 msgstr "Digital"
 
-#: frontpanel/contents/ui/configCalendar.qml:47
+#: frontpanel/contents/ui/configCalendar.qml:48
 msgid "Seven-segment"
 msgstr "Siebensegment"
 
-#: frontpanel/contents/ui/configCalendar.qml:48
+#: frontpanel/contents/ui/configCalendar.qml:49
 msgid "Analog"
 msgstr "Analog"
 
-#: frontpanel/contents/ui/configCalendar.qml:49
+#: frontpanel/contents/ui/configCalendar.qml:50
 msgid "CDE (round, as dtclock)"
 msgstr "CDE (rund, wie dtclock)"
 
-#: frontpanel/contents/ui/configCalendar.qml:49
+#: frontpanel/contents/ui/configCalendar.qml:50
 msgid "Motif (square well)"
 msgstr "Motif (quadratische Vertiefung)"
 
-#: frontpanel/contents/ui/configCalendar.qml:50
+#: frontpanel/contents/ui/configCalendar.qml:51
 msgid "Roman numerals"
 msgstr "Römische Ziffern"
 
-#: frontpanel/contents/ui/configCalendar.qml:50
+#: frontpanel/contents/ui/configCalendar.qml:51
 msgid "Plain (no dial)"
 msgstr "Schlicht (ohne Zifferblatt)"
 
-#: frontpanel/contents/ui/configCalendar.qml:59
+#: frontpanel/contents/ui/configCalendar.qml:60
 msgid "Clock display:"
 msgstr "Uhrenanzeige:"
 
-#: frontpanel/contents/ui/configCalendar.qml:66
+#: frontpanel/contents/ui/configCalendar.qml:67
 msgid "Dial:"
 msgstr "Zifferblatt:"
 
-#: frontpanel/contents/ui/configCalendar.qml:73
+#: frontpanel/contents/ui/configCalendar.qml:74
 msgid "Show seconds"
 msgstr "Sekunden anzeigen"
 
-#: frontpanel/contents/ui/configCalendar.qml:76
+#: frontpanel/contents/ui/configCalendar.qml:77
 msgid "Unlit segments faintly visible"
 msgstr "Unbeleuchtete Segmente schwach anzeigen"
 
-#: frontpanel/contents/ui/configCalendar.qml:81
+#: frontpanel/contents/ui/configCalendar.qml:82
 msgid "Black edge around lit segments"
 msgstr "Schwarzer Rand um beleuchtete Segmente"
 
-#: frontpanel/contents/ui/configCalendar.qml:85
+#: frontpanel/contents/ui/configCalendar.qml:86
 msgid ""
 "Colours follow the palette: dial in the text-field colour, hands in the text "
 "colour,\n"
@@ -104,23 +104,23 @@ msgstr ""
 "Textfarbe,\n"
 "Sekundenzeiger und beleuchtete Segmente in der Auswahlfarbe."
 
-#: frontpanel/contents/ui/configCalendar.qml:91
+#: frontpanel/contents/ui/configCalendar.qml:92
 msgid "Clicking the clock:"
 msgstr "Klick auf die Uhr:"
 
-#: frontpanel/contents/ui/configCalendar.qml:92
+#: frontpanel/contents/ui/configCalendar.qml:93
 msgid "Shows the month and the day's events"
 msgstr "Zeigt den Monat und die Termine des Tages"
 
-#: frontpanel/contents/ui/configCalendar.qml:95
+#: frontpanel/contents/ui/configCalendar.qml:96
 msgid "Opens the calendar application"
 msgstr "Öffnet die Kalenderanwendung"
 
-#: frontpanel/contents/ui/configCalendar.qml:98
+#: frontpanel/contents/ui/configCalendar.qml:99
 msgid "Calendar application:"
 msgstr "Kalenderanwendung:"
 
-#: frontpanel/contents/ui/configCalendar.qml:103
+#: frontpanel/contents/ui/configCalendar.qml:104
 msgid ""
 "@calendar starts Merkuro or KOrganizer, whichever is installed.\n"
 "Any command or app:<desktop id> works too."
@@ -128,136 +128,140 @@ msgstr ""
 "@calendar startet Merkuro oder KOrganizer, je nachdem, was installiert ist.\n"
 "Ein beliebiger Befehl oder app:<desktop id> funktioniert ebenfalls."
 
-#: frontpanel/contents/ui/configCalendar.qml:107
+#: frontpanel/contents/ui/configCalendar.qml:108
 msgid "Events from"
 msgstr "Termine aus"
 
-#: frontpanel/contents/ui/configCalendar.qml:127
+#: frontpanel/contents/ui/configCalendar.qml:128
 msgid "Appointments come from KOrganizer/Akonadi (\"PIM Events\")."
 msgstr "Termine stammen aus KOrganizer/Akonadi („PIM-Termine“)."
 
-#: frontpanel/contents/ui/configGeneral.qml:51
+#: frontpanel/contents/ui/configGeneral.qml:53
 msgid "Visibility:"
 msgstr "Sichtbarkeit:"
 
-#: frontpanel/contents/ui/configGeneral.qml:52
+#: frontpanel/contents/ui/configGeneral.qml:54
 msgid "Always visible"
 msgstr "Immer sichtbar"
 
-#: frontpanel/contents/ui/configGeneral.qml:52
+#: frontpanel/contents/ui/configGeneral.qml:54
 msgid "Auto-hide / edge reveal"
 msgstr "Automatisch ausblenden / am Bildschirmrand einblenden"
 
-#: frontpanel/contents/ui/configGeneral.qml:52
+#: frontpanel/contents/ui/configGeneral.qml:54
 msgid "Dodge windows"
 msgstr "Fenstern ausweichen"
 
-#: frontpanel/contents/ui/configGeneral.qml:55
+#: frontpanel/contents/ui/configGeneral.qml:57
 msgid "Screen edge:"
 msgstr "Bildschirmrand:"
 
-#: frontpanel/contents/ui/configGeneral.qml:56
+#: frontpanel/contents/ui/configGeneral.qml:58
 msgid "Bottom"
 msgstr "Unten"
 
-#: frontpanel/contents/ui/configGeneral.qml:56
+#: frontpanel/contents/ui/configGeneral.qml:58
 msgid "Top"
 msgstr "Oben"
 
-#: frontpanel/contents/ui/configGeneral.qml:56
+#: frontpanel/contents/ui/configGeneral.qml:58
 msgid "Left"
 msgstr "Links"
 
-#: frontpanel/contents/ui/configGeneral.qml:56
+#: frontpanel/contents/ui/configGeneral.qml:58
 msgid "Right"
 msgstr "Rechts"
 
-#: frontpanel/contents/ui/configGeneral.qml:62
+#: frontpanel/contents/ui/configGeneral.qml:64
+msgid "Floating, a gap from the screen edge (off: on the edge)"
+msgstr "Schwebend, mit Abstand zum Bildschirmrand (aus: am Rand)"
+
+#: frontpanel/contents/ui/configGeneral.qml:68
 msgid "Window list:"
 msgstr "Fensterliste:"
 
-#: frontpanel/contents/ui/configGeneral.qml:63
+#: frontpanel/contents/ui/configGeneral.qml:69
 msgid "Only windows on this console's screen"
 msgstr "Nur Fenster auf dem Bildschirm dieser Konsole"
 
-#: frontpanel/contents/ui/configGeneral.qml:67
+#: frontpanel/contents/ui/configGeneral.qml:73
 #: backdrop/contents/ui/config.qml:68
 msgid "Workspaces:"
 msgstr "Arbeitsflächen:"
 
-#: frontpanel/contents/ui/configGeneral.qml:68
+#: frontpanel/contents/ui/configGeneral.qml:74
 msgid "Each button in a colour of its own, as in CDE"
 msgstr "Jeder Knopf in einer eigenen Farbe, wie in CDE"
 
-#: frontpanel/contents/ui/configGeneral.qml:72
+#: frontpanel/contents/ui/configGeneral.qml:78
 msgid "Group windows of one application (\"3× Konsole\")"
 msgstr "Fenster einer Anwendung gruppieren („3× Konsole“)"
 
-#: frontpanel/contents/ui/configGeneral.qml:76
+#: frontpanel/contents/ui/configGeneral.qml:82
 msgid "System tray:"
 msgstr "Systemabschnitt der Kontrollleiste:"
 
-#: frontpanel/contents/ui/configGeneral.qml:77
+#: frontpanel/contents/ui/configGeneral.qml:83
 msgid "Leave the volume to the console"
 msgstr "Lautstärkeregelung der Konsole überlassen"
 
-#: frontpanel/contents/ui/configGeneral.qml:81
+#: frontpanel/contents/ui/configGeneral.qml:87
 msgid "Status icons only behind the console's button"
 msgstr "Statussymbole nur über den Knopf der Konsole anzeigen"
 
-#: frontpanel/contents/ui/configGeneral.qml:85
+#: frontpanel/contents/ui/configGeneral.qml:91
 msgid "Panel:"
 msgstr "Kontrollleiste:"
 
-#: frontpanel/contents/ui/configGeneral.qml:86
+#: frontpanel/contents/ui/configGeneral.qml:92
 msgid "Frame behind the console"
 msgstr "Rahmen hinter der Konsole"
 
-#: frontpanel/contents/ui/configGeneral.qml:90
+#: frontpanel/contents/ui/configGeneral.qml:96
 msgid "Text:"
 msgstr "Schrift:"
 
-#: frontpanel/contents/ui/configGeneral.qml:91
+#: frontpanel/contents/ui/configGeneral.qml:97
 msgid ""
 "Hard contrast: black (white on dark surfaces) instead of the palette's "
 "colours"
 msgstr ""
 "Harter Kontrast: Schwarz (auf dunklen Flächen Weiß) statt der Palettenfarben"
 
-#: frontpanel/contents/ui/configGeneral.qml:93
+#: frontpanel/contents/ui/configGeneral.qml:99
 msgid "Console label:"
 msgstr "Beschriftung der Konsole:"
 
-#: frontpanel/contents/ui/configGeneral.qml:95
+#: frontpanel/contents/ui/configGeneral.qml:101
 msgid "Size:"
 msgstr "Größe:"
 
-#: frontpanel/contents/ui/configLaunchers.qml:123
+#: frontpanel/contents/ui/configLaunchers.qml:124
 msgid "Choose an application"
 msgstr "Anwendung auswählen"
 
-#: frontpanel/contents/ui/configLaunchers.qml:132
-#: frontpanel/contents/ui/main.qml:961
+#: frontpanel/contents/ui/configLaunchers.qml:133
+#: frontpanel/contents/ui/main.qml:962
 msgid "Search"
 msgstr "Suchen"
 
-#: frontpanel/contents/ui/configLaunchers.qml:177
+#: frontpanel/contents/ui/configLaunchers.qml:178
 msgid "Choose icon"
 msgstr "Symbol auswählen"
 
-#: frontpanel/contents/ui/configLaunchers.qml:183
+#: frontpanel/contents/ui/configLaunchers.qml:184
 msgid "Label"
 msgstr "Beschriftung"
 
-#: frontpanel/contents/ui/configLaunchers.qml:205
+#: frontpanel/contents/ui/configLaunchers.qml:206
 msgid "Command, e.g. firefox --private-window"
 msgstr "Befehl, z. B. firefox --private-window"
 
-#: frontpanel/contents/ui/configLaunchers.qml:215
+#: frontpanel/contents/ui/configLaunchers.qml:216
 msgid "Subpanel opened by the arrow above the tile"
 msgstr "Unterpanel, das der Pfeil über dem Starter öffnet"
 
-#: frontpanel/contents/ui/configLaunchers.qml:222
+#: frontpanel/contents/ui/configLaunchers.qml:223
 msgid ""
 "Not installed: this tile would only show a notification. Choose another "
 "program."
@@ -265,36 +269,36 @@ msgstr ""
 "Nicht installiert: Dieser Starter würde nur eine Benachrichtigung anzeigen. "
 "Wählen Sie ein anderes Programm."
 
-#: frontpanel/contents/ui/configLaunchers.qml:222
+#: frontpanel/contents/ui/configLaunchers.qml:223
 msgid "Installed"
 msgstr "Installiert"
 
-#: frontpanel/contents/ui/configLaunchers.qml:224
+#: frontpanel/contents/ui/configLaunchers.qml:225
 msgid "Move left"
 msgstr "Nach links verschieben"
 
-#: frontpanel/contents/ui/configLaunchers.qml:225
+#: frontpanel/contents/ui/configLaunchers.qml:226
 msgid "Move right"
 msgstr "Nach rechts verschieben"
 
-#: frontpanel/contents/ui/configLaunchers.qml:226
+#: frontpanel/contents/ui/configLaunchers.qml:227
 msgid "Remove"
 msgstr "Entfernen"
 
-#: frontpanel/contents/ui/configLaunchers.qml:231
+#: frontpanel/contents/ui/configLaunchers.qml:232
 msgid "Left of the workspace switch"
 msgstr "Links vom Arbeitsflächenumschalter"
 
-#: frontpanel/contents/ui/configLaunchers.qml:233
-#: frontpanel/contents/ui/configLaunchers.qml:237
+#: frontpanel/contents/ui/configLaunchers.qml:234
+#: frontpanel/contents/ui/configLaunchers.qml:238
 msgid "Add tile"
 msgstr "Starter hinzufügen"
 
-#: frontpanel/contents/ui/configLaunchers.qml:235
+#: frontpanel/contents/ui/configLaunchers.qml:236
 msgid "Right of the workspace switch"
 msgstr "Rechts vom Arbeitsflächenumschalter"
 
-#: frontpanel/contents/ui/configLaunchers.qml:243
+#: frontpanel/contents/ui/configLaunchers.qml:244
 msgid ""
 "\"Default …\" entries follow the applications chosen in System Settings › "
 "Default Applications. A custom command runs through the shell; app:<desktop "
@@ -304,43 +308,43 @@ msgstr ""
 "Standard-Anwendungen. Ein eigener Befehl wird über die Shell ausgeführt; app:"
 "<desktop id> startet eine installierte Anwendung."
 
-#: frontpanel/contents/ui/configLaunchers.qml:246
+#: frontpanel/contents/ui/configLaunchers.qml:247
 msgid "Restore default tiles"
 msgstr "Standardstarter wiederherstellen"
 
-#: frontpanel/contents/ui/configStyle.qml:59
+#: frontpanel/contents/ui/configStyle.qml:60
 msgid "Outlined: dark edge, one-pixel bevel"
 msgstr "Umrandet: dunkler Rand, Abschrägung von einem Pixel"
 
-#: frontpanel/contents/ui/configStyle.qml:60
+#: frontpanel/contents/ui/configStyle.qml:61
 msgid "Floating: a pixel inside the groove, two-pixel bevel"
 msgstr "Schwebend: ein Pixel Abstand zur Rille, Abschrägung von zwei Pixeln"
 
-#: frontpanel/contents/ui/configStyle.qml:61
+#: frontpanel/contents/ui/configStyle.qml:62
 msgid "Slim: 8 pixels high"
 msgstr "Schmal: 8 Pixel hoch"
 
-#: frontpanel/contents/ui/configStyle.qml:63
+#: frontpanel/contents/ui/configStyle.qml:64
 msgid "Copper rim"
 msgstr "Kupferfarbener Rand"
 
-#: frontpanel/contents/ui/configStyle.qml:64
+#: frontpanel/contents/ui/configStyle.qml:65
 msgid "Rim in the palette's accent colour"
 msgstr "Rand in der Akzentfarbe der Palette"
 
-#: frontpanel/contents/ui/configStyle.qml:65
+#: frontpanel/contents/ui/configStyle.qml:66
 msgid "White rim, as in X11"
 msgstr "Weißer Rand, wie in X11"
 
-#: frontpanel/contents/ui/configStyle.qml:66
+#: frontpanel/contents/ui/configStyle.qml:67
 msgid "Rim in a colour of my own"
 msgstr "Rand in einer eigenen Farbe"
 
-#: frontpanel/contents/ui/configStyle.qml:116
+#: frontpanel/contents/ui/configStyle.qml:117
 msgid "Palette"
 msgstr "Palette"
 
-#: frontpanel/contents/ui/configStyle.qml:119
+#: frontpanel/contents/ui/configStyle.qml:120
 msgid ""
 "CDE's 37 palettes and CDE Copper. The stripes: console, windows, text "
 "fields, active and inactive title, desktop. Choose one (and a backdrop "
@@ -351,15 +355,15 @@ msgstr ""
 "eine Palette (und unten einen Hintergrund), dann Anwenden oder OK. ● "
 "kennzeichnet die verwendete Palette."
 
-#: frontpanel/contents/ui/configStyle.qml:137
+#: frontpanel/contents/ui/configStyle.qml:138
 msgid "%1 (in use)"
 msgstr "%1 (wird verwendet)"
 
-#: frontpanel/contents/ui/configStyle.qml:164
+#: frontpanel/contents/ui/configStyle.qml:165
 msgid "Progress bars"
 msgstr "Fortschrittsbalken"
 
-#: frontpanel/contents/ui/configStyle.qml:177
+#: frontpanel/contents/ui/configStyle.qml:178
 msgid ""
 "In the programs' controls (Kvantum); the bar beside shows the style in use. "
 "Programs already open take it when restarted."
@@ -368,15 +372,15 @@ msgstr ""
 "verwendeten Stil. Bereits geöffnete Programme übernehmen ihn nach einem "
 "Neustart."
 
-#: frontpanel/contents/ui/configStyle.qml:181
+#: frontpanel/contents/ui/configStyle.qml:182
 msgid "Mouse cursors"
 msgstr "Mauszeiger"
 
-#: frontpanel/contents/ui/configStyle.qml:194
+#: frontpanel/contents/ui/configStyle.qml:195
 msgid "Cursor rim"
 msgstr "Mauszeigerrand"
 
-#: frontpanel/contents/ui/configStyle.qml:200
+#: frontpanel/contents/ui/configStyle.qml:201
 msgid ""
 "The cursors after the X11 cursor font: black shapes on a coloured rim, with "
 "a soft shadow."
@@ -384,27 +388,27 @@ msgstr ""
 "Mauszeiger nach der X11-Mauszeigerschrift: schwarze Formen mit farbigem Rand "
 "und weichem Schatten."
 
-#: frontpanel/contents/ui/configStyle.qml:204
+#: frontpanel/contents/ui/configStyle.qml:205
 msgid "Windows"
 msgstr "Fenster"
 
-#: frontpanel/contents/ui/configStyle.qml:208
+#: frontpanel/contents/ui/configStyle.qml:209
 msgid "Short hard shadow at the right and bottom of each window"
 msgstr "Kurzer harter Schatten rechts und unten an jedem Fenster"
 
-#: frontpanel/contents/ui/configStyle.qml:213
+#: frontpanel/contents/ui/configStyle.qml:214
 msgid "Lock screen"
 msgstr "Sperrbildschirm"
 
-#: frontpanel/contents/ui/configStyle.qml:217
+#: frontpanel/contents/ui/configStyle.qml:218
 msgid "CDE's: a Motif dialog on the backdrop"
 msgstr "CDE: Motif-Dialog auf dem Hintergrund"
 
-#: frontpanel/contents/ui/configStyle.qml:217
+#: frontpanel/contents/ui/configStyle.qml:218
 msgid "Plasma's own"
 msgstr "Plasma-Standard"
 
-#: frontpanel/contents/ui/configStyle.qml:222
+#: frontpanel/contents/ui/configStyle.qml:223
 msgid ""
 "Plasma takes the lock screen from its shell package; CDE's comes in a shell "
 "package of its own that takes everything else from Plasma's. Switching "
@@ -414,32 +418,32 @@ msgstr ""
 "eigenes Shell-Paket, das alles Weitere von Plasma übernimmt. Beim Wechsel "
 "wird die Plasma-Shell einmal neu gestartet."
 
-#: frontpanel/contents/ui/configStyle.qml:226
+#: frontpanel/contents/ui/configStyle.qml:227
 msgid "Backdrop"
 msgstr "Hintergrund"
 
-#: frontpanel/contents/ui/configStyle.qml:233
+#: frontpanel/contents/ui/configStyle.qml:234
 msgid "Keep the desktop as it is"
 msgstr "Arbeitsfläche unverändert lassen"
 
-#: frontpanel/contents/ui/configStyle.qml:234
+#: frontpanel/contents/ui/configStyle.qml:235
 msgid "Plain palette colour"
 msgstr "Einfarbig in der Palettenfarbe"
 
-#: frontpanel/contents/ui/configStyle.qml:237
+#: frontpanel/contents/ui/configStyle.qml:238
 msgid "Picture: %1 (for this palette)"
 msgstr "Bild: %1 (zu dieser Palette)"
 
-#: frontpanel/contents/ui/configStyle.qml:239
+#: frontpanel/contents/ui/configStyle.qml:240
 msgid "Picture: %1"
 msgstr "Bild: %1"
 
-#: frontpanel/contents/ui/configStyle.qml:245
+#: frontpanel/contents/ui/configStyle.qml:246
 #: backdrop/contents/ui/config.qml:61
 msgid "Pixel size:"
 msgstr "Pixelgröße:"
 
-#: frontpanel/contents/ui/configStyle.qml:289
+#: frontpanel/contents/ui/configStyle.qml:290
 msgid ""
 "Backdrops are CDE's patterns (The Open Group, CC BY-SA 3.0), coloured with "
 "the palette, or CDE Copper's pictures, each painted for one palette and "
@@ -457,7 +461,7 @@ msgid "Network"
 msgstr "Netzwerk"
 
 #: frontpanel/contents/ui/main.qml:56 frontpanel/contents/ui/main.qml:168
-#: frontpanel/contents/ui/main.qml:423
+#: frontpanel/contents/ui/main.qml:424
 msgid "Audio"
 msgstr "Audio"
 
@@ -534,7 +538,7 @@ msgstr "Fenster anordnen"
 msgid "Display"
 msgstr "Bildschirm"
 
-#: frontpanel/contents/ui/main.qml:171 frontpanel/contents/ui/main.qml:617
+#: frontpanel/contents/ui/main.qml:171 frontpanel/contents/ui/main.qml:618
 msgid "Lock Screen"
 msgstr "Bildschirm sperren"
 
@@ -582,83 +586,83 @@ msgstr "Systeminformationen"
 msgid "About CDE Copper"
 msgstr "Über CDE Copper"
 
-#: frontpanel/contents/ui/main.qml:418
+#: frontpanel/contents/ui/main.qml:419
 msgid "Connected"
 msgstr "Verbunden"
 
-#: frontpanel/contents/ui/main.qml:418
+#: frontpanel/contents/ui/main.qml:419
 msgid "Offline"
 msgstr "Offline"
 
-#: frontpanel/contents/ui/main.qml:423
+#: frontpanel/contents/ui/main.qml:424
 msgid "Muted"
 msgstr "Stummgeschaltet"
 
-#: frontpanel/contents/ui/main.qml:481
+#: frontpanel/contents/ui/main.qml:482
 msgid "Open %1"
 msgstr "%1 öffnen"
 
-#: frontpanel/contents/ui/main.qml:543
+#: frontpanel/contents/ui/main.qml:544
 msgid "WORKSPACES"
 msgstr "ARBEITSFLÄCHEN"
 
-#: frontpanel/contents/ui/main.qml:558
+#: frontpanel/contents/ui/main.qml:559
 msgid "Workspace %1 %2"
 msgstr "Arbeitsfläche %1 %2"
 
-#: frontpanel/contents/ui/main.qml:596
+#: frontpanel/contents/ui/main.qml:597
 msgid "Hidden Icons"
 msgstr "Ausgeblendete Symbole"
 
-#: frontpanel/contents/ui/main.qml:613
+#: frontpanel/contents/ui/main.qml:614
 msgid "Configure Front Console"
 msgstr "Frontkonsole einrichten"
 
-#: frontpanel/contents/ui/main.qml:621
+#: frontpanel/contents/ui/main.qml:622
 msgid "Show Desktop"
 msgstr "Arbeitsfläche anzeigen"
 
-#: frontpanel/contents/ui/main.qml:639
+#: frontpanel/contents/ui/main.qml:640
 msgid "Processor %1 %, memory %2 %"
 msgstr "Prozessor %1 %, Speicher %2 %"
 
-#: frontpanel/contents/ui/main.qml:722
+#: frontpanel/contents/ui/main.qml:723
 msgid "%1× %2"
 msgstr "%1× %2"
 
-#: frontpanel/contents/ui/main.qml:722
+#: frontpanel/contents/ui/main.qml:723
 msgid "Window"
 msgstr "Fenster"
 
-#: frontpanel/contents/ui/main.qml:759
+#: frontpanel/contents/ui/main.qml:760
 msgid "Volume %1, %2"
 msgstr "Lautstärke %1, %2"
 
-#: frontpanel/contents/ui/main.qml:869
+#: frontpanel/contents/ui/main.qml:870
 msgid "Audio  %1"
 msgstr "Audio  %1"
 
-#: frontpanel/contents/ui/main.qml:877
+#: frontpanel/contents/ui/main.qml:878
 msgid "Volume"
 msgstr "Lautstärke"
 
-#: frontpanel/contents/ui/main.qml:883
+#: frontpanel/contents/ui/main.qml:884
 msgid "Unmute"
 msgstr "Stummschaltung aufheben"
 
-#: frontpanel/contents/ui/main.qml:883
+#: frontpanel/contents/ui/main.qml:884
 msgid "Mute"
 msgstr "Stummschalten"
 
-#: frontpanel/contents/ui/main.qml:890
+#: frontpanel/contents/ui/main.qml:891
 msgid "Settings…"
 msgstr "Einstellungen…"
 
-#: frontpanel/contents/ui/main.qml:957
+#: frontpanel/contents/ui/main.qml:958
 msgid "Find Application"
 msgstr "Anwendung suchen"
 
-#: frontpanel/contents/ui/main.qml:983
+#: frontpanel/contents/ui/main.qml:984
 msgid "Application"
 msgstr "Anwendung"
 
@@ -849,111 +853,111 @@ msgstr "%1 wird gestartet …"
 msgid "Starting the desktop …"
 msgstr "Arbeitsfläche wird gestartet …"
 
-#: lookandfeel/contents/logout/Logout.qml:107
-#: lookandfeel/contents/logout/Logout.qml:143
+#: lookandfeel/contents/logout/Logout.qml:111
+#: lookandfeel/contents/logout/Logout.qml:147
 msgid "Restart"
 msgstr "Neu starten"
 
-#: lookandfeel/contents/logout/Logout.qml:107
-#: lookandfeel/contents/logout/Logout.qml:148
+#: lookandfeel/contents/logout/Logout.qml:111
+#: lookandfeel/contents/logout/Logout.qml:152
 msgid "Shut Down"
 msgstr "Herunterfahren"
 
-#: lookandfeel/contents/logout/Logout.qml:107
-#: lookandfeel/contents/logout/Logout.qml:153
+#: lookandfeel/contents/logout/Logout.qml:111
+#: lookandfeel/contents/logout/Logout.qml:157
 msgid "Log Out"
 msgstr "Abmelden"
 
-#: lookandfeel/contents/logout/Logout.qml:123
+#: lookandfeel/contents/logout/Logout.qml:127
 msgid "Restart the computer?"
 msgstr "Rechner neu starten?"
 
-#: lookandfeel/contents/logout/Logout.qml:123
+#: lookandfeel/contents/logout/Logout.qml:127
 msgid "Shut down the computer?"
 msgstr "Rechner herunterfahren?"
 
-#: lookandfeel/contents/logout/Logout.qml:123
+#: lookandfeel/contents/logout/Logout.qml:127
 msgid "End the session?"
 msgstr "Sitzung beenden?"
 
-#: lookandfeel/contents/logout/Logout.qml:128
+#: lookandfeel/contents/logout/Logout.qml:132
 msgid "Installing updates and restarting in %1 second."
 msgid_plural "Installing updates and restarting in %1 seconds."
 msgstr[0] "Aktualisierungen werden installiert; Neustart in %1 Sekunde."
 msgstr[1] "Aktualisierungen werden installiert; Neustart in %1 Sekunden."
 
-#: lookandfeel/contents/logout/Logout.qml:128
+#: lookandfeel/contents/logout/Logout.qml:132
 msgid "Restarting in %1 second."
 msgid_plural "Restarting in %1 seconds."
 msgstr[0] "Neustart in %1 Sekunde."
 msgstr[1] "Neustart in %1 Sekunden."
 
-#: lookandfeel/contents/logout/Logout.qml:129
+#: lookandfeel/contents/logout/Logout.qml:133
 msgid "Installing updates and shutting down in %1 second."
 msgid_plural "Installing updates and shutting down in %1 seconds."
 msgstr[0] "Aktualisierungen werden installiert; Herunterfahren in %1 Sekunde."
 msgstr[1] "Aktualisierungen werden installiert; Herunterfahren in %1 Sekunden."
 
-#: lookandfeel/contents/logout/Logout.qml:129
+#: lookandfeel/contents/logout/Logout.qml:133
 msgid "Shutting down in %1 second."
 msgid_plural "Shutting down in %1 seconds."
 msgstr[0] "Herunterfahren in %1 Sekunde."
 msgstr[1] "Herunterfahren in %1 Sekunden."
 
-#: lookandfeel/contents/logout/Logout.qml:130
+#: lookandfeel/contents/logout/Logout.qml:134
 msgid "Logging out in %1 second."
 msgid_plural "Logging out in %1 seconds."
 msgstr[0] "Abmelden in %1 Sekunde."
 msgstr[1] "Abmelden in %1 Sekunden."
 
-#: lookandfeel/contents/logout/Logout.qml:139
+#: lookandfeel/contents/logout/Logout.qml:143
 msgid "Lock"
 msgstr "Bildschirm sperren"
 
-#: lookandfeel/contents/logout/Logout.qml:140
+#: lookandfeel/contents/logout/Logout.qml:144
 msgid "Sleep"
 msgstr "Ruhezustand"
 
-#: lookandfeel/contents/logout/Logout.qml:141
+#: lookandfeel/contents/logout/Logout.qml:145
 msgid "Hibernate"
 msgstr "Tiefschlaf"
 
-#: lookandfeel/contents/logout/Logout.qml:157
+#: lookandfeel/contents/logout/Logout.qml:161
 msgid "Cancel"
 msgstr "Abbrechen"
 
-#: shell/contents/lockscreen/LockScreen.qml:113
+#: shell/contents/lockscreen/LockScreen.qml:117
 msgid "Screen Locked"
 msgstr "Bildschirm gesperrt"
 
-#: shell/contents/lockscreen/LockScreen.qml:136
+#: shell/contents/lockscreen/LockScreen.qml:140
 msgid "This display is locked."
 msgstr "Dieser Bildschirm ist gesperrt."
 
-#: shell/contents/lockscreen/LockScreen.qml:137
+#: shell/contents/lockscreen/LockScreen.qml:141
 msgid "This display is locked by %1."
 msgstr "Dieser Bildschirm ist von %1 gesperrt."
 
-#: shell/contents/lockscreen/LockScreen.qml:170
+#: shell/contents/lockscreen/LockScreen.qml:174
 msgid "Password"
 msgstr "Passwort"
 
-#: shell/contents/lockscreen/LockScreen.qml:181
+#: shell/contents/lockscreen/LockScreen.qml:185
 msgid "Caps Lock is on."
 msgstr "Die Feststelltaste ist aktiviert."
 
-#: shell/contents/lockscreen/LockScreen.qml:190
+#: shell/contents/lockscreen/LockScreen.qml:194
 msgid "Switch User"
 msgstr "Benutzer wechseln"
 
-#: shell/contents/lockscreen/LockScreen.qml:196
+#: shell/contents/lockscreen/LockScreen.qml:200
 msgid "Unlock"
 msgstr "Entsperren"
 
-#: shell/contents/lockscreen/LockScreen.qml:210
+#: shell/contents/lockscreen/LockScreen.qml:214
 msgid "The password was not accepted."
 msgstr "Das Passwort wurde nicht akzeptiert."
 
-#: shell/contents/lockscreen/LockScreen.qml:246
+#: shell/contents/lockscreen/LockScreen.qml:250
 msgid "No password is needed: press Unlock."
 msgstr "Kein Passwort nötig: auf „Entsperren“ klicken."

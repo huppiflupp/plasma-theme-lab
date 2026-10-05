@@ -67,9 +67,13 @@ Item {
         signal clicked()
         implicitWidth: Math.max(96, label.implicitWidth + 28)
         implicitHeight: 34
-        color: isDefault ? colours.dark : "transparent"
+        // The default button: a thin dark ring with a pixel of air, as a
+        // lighter take on Motif's sunken default frame.
+        color: "transparent"
+        border.width: isDefault ? 1 : 0
+        border.color: colours.dark
         Bevel {
-            anchors.fill: parent; anchors.margins: button.isDefault ? 3 : 0
+            anchors.fill: parent; anchors.margins: button.isDefault ? 2 : 0
             sunken: mouse.pressed
             Text {
                 id: label

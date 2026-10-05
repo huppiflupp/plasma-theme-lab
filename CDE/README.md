@@ -212,7 +212,8 @@ Right-click the console and choose its settings.
 - **Front Console**: bottom, top, left or right screen edge (upright at the
   sides, running the full screen height, subpanels opening towards the middle);
   Always Visible, Auto-hide / Edge Reveal, or Dodge Windows; window list per
-  screen; whether the tray's volume icon is left to the console; hard
+  screen; floating with a gap or sitting on the screen edge; whether the
+  tray's volume icon is left to the console; hard
   contrast (pure black text, white on dark surfaces, labels in semibold);
   label; size
   (75–200 %, tiles, icons and text scale together).

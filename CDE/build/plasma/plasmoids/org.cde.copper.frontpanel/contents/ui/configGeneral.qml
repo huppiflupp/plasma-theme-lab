@@ -22,6 +22,7 @@ KCM.SimpleKCM {
     property var cfg_trayHiddenByConsoleDefault
     property var cfg_panelFrameDefault
     property var cfg_hardContrastDefault
+    property var cfg_floatingDefault
     property var cfg_styleRequestDefault
     property var cfg_leftLaunchersDefault
     property var cfg_rightLaunchersDefault
@@ -45,6 +46,7 @@ KCM.SimpleKCM {
     property alias cfg_hideTrayIcons: hideIcons.checked
     property alias cfg_panelFrame: panelFrame.checked
     property alias cfg_hardContrast: hardContrast.checked
+    property alias cfg_floating: floating.checked
     Kirigami.FormLayout {
         ComboBox {
             id: visibility
@@ -56,6 +58,10 @@ KCM.SimpleKCM {
             model: [i18nd("cde-copper", "Bottom"), i18nd("cde-copper", "Top"), i18nd("cde-copper", "Left"), i18nd("cde-copper", "Right")]
             currentIndex: cfg_edge >= 0 ? cfg_edge : (cfg_topEdge ? 1 : 0)
             onActivated: index => { cfg_edge = index; cfg_topEdge = index === 1; }
+        }
+        CheckBox {
+            id: floating
+            text: i18nd("cde-copper", "Floating, a gap from the screen edge (off: on the edge)")
         }
         CheckBox {
             id: thisScreen

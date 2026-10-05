@@ -23,6 +23,8 @@
     <entry name="panelFrame" type="Bool"><default>false</default></entry>
     <!-- Text in pure black (white on dark surfaces) instead of the palette's -->
     <entry name="hardContrast" type="Bool"><default>false</default></entry>
+    <!-- Floating: a gap to the screen edge; off, the console sits on the edge -->
+    <entry name="floating" type="Bool"><default>true</default></entry>
     <!-- Written by the Style page; the console applies it (JSON: palette, backdrop, scale) -->
     <entry name="styleRequest" type="String"><default></default></entry>
   </group>

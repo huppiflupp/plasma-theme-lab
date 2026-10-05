@@ -47,6 +47,11 @@ PlasmoidItem {
         function onActivated() { root.openApplications(root.appsTile || root.fullRepresentationItem); }
     }
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
+    // On the screen edge (not floating) the panel containment gives the
+    // console no margins at all, so it reaches the edge (Plasma's own
+    // facility for edge-to-edge applets; found by Codex in plasma-desktop's
+    // panel containment). Floating keeps the margins.
+    Plasmoid.constraintHints: Plasmoid.configuration.floating ? Plasmoid.NoHint : Plasmoid.CanFillArea
 
     property string popupTitle: ""
     property var entries: []
@@ -194,7 +199,13 @@ PlasmoidItem {
         const edges = ["bottom", "top", "left", "right"];
         const chosen = Plasmoid.configuration.edge;
         const edge = chosen >= 0 && chosen < 4 ? edges[chosen] : (Plasmoid.configuration.topEdge ? "top" : "bottom");
-        const height = Math.round(128 * consoleColors.unit);
+        // Floating, Plasma keeps a gap and the panel some air around the
+        // console; on the edge the panel is exactly the console's height,
+        // so the console sits on the screen edge.
+        // Floating, Plasma keeps a gap to the edge and the panel some air
+        // around the console; on the edge the panel is exactly the console
+        // (CanFillArea, below, drops the containment's margins).
+        const height = Math.round((Plasmoid.configuration.floating ? 128 : 116) * consoleColors.unit);
         // Upright the console runs the full height, so the window list has room.
         const length = edge === "left" || edge === "right" ? "fill" : "fit";
         // Plasma reserves the screen edge that reveals a hidden panel when the
@@ -202,7 +213,7 @@ PlasmoidItem {
         // afterwards (or in the same breath), the console could not be brought
         // back. So: place it while it stays visible, then hide it.
         const ours = "for (var p of panels()) { for (var w of p.widgets()) { if (w.type === 'org.cde.copper.frontpanel') { ";
-        const place = ours + "p.hiding = 'none'; p.location = '" + edge + "'; p.height = " + height + "; p.lengthMode = '" + length + "'; p.alignment = 'center'; p.offset = 0; } } }";
+        const place = ours + "p.hiding = 'none'; p.location = '" + edge + "'; p.height = " + height + "; p.lengthMode = '" + length + "'; p.alignment = 'center'; p.offset = 0; p.floating = " + (Plasmoid.configuration.floating ? "true" : "false") + "; } } }";
         runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(place));
         pendingHiding = mode === "none" ? "" : ours + "p.hiding = '" + mode + "'; } } }";
         if (pendingHiding) hidingTimer.restart();
@@ -300,6 +311,7 @@ PlasmoidItem {
         function onTopEdgeChanged() { root.configurePanel(); }
         function onEdgeChanged() { root.configurePanel(); }
         function onConsoleScaleChanged() { root.configurePanel(); }
+        function onFloatingChanged() { root.configurePanel(); }
         function onHideTrayVolumeChanged() { root.syncTray(); }
         function onHideTrayIconsChanged() { root.syncTray(); root.placeTray(); }
         function onPanelFrameChanged() { root.placePanelFrame(); }
@@ -319,7 +331,7 @@ PlasmoidItem {
     }
 
     Component.onCompleted: {
-        if (Plasmoid.configuration.consoleScale !== 1) configurePanel();
+        if (Plasmoid.configuration.consoleScale !== 1 || !Plasmoid.configuration.floating) configurePanel();
         // The tray fills its item list on its first start; look once it has.
         trayTimer.start();
     }
