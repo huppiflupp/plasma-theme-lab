@@ -217,9 +217,10 @@ Right-click the console and choose its settings.
 
 - **Front Console**: bottom, top, left or right screen edge (upright at the
   sides, running the full screen height, subpanels opening towards the middle);
-  Always Visible, Auto-hide / Edge Reveal, or Dodge Windows; window list per
-  screen; floating with a gap or sitting on the screen edge; one console
-  for all screens (default) or one on every screen; whether the
+  Always Visible, Auto-hide / Edge Reveal, or Dodge Windows; floating with a
+  gap or sitting on the screen edge; one console for all screens (default,
+  its window list shows the windows of every screen) or one on every screen
+  (each lists its own screen's windows, or all of them); whether the
   tray's volume icon is left to the console; hard
   contrast (pure black text, white on dark surfaces, labels in semibold);
   label; size

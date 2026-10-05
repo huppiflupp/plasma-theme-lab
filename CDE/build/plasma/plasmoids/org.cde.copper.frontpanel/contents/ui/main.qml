@@ -480,8 +480,9 @@ PlasmoidItem {
         screenGeometry: Plasmoid.containment.screenGeometry
         filterByVirtualDesktop: true
         filterByActivity: true
-        // With one console per screen, each lists the windows on its own screen.
-        filterByScreen: Plasmoid.configuration.windowsOnThisScreen
+        // With one console per screen, each lists the windows on its own
+        // screen; a single console lists the windows of all screens.
+        filterByScreen: Plasmoid.configuration.windowsOnThisScreen && Plasmoid.configuration.everyScreen
         groupMode: Plasmoid.configuration.groupWindows ? TaskManager.TasksModel.GroupApplications : TaskManager.TasksModel.GroupDisabled
         groupInline: false
         // Group from the second window on, not only when the strip is full.

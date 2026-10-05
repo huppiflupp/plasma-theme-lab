@@ -74,6 +74,8 @@ KCM.SimpleKCM {
             id: thisScreen
             Kirigami.FormData.label: i18nd("cde-copper", "Window list:")
             text: i18nd("cde-copper", "Only windows on this console's screen")
+            // A single console shows the windows of every screen.
+            enabled: everyScreen.checked
         }
         CheckBox {
             id: workspaceColours
