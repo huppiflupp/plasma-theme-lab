@@ -88,6 +88,17 @@ from the installed 0.1.0:
   split into two terminals, two quarters below on the second screen).
   Floating console: Plasma lowers it when a window touches it, leaving the
   float gap under the middle terminal.
+- Saved layouts (0.8.5+, VM with two outputs): saving seven terminals and
+  Firefox recorded screens, places, stacking, the Konsole splits (side by
+  side, one above the other, nested), folders and profiles; restoring with
+  everything closed gave the same geometry to the pixel and Firefox on top;
+  with six terminals open, a saved /etc terminal and a /usr|/tmp split opened
+  new instead of taking the open ones; with the second output switched off,
+  its windows came to the first screen scaled. Saved, named (kdialog), listed
+  with previews and deleted through the console. On the host, saving recognised
+  a Chrome web app (WhatsApp) by its desktop file. An earlier card layout bound
+  the button height to its inner layout and looped (plasmashell at 100 % CPU,
+  aborted when restarted); the cards now compute their size.
 - Console settings › Launchers › "Installed application…": the list was empty
   under Plasma 6.7 (Kicker.AppsModel); now from Kicker.RootModel, Thunderbird
   picked for the Mail tile keeps the Mail subpanel and starts.

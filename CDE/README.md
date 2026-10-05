@@ -36,8 +36,8 @@ languages can be added as `po/<language>.po`.
   subpanels, an Applications menu with cascading categories (also on the
   Meta key), the browser's
   bookmarks, the editor's (or LibreOffice's) recently opened files, a Mail
-  subpanel (new message, appointments, address book), Places, System and Help
-  subpanels, four-workspace switcher (each button in a colour of the palette,
+  subpanel (new message, appointments, address book), Places and System
+  subpanels, saved window layouts with previews, four-workspace switcher (each button in a colour of the palette,
   as in CDE), window task strip (several windows of
   one application as one button, "3× Konsole"), volume
   control, and a launcher-wide block: its arrow strip opens the hidden tray
@@ -117,6 +117,8 @@ without it the installer falls back to the built-in Qt Windows style and says
 so. The fonts are installed per user and need `fc-cache`. Network/audio status uses NetworkManager's
 `nmcli` and WirePlumber's `wpctl`. Launchers start `gtk-launch` or `kstart`;
 appointments in the calendar come from KOrganizer/Akonadi when installed.
+Saved layouts use PyGObject (`python3-gobject`), Spectacle for the preview
+and `kdialog` for the name.
 
 The release archive contains ready-built assets. From its extracted directory:
 
@@ -227,7 +229,8 @@ Right-click the console and choose its settings.
   (75–200 %, tiles, icons and text scale together).
 - **Launchers**: the tiles left and right of the workspace switch. Each tile has
   a label, an icon, a program and the subpanel its arrow opens (Applications,
-  Places, System, Help, Mail, Bookmarks, Recent files). Programs are
+  Places, System, Help, Mail, Terminals, Layouts, Bookmarks, Recent files).
+  Programs are
   "Default web browser", "Default mail client", "Default file manager",
   PCManFM (the Files tile's default: PCManFM-Qt takes the Motif controls,
   else the GTK PCManFM, else the desktop's file manager), XFile,
@@ -296,6 +299,29 @@ Konsole windows, each put in its place as it appears:
 The console starts the windows and the arrangement script places the next
 terminal windows to appear, in the order they were started; it waits 20
 seconds for them. The sets need Konsole (the split is a Konsole layout).
+
+### Saved layouts
+
+The Layouts tile (in place of Help, which is now in the System subpanel)
+keeps window arrangements like bookmarks. **Save Current Layout…** records
+the windows of the current workspace on every screen: the application, the
+screen, position and size, and which lies on top; for Konsole also the split
+views, each view's working directory and profile, and the tabs. A screenshot
+of all screens becomes the preview, and a name is asked for (suggested from
+the applications, "6× Konsole, Firefox").
+
+A click on a layout restores it. Windows still open are put back in their
+places: the same window, else one of the same application (a terminal only
+with the same title, which names its folder, so that a new one opens with
+the saved folders and splits). Missing applications are started one after
+the other and placed as they appear. A layout saved on two screens comes to
+one screen scaled to it. Restored are places, not contents: browser tabs,
+documents and the programs that ran in a terminal are not.
+
+Layouts are kept in `~/.local/share/cde-copper-layouts/` (the layout as
+JSON and the preview) and stay there when the theme is uninstalled. The
+trash button deletes one, after a second click. `contents/code/layouts.py`
+does the work (`list`, `save`, `restore <id>`, `delete <id>`).
 
 ### File manager
 
@@ -370,7 +396,7 @@ purpose: a change to one must not alter the other (see `tools/README.md`).
 | `decoration/` | the QML window frame |
 | `backdrop/` | the "CDE Backdrop" wallpaper type |
 | `wallpapers/` | the 28 picture wallpapers, light and dark, and the scripts that made them |
-| `frontpanel/` | the console plasmoid; `contents/code/menus.py` reads bookmarks and recent files |
+| `frontpanel/` | the console plasmoid; `contents/code/menus.py` reads bookmarks and recent files, `layouts.py` saves and restores window layouts |
 | `arrange/` | the KWin script for the window arrangement |
 | `fonts/` | IBM Plex |
 

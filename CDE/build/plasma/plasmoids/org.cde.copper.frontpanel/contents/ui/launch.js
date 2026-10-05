@@ -16,7 +16,7 @@ const RIGHT = [
     {label: "Web", icon: "internet-web-browser", command: "@browser", menu: "bookmarks"},
     {label: "Mail", icon: "internet-mail", command: "@mail", menu: "mail"},
     {label: "System", icon: "preferences-system", command: "@settings", menu: "system"},
-    {label: "Help", icon: "help-browser", command: "@help", menu: "help"},
+    {label: "Layouts", icon: "preferences-system-windows", command: "@layouts", menu: "layouts"},
     {label: "Trash", icon: "user-trash", command: "@trash", menu: ""}
 ];
 
@@ -33,6 +33,7 @@ const PRESETS = [
     {text: "System Settings", value: "@settings", icon: "preferences-system"},
     {text: "Trash", value: "@trash", icon: "user-trash"},
     {text: "Help Center", value: "@help", icon: "help-browser"},
+    {text: "Saved layouts", value: "@layouts", icon: "preferences-system-windows"},
     {text: "Applications menu", value: "@applications", icon: "cde-menu"},
     {text: "Arrange windows around the console", value: "@arrange", icon: "view-split-left-right"},
     {text: "Installed application…", value: "app:", icon: "application-x-executable"},
@@ -47,6 +48,7 @@ const MENUS = [
     {text: "Help", value: "help"},
     {text: "Mail", value: "mail"},
     {text: "Terminals", value: "terminals"},
+    {text: "Layouts", value: "layouts"},
     {text: "Bookmarks", value: "bookmarks"},
     {text: "Recent files", value: "recent"}
 ];
@@ -57,6 +59,7 @@ function menuFor(command) {
     if (token === "@browser") return "bookmarks";
     if (token === "@mail") return "mail";
     if (token === "@terminal") return "terminals";
+    if (token === "@layouts") return "layouts";
     if (token === "@editor" || token.indexOf("app:") === 0) return "recent";
     if (token === "@files" || token === "@pcmanfm" || token === "@xfile" || token === "@trash") return "places";
     if (token === "@settings") return "system";
@@ -223,7 +226,7 @@ function check(command) {
     const token = command.trim().split(/\s+/)[0] || "";
     if (token === "") return "echo missing";
     if (token === "@terminals") return "command -v konsole >/dev/null 2>&1 && echo ok || echo missing";
-    if (token === "@applications" || token === "@arrange" || token.indexOf("$(") === 0) return "echo ok";
+    if (token === "@applications" || token === "@layouts" || token === "@arrange" || token.indexOf("$(") === 0) return "echo ok";
     if (TOKENS[token]) return chain(token, "", true);
     if (token.indexOf("app:") === 0) {
         const file = quote(token.substring(4).replace(/\.desktop$/, "") + ".desktop");
@@ -280,6 +283,8 @@ const TRANSLATABLE_STRINGS = [
     I18N_NOOP("Places"),
     I18N_NOOP("Bookmarks"),
     I18N_NOOP("Terminals"),
+    I18N_NOOP("Layouts"),
+    I18N_NOOP("Saved layouts"),
     I18N_NOOP("Recent files"),
     I18N_NOOP("A web browser"),
     I18N_NOOP("A mail client"),

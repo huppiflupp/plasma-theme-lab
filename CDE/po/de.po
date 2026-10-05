@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cde-copper 0.8.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 21:58+0200\n"
+"POT-Creation-Date: 2026-10-05 22:37+0200\n"
 "PO-Revision-Date: 2026-10-03 12:00+0200\n"
 "Last-Translator: CDE Copper contributors\n"
 "Language-Team: German\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: frontpanel/contents/ui/AppMenu.qml:128 frontpanel/contents/ui/launch.js:279
+#: frontpanel/contents/ui/AppMenu.qml:128 frontpanel/contents/ui/launch.js:282
 msgid "Applications"
 msgstr "Anwendungen"
 
@@ -192,55 +192,55 @@ msgstr "Fensterliste:"
 msgid "Only windows on this console's screen"
 msgstr "Nur Fenster auf dem Bildschirm dieser Konsole"
 
-#: frontpanel/contents/ui/configGeneral.qml:80
+#: frontpanel/contents/ui/configGeneral.qml:82
 #: backdrop/contents/ui/config.qml:68
 msgid "Workspaces:"
 msgstr "Arbeitsflächen:"
 
-#: frontpanel/contents/ui/configGeneral.qml:81
+#: frontpanel/contents/ui/configGeneral.qml:83
 msgid "Each button in a colour of its own, as in CDE"
 msgstr "Jeder Knopf in einer eigenen Farbe, wie in CDE"
 
-#: frontpanel/contents/ui/configGeneral.qml:85
+#: frontpanel/contents/ui/configGeneral.qml:87
 msgid "Group windows of one application (\"3× Konsole\")"
 msgstr "Fenster einer Anwendung gruppieren („3× Konsole“)"
 
-#: frontpanel/contents/ui/configGeneral.qml:89
+#: frontpanel/contents/ui/configGeneral.qml:91
 msgid "System tray:"
 msgstr "Systemabschnitt der Kontrollleiste:"
 
-#: frontpanel/contents/ui/configGeneral.qml:90
+#: frontpanel/contents/ui/configGeneral.qml:92
 msgid "Leave the volume to the console"
 msgstr "Lautstärkeregelung der Konsole überlassen"
 
-#: frontpanel/contents/ui/configGeneral.qml:94
+#: frontpanel/contents/ui/configGeneral.qml:96
 msgid "Status icons only behind the console's button"
 msgstr "Statussymbole nur über den Knopf der Konsole anzeigen"
 
-#: frontpanel/contents/ui/configGeneral.qml:98
+#: frontpanel/contents/ui/configGeneral.qml:100
 msgid "Panel:"
 msgstr "Kontrollleiste:"
 
-#: frontpanel/contents/ui/configGeneral.qml:99
+#: frontpanel/contents/ui/configGeneral.qml:101
 msgid "Frame behind the console"
 msgstr "Rahmen hinter der Konsole"
 
-#: frontpanel/contents/ui/configGeneral.qml:103
+#: frontpanel/contents/ui/configGeneral.qml:105
 msgid "Text:"
 msgstr "Schrift:"
 
-#: frontpanel/contents/ui/configGeneral.qml:104
+#: frontpanel/contents/ui/configGeneral.qml:106
 msgid ""
 "Hard contrast: black (white on dark surfaces) instead of the palette's "
 "colours"
 msgstr ""
 "Harter Kontrast: Schwarz (auf dunklen Flächen Weiß) statt der Palettenfarben"
 
-#: frontpanel/contents/ui/configGeneral.qml:106
+#: frontpanel/contents/ui/configGeneral.qml:108
 msgid "Console label:"
 msgstr "Beschriftung der Konsole:"
 
-#: frontpanel/contents/ui/configGeneral.qml:108
+#: frontpanel/contents/ui/configGeneral.qml:110
 msgid "Size:"
 msgstr "Größe:"
 
@@ -249,7 +249,7 @@ msgid "Choose an application"
 msgstr "Anwendung auswählen"
 
 #: frontpanel/contents/ui/configLaunchers.qml:145
-#: frontpanel/contents/ui/main.qml:1008
+#: frontpanel/contents/ui/main.qml:1159
 msgid "Search"
 msgstr "Suchen"
 
@@ -464,356 +464,396 @@ msgstr ""
 "in den Hintergrundeinstellungen der Arbeitsfläche als „CDE Backdrop“ "
 "auswählen, auch eines je Arbeitsfläche."
 
-#: frontpanel/contents/ui/main.qml:60 frontpanel/contents/ui/main.qml:175
+#: frontpanel/contents/ui/main.qml:60 frontpanel/contents/ui/main.qml:177
 msgid "Network"
 msgstr "Netzwerk"
 
-#: frontpanel/contents/ui/main.qml:61 frontpanel/contents/ui/main.qml:174
-#: frontpanel/contents/ui/main.qml:470
+#: frontpanel/contents/ui/main.qml:61 frontpanel/contents/ui/main.qml:176
+#: frontpanel/contents/ui/main.qml:510
 msgid "Audio"
 msgstr "Audio"
 
-#: frontpanel/contents/ui/main.qml:111 frontpanel/contents/ui/launch.js:280
+#: frontpanel/contents/ui/main.qml:112 frontpanel/contents/ui/launch.js:283
 msgid "Places"
 msgstr "Orte"
 
-#: frontpanel/contents/ui/main.qml:112 frontpanel/contents/ui/launch.js:262
+#: frontpanel/contents/ui/main.qml:113 frontpanel/contents/ui/launch.js:265
 msgid "System"
 msgstr "System"
 
-#: frontpanel/contents/ui/main.qml:113 frontpanel/contents/ui/launch.js:263
+#: frontpanel/contents/ui/main.qml:114 frontpanel/contents/ui/launch.js:266
 msgid "Help"
 msgstr "Hilfe"
 
-#: frontpanel/contents/ui/main.qml:114 frontpanel/contents/ui/launch.js:261
+#: frontpanel/contents/ui/main.qml:115 frontpanel/contents/ui/launch.js:264
 msgid "Mail"
 msgstr "E-Mail"
 
-#: frontpanel/contents/ui/main.qml:115 frontpanel/contents/ui/launch.js:282
+#: frontpanel/contents/ui/main.qml:117 frontpanel/contents/ui/launch.js:285
 msgid "Terminals"
 msgstr "Terminals"
 
-#: frontpanel/contents/ui/main.qml:116 frontpanel/contents/ui/launch.js:281
+#: frontpanel/contents/ui/main.qml:118 frontpanel/contents/ui/launch.js:284
 msgid "Bookmarks"
 msgstr "Lesezeichen"
 
-#: frontpanel/contents/ui/main.qml:117
+#: frontpanel/contents/ui/main.qml:119
 msgid "Recent Files"
 msgstr "Zuletzt geöffnete Dateien"
 
-#: frontpanel/contents/ui/main.qml:138
+#: frontpanel/contents/ui/main.qml:140
 msgid "No bookmarks found"
 msgstr "Keine Lesezeichen gefunden"
 
-#: frontpanel/contents/ui/main.qml:138
+#: frontpanel/contents/ui/main.qml:140
 msgid "No recent files"
 msgstr "Keine zuletzt geöffneten Dateien"
 
-#: frontpanel/contents/ui/main.qml:163
+#: frontpanel/contents/ui/main.qml:165
 msgid "Home"
 msgstr "Persönlicher Ordner"
 
-#: frontpanel/contents/ui/main.qml:164
+#: frontpanel/contents/ui/main.qml:166
 msgid "Documents"
 msgstr "Dokumente"
 
-#: frontpanel/contents/ui/main.qml:165
+#: frontpanel/contents/ui/main.qml:167
 msgid "Downloads"
 msgstr "Downloads"
 
-#: frontpanel/contents/ui/main.qml:166
+#: frontpanel/contents/ui/main.qml:168
 msgid "Pictures"
 msgstr "Bilder"
 
-#: frontpanel/contents/ui/main.qml:167
+#: frontpanel/contents/ui/main.qml:169
 msgid "File System"
 msgstr "Dateisystem"
 
-#: frontpanel/contents/ui/main.qml:168 frontpanel/contents/ui/launch.js:264
+#: frontpanel/contents/ui/main.qml:170 frontpanel/contents/ui/launch.js:267
 msgid "Trash"
 msgstr "Papierkorb"
 
-#: frontpanel/contents/ui/main.qml:171 frontpanel/contents/ui/launch.js:272
+#: frontpanel/contents/ui/main.qml:173 frontpanel/contents/ui/launch.js:275
 msgid "System Settings"
 msgstr "Systemeinstellungen"
 
-#: frontpanel/contents/ui/main.qml:172
+#: frontpanel/contents/ui/main.qml:174
 msgid "Style Manager…"
 msgstr "Stilverwaltung…"
 
-#: frontpanel/contents/ui/main.qml:173
+#: frontpanel/contents/ui/main.qml:175
 msgid "Arrange Windows"
 msgstr "Fenster anordnen"
 
-#: frontpanel/contents/ui/main.qml:176
+#: frontpanel/contents/ui/main.qml:178
 #: lookandfeel/contents/splash/Splash.qml:24
 msgid "Display"
 msgstr "Bildschirm"
 
-#: frontpanel/contents/ui/main.qml:177 frontpanel/contents/ui/main.qml:664
-msgid "Lock Screen"
-msgstr "Bildschirm sperren"
-
-#: frontpanel/contents/ui/main.qml:178
-msgid "Leave Session..."
-msgstr "Sitzung verlassen..."
-
-#: frontpanel/contents/ui/main.qml:179
-msgid "Restart..."
-msgstr "Neu starten..."
-
-#: frontpanel/contents/ui/main.qml:180
-msgid "Shut Down..."
-msgstr "Herunterfahren..."
-
-#: frontpanel/contents/ui/main.qml:186
-msgid "New Message"
-msgstr "Neue Nachricht"
-
-#: frontpanel/contents/ui/main.qml:187
-msgid "Open Mail"
-msgstr "E-Mail öffnen"
-
-#: frontpanel/contents/ui/main.qml:188
-msgid "Appointments"
-msgstr "Termine"
-
-#: frontpanel/contents/ui/main.qml:189
-msgid "Address Book"
-msgstr "Adressbuch"
-
-#: frontpanel/contents/ui/main.qml:194
-msgid "New Terminal"
-msgstr "Neues Terminal"
-
-#: frontpanel/contents/ui/main.qml:195
-msgid "Three Terminals Around the Console"
-msgstr "Drei Terminals um die Konsole"
-
-#: frontpanel/contents/ui/main.qml:197
-msgid "Four Terminals on the Other Screen"
-msgstr "Vier Terminals auf dem anderen Bildschirm"
-
-#: frontpanel/contents/ui/main.qml:198
-msgid "Seven Terminals on Both Screens"
-msgstr "Sieben Terminals auf beiden Bildschirmen"
-
-#: frontpanel/contents/ui/main.qml:200
-msgid "Four Terminals"
-msgstr "Vier Terminals"
-
-#: frontpanel/contents/ui/main.qml:205 frontpanel/contents/ui/launch.js:273
+#: frontpanel/contents/ui/main.qml:179 frontpanel/contents/ui/main.qml:245
+#: frontpanel/contents/ui/launch.js:276
 msgid "Help Center"
 msgstr "Hilfezentrum"
 
-#: frontpanel/contents/ui/main.qml:206
+#: frontpanel/contents/ui/main.qml:180 frontpanel/contents/ui/main.qml:705
+msgid "Lock Screen"
+msgstr "Bildschirm sperren"
+
+#: frontpanel/contents/ui/main.qml:181
+msgid "Leave Session..."
+msgstr "Sitzung verlassen..."
+
+#: frontpanel/contents/ui/main.qml:182
+msgid "Restart..."
+msgstr "Neu starten..."
+
+#: frontpanel/contents/ui/main.qml:183
+msgid "Shut Down..."
+msgstr "Herunterfahren..."
+
+#: frontpanel/contents/ui/main.qml:189
+msgid "New Message"
+msgstr "Neue Nachricht"
+
+#: frontpanel/contents/ui/main.qml:190
+msgid "Open Mail"
+msgstr "E-Mail öffnen"
+
+#: frontpanel/contents/ui/main.qml:191
+msgid "Appointments"
+msgstr "Termine"
+
+#: frontpanel/contents/ui/main.qml:192
+msgid "Address Book"
+msgstr "Adressbuch"
+
+#: frontpanel/contents/ui/main.qml:197
+msgid "New Terminal"
+msgstr "Neues Terminal"
+
+#: frontpanel/contents/ui/main.qml:198
+msgid "Three Terminals Around the Console"
+msgstr "Drei Terminals um die Konsole"
+
+#: frontpanel/contents/ui/main.qml:200
+msgid "Four Terminals on the Other Screen"
+msgstr "Vier Terminals auf dem anderen Bildschirm"
+
+#: frontpanel/contents/ui/main.qml:201
+msgid "Seven Terminals on Both Screens"
+msgstr "Sieben Terminals auf beiden Bildschirmen"
+
+#: frontpanel/contents/ui/main.qml:203
+msgid "Four Terminals"
+msgstr "Vier Terminals"
+
+#: frontpanel/contents/ui/main.qml:221
+msgid "Save Layout"
+msgstr "Anordnung speichern"
+
+#: frontpanel/contents/ui/main.qml:222
+msgid "Name of the layout:"
+msgstr "Name der Anordnung:"
+
+#: frontpanel/contents/ui/main.qml:246
 msgid "Keyboard Shortcuts"
 msgstr "Kurzbefehle"
 
-#: frontpanel/contents/ui/main.qml:207
+#: frontpanel/contents/ui/main.qml:247
 msgid "System Information"
 msgstr "Systeminformationen"
 
-#: frontpanel/contents/ui/main.qml:208
+#: frontpanel/contents/ui/main.qml:248
 msgid "About CDE Copper"
 msgstr "Über CDE Copper"
 
-#: frontpanel/contents/ui/main.qml:465
+#: frontpanel/contents/ui/main.qml:505
 msgid "Connected"
 msgstr "Verbunden"
 
-#: frontpanel/contents/ui/main.qml:465
+#: frontpanel/contents/ui/main.qml:505
 msgid "Offline"
 msgstr "Offline"
 
-#: frontpanel/contents/ui/main.qml:470
+#: frontpanel/contents/ui/main.qml:510
 msgid "Muted"
 msgstr "Stummgeschaltet"
 
-#: frontpanel/contents/ui/main.qml:528
+#: frontpanel/contents/ui/main.qml:569
 msgid "Open %1"
 msgstr "%1 öffnen"
 
-#: frontpanel/contents/ui/main.qml:590
+#: frontpanel/contents/ui/main.qml:631
 msgid "WORKSPACES"
 msgstr "ARBEITSFLÄCHEN"
 
-#: frontpanel/contents/ui/main.qml:605
+#: frontpanel/contents/ui/main.qml:646
 msgid "Workspace %1 %2"
 msgstr "Arbeitsfläche %1 %2"
 
-#: frontpanel/contents/ui/main.qml:643
+#: frontpanel/contents/ui/main.qml:684
 msgid "Hidden Icons"
 msgstr "Ausgeblendete Symbole"
 
-#: frontpanel/contents/ui/main.qml:660
+#: frontpanel/contents/ui/main.qml:701
 msgid "Configure Front Console"
 msgstr "Frontkonsole einrichten"
 
-#: frontpanel/contents/ui/main.qml:668
+#: frontpanel/contents/ui/main.qml:709
 msgid "Show Desktop"
 msgstr "Arbeitsfläche anzeigen"
 
-#: frontpanel/contents/ui/main.qml:686
+#: frontpanel/contents/ui/main.qml:727
 msgid "Processor %1 %, memory %2 %"
 msgstr "Prozessor %1 %, Speicher %2 %"
 
-#: frontpanel/contents/ui/main.qml:769
+#: frontpanel/contents/ui/main.qml:810
 msgid "%1× %2"
 msgstr "%1× %2"
 
-#: frontpanel/contents/ui/main.qml:769
+#: frontpanel/contents/ui/main.qml:810
 msgid "Window"
 msgstr "Fenster"
 
-#: frontpanel/contents/ui/main.qml:806
+#: frontpanel/contents/ui/main.qml:847
 msgid "Volume %1, %2"
 msgstr "Lautstärke %1, %2"
 
-#: frontpanel/contents/ui/main.qml:916
+#: frontpanel/contents/ui/main.qml:958
 msgid "Audio  %1"
 msgstr "Audio  %1"
 
-#: frontpanel/contents/ui/main.qml:924
+#: frontpanel/contents/ui/main.qml:966
 msgid "Volume"
 msgstr "Lautstärke"
 
-#: frontpanel/contents/ui/main.qml:930
+#: frontpanel/contents/ui/main.qml:972
 msgid "Unmute"
 msgstr "Stummschaltung aufheben"
 
-#: frontpanel/contents/ui/main.qml:930
+#: frontpanel/contents/ui/main.qml:972
 msgid "Mute"
 msgstr "Stummschalten"
 
-#: frontpanel/contents/ui/main.qml:937
+#: frontpanel/contents/ui/main.qml:979
 msgid "Settings…"
 msgstr "Einstellungen…"
 
-#: frontpanel/contents/ui/main.qml:1004
+#: frontpanel/contents/ui/main.qml:1054 frontpanel/contents/ui/launch.js:287
+msgid "Saved layouts"
+msgstr "Gespeicherte Anordnungen"
+
+#: frontpanel/contents/ui/main.qml:1058
+msgid "Save Current Layout…"
+msgstr "Aktuelle Anordnung speichern …"
+
+#: frontpanel/contents/ui/main.qml:1065
+msgid "No saved layouts yet. Arrange your windows, then save them here."
+msgstr ""
+"Noch keine gespeicherten Anordnungen. Fenster anordnen, dann hier speichern."
+
+#: frontpanel/contents/ui/main.qml:1118
+msgid "%1 window"
+msgid_plural "%1 windows"
+msgstr[0] "%1 Fenster"
+msgstr[1] "%1 Fenster"
+
+#: frontpanel/contents/ui/main.qml:1128
+msgid "Delete?"
+msgstr "Löschen?"
+
+#: frontpanel/contents/ui/main.qml:1131
+msgid "Delete layout"
+msgstr "Anordnung löschen"
+
+#: frontpanel/contents/ui/main.qml:1155
 msgid "Find Application"
 msgstr "Anwendung suchen"
 
-#: frontpanel/contents/ui/main.qml:1030
+#: frontpanel/contents/ui/main.qml:1181
 msgid "Application"
 msgstr "Anwendung"
 
-#: frontpanel/contents/ui/launch.js:256
+#: frontpanel/contents/ui/launch.js:259
 msgid "Apps"
 msgstr "Programme"
 
-#: frontpanel/contents/ui/launch.js:257
+#: frontpanel/contents/ui/launch.js:260
 msgid "Files"
 msgstr "Dateien"
 
-#: frontpanel/contents/ui/launch.js:258
+#: frontpanel/contents/ui/launch.js:261
 msgid "Terminal"
 msgstr "Terminal"
 
-#: frontpanel/contents/ui/launch.js:259
+#: frontpanel/contents/ui/launch.js:262
 msgid "Editor"
 msgstr "Editor"
 
-#: frontpanel/contents/ui/launch.js:260
+#: frontpanel/contents/ui/launch.js:263
 msgid "Web"
 msgstr "Web"
 
-#: frontpanel/contents/ui/launch.js:265
+#: frontpanel/contents/ui/launch.js:268
 msgid "Default web browser"
 msgstr "Standard-Webbrowser"
 
-#: frontpanel/contents/ui/launch.js:266
+#: frontpanel/contents/ui/launch.js:269
 msgid "Default mail client"
 msgstr "Standard-E-Mail-Programm"
 
-#: frontpanel/contents/ui/launch.js:267
+#: frontpanel/contents/ui/launch.js:270
 msgid "Default file manager"
 msgstr "Standard-Dateiverwaltung"
 
-#: frontpanel/contents/ui/launch.js:268
+#: frontpanel/contents/ui/launch.js:271
 msgid "PCManFM (follows the Motif style best)"
 msgstr "PCManFM (folgt dem Motif-Stil am besten)"
 
-#: frontpanel/contents/ui/launch.js:269
+#: frontpanel/contents/ui/launch.js:272
 msgid "XFile (Motif, as CDE's dtfile)"
 msgstr "XFile (Motif, wie dtfile von CDE)"
 
-#: frontpanel/contents/ui/launch.js:270
+#: frontpanel/contents/ui/launch.js:273
 msgid "Default text editor"
 msgstr "Standard-Texteditor"
 
-#: frontpanel/contents/ui/launch.js:271
+#: frontpanel/contents/ui/launch.js:274
 msgid "Calendar"
 msgstr "Kalender"
 
-#: frontpanel/contents/ui/launch.js:274
+#: frontpanel/contents/ui/launch.js:277
 msgid "Applications menu"
 msgstr "Anwendungsmenü"
 
-#: frontpanel/contents/ui/launch.js:275
+#: frontpanel/contents/ui/launch.js:278
 msgid "Arrange windows around the console"
 msgstr "Fenster um die Konsole anordnen"
 
-#: frontpanel/contents/ui/launch.js:276
+#: frontpanel/contents/ui/launch.js:279
 msgid "Installed application…"
 msgstr "Installierte Anwendung…"
 
-#: frontpanel/contents/ui/launch.js:277
+#: frontpanel/contents/ui/launch.js:280
 msgid "Custom command…"
 msgstr "Eigener Befehl…"
 
-#: frontpanel/contents/ui/launch.js:278
+#: frontpanel/contents/ui/launch.js:281
 msgid "None"
 msgstr "Keines"
 
-#: frontpanel/contents/ui/launch.js:283
+#: frontpanel/contents/ui/launch.js:286
+msgid "Layouts"
+msgstr "Layouts"
+
+#: frontpanel/contents/ui/launch.js:288
 msgid "Recent files"
 msgstr "Zuletzt geöffnete Dateien"
 
-#: frontpanel/contents/ui/launch.js:284
+#: frontpanel/contents/ui/launch.js:289
 msgid "A web browser"
 msgstr "Ein Webbrowser"
 
-#: frontpanel/contents/ui/launch.js:285
+#: frontpanel/contents/ui/launch.js:290
 msgid "A mail client"
 msgstr "Ein E-Mail-Programm"
 
-#: frontpanel/contents/ui/launch.js:286
+#: frontpanel/contents/ui/launch.js:291
 msgid "A file manager"
 msgstr "Eine Dateiverwaltung"
 
-#: frontpanel/contents/ui/launch.js:287
+#: frontpanel/contents/ui/launch.js:292
 msgid "A text editor"
 msgstr "Ein Texteditor"
 
-#: frontpanel/contents/ui/launch.js:288
+#: frontpanel/contents/ui/launch.js:293
 msgid "A terminal"
 msgstr "Ein Terminal"
 
-#: frontpanel/contents/ui/launch.js:289
+#: frontpanel/contents/ui/launch.js:294
 msgid "A calendar application"
 msgstr "Eine Kalenderanwendung"
 
-#: frontpanel/contents/ui/launch.js:290
+#: frontpanel/contents/ui/launch.js:295
 msgid "An address book"
 msgstr "Ein Adressbuch"
 
-#: frontpanel/contents/ui/launch.js:291
+#: frontpanel/contents/ui/launch.js:296
 msgid "%1 is not installed"
 msgstr "%1 ist nicht installiert"
 
-#: frontpanel/contents/ui/launch.js:292
+#: frontpanel/contents/ui/launch.js:297
 msgid ""
 "Choose another program in the console settings (right-click › Configure)."
 msgstr ""
 "Wählen Sie in den Einstellungen der Konsole ein anderes Programm "
 "(Rechtsklick › Einrichten)."
 
-#: frontpanel/contents/ui/launch.js:293
+#: frontpanel/contents/ui/launch.js:298
 msgid "CDE Front Console"
 msgstr "CDE-Frontkonsole"
 
-#: frontpanel/contents/ui/launch.js:294
+#: frontpanel/contents/ui/launch.js:299
 msgid "The application %1"
 msgstr "Die Anwendung %1"
 

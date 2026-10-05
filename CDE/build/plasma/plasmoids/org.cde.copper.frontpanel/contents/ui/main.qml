@@ -97,6 +97,7 @@ PlasmoidItem {
     }
     function launch(slot, anchor) {
         if (slot.command === "@applications") openApplications(anchor);
+        else if (slot.command === "@layouts") openLayouts(anchor);
         else if (slot.command) run(Launch.resolve(slot.command, [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg)));
     }
     function openSection(title, list, anchor) {
@@ -112,6 +113,7 @@ PlasmoidItem {
         case "system": openSection(i18nd("cde-copper", "System"), systemEntries(), anchor); break;
         case "help": openSection(i18nd("cde-copper", "Help"), helpEntries(), anchor); break;
         case "mail": openSection(i18nd("cde-copper", "Mail"), mailEntries(slot), anchor); break;
+        case "layouts": openLayouts(anchor); break;
         case "terminals": openSection(i18nd("cde-copper", "Terminals"), terminalEntries(slot), anchor); break;
         case "bookmarks": openListing("bookmarks", i18nd("cde-copper", "Bookmarks"), slot, anchor); break;
         case "recent": openListing("recent", i18nd("cde-copper", "Recent Files"), slot, anchor); break;
@@ -174,6 +176,7 @@ PlasmoidItem {
                 entry(i18nd("cde-copper", "Audio"), "audio-volume-high", "@settings kcm_pulseaudio"),
                 entry(i18nd("cde-copper", "Network"), "network-workgroup", "@settings kcm_networkmanagement"),
                 entry(i18nd("cde-copper", "Display"), "computer", "@settings kcm_kscreen"),
+                entry(i18nd("cde-copper", "Help Center"), "help-browser", "@help"),
                 entry(i18nd("cde-copper", "Lock Screen"), "system-lock-screen", dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock"),
                 entry(i18nd("cde-copper", "Leave Session..."), "system-log-out", dbus + " org.kde.LogoutPrompt /LogoutPrompt promptAll"),
                 entry(i18nd("cde-copper", "Restart..."), "system-reboot", dbus + " org.kde.LogoutPrompt /LogoutPrompt promptReboot"),
@@ -200,6 +203,43 @@ PlasmoidItem {
             list.push(entry(i18nd("cde-copper", "Four Terminals"), "view-grid", "@terminals four"));
         }
         return list;
+    }
+    // Saved window layouts (contents/code/layouts.py): a preview of the
+    // screens, the name and the applications; a click restores the layout.
+    property var layoutList: []
+    readonly property string layoutsHelper: decodeURIComponent(Qt.resolvedUrl("../code/layouts.py").toString().replace(/^file:\/\//, ""))
+    function openLayouts(anchor) {
+        popup.visible = false;
+        if (layoutsPopup.visible && layoutsPopup.visualParent === anchor) { layoutsPopup.visible = false; return; }
+        layoutsPopup.visualParent = anchor;
+        layoutSource.connectSource("python3 " + Launch.quote(layoutsHelper) + " list");
+        layoutsPopup.visible = true;
+    }
+    function saveLayout() {
+        layoutsPopup.visible = false;
+        // The screenshot for the preview is taken once the popup is gone.
+        run("sleep 0.6; python3 " + Launch.quote(layoutsHelper) + " save --title " + Launch.quote(i18nd("cde-copper", "Save Layout"))
+            + " --label " + Launch.quote(i18nd("cde-copper", "Name of the layout:")));
+    }
+    function restoreLayout(id) {
+        layoutsPopup.visible = false;
+        run("python3 " + Launch.quote(layoutsHelper) + " restore " + Launch.quote(id));
+    }
+    function deleteLayout(id) {
+        run("python3 " + Launch.quote(layoutsHelper) + " delete " + Launch.quote(id));
+        layoutList = layoutList.filter(l => l.id !== id);
+    }
+    P5Support.DataSource {
+        id: layoutSource
+        engine: "executable"
+        onNewData: function(source, data) {
+            disconnectSource(source);
+            let list = [];
+            try { list = JSON.parse(data.stdout); }
+            catch (e) { console.warn("CDE layouts:", e, data.stderr); }
+            // Unchanged, the cards (and their previews) stay as they are.
+            if (JSON.stringify(list) !== JSON.stringify(root.layoutList)) root.layoutList = list;
+        }
     }
     function helpEntries() {
         return [entry(i18nd("cde-copper", "Help Center"), "help-browser", "@help"),
@@ -872,6 +912,7 @@ PlasmoidItem {
     Keeper { id: calendarKeeper; dialog: calendar; segment: calendar.visualParent; inside: calendarHover.hovered }
     Keeper { id: volumeKeeper; dialog: volumePopup; segment: volumePopup.visualParent; inside: volumeHover.hovered }
     Keeper { id: popupKeeper; dialog: popup; segment: root.popupSegment; inside: popupHover.hovered }
+    Keeper { id: layoutsKeeper; dialog: layoutsPopup; segment: layoutsPopup.visualParent ? layoutsPopup.visualParent.parent : null; inside: layoutsHover.hovered }
 
     PlasmaCore.Dialog {
         id: calendar
@@ -981,6 +1022,115 @@ PlasmoidItem {
                             // The style manager is a page of the console's settings.
                             if (modelData.command === "@style") Plasmoid.internalAction("configure").trigger();
                             else root.run(Launch.resolve(modelData.command, modelData.args, (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg)));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    PlasmaCore.Dialog {
+        id: layoutsPopup
+        visible: false
+        type: PlasmaCore.Dialog.PopupMenu
+        flags: Qt.WindowStaysOnTopHint
+        location: Plasmoid.location
+        hideOnWindowDeactivate: true
+        backgroundHints: PlasmaCore.Types.NoBackground
+        onVisibleChanged: if (visible) { layoutsKeeper.opened(); layoutsBody.forceActiveFocus(); }
+        mainItem: Bevel {
+            id: layoutsBody
+            HoverHandler { id: layoutsHover }
+            Keys.onPressed: layoutsKeeper.keyboard = true
+            Keys.onEscapePressed: layoutsPopup.visible = false
+            focus: true
+            width: 380
+            // Up to about three cards; more scroll.
+            height: 41 + 40 + (root.layoutList.length ? Math.min(layoutView.contentHeight, 560) : 70)
+            surface: consoleColors.window
+            ColumnLayout {
+                anchors.fill: parent; anchors.margins: 5; spacing: 2
+                Bevel {
+                    Layout.fillWidth: true; Layout.preferredHeight: 27; surface: consoleColors.highlight
+                    Text { anchors.centerIn: parent; text: i18nd("cde-copper", "Saved layouts"); color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
+                }
+                ConsoleButton {
+                    Layout.fillWidth: true; Layout.preferredHeight: 38
+                    text: i18nd("cde-copper", "Save Current Layout…"); iconName: "document-save"
+                    horizontal: true; iconSize: 28; surface: consoleColors.window; foreground: consoleColors.windowText
+                    onClicked: root.saveLayout()
+                }
+                Text {
+                    visible: root.layoutList.length === 0
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    text: i18nd("cde-copper", "No saved layouts yet. Arrange your windows, then save them here.")
+                    wrapMode: Text.Wrap; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 12
+                }
+                ListView {
+                    id: layoutView
+                    visible: root.layoutList.length > 0
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    clip: true; spacing: 2
+                    model: root.layoutList
+                    ScrollBar.vertical: ScrollBar { policy: layoutView.contentHeight > layoutView.height ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded }
+                    delegate: ConsoleButton {
+                        id: card
+                        required property var modelData
+                        property bool confirming: false
+                        // The screens side by side as wide as the card, the
+                        // text below. Sizes are computed here, not taken from
+                        // layouts inside the button (that loops in Qt).
+                        readonly property real ratio: preview.status === Image.Ready && preview.implicitWidth > 0
+                            ? preview.implicitHeight / preview.implicitWidth : 0.25
+                        width: layoutView.width - (layoutView.contentHeight > layoutView.height ? 12 : 0)
+                        height: Math.round((width - 14) * ratio) + 4 + 62
+                        surface: consoleColors.window; foreground: consoleColors.windowText
+                        Accessible.name: modelData.name
+                        onClicked: root.restoreLayout(modelData.id)
+                        contentItem: Item {
+                            Bevel {
+                                id: previewBox
+                                sunken: true; surface: consoleColors.window
+                                anchors { left: parent.left; right: parent.right; top: parent.top }
+                                height: Math.round((card.width - 14) * card.ratio) + 4
+                                Image {
+                                    id: preview
+                                    anchors.fill: parent; anchors.margins: 2
+                                    source: card.modelData.image ? "file://" + card.modelData.image : ""
+                                    sourceSize.width: 720
+                                    fillMode: Image.PreserveAspectFit
+                                    asynchronous: true
+                                }
+                            }
+                            Column {
+                                anchors { left: parent.left; right: deleteButton.left; rightMargin: 6; top: previewBox.bottom; topMargin: 4 }
+                                spacing: 1
+                                Text {
+                                    width: parent.width; text: card.modelData.name; elide: Text.ElideRight
+                                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold
+                                }
+                                Text {
+                                    width: parent.width; text: card.modelData.apps; elide: Text.ElideRight
+                                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 11
+                                }
+                                Text {
+                                    width: parent.width; elide: Text.ElideRight
+                                    text: i18ndp("cde-copper", "%1 window", "%1 windows", card.modelData.windows) + " · "
+                                          + Qt.formatDateTime(new Date(card.modelData.created * 1000), Qt.locale(), Locale.ShortFormat)
+                                    color: consoleColors.windowText; opacity: 0.75; font.family: consoleColors.font; font.pixelSize: 11
+                                }
+                            }
+                            // A second click deletes.
+                            ConsoleButton {
+                                id: deleteButton
+                                anchors { right: parent.right; top: previewBox.bottom; topMargin: 8 }
+                                width: card.confirming ? 76 : 30; height: 30
+                                text: card.confirming ? i18nd("cde-copper", "Delete?") : ""
+                                iconName: card.confirming ? "" : "edit-delete"
+                                horizontal: true; iconSize: 16; surface: consoleColors.window; foreground: consoleColors.windowText
+                                Accessible.name: i18nd("cde-copper", "Delete layout")
+                                onClicked: { if (card.confirming) root.deleteLayout(card.modelData.id); else card.confirming = true; }
+                            }
                         }
                     }
                 }
