@@ -721,6 +721,16 @@ for (var i = 0; i < alle.length; i++) {{
 }}
 
 for (var s = 0; s < screenCount; s++) {{
+    // Weitere Bildschirme nur, wenn Plasma dort schon eine Arbeitsflaeche
+    // hat. Beim Anwenden des Designs im laufenden Plasma (Systemeinstellungen,
+    // "Arbeitsflaechen-Layout") kennt es den zweiten Schirm noch nicht: das
+    // zweite Panel landete nirgends, wurde unten wieder entfernt - und das
+    // riss das erste mit (screen -1, beide Schirme schwarz bis zum Neustart
+    // von plasmashell). In der VM mit zwei Schirmen: vorher in jedem
+    // zweiten Wechsel, so in 8 von 8 sauber.
+    if (s > 0 && !desktopForScreen(s)) {{
+        continue;
+    }}
     var panel = new Panel;
     panel.screen = s;
     panel.location = "bottom";
