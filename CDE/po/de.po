@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: cde-copper 0.8.4\n"
+"Project-Id-Version: cde-copper 0.8.5\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-10-05 21:58+0200\n"
 "PO-Revision-Date: 2026-10-03 12:00+0200\n"
