@@ -3,7 +3,7 @@
     "Id": "org.cde.copper.druckvorstufe",
     "Name": "CDE Druckvorstufe",
     "Description": "Desktop publishing proofs, PBNJ palette, light and dark",
-    "Version": "0.8.3",
+    "Version": "0.8.4",
     "License": "GPL-2.0-or-later",
     "Authors": [
       {
