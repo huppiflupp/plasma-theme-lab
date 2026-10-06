@@ -9,7 +9,9 @@ Button {
     property string iconName: ""
     property bool selected: false
     property bool horizontal: false
-    property int iconSize: Math.round(38 * consoleColors.unit)
+    // Without a label the icon takes the room the text had.
+    property bool labelled: true
+    property int iconSize: Math.round((labelled ? 38 : 50) * consoleColors.unit)
     // Colours default to the console's; popups pass the window colours.
     property color surface: consoleColors.panel
     property color foreground: consoleColors.panelText
@@ -45,10 +47,11 @@ Button {
             source: control.iconName
             width: control.iconSize; height: width
             x: control.horizontal ? 2 : (parent.width - width) / 2
-            y: control.horizontal ? (parent.height - height) / 2 : 0
+            y: control.horizontal || !control.labelled ? (parent.height - height) / 2 : 0
             active: false
         }
         Text {
+            visible: control.labelled || !symbol.visible
             text: control.text
             color: control.selected ? control.accentText : control.foreground
             font.family: consoleColors.font; font.pixelSize: Math.round(11 * consoleColors.unit)

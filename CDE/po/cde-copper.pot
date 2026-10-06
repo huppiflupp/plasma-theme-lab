@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cde-copper 0.8.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-05 22:37+0200\n"
+"POT-Creation-Date: 2026-10-05 23:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: frontpanel/contents/ui/AppMenu.qml:128 frontpanel/contents/ui/launch.js:282
+#: frontpanel/contents/ui/AppMenu.qml:128 frontpanel/contents/ui/launch.js:286
 msgid "Applications"
 msgstr ""
 
@@ -247,7 +247,7 @@ msgid "Choose an application"
 msgstr ""
 
 #: frontpanel/contents/ui/configLaunchers.qml:145
-#: frontpanel/contents/ui/main.qml:1159
+#: frontpanel/contents/ui/main.qml:1175
 msgid "Search"
 msgstr ""
 
@@ -313,126 +313,134 @@ msgstr ""
 msgid "Restore default tiles"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:61
+#: frontpanel/contents/ui/configStyle.qml:63
 msgid "Outlined: dark edge, one-pixel bevel"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:62
+#: frontpanel/contents/ui/configStyle.qml:64
 msgid "Floating: a pixel inside the groove, two-pixel bevel"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:63
+#: frontpanel/contents/ui/configStyle.qml:65
 msgid "Slim: 8 pixels high"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:65
+#: frontpanel/contents/ui/configStyle.qml:67
 msgid "Copper rim"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:66
+#: frontpanel/contents/ui/configStyle.qml:68
 msgid "Rim in the palette's accent colour"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:67
+#: frontpanel/contents/ui/configStyle.qml:69
 msgid "White rim, as in X11"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:68
+#: frontpanel/contents/ui/configStyle.qml:70
 msgid "Rim in a colour of my own"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:118
+#: frontpanel/contents/ui/configStyle.qml:127
+msgid ""
+"This edition of CDE Copper comes from the KDE Store and cannot recolour the "
+"theme: choose a colour scheme in System Settings › Colours. The style "
+"manager with CDE's 37 palettes, backdrops and the Motif controls is part of "
+"the full installation from the project page."
+msgstr ""
+
+#: frontpanel/contents/ui/configStyle.qml:133
 msgid "Palette"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:121
+#: frontpanel/contents/ui/configStyle.qml:136
 msgid ""
 "CDE's 37 palettes and CDE Copper. The stripes: console, windows, text "
 "fields, active and inactive title, desktop. Choose one (and a backdrop "
 "below), then Apply or OK. ● marks the palette in use."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:139
+#: frontpanel/contents/ui/configStyle.qml:154
 msgid "%1 (in use)"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:166
+#: frontpanel/contents/ui/configStyle.qml:181
 msgid "Progress bars"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:179
+#: frontpanel/contents/ui/configStyle.qml:194
 msgid ""
 "In the programs' controls (Kvantum); the bar beside shows the style in use. "
 "Programs already open take it when restarted."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:183
+#: frontpanel/contents/ui/configStyle.qml:198
 msgid "Mouse cursors"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:196
+#: frontpanel/contents/ui/configStyle.qml:211
 msgid "Cursor rim"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:202
+#: frontpanel/contents/ui/configStyle.qml:217
 msgid ""
 "The cursors after the X11 cursor font: black shapes on a coloured rim, with "
 "a soft shadow."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:206
+#: frontpanel/contents/ui/configStyle.qml:221
 msgid "Windows"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:210
+#: frontpanel/contents/ui/configStyle.qml:225
 msgid "Short hard shadow at the right and bottom of each window"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:215
+#: frontpanel/contents/ui/configStyle.qml:230
 msgid "Lock screen"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:219
+#: frontpanel/contents/ui/configStyle.qml:234
 msgid "CDE's: a Motif dialog on the backdrop"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:219
+#: frontpanel/contents/ui/configStyle.qml:234
 msgid "Plasma's own"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:224
+#: frontpanel/contents/ui/configStyle.qml:239
 msgid ""
 "Plasma takes the lock screen from its shell package; CDE's comes in a shell "
 "package of its own that takes everything else from Plasma's. Switching "
 "restarts the desktop shell once."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:228
+#: frontpanel/contents/ui/configStyle.qml:243
 msgid "Backdrop"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:235
+#: frontpanel/contents/ui/configStyle.qml:250
 msgid "Keep the desktop as it is"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:236
+#: frontpanel/contents/ui/configStyle.qml:251
 msgid "Plain palette colour"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:239
+#: frontpanel/contents/ui/configStyle.qml:254
 msgid "Picture: %1 (for this palette)"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:241
+#: frontpanel/contents/ui/configStyle.qml:256
 msgid "Picture: %1"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:247
+#: frontpanel/contents/ui/configStyle.qml:262
 #: backdrop/contents/ui/config.qml:61
 msgid "Pixel size:"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:291
+#: frontpanel/contents/ui/configStyle.qml:306
 msgid ""
 "Backdrops are CDE's patterns (The Open Group, CC BY-SA 3.0), coloured with "
 "the palette, or CDE Copper's pictures, each painted for one palette and "
@@ -445,31 +453,31 @@ msgid "Network"
 msgstr ""
 
 #: frontpanel/contents/ui/main.qml:61 frontpanel/contents/ui/main.qml:176
-#: frontpanel/contents/ui/main.qml:510
+#: frontpanel/contents/ui/main.qml:526
 msgid "Audio"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:112 frontpanel/contents/ui/launch.js:283
+#: frontpanel/contents/ui/main.qml:112 frontpanel/contents/ui/launch.js:287
 msgid "Places"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:113 frontpanel/contents/ui/launch.js:265
+#: frontpanel/contents/ui/main.qml:113 frontpanel/contents/ui/launch.js:269
 msgid "System"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:114 frontpanel/contents/ui/launch.js:266
+#: frontpanel/contents/ui/main.qml:114 frontpanel/contents/ui/launch.js:270
 msgid "Help"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:115 frontpanel/contents/ui/launch.js:264
+#: frontpanel/contents/ui/main.qml:115 frontpanel/contents/ui/launch.js:268
 msgid "Mail"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:117 frontpanel/contents/ui/launch.js:285
+#: frontpanel/contents/ui/main.qml:117 frontpanel/contents/ui/launch.js:289
 msgid "Terminals"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:118 frontpanel/contents/ui/launch.js:284
+#: frontpanel/contents/ui/main.qml:118 frontpanel/contents/ui/launch.js:288
 msgid "Bookmarks"
 msgstr ""
 
@@ -505,11 +513,11 @@ msgstr ""
 msgid "File System"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:170 frontpanel/contents/ui/launch.js:267
+#: frontpanel/contents/ui/main.qml:170 frontpanel/contents/ui/launch.js:271
 msgid "Trash"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:173 frontpanel/contents/ui/launch.js:275
+#: frontpanel/contents/ui/main.qml:173 frontpanel/contents/ui/launch.js:279
 msgid "System Settings"
 msgstr ""
 
@@ -527,11 +535,11 @@ msgid "Display"
 msgstr ""
 
 #: frontpanel/contents/ui/main.qml:179 frontpanel/contents/ui/main.qml:245
-#: frontpanel/contents/ui/launch.js:276
+#: frontpanel/contents/ui/launch.js:280
 msgid "Help Center"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:180 frontpanel/contents/ui/main.qml:705
+#: frontpanel/contents/ui/main.qml:180 frontpanel/contents/ui/main.qml:721
 msgid "Lock Screen"
 msgstr ""
 
@@ -603,230 +611,230 @@ msgstr ""
 msgid "About CDE Copper"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:505
+#: frontpanel/contents/ui/main.qml:521
 msgid "Connected"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:505
+#: frontpanel/contents/ui/main.qml:521
 msgid "Offline"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:510
+#: frontpanel/contents/ui/main.qml:526
 msgid "Muted"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:569
+#: frontpanel/contents/ui/main.qml:585
 msgid "Open %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:631
+#: frontpanel/contents/ui/main.qml:647
 msgid "WORKSPACES"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:646
+#: frontpanel/contents/ui/main.qml:662
 msgid "Workspace %1 %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:684
+#: frontpanel/contents/ui/main.qml:700
 msgid "Hidden Icons"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:701
+#: frontpanel/contents/ui/main.qml:717
 msgid "Configure Front Console"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:709
+#: frontpanel/contents/ui/main.qml:725
 msgid "Show Desktop"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:727
+#: frontpanel/contents/ui/main.qml:743
 msgid "Processor %1 %, memory %2 %"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:810
+#: frontpanel/contents/ui/main.qml:826
 msgid "%1× %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:810
+#: frontpanel/contents/ui/main.qml:826
 msgid "Window"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:847
+#: frontpanel/contents/ui/main.qml:863
 msgid "Volume %1, %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:958
+#: frontpanel/contents/ui/main.qml:974
 msgid "Audio  %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:966
+#: frontpanel/contents/ui/main.qml:982
 msgid "Volume"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:972
+#: frontpanel/contents/ui/main.qml:988
 msgid "Unmute"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:972
+#: frontpanel/contents/ui/main.qml:988
 msgid "Mute"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:979
+#: frontpanel/contents/ui/main.qml:995
 msgid "Settings…"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1054 frontpanel/contents/ui/launch.js:287
+#: frontpanel/contents/ui/main.qml:1070 frontpanel/contents/ui/launch.js:291
 msgid "Saved layouts"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1058
+#: frontpanel/contents/ui/main.qml:1074
 msgid "Save Current Layout…"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1065
+#: frontpanel/contents/ui/main.qml:1081
 msgid "No saved layouts yet. Arrange your windows, then save them here."
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1118
+#: frontpanel/contents/ui/main.qml:1134
 msgid "%1 window"
 msgid_plural "%1 windows"
 msgstr[0] ""
 msgstr[1] ""
 
-#: frontpanel/contents/ui/main.qml:1128
+#: frontpanel/contents/ui/main.qml:1144
 msgid "Delete?"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1131
+#: frontpanel/contents/ui/main.qml:1147
 msgid "Delete layout"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1155
+#: frontpanel/contents/ui/main.qml:1171
 msgid "Find Application"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1181
+#: frontpanel/contents/ui/main.qml:1197
 msgid "Application"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:259
+#: frontpanel/contents/ui/launch.js:263
 msgid "Apps"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:260
+#: frontpanel/contents/ui/launch.js:264
 msgid "Files"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:261
+#: frontpanel/contents/ui/launch.js:265
 msgid "Terminal"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:262
+#: frontpanel/contents/ui/launch.js:266
 msgid "Editor"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:263
+#: frontpanel/contents/ui/launch.js:267
 msgid "Web"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:268
+#: frontpanel/contents/ui/launch.js:272
 msgid "Default web browser"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:269
+#: frontpanel/contents/ui/launch.js:273
 msgid "Default mail client"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:270
+#: frontpanel/contents/ui/launch.js:274
 msgid "Default file manager"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:271
+#: frontpanel/contents/ui/launch.js:275
 msgid "PCManFM (follows the Motif style best)"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:272
+#: frontpanel/contents/ui/launch.js:276
 msgid "XFile (Motif, as CDE's dtfile)"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:273
+#: frontpanel/contents/ui/launch.js:277
 msgid "Default text editor"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:274
+#: frontpanel/contents/ui/launch.js:278
 msgid "Calendar"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:277
+#: frontpanel/contents/ui/launch.js:281
 msgid "Applications menu"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:278
+#: frontpanel/contents/ui/launch.js:282
 msgid "Arrange windows around the console"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:279
+#: frontpanel/contents/ui/launch.js:283
 msgid "Installed application…"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:280
+#: frontpanel/contents/ui/launch.js:284
 msgid "Custom command…"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:281
+#: frontpanel/contents/ui/launch.js:285
 msgid "None"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:286
+#: frontpanel/contents/ui/launch.js:290
 msgid "Layouts"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:288
+#: frontpanel/contents/ui/launch.js:292
 msgid "Recent files"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:289
+#: frontpanel/contents/ui/launch.js:293
 msgid "A web browser"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:290
+#: frontpanel/contents/ui/launch.js:294
 msgid "A mail client"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:291
+#: frontpanel/contents/ui/launch.js:295
 msgid "A file manager"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:292
+#: frontpanel/contents/ui/launch.js:296
 msgid "A text editor"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:293
+#: frontpanel/contents/ui/launch.js:297
 msgid "A terminal"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:294
+#: frontpanel/contents/ui/launch.js:298
 msgid "A calendar application"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:295
+#: frontpanel/contents/ui/launch.js:299
 msgid "An address book"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:296
+#: frontpanel/contents/ui/launch.js:300
 msgid "%1 is not installed"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:297
+#: frontpanel/contents/ui/launch.js:301
 msgid ""
 "Choose another program in the console settings (right-click › Configure)."
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:298
+#: frontpanel/contents/ui/launch.js:302
 msgid "CDE Front Console"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:299
+#: frontpanel/contents/ui/launch.js:303
 msgid "The application %1"
 msgstr ""
 

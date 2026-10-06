@@ -37,7 +37,8 @@ languages can be added as `po/<language>.po`.
   Meta key), the browser's
   bookmarks, the editor's (or LibreOffice's) recently opened files, a Mail
   subpanel (new message, appointments, address book), Places and System
-  subpanels, saved window layouts with previews, four-workspace switcher (each button in a colour of the palette,
+  subpanels, saved window layouts with previews, workspace switcher (its own settings page: one to eight
+  workspaces, button width, a label per workspace, or switched off; each button in a colour of the palette,
   as in CDE), window task strip (several windows of
   one application as one button, "3× Konsole"), volume
   control, and a launcher-wide block: its arrow strip opens the hidden tray
@@ -134,6 +135,33 @@ the installer backs up the previous layout first. Without that flag, your
 current panels stay in place. The front console can also be added as a widget
 through Plasma's normal widget picker.
 
+### KDE Store edition
+
+System Settings › Global Theme › "Get New…" installs a single global theme
+package and runs nothing, so the store carries CDE Copper as several entries:
+the global themes (day and night) name the others as dependencies (console,
+backdrop, Plasma style, window frame, colour schemes, icons, cursors, window
+arrangement script, Alt+Tab switcher), and KDE fetches them with the theme.
+Tick "Desktop and window layout" when applying to get the front console.
+
+The store edition is a subset of the theme:
+
+- Breeze widgets instead of the Kvantum Motif controls (an archive for
+  Kvantum Manager is offered separately);
+- Plasma's lock screen instead of CDE's (that needs a shell package of its
+  own, which the store cannot install);
+- the 37 palettes as colour schemes, but no style manager: the Plasma
+  surfaces follow the colour scheme, the window frame stays Copper (or
+  Northern Sky at night) — the console's Style page says so;
+- an SVG window frame drawn after the QML one (the store installs only SVG
+  Aurorae frames): no corner grooves, and the window's icon on the menu
+  button;
+- the number of workspaces is not set (a global theme cannot set it).
+
+`python3 store.py` builds the archives in `dist/store/<version>/` with an
+`UPLOAD.md`: the category and title of each entry, and how the store ids go
+into `store-ids.json` so that a second run writes the dependencies.
+
 ### CDE palettes and backdrops
 
 The 37 palettes of CDE are listed in **System Settings › Colours** as
@@ -217,7 +245,14 @@ mid-tone surfaces.
 
 ## Configure the console
 
-Right-click the console and choose its settings.
+The clock tile offers thirteen faces on its settings page: digital type,
+seven segments, analog dials, and ten displays drawn after the real thing
+(red LED matrix, flip clock, three VFD looks, flip-disc, Panaplex, odometer
+drums, pixel type in the palette, plasma screen).
+
+Right-click the console and choose its settings. They survive a change of
+global theme or a panel rebuild: every value is mirrored into
+`~/.config/cdecopperrc`, and the layout script hands it to the new console.
 
 - **Front Console**: bottom, top, left or right screen edge (upright at the
   sides, running the full screen height, subpanels opening towards the middle);
@@ -400,6 +435,7 @@ purpose: a change to one must not alter the other (see `tools/README.md`).
 | `wallpapers/` | the 30 picture wallpapers, light and dark, and the scripts that made them |
 | `frontpanel/` | the console plasmoid; `contents/code/menus.py` reads bookmarks and recent files, `layouts.py` saves and restores window layouts |
 | `arrange/` | the KWin script for the window arrangement |
+| `store.py` | the KDE Store edition (`tools/gen-motif-aurorae.py` draws its SVG window frame) |
 | `fonts/` | IBM Plex |
 
 Generated assets are under `build/`. All testing was performed in the

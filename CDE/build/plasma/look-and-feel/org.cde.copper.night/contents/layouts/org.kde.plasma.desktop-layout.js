@@ -27,7 +27,12 @@ for (var s = 0; s < screens; ++s) {
     panel.lengthMode = 'fit';
     panel.floating = true;
     panel.hiding = 'none';
-    panel.addWidget('org.cde.copper.frontpanel');
+    var console = panel.addWidget('org.cde.copper.frontpanel');
+    // The console's settings survive the rebuild: it mirrors every change
+    // into cdecopperrc [Console] (see main.qml), the new console gets them back.
+    console.currentConfigGroup = ['General'];
+    var saved = ConfigFile('cdecopperrc', 'Console');
+    for (var k of saved.keys) if (k !== 'AllScreens') console.writeConfig(k, saved.readEntry(k));
     // The system tray beside the console: status icons (and the hidden
     // ones behind its arrow), and Plasma's notifications, which are only
     // shown at all while a tray exists in some panel.

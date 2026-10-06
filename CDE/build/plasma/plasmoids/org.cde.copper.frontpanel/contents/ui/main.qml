@@ -46,6 +46,20 @@ PlasmoidItem {
         target: Plasmoid
         function onActivated() { root.openApplications(root.appsTile || root.fullRepresentationItem); }
     }
+    // Every setting of this console also goes to cdecopperrc [Console]. The
+    // applet's own configuration lives in the panel layout and is gone the
+    // moment a global theme (or apply.sh --panel) rebuilds the panels; the
+    // layout script reads this file and hands the values to the new console.
+    // Lists are written in KConfig's comma form, so writeConfig in the
+    // layout script can pass them through unchanged.
+    Connections {
+        target: Plasmoid.configuration
+        function onValueChanged(key, value) {
+            if (key === "everyScreen") return;   // kept as [Console] AllScreens by placeConsoles
+            const text = Array.isArray(value) ? value.join(",") : String(value);
+            root.run("kwriteconfig6 --file cdecopperrc --group Console --key " + key + " " + Launch.quote(text));
+        }
+    }
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
     // On the screen edge (not floating) the panel containment gives the
     // console no margins at all, so it reaches the edge (Plasma's own
@@ -260,7 +274,9 @@ PlasmoidItem {
             + " if (proto && every) { for (var s = 0; s < screenCount; ++s) if (!have[s]) {"
             + " var n = new Panel; n.screen = s; n.location = proto.location; n.height = proto.height;"
             + " n.lengthMode = proto.lengthMode; n.floating = proto.floating; n.hiding = proto.hiding; n.alignment = 'center';"
-            + " var c = n.addWidget('org.cde.copper.frontpanel'); c.currentConfigGroup = ['General']; c.writeConfig('everyScreen', true);"
+            + " var c = n.addWidget('org.cde.copper.frontpanel'); c.currentConfigGroup = ['General'];"
+            + " var saved = ConfigFile('cdecopperrc', 'Console'); for (var k of saved.keys) if (k !== 'AllScreens') c.writeConfig(k, saved.readEntry(k));"
+            + " c.writeConfig('everyScreen', true);"
             + " if (n.screen !== s) n.remove(); } }"
             + " if (proto && !every) { for (var q of panels()) { var mine = false;"
             + " for (var x of q.widgets()) if (x.type === 'org.cde.copper.frontpanel') mine = true;"
@@ -326,7 +342,7 @@ PlasmoidItem {
     Timer {
         id: schemeTimer
         interval: 2000
-        onTriggered: root.run("python3 " + Launch.quote(root.tool) + " palette --follow-scheme --notify")
+        onTriggered: root.run(root.toolCommand("palette --follow-scheme --notify"))
     }
 
     property string pendingHiding: ""
@@ -370,17 +386,30 @@ PlasmoidItem {
         runner.connectSource("wpctl set-volume @DEFAULT_AUDIO_SINK@ " + value + "%");
     }
 
-    // "Arbeitsfläche 1", "Desktop 1": Plasma's default names only repeat
-    // the number the button already shows.
+    // The number, or the label from the console's settings; KWin's names
+    // stay in the tooltips (Accessible.name).
     function workspaceLabel(index) {
-        const name = (desktops.desktopNames[index] || "").trim();
-        const n = String(index + 1);
-        // Upright the buttons are narrow: the number only, the name in the tooltip.
-        if (root.vertical || name === "" || name === n || new RegExp("^\\D*\\s" + n + "$").test(name)) return n;
-        return n + "  " + name;
+        const own = ((Plasmoid.configuration.workspaceLabels || [])[index] || "").trim();
+        return own !== "" ? own : String(index + 1);
     }
+    // The switcher owns the workspace count: KWin gets as many workspaces as
+    // configured (1-8). The buttons show numbers only, so the names KWin
+    // keeps ("Arbeitsfläche 1", "Two", whatever the user chose) never mix
+    // on the console; they stay in the tooltips. New workspaces are named
+    // by their number.
+    function syncWorkspaces() {
+        if (!Plasmoid.configuration.showWorkspaces) return;
+        const want = Math.max(1, Math.min(8, Plasmoid.configuration.workspaceCount));
+        const ids = desktops.desktopIds;
+        const vdm = root.dbus + " org.kde.KWin /VirtualDesktopManager ";
+        for (let i = ids.length; i < want; i++) run(vdm + "createDesktop " + i + " " + (i + 1));
+        for (let i = ids.length - 1; i >= want; i--) run(vdm + "removeDesktop " + Launch.quote(ids[i]));
+    }
+    Timer { id: workspaceSync; interval: 1500; onTriggered: root.syncWorkspaces() }
     Connections {
         target: Plasmoid.configuration
+        function onWorkspaceCountChanged() { root.syncWorkspaces(); }
+        function onShowWorkspacesChanged() { root.syncWorkspaces(); }
         function onVisibilityModeChanged() { root.configurePanel(); }
         function onTopEdgeChanged() { root.configurePanel(); }
         function onEdgeChanged() { root.configurePanel(); }
@@ -395,7 +424,7 @@ PlasmoidItem {
             let request = null;
             try { request = JSON.parse(Plasmoid.configuration.styleRequest); } catch (e) { return; }
             if (!request || !request.palette) return;
-            let command = "python3 " + Launch.quote(root.tool) + " palette --notify --palette " + Launch.quote(request.palette);
+            let command = root.toolCommand("palette --notify --palette " + Launch.quote(request.palette));
             if (request.backdrop) command += " --backdrop " + Launch.quote(request.backdrop) + " --backdrop-scale " + Math.max(1, Math.min(3, request.scale || 1));
             if (["outlined", "floating", "slim"].indexOf(request.progress) >= 0) command += " --progress " + request.progress;
             if (/^(copper|palette|white|#[0-9a-fA-F]{6})$/.test(request.cursor || "")) command += " --cursor " + Launch.quote(request.cursor);
@@ -405,8 +434,25 @@ PlasmoidItem {
         }
     }
 
+    // The KDE Store edition has no manage.py: palettes come from System
+    // Settings there, and the tool's commands are skipped.
+    function toolCommand(args) {
+        return "[ -f " + Launch.quote(tool) + " ] && python3 " + Launch.quote(tool) + " " + args;
+    }
+    // The store edition brings its translations in the package; KDE looks
+    // for the cde-copper catalogue in the user's locale folder, so they are
+    // copied there (taking effect from the next start of the shell).
+    readonly property string packageLocale: decodeURIComponent(Qt.resolvedUrl("../locale").toString().replace(/^file:\/\//, ""))
+    function installTranslations() {
+        run("p=" + Launch.quote(packageLocale) + "; d=\"${XDG_DATA_HOME:-$HOME/.local/share}/locale\"; "
+            + "for f in \"$p\"/*/LC_MESSAGES/cde-copper.mo; do [ -f \"$f\" ] || continue; "
+            + "l=\"${f#\"$p\"/}\"; mkdir -p \"$d/${l%/*}\" && cp -u \"$f\" \"$d/$l\"; done");
+    }
+
     Component.onCompleted: {
+        installTranslations();
         if (Plasmoid.configuration.consoleScale !== 1 || !Plasmoid.configuration.floating) configurePanel();
+        workspaceSync.start();
         // The tray fills its item list on its first start; look once it has.
         trayTimer.start();
     }
@@ -581,6 +627,7 @@ PlasmoidItem {
             Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
             Layout.fillWidth: true; Layout.fillHeight: true
             text: Launch.slotLabel(slot.modelData, text => i18nd("cde-copper", text)); iconName: slot.modelData.icon
+            labelled: Plasmoid.configuration.launcherLabels
             onClicked: root.launch(slot.modelData, launcher)
             // The Applications tile, where the Meta key opens the menu.
             Component.onCompleted: if (slot.modelData.command === "@applications") root.appsTile = launcher
@@ -621,8 +668,11 @@ PlasmoidItem {
     }
 
     component Workspaces: Bevel {
+        visible: Plasmoid.configuration.showWorkspaces
+        // Two rows across: more workspaces widen the block, upright they stack.
+        readonly property int columns: root.vertical ? 2 : Math.max(2, Math.ceil(desktops.desktopIds.length / 2))
         Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
-        Layout.preferredWidth: root.vertical ? -1 : root.u(192)
+        Layout.preferredWidth: root.vertical ? -1 : root.u((Plasmoid.configuration.workspaceButtonWidth + 12) * columns)
         Layout.preferredHeight: root.vertical ? root.u(72) : -1
         surface: Motif.shades(consoleColors.panel).bottom; sunken: true
         ColumnLayout {
@@ -633,7 +683,7 @@ PlasmoidItem {
                 font.weight: consoleColors.weight
             }
             GridLayout {
-                columns: 2; rowSpacing: 3; columnSpacing: 3
+                columns: parent.parent.columns; rowSpacing: 3; columnSpacing: 3
                 Layout.fillWidth: true; Layout.fillHeight: true
                 Repeater {
                     model: desktops.desktopIds
@@ -641,7 +691,7 @@ PlasmoidItem {
                         required property int index
                         required property var modelData
                         Layout.fillWidth: true; Layout.fillHeight: true
-                        implicitWidth: root.u(root.vertical ? 40 : 70); implicitHeight: root.u(23)
+                        implicitWidth: root.u(root.vertical ? 40 : Plasmoid.configuration.workspaceButtonWidth); implicitHeight: root.u(23)
                         text: root.workspaceLabel(index)
                         Accessible.name: i18nd("cde-copper", "Workspace %1 %2", index + 1, desktops.desktopNames[index] || "")
                         selected: desktops.currentDesktop === modelData

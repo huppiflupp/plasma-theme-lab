@@ -14,6 +14,8 @@ KCM.SimpleKCM {
     property var cfg_edgeDefault
     property var cfg_windowsOnThisScreenDefault
     property var cfg_workspaceColoursDefault
+    property var cfg_showWorkspacesDefault
+    property var cfg_workspaceCountDefault
     property var cfg_groupWindowsDefault
     property var cfg_consoleLabelDefault
     property var cfg_consoleScaleDefault
@@ -25,6 +27,7 @@ KCM.SimpleKCM {
     property var cfg_floatingDefault
     property var cfg_everyScreenDefault
     property var cfg_styleRequestDefault
+    property var cfg_launcherLabelsDefault
     property var cfg_leftLaunchersDefault
     property var cfg_rightLaunchersDefault
     property var cfg_clockOpensAppDefault
@@ -35,12 +38,14 @@ KCM.SimpleKCM {
     property var cfg_clockSegmentShadowDefault
     property var cfg_calendarCommandDefault
     property var cfg_enabledCalendarPluginsDefault
+    property var cfg_workspaceButtonWidthDefault
+    property var cfg_workspaceLabelsDefault
     property alias cfg_visibilityMode: visibility.currentIndex
     property bool cfg_topEdge
     property int cfg_edge: -1
     property alias cfg_windowsOnThisScreen: thisScreen.checked
     property alias cfg_groupWindows: groupWindows.checked
-    property alias cfg_workspaceColours: workspaceColours.checked
+    property alias cfg_launcherLabels: launcherLabels.checked
     property alias cfg_consoleLabel: label.text
     property real cfg_consoleScale: 1.0
     property alias cfg_hideTrayVolume: hideVolume.checked
@@ -78,9 +83,9 @@ KCM.SimpleKCM {
             enabled: everyScreen.checked
         }
         CheckBox {
-            id: workspaceColours
-            Kirigami.FormData.label: i18nd("cde-copper", "Workspaces:")
-            text: i18nd("cde-copper", "Each button in a colour of its own, as in CDE")
+            id: launcherLabels
+            Kirigami.FormData.label: i18nd("cde-copper", "Launchers:")
+            text: i18nd("cde-copper", "Labels under the icons (off: larger icons, names as tooltips)")
         }
         CheckBox {
             id: groupWindows

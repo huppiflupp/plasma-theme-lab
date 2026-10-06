@@ -7,6 +7,11 @@ import "motif.js" as Motif
 //
 //   style  "digital"   day, time and date in type
 //          "segments"  a seven-segment time, unlit segments faintly visible
+//          "ledmatrix" "flipclock" "vfd" "vfd-blue" "vfd-aqua" "flipdisc"
+//          "panaplex" "odometer" "pixel" "plasma"
+//                      displays of their own kind, each in the colours of
+//                      the real thing (red LEDs, blue-green phosphor ...);
+//                      "pixel" alone takes the palette
 //          "analog"    hands on a dial:
 //   dial   "cde"       round, after CDE's front-panel clock (dtclock)
 //          "motif"     square, a sunken Motif well with hour bars
@@ -182,6 +187,231 @@ Item {
             visible: segmentsFace.showDate
             x: Math.round((segmentsFace.width - width) / 2)
             y: segments.y + segments.height + segmentsFace.gapBelow
+            text: Qt.formatDateTime(face.now, "ddd dd MMM").toUpperCase()
+            color: face.ink
+            font.pixelSize: face.small; font.family: face.font; font.weight: face.bold ? Font.DemiBold : Font.Normal
+        }
+    }
+
+
+    // ---- displays -----------------------------------------------------
+    // Ten display types on one canvas. Everything scales from the room the
+    // face has; the date goes below the time as with the segments.
+    Item {
+        id: displaysFace
+        readonly property var kinds: ["ledmatrix", "flipclock", "vfd", "vfd-blue", "vfd-aqua", "flipdisc", "panaplex", "odometer", "pixel", "plasma"]
+        visible: kinds.indexOf(face.style) >= 0
+        anchors.fill: parent
+        readonly property bool showDate: face.height > 40
+        readonly property int dateHeight: showDate ? Math.ceil(face.small * 1.3) : 0
+        readonly property int gapBelow: showDate ? Math.round(face.height * 0.05) : 0
+        Canvas {
+            id: display
+            width: Math.max(8, displaysFace.width)
+            height: Math.max(8, displaysFace.height - displaysFace.dateHeight - displaysFace.gapBelow)
+            x: 0; y: 0
+            readonly property string text: Qt.formatDateTime(face.now, face.seconds ? "HHmmss" : "HHmm")
+            onTextChanged: requestPaint()
+            onWidthChanged: requestPaint()
+            onHeightChanged: requestPaint()
+            Connections {
+                target: face
+                function onStyleChanged() { display.requestPaint(); }
+                function onInkChanged() { display.requestPaint(); }
+                function onAccentChanged() { display.requestPaint(); }
+                function onDialColorChanged() { display.requestPaint(); }
+            }
+            readonly property var seg7: ["abcdef", "bc", "abdeg", "abcdg", "bcfg", "acdfg", "acdefg", "abc", "abcdefg", "abcdfg"]
+            readonly property var dots: [
+                ["01110","10001","10011","10101","11001","10001","01110"], ["00100","01100","00100","00100","00100","00100","01110"],
+                ["01110","10001","00001","00010","00100","01000","11111"], ["11111","00010","00100","00010","00001","10001","01110"],
+                ["00010","00110","01010","10010","11111","00010","00010"], ["11111","10000","11110","00001","00001","10001","01110"],
+                ["00110","01000","10000","11110","10001","10001","01110"], ["11111","00001","00010","00100","01000","01000","01000"],
+                ["01110","10001","10001","01110","10001","10001","01110"], ["01110","10001","10001","01111","00001","00010","01100"]]
+            onPaint: {
+                if (!displaysFace.visible) return;
+                const ctx = getContext("2d");
+                ctx.reset();
+                const kind = face.style, W = width, H = height, text = display.text;
+                const n = text.length, colons = n / 2 - 1;
+                function bar(x, y, w, h, r) {   // rounded bar
+                    r = Math.min(r, w / 2, h / 2);
+                    ctx.beginPath();
+                    ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arc(x + w - r, y + r, r, -Math.PI / 2, 0);
+                    ctx.lineTo(x + w, y + h - r); ctx.arc(x + w - r, y + h - r, r, 0, Math.PI / 2);
+                    ctx.lineTo(x + r, y + h); ctx.arc(x + r, y + h - r, r, Math.PI / 2, Math.PI);
+                    ctx.lineTo(x, y + r); ctx.arc(x + r, y + r, r, Math.PI, Math.PI * 1.5);
+                    ctx.closePath(); ctx.fill();
+                }
+                function disc(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fill(); }
+                function backdrop(colour, bezel) {
+                    ctx.fillStyle = colour; ctx.fillRect(0, 0, W, H);
+                    if (bezel) { ctx.strokeStyle = bezel; ctx.lineWidth = 1; ctx.strokeRect(0.5, 0.5, W - 1, H - 1); }
+                }
+                function glow(colour, blur) { ctx.shadowColor = colour; ctx.shadowBlur = blur; }
+                function noGlow() { ctx.shadowBlur = 0; ctx.shadowColor = "transparent"; }
+
+                // ---- dot grids: LED matrix, flip-disc, pixel ----
+                if (kind === "ledmatrix" || kind === "flipdisc" || kind === "pixel") {
+                    const cols = n * 6 - 1 + colons * 2;
+                    const p = Math.max(2, Math.floor(Math.min((W - 4) / cols, (H - 4) / 7)));
+                    const x0 = Math.round((W - cols * p) / 2), y0 = Math.round((H - 7 * p) / 2);
+                    if (kind === "ledmatrix") backdrop("#0b0b0b", "#262626");
+                    if (kind === "flipdisc") backdrop("#141414", "#333333");
+                    const r = p * (kind === "flipdisc" ? 0.46 : 0.42);
+                    let col = 0;
+                    const cells = [];
+                    for (let i = 0; i < n; i++) {
+                        const bits = display.dots[Number(text[i])];
+                        for (let ry = 0; ry < 7; ry++) for (let rx = 0; rx < 5; rx++) cells.push([col + rx, ry, bits[ry][rx] === "1"]);
+                        col += 6;
+                        if (i % 2 === 1 && i < n - 1) { cells.push([col, 2, true]); cells.push([col, 4, true]); col += 2; }
+                    }
+                    if (kind !== "pixel") {   // unlit dots first
+                        ctx.fillStyle = kind === "ledmatrix" ? "#28100a" : "#1e1e1e";
+                        for (let cx = 0; cx < cols; cx++) for (let cy = 0; cy < 7; cy++)
+                            if (!(cx % 6 === 5 && cx < n * 6 - 1)) disc(x0 + cx * p + p / 2, y0 + cy * p + p / 2, r);
+                    }
+                    if (kind === "ledmatrix") glow("#ff2a1a", p * 0.9);
+                    for (const c of cells) {
+                        if (!c[2]) continue;
+                        const cx = x0 + c[0] * p, cy = y0 + c[1] * p;
+                        if (kind === "ledmatrix") { ctx.fillStyle = "#ff2a1a"; disc(cx + p / 2, cy + p / 2, r); }
+                        else if (kind === "flipdisc") {
+                            ctx.fillStyle = "#f2d33c"; disc(cx + p / 2, cy + p / 2, r);
+                            if (p >= 6) { ctx.fillStyle = "#fff3a0"; disc(cx + p / 2 - r * 0.25, cy + p / 2 - r * 0.25, r * 0.35); }
+                        } else {
+                            ctx.fillStyle = face.ink.toString(); ctx.fillRect(cx, cy, p - 1, p - 1);
+                            if (p >= 4) { ctx.fillStyle = face.accent.toString(); ctx.fillRect(cx + 1, cy + 1, p - 2, p - 2); }
+                        }
+                    }
+                    noGlow();
+                    return;
+                }
+
+                // ---- segments: VFD and Panaplex ----
+                if (kind.indexOf("vfd") === 0 || kind === "panaplex") {
+                    const units = n * 0.5 + (n - 1) * 0.15 + colons * 0.25;
+                    const h = Math.max(8, Math.floor(Math.min(H * 0.84, (W - 6) / units)));
+                    const w = Math.round(h * 0.5), s = Math.round(h * 0.15), cw = Math.round(h * 0.25);
+                    const t = Math.max(1, Math.round(h * (kind === "panaplex" ? 0.07 : 0.1)));
+                    let x = Math.round((W - (n * w + (n - 1) * s + colons * cw)) / 2);
+                    const y = Math.round((H - h) / 2), mid = y + h / 2;
+                    const look = {
+                        "vfd":      {bg: "#06121a", bezel: "#12303a", on: "#9df7ff", off: "rgba(120,200,210,0.16)", blur: 0.15, passes: 2, grid: true},
+                        "vfd-blue": {bg: "#020a16", bezel: "#0a1a33", on: "#e8fbff", off: "rgba(120,200,210,0.12)", blur: 0.15, passes: 2, grid: true, tint: "rgba(20,60,160,0.2)"},
+                        "vfd-aqua": {bg: "#000000", bezel: "#111111", on: "#66e6ff", off: "rgba(120,200,210,0.08)", blur: 0.32, passes: 3, grid: false},
+                        "panaplex": {bg: "#0a0806", bezel: "#2a2018", on: "#ff6a2a", off: "rgba(255,106,42,0.12)", blur: 0.12, passes: 2, grid: false, core: "#ffd0a0"}
+                    }[kind];
+                    backdrop(look.bg, look.bezel);
+                    function segment(key, xd, lit) {
+                        const inner = w - 2 * t, upper = mid - t / 2 - (y + t), lower = (y + h - t) - (mid + t / 2);
+                        const g = 1;
+                        const box = {a: [xd + t + g, y, inner - 2 * g, t], g: [xd + t + g, mid - t / 2, inner - 2 * g, t], d: [xd + t + g, y + h - t, inner - 2 * g, t],
+                                     f: [xd, y + t + g, t, upper - 2 * g], b: [xd + w - t, y + t + g, t, upper - 2 * g],
+                                     e: [xd, mid + t / 2 + g, t, lower - 2 * g], c: [xd + w - t, mid + t / 2 + g, t, lower - 2 * g]}[key];
+                        if (kind === "panaplex") {
+                            ctx.fillStyle = lit ? look.on : look.off;
+                            bar(box[0], box[1], box[2], box[3], t / 2);
+                            if (lit && t >= 3) { ctx.fillStyle = look.core; const k = Math.max(1, Math.floor(t / 3));
+                                if (box[2] > box[3]) bar(box[0] + 1, box[1] + (t - k) / 2, box[2] - 2, k, k / 2); else bar(box[0] + (t - k) / 2, box[1] + 1, k, box[3] - 2, k / 2); }
+                        } else {
+                            ctx.fillStyle = lit ? look.on : look.off;
+                            bar(box[0], box[1], box[2], box[3], t / 2);
+                        }
+                    }
+                    // Unlit, then the lit ones with their glow (several passes thicken it).
+                    let xd = x;
+                    for (let i = 0; i < n; i++) {
+                        for (const key of "abcdefg") if (display.seg7[Number(text[i])].indexOf(key) < 0) segment(key, xd, false);
+                        xd += w + s; if (i % 2 === 1 && i < n - 1) xd += cw;
+                    }
+                    for (let pass = 0; pass < look.passes; pass++) {
+                        glow(look.on, h * look.blur * (pass === 0 ? 2 : 1));
+                        xd = x;
+                        for (let i = 0; i < n; i++) {
+                            for (const key of "abcdefg") if (display.seg7[Number(text[i])].indexOf(key) >= 0) segment(key, xd, true);
+                            xd += w + s;
+                            if (i % 2 === 1 && i < n - 1) {
+                                ctx.fillStyle = look.on;
+                                disc(xd + cw / 2 - s / 2, y + h * 0.3, t / 2); disc(xd + cw / 2 - s / 2, y + h * 0.7, t / 2);
+                                xd += cw;
+                            }
+                        }
+                    }
+                    noGlow();
+                    if (look.grid && h > 20) { ctx.fillStyle = "rgba(0,0,0,0.18)"; for (let gy = 3; gy < H; gy += 5) ctx.fillRect(1, gy, W - 2, 1); }
+                    if (look.tint) { ctx.fillStyle = look.tint; ctx.fillRect(1, 1, W - 2, H - 2); }
+                    return;
+                }
+
+                // ---- type: flip clock, odometer, plasma ----
+                const gap = Math.max(1, Math.round(W * 0.015));
+                if (kind === "flipclock") {
+                    backdrop("#2a2a2a", "#444444");
+                    const cw = Math.round(H * 0.3);
+                    const card = Math.floor((W - 4 - colons * cw - (n - 1) * gap) / n);
+                    const px = Math.floor(H * 0.78);
+                    ctx.font = "700 " + px + "px '" + face.font + "'"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    let x = Math.round((W - (n * card + (n - 1) * gap + colons * cw)) / 2);
+                    for (let i = 0; i < n; i++) {
+                        ctx.fillStyle = "#111111"; bar(x, 2, card, H - 4, Math.max(1, H * 0.06));
+                        ctx.fillStyle = "#1a1a1a"; ctx.fillRect(x, 2, card, H / 2 - 2);
+                        ctx.fillStyle = "#f2f2f2"; ctx.fillText(text[i], x + card / 2, H / 2 + 1);
+                        ctx.fillStyle = "#2a2a2a"; ctx.fillRect(x, Math.round(H / 2) - 1, card, 2);
+                        x += card + gap;
+                        if (i % 2 === 1 && i < n - 1) { ctx.fillStyle = "#dddddd"; disc(x + cw / 2 - gap / 2, H * 0.38, H * 0.04); disc(x + cw / 2 - gap / 2, H * 0.62, H * 0.04); x += cw; }
+                    }
+                    return;
+                }
+                if (kind === "odometer") {
+                    const frame = Motif.shades(face.dialColor);
+                    ctx.fillStyle = face.dialColor.toString(); ctx.fillRect(0, 0, W, H);
+                    const cw = Math.round(H * 0.3);
+                    const drum = Math.floor((W - 6 - colons * cw - (n - 1) * gap) / n);
+                    const top = 2, dh = H - 4;
+                    let x = Math.round((W - (n * drum + (n - 1) * gap + colons * cw)) / 2);
+                    ctx.fillStyle = "#1a1a1a"; ctx.fillRect(x - 3, top - 2 + 2, n * drum + (n - 1) * gap + colons * cw + 6, dh);
+                    const px = Math.floor(dh * 0.62);
+                    ctx.font = "700 " + px + "px 'IBM Plex Mono'"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    for (let i = 0; i < n; i++) {
+                        const grad = ctx.createLinearGradient(0, top, 0, top + dh);
+                        grad.addColorStop(0, "#5a5a5a"); grad.addColorStop(0.5, "#ededed"); grad.addColorStop(1, "#5a5a5a");
+                        ctx.fillStyle = grad; ctx.fillRect(x, top, drum, dh);
+                        ctx.save(); ctx.beginPath(); ctx.rect(x, top, drum, dh); ctx.clip();
+                        const v = Number(text[i]);
+                        ctx.fillStyle = "#111111"; ctx.fillText(String(v), x + drum / 2, top + dh / 2);
+                        ctx.fillStyle = "#555555";
+                        ctx.fillText(String((v + 9) % 10), x + drum / 2, top + dh / 2 - dh * 0.72);
+                        ctx.fillText(String((v + 1) % 10), x + drum / 2, top + dh / 2 + dh * 0.72);
+                        ctx.restore();
+                        ctx.strokeStyle = "#000000"; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, top + 0.5, drum - 1, dh - 1);
+                        x += drum + gap;
+                        if (i % 2 === 1 && i < n - 1) { ctx.fillStyle = "#2a2a2a"; ctx.fillRect(x + cw * 0.35, top + 2, cw * 0.3, dh - 4); x += cw; }
+                    }
+                    return;
+                }
+                if (kind === "plasma") {
+                    backdrop("#1a0a0a", "#3a1a1a");
+                    const shown = face.seconds ? Qt.formatDateTime(face.now, "HH:mm:ss") : Qt.formatDateTime(face.now, "HH:mm");
+                    const px = Math.floor(Math.min(H * 0.8, (W - 6) / (shown.length * 0.5)));
+                    ctx.font = "600 " + px + "px '" + face.font + "'"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    for (let pass = 0; pass < 3; pass++) {
+                        glow("#ff4a2a", px * (pass === 0 ? 0.35 : 0.12));
+                        ctx.fillStyle = "#ff4a2a"; ctx.fillText(shown, W / 2, H / 2 + 1);
+                    }
+                    noGlow();
+                    if (H > 24) {
+                        ctx.fillStyle = "rgba(0,0,0,0.27)"; for (let gy = 0; gy < H; gy += 3) ctx.fillRect(0, gy, W, 1);
+                        ctx.fillStyle = "rgba(0,0,0,0.16)"; for (let gx = 0; gx < W; gx += 3) ctx.fillRect(gx, 0, 1, H);
+                    }
+                }
+            }
+        }
+        Text {
+            visible: displaysFace.showDate
+            x: Math.round((displaysFace.width - width) / 2)
+            y: display.y + display.height + displaysFace.gapBelow
             text: Qt.formatDateTime(face.now, "ddd dd MMM").toUpperCase()
             color: face.ink
             font.pixelSize: face.small; font.family: face.font; font.weight: face.bold ? Font.DemiBold : Font.Normal

@@ -240,9 +240,13 @@ function check(command) {
 // KillMode=process: gtk-launch and kstart hand the program over and exit at
 // once; with systemd's default the program would be killed with them as the
 // rest of the unit's control group.
+// systemd expands ${NAME} in the command line itself (an unknown name to
+// nothing, as "${f#$p/}" or "${XDG_RUNTIME_DIR:-/tmp}"); "$$" is its
+// literal dollar, so the shell gets the script as written.
 function detached(shell) {
+    const script = "[ -n \"$DISPLAY$WAYLAND_DISPLAY\" ] && [ -n \"$DBUS_SESSION_BUS_ADDRESS\" ] || exit 0; " + shell;
     return "systemd-run --user --collect --quiet -p KillMode=process -- sh -c "
-        + quote("[ -n \"$DISPLAY$WAYLAND_DISPLAY\" ] && [ -n \"$DBUS_SESSION_BUS_ADDRESS\" ] || exit 0; " + shell);
+        + quote(script.replace(/\$/g, "$$$$"));
 }
 
 // Translate shipped labels at presentation time; keep user labels and app names.

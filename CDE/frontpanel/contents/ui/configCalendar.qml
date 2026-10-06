@@ -38,6 +38,11 @@ KCM.SimpleKCM {
     property var cfg_clockSegmentShadowDefault
     property var cfg_calendarCommandDefault
     property var cfg_enabledCalendarPluginsDefault
+    property var cfg_showWorkspacesDefault
+    property var cfg_workspaceCountDefault
+    property var cfg_workspaceButtonWidthDefault
+    property var cfg_workspaceLabelsDefault
+    property var cfg_launcherLabelsDefault
     property alias cfg_clockOpensApp: opensApp.checked
     property alias cfg_calendarCommand: command.text
     property var cfg_enabledCalendarPlugins: []
@@ -47,7 +52,12 @@ KCM.SimpleKCM {
     property alias cfg_clockSegmentEdge: segmentEdge.checked
     property alias cfg_clockSegmentShadow: segmentShadow.checked
     readonly property var styles: [{text: i18nd("cde-copper", "Digital"), value: "digital"}, {text: i18nd("cde-copper", "Seven-segment"), value: "segments"},
-                                   {text: i18nd("cde-copper", "Analog"), value: "analog"}]
+                                   {text: i18nd("cde-copper", "Analog"), value: "analog"},
+                                   {text: i18nd("cde-copper", "LED matrix (red)"), value: "ledmatrix"}, {text: i18nd("cde-copper", "Flip clock"), value: "flipclock"},
+                                   {text: i18nd("cde-copper", "VFD (blue-green)"), value: "vfd"}, {text: i18nd("cde-copper", "VFD behind blue glass"), value: "vfd-blue"},
+                                   {text: i18nd("cde-copper", "VFD aqua, wide halo"), value: "vfd-aqua"}, {text: i18nd("cde-copper", "Flip-disc (yellow)"), value: "flipdisc"},
+                                   {text: i18nd("cde-copper", "Panaplex (gas discharge)"), value: "panaplex"}, {text: i18nd("cde-copper", "Odometer drums"), value: "odometer"},
+                                   {text: i18nd("cde-copper", "Pixel type (palette)"), value: "pixel"}, {text: i18nd("cde-copper", "Plasma screen"), value: "plasma"}]
     readonly property var dials: [{text: i18nd("cde-copper", "CDE (round, as dtclock)"), value: "cde"}, {text: i18nd("cde-copper", "Motif (square well)"), value: "motif"},
                                   {text: i18nd("cde-copper", "Roman numerals"), value: "roman"}, {text: i18nd("cde-copper", "Plain (no dial)"), value: "plain"}]
 

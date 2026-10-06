@@ -7,6 +7,12 @@
     <!-- 0 bottom, 1 top, 2 left, 3 right; -1 follows topEdge (0.2.0 settings) -->
     <entry name="edge" type="Int"><default>-1</default></entry>
     <entry name="windowsOnThisScreen" type="Bool"><default>true</default></entry>
+    <!-- The workspace switcher, and how many workspaces it keeps in KWin (1-8) -->
+    <entry name="showWorkspaces" type="Bool"><default>true</default></entry>
+    <entry name="workspaceCount" type="Int"><default>4</default></entry>
+    <!-- Width of one workspace button in console units, and labels per workspace (empty: the number) -->
+    <entry name="workspaceButtonWidth" type="Int"><default>70</default></entry>
+    <entry name="workspaceLabels" type="StringList"><default></default></entry>
     <!-- Workspace buttons in the palette's colour sets 3, 5, 6, 7, as in CDE -->
     <entry name="workspaceColours" type="Bool"><default>true</default></entry>
     <!-- Windows of one application as one task button: "3× Konsole" -->
@@ -32,6 +38,8 @@
   </group>
   <group name="Launchers">
     <!-- JSON lists of {label, icon, command, menu}; empty means the defaults in launch.js -->
+    <!-- Launcher tiles with a label under the icon, or the icon alone, larger -->
+    <entry name="launcherLabels" type="Bool"><default>true</default></entry>
     <entry name="leftLaunchers" type="String"><default></default></entry>
     <entry name="rightLaunchers" type="String"><default></default></entry>
   </group>

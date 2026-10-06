@@ -44,6 +44,11 @@ KCM.SimpleKCM {
     property var cfg_clockSegmentShadowDefault
     property var cfg_calendarCommandDefault
     property var cfg_enabledCalendarPluginsDefault
+    property var cfg_showWorkspacesDefault
+    property var cfg_workspaceCountDefault
+    property var cfg_workspaceButtonWidthDefault
+    property var cfg_workspaceLabelsDefault
+    property var cfg_launcherLabelsDefault
     property string cfg_leftLaunchers
     property string cfg_rightLaunchers
     property var leftSlots: Launch.parse(cfg_leftLaunchers, Launch.LEFT)

@@ -880,16 +880,24 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
     if backdrop:
         set_backdrop(manifest, backdrop, backdrop_scale or manifest.get("backdrop_scale", 1))
     if panel:
-        # KWin exposes workspace creation through D-Bus; no session restart required.
+        # KWin exposes workspace creation through D-Bus; no session restart
+        # required. The console's own setting (cdecopperrc, mirrored from its
+        # configuration) decides how many; the console renames and trims
+        # them itself once it runs.
         exe = shutil.which("qdbus6") or shutil.which("qdbus-qt6")
         count = int(subprocess.check_output([exe, "org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager.count"], text=True).strip())
-        for i in range(count, 4):
-            dbus("org.kde.KWin", "/VirtualDesktopManager", "createDesktop", str(i), ("One", "Two", "Three", "Four")[i])
+        saved = configparser.ConfigParser(interpolation=None, strict=False)
+        saved.optionxform = str
+        saved.read(CONFIG / "cdecopperrc")
+        shown = saved.get("Console", "showWorkspaces", fallback="true") != "false"
+        wanted = max(1, min(8, int(saved.get("Console", "workspaceCount", fallback="4")))) if shown else count
+        for i in range(count, wanted):
+            dbus("org.kde.KWin", "/VirtualDesktopManager", "createDesktop", str(i), str(i + 1))
         # KWin keeps its workspaces in memory and writes kwinrc only when they
         # change: after an uninstall restored an older kwinrc, four running
         # workspaces would need no change and the next login find one.
         # KWin adds the ids for missing entries itself.
-        write_config("kwinrc", "Desktops", {"Number": str(max(4, count)), "Rows": "2"})
+        write_config("kwinrc", "Desktops", {"Number": str(max(wanted, count)), "Rows": "2"})
         dbus("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell.evaluateScript", (ROOT / "layout.js").read_text())
     print(f"Applied with palette {chosen}. Log out and back in to reload all application styles and the decoration.")
 

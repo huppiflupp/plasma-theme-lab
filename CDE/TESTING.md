@@ -88,6 +88,18 @@ from the installed 0.1.0:
   split into two terminals, two quarters below on the second screen).
   Floating console: Plasma lowers it when a window touches it, leaving the
   float gap under the middle terminal.
+- KDE Store edition (0.8.6, VM): the full installation removed (NT Legacy
+  Lilac came back), the store archives installed as KDE installs them
+  (kpackagetool6 for the packages, the archives unpacked into aurorae/themes,
+  color-schemes, icons and ~/.icons/CDECopperCursors), then the global theme
+  applied with its layout: Breeze widgets, CDE icons and cursors, the SVG
+  frame, the Plasma style, the console with its tiles, the four KWin
+  shortcuts of the arrangement script, seven terminals placed. The console's
+  Style page shows the store notice and disables the palettes. The window
+  switcher needed `[kwinrc][WindowSwitcher]` (TabBox is ignored there);
+  workspaces are not set by a global theme. Not testable without uploading:
+  KDE fetching the dependencies. Found on the way: systemd-run expanded
+  `${...}` in the console's commands itself (now passed as `$$`).
 - Saved layouts (0.8.5+, VM with two outputs): saving seven terminals and
   Firefox recorded screens, places, stacking, the Konsole splits (side by
   side, one above the other, nested), folders and profiles; restoring with
