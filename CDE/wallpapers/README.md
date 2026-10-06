@@ -1,6 +1,6 @@
 # Hintergrundbilder
 
-28 Bilder in 3840×2160, jedes hell (`<key>.jpg`) und dunkel (`<key>-dark.jpg`).
+30 Bilder in 3840×2160, jedes hell (`<key>.jpg`) und dunkel (`<key>-dark.jpg`).
 `build.py` packt jedes Motiv als Plasma-Hintergrund `org.cde.copper.<key>` mit
 `images/` und `images_dark/`. Plasma nimmt die dunkle Fassung automatisch, solange
 ein dunkles Farbschema aktiv ist. Die Liste mit Namen steht in `build.py`
@@ -19,6 +19,7 @@ herausgehalten.
 | Workstation-Arbeit | Chipstadt, CAD, Molekül, Sequenz, Druckvorstufe, Schnittplatz, MRT, Mischpult, VLSI, Strömung | wofür CDE-Workstations in den 90ern liefen |
 | Abstrakt | Kristall, Marmor, Düne | nach den Mustern der beliebtesten KDE-Store-Hintergründe |
 | 90er-Illustration | Aquarell, Panorama | Software-Cover-Illustration der späten 90er, ohne Figuren oder Logos der Vorlagen |
+| Zwei Bildschirme | Düne links, Düne rechts | ein Panorama, auf 32 und 27 Zoll aufgeteilt |
 
 ## Wie sie entstanden sind
 
@@ -52,3 +53,20 @@ CDE Strömung ist gerechnet statt generiert: `cfd.py` berechnet die
 Potentialströmung um ein Joukowski-Profil mit Zirkulation (Kutta-Bedingung).
 Die Linien sind Stromlinien, der Hintergrund ist der Druckbeiwert. Hell und
 dunkel stammen aus derselben Rechnung, direkt in 4K.
+
+## Ein Bild über zwei Bildschirme
+
+`panorama/duene.jpg` und `panorama/duene-dark.jpg` sind ein breites Bild
+(10752×3200, Krea-2 in 2688×800, Prompt in `gen/duene_breit_prompt.json`,
+dann 4x-UltraSharp). `gen/span.py` teilt es nach Millimetern auf zwei
+Bildschirme auf, oben bündig, den Streifen hinter den Rahmen lässt es weg. So
+laufen die Linien gerade über den Rahmen, obwohl die Pixeldichten verschieden
+sind. Düne links und Düne rechts sind für einen 32-Zoll-Bildschirm
+(698×393 mm) links neben einem 27-Zoll-Bildschirm (597×336 mm) mit 20 mm
+Spalt geschnitten. Für andere Bildschirme:
+
+    python3 gen/span.py panorama/duene-dark.jpg links.jpg rechts.jpg \
+        --left 698x393 --right 597x336 --gap 20
+
+Die Maße in Millimetern liefert `kscreen-doctor -j` (`sizeMM`). Plasma spannt
+kein Bild über mehrere Bildschirme, jeder bekommt seine Hälfte einzeln.

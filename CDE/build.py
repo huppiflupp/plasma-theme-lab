@@ -211,6 +211,9 @@ PICTURES = (
     ("duene", "CDE Düne", "Dunes with a lone workstation, Copper colours"),
     ("aquarell", "CDE Aquarell", "Late-1990s watercolour, a workstation sending windows"),
     ("panorama", "CDE Panorama", "Late-1990s gouache landscape with a paper plane"),
+    # One panorama split across two screens (wallpapers/gen/span.py): left 32", right 27", top-aligned.
+    ("duene-links", "CDE Düne links", "Left half of a dune panorama for a 32-inch screen beside a 27-inch one"),
+    ("duene-rechts", "CDE Düne rechts", "Right half of a dune panorama for a 27-inch screen beside a 32-inch one"),
 )
 
 

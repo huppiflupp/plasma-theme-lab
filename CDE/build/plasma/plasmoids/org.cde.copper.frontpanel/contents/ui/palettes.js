@@ -565,5 +565,15 @@ const PICTURES = [
   "key": "panorama",
   "name": "CDE Panorama",
   "palette": "Copper"
+ },
+ {
+  "key": "duene-links",
+  "name": "CDE D\u00fcne links",
+  "palette": "Copper"
+ },
+ {
+  "key": "duene-rechts",
+  "name": "CDE D\u00fcne rechts",
+  "palette": "Copper"
  }
 ];
