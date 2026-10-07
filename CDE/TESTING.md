@@ -710,4 +710,7 @@ Checks of 2026-10-07 (window icons under the workspaces), VM at 1920x1080:
   tile is now smaller than a launcher's icon.
 - Not checked: overflow beyond ten windows on one workspace, the console
   upright in this mode, a system without pactl (falls back to the 5 s poll).
+- Afterwards: label gone, buttons 17 high, icons up to 24 in two rows of
+  four (the wells widened to at least 104); seven windows on workspace 1
+  all shown without "+".
 

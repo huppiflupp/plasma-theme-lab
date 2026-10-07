@@ -714,12 +714,16 @@ PlasmoidItem {
                                      : Math.max(2, Math.ceil(desktops.desktopIds.length / 2))
         readonly property int rows: Math.max(1, Math.ceil(desktops.desktopIds.length / columns))
         Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
-        Layout.preferredWidth: root.vertical ? -1 : root.u((Plasmoid.configuration.workspaceButtonWidth + 12) * columns)
-        Layout.preferredHeight: root.vertical ? root.u(withWindows ? 20 + rows * 66 : 72) : -1
+        // With the windows each column holds four icons across.
+        readonly property int cellWidth: withWindows ? Math.max(Plasmoid.configuration.workspaceButtonWidth, 4 * 25 + 4) : Plasmoid.configuration.workspaceButtonWidth
+        Layout.preferredWidth: root.vertical ? -1 : root.u((cellWidth + 12) * columns)
+        Layout.preferredHeight: root.vertical ? root.u(withWindows ? 8 + rows * 70 : 72) : -1
         surface: Motif.shades(consoleColors.panel).bottom; sunken: true
         ColumnLayout {
             anchors.fill: parent; anchors.margins: 4; spacing: 3
             Text {
+                // With the windows the room goes to their icons.
+                visible: !workspacesBlock.withWindows
                 Layout.fillWidth: true; text: i18nd("cde-copper", "WORKSPACES"); color: consoleColors.hard ? Motif.stark(consoleColors.panel) : Motif.shades(consoleColors.panel).top
                 font.pixelSize: root.u(9); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter
                 font.weight: consoleColors.weight
@@ -739,8 +743,10 @@ PlasmoidItem {
                         readonly property int index: workspaceCell.index
                         readonly property var modelData: workspaceCell.modelData
                         Layout.fillWidth: true; Layout.fillHeight: !workspacesBlock.withWindows
-                        Layout.preferredHeight: workspacesBlock.withWindows ? root.u(23) : -1
-                        implicitWidth: root.u(root.vertical ? 40 : Plasmoid.configuration.workspaceButtonWidth); implicitHeight: root.u(23)
+                        // With the windows a low button, the icons below it larger.
+                        Layout.preferredHeight: workspacesBlock.withWindows ? root.u(17) : -1
+                        topPadding: workspacesBlock.withWindows ? 0 : 5; bottomPadding: topPadding
+                        implicitWidth: root.u(root.vertical ? 40 : workspacesBlock.cellWidth); implicitHeight: root.u(23)
                         text: root.workspaceLabel(index)
                         Accessible.name: i18nd("cde-copper", "Workspace %1 %2", index + 1, desktops.desktopNames[index] || "")
                         selected: desktops.currentDesktop === modelData
@@ -773,8 +779,8 @@ PlasmoidItem {
         sunken: true
         surface: Motif.shades(consoleColors.panel).bottom
         readonly property var rows: root.windowRows(desktop, root.windowRevision)
-        // Two rows of icons in the well's height, no larger than 20.
-        readonly property int side: Math.max(10, Math.min(root.u(20), Math.floor((height - 4 - 1) / 2)))
+        // Two rows of icons in the well's height, no larger than 24.
+        readonly property int side: Math.max(10, Math.min(root.u(24), Math.floor((height - 4 - 1) / 2)))
         readonly property int perRow: Math.max(1, Math.floor((width - 4 + 1) / (side + 1)))
         readonly property int capacity: perRow * Math.max(1, Math.floor((height - 4 + 1) / (side + 1)))
         readonly property bool overflow: rows.length > capacity

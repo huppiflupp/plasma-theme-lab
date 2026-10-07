@@ -343,8 +343,9 @@ next or previous window forward. Without the strip's row the console is 28
 pixels lower (upright: as tall as its tiles), and the volume becomes a tile of
 its own beside the session block.
 
-"Icons under the workspaces" instead puts the workspace buttons in one row,
-each over a sunken well of small window icons: the windows on that workspace
+"Icons under the workspaces" instead puts low workspace buttons in one row,
+without the WORKSPACES label, each over a sunken well of window icons, two rows
+of four: the windows on that workspace
 (and those on all of them), the active one pressed in, minimized ones faint,
 what does not fit counted as "+3". A click brings the window forward, switching
 to its workspace; on the active window it minimizes. The console is lower and
@@ -482,7 +483,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.8.9. The application style is a Kvantum theme, not a
+This is version 0.8.10. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,
