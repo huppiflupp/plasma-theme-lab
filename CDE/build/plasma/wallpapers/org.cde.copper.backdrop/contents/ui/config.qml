@@ -43,11 +43,20 @@ ColumnLayout {
         cfg_Workspaces = list;
     }
     readonly property var choices: Backdrops.NAMES
+        .concat(Backdrops.TILES.map(t => t.key))
+        .concat(Backdrops.TILES.map(t => "natural:" + t.key))
         .concat(Backdrops.PICTURES.filter(p => p.palette === cfg_Palette).map(p => "picture:" + p.key))
         .concat(Backdrops.PICTURES.filter(p => p.palette !== cfg_Palette).map(p => "picture:" + p.key))
     function label(value) {
         const picture = Backdrops.PICTURES.find(p => "picture:" + p.key === value);
-        return picture ? picture.name : value;
+        const natural = value.startsWith("natural:");
+        const tile = Backdrops.TILES.find(t => t.key === (natural ? value.slice(8) : value));
+        return picture ? picture.name : tile ? (natural ? i18nd("cde-copper", "%1 (natural colour)", tile.name) : tile.name) : value;
+    }
+    function isTile(value) { return Backdrops.TILES.some(t => t.key === (value.startsWith("natural:") ? value.slice(8) : value)); }
+    // A tile's preview: natural from the package, or tinted from the profile.
+    function tileSource(value) {
+        return value.startsWith("natural:") ? Qt.resolvedUrl("../images/tiles/" + value.slice(8) + ".jpg") : folder + value + ".jpg";
     }
     readonly property string pictures: StandardPaths.writableLocation(StandardPaths.GenericDataLocation) + "/wallpapers/"
     readonly property string folder: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
@@ -89,7 +98,7 @@ ColumnLayout {
             dialogTitle: i18nd("cde-copper", "Backdrop colour")
         }
         Label {
-            text: i18nd("cde-copper", "Patterns from CDE (The Open Group, CC BY-SA 3.0), coloured with the palette %1; then the pictures, those for %1 first.", root.cfg_Palette)
+            text: i18nd("cde-copper", "Patterns from CDE (The Open Group, CC BY-SA 3.0) and material tiles, coloured with the palette %1; the tiles again in their natural colour; then the pictures, those for %1 first.", root.cfg_Palette)
             opacity: 0.7
             font: Kirigami.Theme.smallFont
         }
@@ -131,11 +140,13 @@ ColumnLayout {
                     Image {
                         anchors.fill: parent; anchors.margins: parent.border.width
                         visible: !cell.isPicture
-                        source: cell.isPicture ? "" : root.folder + cell.modelData + ".png"
+                        source: cell.isPicture ? "" : root.isTile(cell.modelData) ? root.tileSource(cell.modelData) : root.folder + cell.modelData + ".png"
                         fillMode: Image.Tile
-                        smooth: false
+                        smooth: !root.isTile(cell.modelData)
                         cache: false
-                        onStatusChanged: if (status === Image.Error) source = Qt.resolvedUrl("../images/Copper/" + cell.modelData + ".png")
+                        // A tile is 1024 px: shown at a quarter, so the preview reads as material.
+                        sourceSize.width: root.isTile(cell.modelData) ? 256 : 0
+                        onStatusChanged: if (status === Image.Error && !cell.modelData.startsWith("natural:")) source = Qt.resolvedUrl("../images/Copper/" + cell.modelData + (root.isTile(cell.modelData) ? ".jpg" : ".png"))
                     }
                 }
                 Label { text: root.label(cell.modelData); Layout.alignment: Qt.AlignHCenter; font: Kirigami.Theme.smallFont }

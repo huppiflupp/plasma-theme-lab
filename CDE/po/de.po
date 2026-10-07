@@ -1110,3 +1110,11 @@ msgstr "Pixelschrift (Palette)"
 
 msgid "Plasma screen"
 msgstr "Plasma-Schirm"
+
+
+
+msgid "Patterns from CDE (The Open Group, CC BY-SA 3.0) and material tiles, coloured with the palette %1; the tiles again in their natural colour; then the pictures, those for %1 first."
+msgstr "Muster aus CDE (The Open Group, CC BY-SA 3.0) und Materialkacheln, in der Palette %1 gefärbt; die Kacheln noch einmal in Naturfarbe; dann die Bilder, die für %1 zuerst."
+
+msgid "%1 (natural colour)"
+msgstr "%1 (Naturfarbe)"

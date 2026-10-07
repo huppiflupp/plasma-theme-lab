@@ -3,6 +3,7 @@ import QtCore
 import org.kde.plasma.plasmoid
 import org.kde.taskmanager as TaskManager
 import org.kde.kirigami as Kirigami
+import "backdrops.js" as Backdrops
 
 // CDE backdrops as a wallpaper type: the pattern tiled pixel for pixel.
 // Plasma's picture wallpaper scales a picture to the screen before tiling,
@@ -29,9 +30,17 @@ WallpaperItem {
                                        || root.configuration.Backdrop || "Pebbles"
     readonly property string paletteName: root.configuration.Palette || "Copper"
     readonly property int pixel: Math.max(1, Math.min(4, root.configuration.PixelSize || 1))
-    readonly property string profileTile: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
-        + "/cde-copper/backdrops/" + paletteName + "/" + backdrop + ".png"
-    readonly property string packageTile: Qt.resolvedUrl("../images/Copper/" + backdrop + ".png")
+    // Material tiles (wallpapers/tiles) are JPEGs: "<key>" is tinted per
+    // palette by the tool like the patterns, "natural:<key>" is the tile as
+    // photographed, straight from the package.
+    readonly property bool natural: backdrop.startsWith("natural:")
+    readonly property string key: natural ? backdrop.slice(8) : backdrop
+    readonly property bool isTile: Backdrops.TILES.some(t => t.key === key)
+    readonly property string suffix: isTile ? ".jpg" : ".png"
+    readonly property string profileTile: natural ? Qt.resolvedUrl("../images/tiles/" + key + ".jpg")
+        : StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
+        + "/cde-copper/backdrops/" + paletteName + "/" + key + suffix
+    readonly property string packageTile: natural ? profileTile : Qt.resolvedUrl("../images/Copper/" + key + suffix)
     readonly property bool isPicture: backdrop.startsWith("picture:")
     readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
     readonly property string picture: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
@@ -71,10 +80,12 @@ WallpaperItem {
         source: probe.source
         cache: false
         smooth: false
-        // The screen-high gradients (Concave, Convex, Sky*) run across and
-        // stretch down; everything else repeats both ways.
-        fillMode: probe.implicitHeight >= 512 ? Image.TileHorizontally : Image.Tile
+        // The screen-high gradients (Concave, Convex, Sky*: narrow and tall)
+        // run across and stretch down; everything else, the square material
+        // tiles included, repeats both ways.
+        readonly property bool tall: probe.implicitHeight >= 512 && probe.implicitWidth < probe.implicitHeight
+        fillMode: tall ? Image.TileHorizontally : Image.Tile
         sourceSize.width: probe.implicitWidth * root.pixel
-        sourceSize.height: probe.implicitHeight >= 512 ? -1 : probe.implicitHeight * root.pixel
+        sourceSize.height: tall ? -1 : probe.implicitHeight * root.pixel
     }
 }

@@ -32,6 +32,66 @@ def names():
     return sorted(p.stem for p in SOURCE.iterdir() if p.suffix in (".pm", ".bm") and p.stem not in PLAIN)
 
 
+# Seamless material tiles (wallpapers/tiles, 1024², natural colour), keyed
+# by file stem; shown tinted with the palette like the patterns, or in
+# their natural colour on request.
+TILES = (("akustikschaum", "Akustikschaum"), ("buettenpapier", "Büttenpapier"), ("eisblumen", "Eisblumen"),
+         ("filz", "Filz"), ("flokati", "Flokati"), ("kies", "Kies"), ("kork", "Kork"), ("lava", "Lava"),
+         ("leder", "Leder"), ("leinen", "Leinen"), ("lochblech", "Lochblech"), ("moos", "Moos"),
+         ("rattan", "Rattan"), ("sand", "Sand"), ("schiefer", "Schiefer"), ("strick", "Strick"),
+         ("terrazzo", "Terrazzo"), ("travertin", "Travertin"), ("velours", "Velours"), ("wasser", "Wasser"))
+
+
+def tile_names():
+    return [key for key, _ in TILES]
+
+
+def tint_tile(src, dst, colour_set, quality=88):
+    """The tile's brightness mapped onto three palette colours (bottom shadow,
+    background, top shadow), as CDE draws its backdrops in the workspace
+    colours. Pillow only; without it the natural-colour tile is copied."""
+    import shutil
+    try:
+        from PIL import Image
+    except ImportError:
+        shutil.copy2(src, dst)
+        return False
+    im = Image.open(src).convert("L")
+    hist, total = im.histogram(), im.size[0] * im.size[1]
+    def percentile(p):
+        acc = 0
+        for value, count in enumerate(hist):
+            acc += count
+            if acc >= total * p:
+                return value
+        return 255
+    lo = percentile(0.02)
+    span = max(percentile(0.98) - lo, 1)
+    dark, mid, light = (rgb(colour_set[k]) for k in ("bs", "bg", "ts"))
+    palette = []
+    for value in range(256):
+        t = min(max((value - lo) / span, 0.0), 1.0)
+        if t < 0.5:
+            palette += [int(round(dark[i] + (mid[i] - dark[i]) * t * 2)) for i in range(3)]
+        else:
+            palette += [int(round(mid[i] + (light[i] - mid[i]) * (t * 2 - 1))) for i in range(3)]
+    im.putpalette(palette)
+    im.convert("RGB").save(dst, quality=quality)
+    return True
+
+
+def write_tiles(colour_set, out, tiles):
+    """The material tiles tinted into out/<key>.jpg from tiles/<key>.jpg."""
+    out.mkdir(parents=True, exist_ok=True)
+    written = []
+    for key, _ in TILES:
+        src = Path(tiles) / f"{key}.jpg"
+        if src.exists():
+            tint_tile(src, out / f"{key}.jpg", colour_set)
+            written.append(key)
+    return written
+
+
 def fill_mode(name):
     """Plasma image FillMode: 3 tiles; 5 tiles across and stretches down,
     for the screen-high gradients (Concave, Convex, SkyDark, SkyLight)."""

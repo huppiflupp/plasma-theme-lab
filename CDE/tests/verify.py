@@ -105,12 +105,12 @@ class Separation(unittest.TestCase):
 
 
 class Palettes(unittest.TestCase):
-    """The 37 CDE palettes: readable, and complete enough to build from."""
+    """The 37 CDE palettes and our 10 own: readable, and complete enough to build from."""
 
     def test_every_text_colour_is_readable(self):
         sys.path.insert(0, str(ROOT))
         import palettes
-        self.assertEqual(len(palettes.names()), 37)
+        self.assertEqual(len(palettes.names()), 47)   # 37 from CDE, 10 of our own
         pairs = [("text", "flaeche"), ("text2", "flaeche"), ("link", "flaeche"), ("fenster_text", "fenster"),
                  ("auswahl_text", "auswahl"), ("kopf_aktiv_text", "kopf_aktiv"),
                  ("kopf_inaktiv_text", "kopf_inaktiv"), ("panel_text", "panel")]
@@ -296,7 +296,7 @@ class Installer(unittest.TestCase):
             self.assertTrue((self.data / "kwin/decorations/kwin4_decoration_qml_cdecopper/contents/ui/main.qml").is_file())
             self.assertTrue((self.data / "kwin/scripts/cde-copper-arrange/contents/code/main.js").is_file())
             self.assertTrue((self.data / "plasma/wallpapers/org.cde.copper.backdrop/contents/images/Copper/Pebbles.png").is_file())
-            self.assertEqual(len(list((self.data / "color-schemes").glob("CDE*.colors"))), 38)
+            self.assertEqual(len(list((self.data / "color-schemes").glob("CDE*.colors"))), 48)
             # The palette tool runs from the profile, without the archive.
             tool = self.data / "cde-copper/tool/manage.py"
             listing = subprocess.run([sys.executable, str(tool), "palettes"], env=self.env, text=True, capture_output=True)

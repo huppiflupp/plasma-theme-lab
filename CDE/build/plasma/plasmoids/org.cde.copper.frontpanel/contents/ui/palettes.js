@@ -25,6 +25,17 @@ const PALETTES = [
   ]
  },
  {
+  "name": "Amber",
+  "colours": [
+   "#2e2414",
+   "#3a2e18",
+   "#2a2010",
+   "#ffb340",
+   "#4a4030",
+   "#1c160a"
+  ]
+ },
+ {
   "name": "Arizona",
   "colours": [
    "#84545f",
@@ -124,6 +135,17 @@ const PALETTES = [
   ]
  },
  {
+  "name": "CopperNight",
+  "colours": [
+   "#163a40",
+   "#1c4a52",
+   "#0e3a42",
+   "#e8874f",
+   "#35555b",
+   "#052f36"
+  ]
+ },
+ {
   "name": "Crimson",
   "colours": [
    "#9793b5",
@@ -143,6 +165,28 @@ const PALETTES = [
    "#b89663",
    "#7a7c7f",
    "#535570"
+  ]
+ },
+ {
+  "name": "Darkroom",
+  "colours": [
+   "#221e1e",
+   "#2a2626",
+   "#1e1a1a",
+   "#7a2626",
+   "#3a2a2a",
+   "#141212"
+  ]
+ },
+ {
+  "name": "DeepSea",
+  "colours": [
+   "#112a3c",
+   "#163548",
+   "#0d2838",
+   "#44c2a8",
+   "#1f3f4f",
+   "#061a2a"
   ]
  },
  {
@@ -179,6 +223,17 @@ const PALETTES = [
   ]
  },
  {
+  "name": "DesertNight",
+  "colours": [
+   "#2c2a1c",
+   "#3a3626",
+   "#262418",
+   "#e8b04f",
+   "#5a4a3a",
+   "#1a1810"
+  ]
+ },
+ {
   "name": "Golden",
   "colours": [
    "#b1705f",
@@ -187,6 +242,17 @@ const PALETTES = [
    "#faad49",
    "#4d648d",
    "#be826f"
+  ]
+ },
+ {
+  "name": "Graphite",
+  "colours": [
+   "#303030",
+   "#3a3a3a",
+   "#262626",
+   "#9a9a9a",
+   "#4a4a4a",
+   "#1a1a1a"
   ]
  },
  {
@@ -209,6 +275,17 @@ const PALETTES = [
    "#c3c3c3",
    "#787777",
    "#bdbdbd"
+  ]
+ },
+ {
+  "name": "Indigo",
+  "colours": [
+   "#1a1d40",
+   "#22264a",
+   "#161a3a",
+   "#8fa8ff",
+   "#2a2f5a",
+   "#0c0e2a"
   ]
  },
  {
@@ -267,6 +344,17 @@ const PALETTES = [
   ]
  },
  {
+  "name": "Obsidian",
+  "colours": [
+   "#242424",
+   "#2c2c2c",
+   "#1e1e1e",
+   "#c8832a",
+   "#3a3a3a",
+   "#141414"
+  ]
+ },
+ {
   "name": "Olive",
   "colours": [
    "#9a919a",
@@ -297,6 +385,17 @@ const PALETTES = [
    "#b65c61",
    "#d9c1b2",
    "#dea17f"
+  ]
+ },
+ {
+  "name": "Plum",
+  "colours": [
+   "#2a1c30",
+   "#3a2a40",
+   "#2a1a30",
+   "#d98acb",
+   "#4a3250",
+   "#1a0f1e"
   ]
  },
  {
@@ -352,6 +451,17 @@ const PALETTES = [
    "#cc686f",
    "#afc0c2",
    "#6da7b4"
+  ]
+ },
+ {
+  "name": "Slate",
+  "colours": [
+   "#2a323a",
+   "#333c45",
+   "#262e36",
+   "#7fb2d8",
+   "#4a5560",
+   "#1c232a"
   ]
  },
  {

@@ -24,6 +24,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parent
 SOURCE = ROOT / "palettes" / "cde"
+# CDE Copper's own palettes, in the same format (palettes/copper/README.md).
+OWN = ROOT / "palettes" / "copper"
 MAX = 65535
 PERCENTILE = MAX // 100
 LITE_THRESHOLD, DARK_THRESHOLD, FG_THRESHOLD = 93 * PERCENTILE, 20 * PERCENTILE, 70 * PERCENTILE
@@ -107,29 +109,36 @@ def mix(a, b, t):
 def names():
     # Black, White, BlackWhite and WhiteBlack are the monochrome palettes of
     # CDE's black-and-white mode; they hold colour names, not eight sets.
-    return sorted(p.stem for p in SOURCE.glob("*.dp") if p.read_text().lstrip().startswith("#"))
+    return sorted(p.stem for folder in (SOURCE, OWN) for p in folder.glob("*.dp") if p.read_text().lstrip().startswith("#"))
 
 
 def load(name):
-    path = SOURCE / f"{name}.dp"
-    if path.parent != SOURCE or not path.is_file():
+    path = next((folder / f"{name}.dp" for folder in (SOURCE, OWN) if (folder / f"{name}.dp").is_file()), None)
+    if path is None or path.parent not in (SOURCE, OWN):
         raise KeyError(f"Unknown CDE palette {name!r}; available: {', '.join(names())}")
-    sets = []
+    sets, text = [], None
     for line in path.read_text().split():
         value = line.strip().lstrip("#")
         if len(value) == 12:
             sets.append(tuple(int(value[i:i+4], 16) for i in (0, 4, 8)))
+        elif line.startswith("fg="):
+            # CDE Copper's extension (palettes/copper only): a text colour of
+            # its own instead of Motif's black or white, e.g. a darkroom's red.
+            text = line[3:].strip()
     if len(sets) < 8:
         raise ValueError(f"{path} holds {len(sets)} colour sets, expected 8")
-    return [colour_set(bg) for bg in sets[:8]]
+    return [colour_set(bg, text) for bg in sets[:8]]
 
 
-def colour_set(bg):
-    """Background (16-bit tuple or #rrggbb) with Motif's derived colours."""
+def colour_set(bg, text=None):
+    """Background (16-bit tuple or #rrggbb) with Motif's derived colours.
+    An own text colour is nudged toward black or white until it reads at
+    4.5:1 on the background."""
     if isinstance(bg, str):
         bg = tuple(int(bg[i:i+2], 16) * 257 for i in (1, 3, 5))
     fg, sel, ts, bs = calculate(bg)
-    return {"bg": hex8(bg), "fg": readable(hex8(bg)), "motif_fg": hex8(fg),
+    plain = readable(hex8(bg))
+    return {"bg": hex8(bg), "fg": legible(text, hex8(bg), plain) if text else plain, "motif_fg": hex8(fg),
             "sel": hex8(sel), "ts": hex8(ts), "bs": hex8(bs)}
 
 

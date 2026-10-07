@@ -8,7 +8,8 @@ The handoff's teal and copper palette meets a more traditional CDE silhouette:
 a compact bottom front console, mwm window frames, square Motif controls,
 hard bevels and original vector workstation icons. Copper identifies the active
 window, selected workspace and focused controls. The desktop stays quiet teal,
-or takes any of CDE's own 37 palettes and backdrops.
+or takes any of CDE's own 37 palettes and backdrops, or one of ten dark
+palettes of our own.
 
 The console, its settings, the start-up, lock and logout screens speak
 German where the system does (gettext domain `cde-copper`, `po/`); other
@@ -49,7 +50,9 @@ languages can be added as `po/<language>.po`.
   sight: its entries open from the console's button; the tray's own volume
   icon is left out, since the console has one. By default the console stands
   by itself; the panel's own frame around it can be switched on.
-- CDE's 37 colour palettes, shaded with Motif's algorithm, and CDE's 25 desktop
+- CDE's 37 colour palettes and ten dark ones of our own (`palettes/copper/`,
+  among them Graphite in greys and Darkroom with red text), shaded with
+  Motif's algorithm, and CDE's 25 desktop
   backdrops, coloured with the chosen palette.
 - A window arrangement around the console: terminals left and right, the main
   window in the middle above the console (Meta+Ctrl+C), and sets of three,
@@ -104,6 +107,17 @@ languages can be added as `po/<language>.po`.
   loading the system, sits in the menu window instead of a black box over
   the screen (in the window colour where GRUB can colour it, black under
   Secure Boot).
+- The login screen of the Plasma Login Manager (plasmalogin, Fedora 44 and
+  Nobara), as the third system part. Its layout is compiled into the
+  greeter and cannot be replaced; system.py gives it the CDE backdrop
+  (Lattice, filled to the largest screen and shown unscaled, or a picture
+  with `--login-background`), CDE's Plasma surfaces (the Motif field with
+  the copper focus frame), the palette's colours and IBM Plex. It writes
+  the greeter's wallpaper into /etc/plasmalogin.conf (the greeter takes the
+  image only from there, not from plasmalogin.conf.d) and the greeter
+  user's kdeglobals and plasmarc, all backed up and restored by
+  `uninstall`. "Apply Plasma settings" on System Settings' login screen
+  page overwrites the greeter's colours; run `install` again afterwards.
 - CDE's logout confirmation: a Motif dialog with lock, sleep, hibernate,
   restart, shut down and log out, the action it was called for as default
   button and a countdown, in the palette's colours.
@@ -164,7 +178,7 @@ into `store-ids.json` so that a second run writes the dependencies.
 
 ### CDE palettes and backdrops
 
-The 37 palettes of CDE are listed in **System Settings › Colours** as
+The 37 palettes of CDE and the ten of our own are listed in **System Settings › Colours** as
 "CDE Alpine" … "CDE Wheat", beside "CDE Copper". Choosing one there is enough:
 the console notices the new colours and brings the rest along, the Plasma
 surfaces, the Kvantum controls and the backdrop. Applications that are already
@@ -193,7 +207,10 @@ CDE's 25 backdrops are a wallpaper type of their own: desktop settings ›
 Wallpaper type **CDE Backdrop**, a grid of the patterns in the palette's
 colours, a pixel size for 200 % screens and the colour behind the pattern.
 They are tiled pixel for pixel; Plasma's picture wallpaper would scale the
-small patterns up into a blur. As in CDE, every workspace can have a backdrop
+small patterns up into a blur. Beside CDE's patterns it offers twenty seamless
+material tiles (felt, cork, slate, linen, perforated sheet ...; see
+`wallpapers/README.md`), each offered tinted with the palette like the patterns
+and once more in its natural colour. As in CDE, every workspace can have a backdrop
 of its own ("A backdrop for each workspace"): Plasma itself knows wallpapers
 per screen and activity only, so the wallpaper follows the current virtual
 desktop by itself.
@@ -450,7 +467,7 @@ compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,
 document, device and status names; less common names fall back to Breeze and
-then hicolor. A login screen (SDDM) is outside this release. Native Plasma manages panel hiding and
+then hicolor. SDDM is not themed. Native Plasma manages panel hiding and
 screen-edge reveal; there is no separate retractable handle.
 
 Popups from the console open at the size they first appear with: under Wayland
@@ -495,8 +512,9 @@ Not reached:
   accessible names and keys work in the subpanels, but full keyboard operation
   of auto-hide and of the Applications menu has not been verified, nor has a
   screen reader been used.
-- **Theme coverage (phase 3).** No login screen theme yet (Fedora 44 uses
-  Plasma's new login manager, not SDDM);
+- **Theme coverage (phase 3).** The login screen (Plasma Login Manager) takes
+  CDE's colours, backdrop and fonts, but keeps the greeter's own layout
+  (clock, round avatar), which cannot be themed; no SDDM theme;
   notifications and calendar follow only through the Plasma surfaces.
 - **Test matrix.** 150 % and 200 % scaling were checked for 0.1 only, not for
   the QML window frame, the console and the popups that came later. X11 was

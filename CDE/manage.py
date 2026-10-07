@@ -157,6 +157,7 @@ def install_tool():
     if not tiles.exists():
         import backdrops
         backdrops.write_all(palettes.copper_desktop(), tiles / "Copper")
+        backdrops.write_tiles(palettes.copper_desktop(), tiles / "Copper", material_tiles())
 
 
 def install():
@@ -445,6 +446,7 @@ def set_palette(manifest, name):
     folder = DATA / TOOL / "backdrops"
     remove(folder)
     backdrops.write_all(colour_set, folder / name)
+    backdrops.write_tiles(colour_set, folder / name, material_tiles())
     # Desktops showing a backdrop follow the palette; a plain desktop colour
     # follows it only when the theme set it: --backdrop none, or the colour
     # is a palette's desktop colour (the global theme's layout sets Copper's).
@@ -750,6 +752,11 @@ def update_splash(name):
             shutil.copy2(tile, lock / "images/backdrop.png")
 
 
+def material_tiles():
+    """The natural-colour material tiles, as installed with the backdrop plugin."""
+    return DATA / "plasma/wallpapers/org.cde.copper.backdrop/contents/images/tiles"
+
+
 def set_backdrop(manifest, name, scale):
     """Show one CDE backdrop or picture through the "CDE Backdrop" wallpaper
     type, or with "none" the plain desktop colour of the palette."""
@@ -763,7 +770,8 @@ def set_backdrop(manifest, name, scale):
                       f" d.writeConfig('Color', '{colour_set['bg']}'); }}")
     else:
         # A picture is "picture:<key>" of the picture wallpapers.
-        known = backdrops.names() + [f"picture:{key}" for key, _, _ in PICTURES]
+        known = (backdrops.names() + backdrops.tile_names() + [f"natural:{key}" for key in backdrops.tile_names()]
+                 + [f"picture:{key}" for key, _, _ in PICTURES])
         if name not in known:
             raise RuntimeError(f"Unknown backdrop {name!r}; available: {', '.join(known)}")
         plasma_script("for (var d of desktops()) { d.wallpaperPlugin = 'org.cde.copper.backdrop';"
@@ -905,7 +913,7 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
 def list_palettes():
     import backdrops
     print("Palettes:  Copper (default), " + ", ".join(palettes.names()))
-    print("Backdrops: none, " + ", ".join(backdrops.names()))
+    print("Backdrops: none, " + ", ".join(backdrops.names() + backdrops.tile_names()))
 
 
 def uninstall():

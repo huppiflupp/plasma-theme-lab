@@ -664,3 +664,20 @@ Known scope: the Motif controls need Kvantum (fallback: Qt Windows style); the
 login screen, cursor theme and third-party client-side decorations are not
 replaced. The custom front console with the Plasma system tray beside it is
 the supported panel experience.
+
+Checks of 2026-10-07 (login screen, plasma-login-manager 6.7.5), VM at 1280×800:
+
+- `system.py install --parts login` with autologin switched off: the greeter
+  shows the Lattice backdrop pixel for pixel (rendered at 1280×800, Image.Pad),
+  the clock, labels and icons in the palette's light panel text, the password
+  field as a dark Motif field with the copper focus frame, IBM Plex.
+- Found on the way: the key is `WallpaperPluginId` (Fedora's defaults.conf has
+  `WallpaperPlugin`, which the greeter ignores); the image path is read only
+  from /etc/plasmalogin.conf, plugin and FillMode also from conf.d; the greeter
+  draws its text in the Button colour set; any image is scaled to the screen,
+  tiles included. Restarting plasmalogin alone keeps the greeter user's
+  systemd manager (and its cached units) running: `systemctl stop user@984`.
+- `uninstall --parts login` restored /etc/plasmalogin.conf (with a wallpaper
+  group of its own, as Nobara has), the greeter's kdeglobals, and removed
+  plasmarc, the Plasma theme, fonts and backdrop.
+- `python3 tests/verify.py`: 28 tests pass.
