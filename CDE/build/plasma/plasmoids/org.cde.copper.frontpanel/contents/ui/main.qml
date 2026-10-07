@@ -708,6 +708,7 @@ PlasmoidItem {
             // Lit segments and the second hand: the selection (copper) colour,
             // swapped while the tile itself is highlighted.
             accent: clock.selected ? consoleColors.highlightText : consoleColors.highlight
+            lamp: consoleColors.highlight
             dialColor: consoleColors.field
             tile: clock.selected ? consoleColors.highlight : consoleColors.window
             font: consoleColors.font

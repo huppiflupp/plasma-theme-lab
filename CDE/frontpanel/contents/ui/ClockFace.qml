@@ -8,10 +8,10 @@ import "motif.js" as Motif
 //   style  "digital"   day, time and date in type
 //          "segments"  a seven-segment time, unlit segments faintly visible
 //          "ledmatrix" "flipclock" "vfd" "vfd-blue" "vfd-aqua" "flipdisc"
-//          "panaplex" "odometer" "pixel" "plasma"
+//          "panaplex" "panaplex-palette" "odometer" "pixel" "plasma"
 //                      displays of their own kind, each in the colours of
 //                      the real thing (red LEDs, blue-green phosphor ...);
-//                      "pixel" alone takes the palette
+//                      "pixel" and "panaplex-palette" take the palette
 //          "analog"    hands on a dial:
 //   dial   "cde"       round, after CDE's front-panel clock (dtclock)
 //          "motif"     square, a sunken Motif well with hour bars
@@ -29,6 +29,7 @@ Item {
     property real dim: 0.8               // the weekday, a little quieter
     property bool bold: false            // semibold date and weekday
     property color accent: "orange"      // second hand, lit segments
+    property color lamp: "orange"        // the palette's glow, never swapped
     property color dialColor: "white"    // the dial's surface
     property color tile: "gray"          // the tile around it
     property string font: "IBM Plex Sans Condensed"
@@ -199,7 +200,7 @@ Item {
     // face has; the date goes below the time as with the segments.
     Item {
         id: displaysFace
-        readonly property var kinds: ["ledmatrix", "flipclock", "vfd", "vfd-blue", "vfd-aqua", "flipdisc", "panaplex", "odometer", "pixel", "plasma"]
+        readonly property var kinds: ["ledmatrix", "flipclock", "vfd", "vfd-blue", "vfd-aqua", "flipdisc", "panaplex", "panaplex-palette", "odometer", "pixel", "plasma"]
         visible: kinds.indexOf(face.style) >= 0
         anchors.fill: parent
         readonly property bool showDate: face.height > 40
@@ -220,6 +221,23 @@ Item {
                 function onInkChanged() { display.requestPaint(); }
                 function onAccentChanged() { display.requestPaint(); }
                 function onDialColorChanged() { display.requestPaint(); }
+                function onLampChanged() { display.requestPaint(); }
+            }
+            // Panaplex glowing in the palette's selection colour: the gas lit
+            // bright enough to glow even under a dark palette, a whiter core,
+            // the glass behind it nearly black with a trace of the hue.
+            function paletteLook() {
+                const c = Qt.color(face.lamp);
+                const hue = Math.max(0, c.hslHue), sat = Math.max(0, c.hslSaturation), light = c.hslLightness;
+                function hsla(hh, ss, ll, a) {
+                    const q = Qt.hsla(hh, Math.min(1, ss), Math.max(0, Math.min(1, ll)), 1);
+                    return "rgba(" + Math.round(q.r * 255) + "," + Math.round(q.g * 255) + "," + Math.round(q.b * 255) + "," + a + ")";
+                }
+                const on = Math.max(0.55, Math.min(0.68, light)), vivid = Math.max(0.6, sat);
+                return {bg: hsla(hue, sat * 0.5, 0.04, 1), bezel: hsla(hue, sat * 0.4, 0.14, 1),
+                        on: hsla(hue, vivid, on, 1), off: hsla(hue, vivid, on, 0.12),
+                        core: hsla(hue, vivid * 0.6, Math.min(0.9, on + 0.25), 1),
+                        blur: 0.12, passes: 2, grid: false};
             }
             readonly property var seg7: ["abcdef", "bc", "abdeg", "abcdg", "bcfg", "acdfg", "acdefg", "abc", "abcdefg", "abcdfg"]
             readonly property var dots: [
@@ -290,18 +308,20 @@ Item {
                 }
 
                 // ---- segments: VFD and Panaplex ----
-                if (kind.indexOf("vfd") === 0 || kind === "panaplex") {
+                const plex = kind.indexOf("panaplex") === 0;
+                if (kind.indexOf("vfd") === 0 || plex) {
                     const units = n * 0.5 + (n - 1) * 0.15 + colons * 0.25;
                     const h = Math.max(8, Math.floor(Math.min(H * 0.84, (W - 6) / units)));
                     const w = Math.round(h * 0.5), s = Math.round(h * 0.15), cw = Math.round(h * 0.25);
-                    const t = Math.max(1, Math.round(h * (kind === "panaplex" ? 0.07 : 0.1)));
+                    const t = Math.max(1, Math.round(h * (plex ? 0.07 : 0.1)));
                     let x = Math.round((W - (n * w + (n - 1) * s + colons * cw)) / 2);
                     const y = Math.round((H - h) / 2), mid = y + h / 2;
                     const look = {
                         "vfd":      {bg: "#06121a", bezel: "#12303a", on: "#9df7ff", off: "rgba(120,200,210,0.16)", blur: 0.15, passes: 2, grid: true},
                         "vfd-blue": {bg: "#020a16", bezel: "#0a1a33", on: "#e8fbff", off: "rgba(120,200,210,0.12)", blur: 0.15, passes: 2, grid: true, tint: "rgba(20,60,160,0.2)"},
                         "vfd-aqua": {bg: "#000000", bezel: "#111111", on: "#66e6ff", off: "rgba(120,200,210,0.08)", blur: 0.32, passes: 3, grid: false},
-                        "panaplex": {bg: "#0a0806", bezel: "#2a2018", on: "#ff6a2a", off: "rgba(255,106,42,0.12)", blur: 0.12, passes: 2, grid: false, core: "#ffd0a0"}
+                        "panaplex": {bg: "#0a0806", bezel: "#2a2018", on: "#ff6a2a", off: "rgba(255,106,42,0.12)", blur: 0.12, passes: 2, grid: false, core: "#ffd0a0"},
+                        "panaplex-palette": display.paletteLook()
                     }[kind];
                     backdrop(look.bg, look.bezel);
                     function segment(key, xd, lit) {
@@ -310,7 +330,7 @@ Item {
                         const box = {a: [xd + t + g, y, inner - 2 * g, t], g: [xd + t + g, mid - t / 2, inner - 2 * g, t], d: [xd + t + g, y + h - t, inner - 2 * g, t],
                                      f: [xd, y + t + g, t, upper - 2 * g], b: [xd + w - t, y + t + g, t, upper - 2 * g],
                                      e: [xd, mid + t / 2 + g, t, lower - 2 * g], c: [xd + w - t, mid + t / 2 + g, t, lower - 2 * g]}[key];
-                        if (kind === "panaplex") {
+                        if (plex) {
                             ctx.fillStyle = lit ? look.on : look.off;
                             bar(box[0], box[1], box[2], box[3], t / 2);
                             if (lit && t >= 3) { ctx.fillStyle = look.core; const k = Math.max(1, Math.floor(t / 3));

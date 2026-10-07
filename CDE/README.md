@@ -335,6 +335,8 @@ The dial takes the text-field colour, hands and digits the text colour, the
 second hand and lit segments the selection colour, so every palette dresses
 the clock to match. All sizes follow the tile, so the clock fits at 75 % and
 in the upright console.
+The Panaplex gas-discharge display comes twice: in its own orange, and glowing
+in the palette's selection colour (lifted to a glow under dark palettes).
 
 Subpanels and menus accept Tab, Enter, Space, the arrow keys and Escape. The
 task strip scrolls when many windows are open. Windows of one application share
@@ -502,7 +504,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.8.13. The application style is a Kvantum theme, not a
+This is version 0.9.0. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

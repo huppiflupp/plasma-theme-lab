@@ -58,7 +58,7 @@ KCM.SimpleKCM {
                                    {text: i18nd("cde-copper", "LED matrix (red)"), value: "ledmatrix"}, {text: i18nd("cde-copper", "Flip clock"), value: "flipclock"},
                                    {text: i18nd("cde-copper", "VFD (blue-green)"), value: "vfd"}, {text: i18nd("cde-copper", "VFD behind blue glass"), value: "vfd-blue"},
                                    {text: i18nd("cde-copper", "VFD aqua, wide halo"), value: "vfd-aqua"}, {text: i18nd("cde-copper", "Flip-disc (yellow)"), value: "flipdisc"},
-                                   {text: i18nd("cde-copper", "Panaplex (gas discharge)"), value: "panaplex"}, {text: i18nd("cde-copper", "Odometer drums"), value: "odometer"},
+                                   {text: i18nd("cde-copper", "Panaplex (gas discharge)"), value: "panaplex"}, {text: i18nd("cde-copper", "Panaplex in the palette's colour"), value: "panaplex-palette"}, {text: i18nd("cde-copper", "Odometer drums"), value: "odometer"},
                                    {text: i18nd("cde-copper", "Pixel type (palette)"), value: "pixel"}, {text: i18nd("cde-copper", "Plasma screen"), value: "plasma"}]
     readonly property var dials: [{text: i18nd("cde-copper", "CDE (round, as dtclock)"), value: "cde"}, {text: i18nd("cde-copper", "Motif (square well)"), value: "motif"},
                                   {text: i18nd("cde-copper", "Roman numerals"), value: "roman"}, {text: i18nd("cde-copper", "Plain (no dial)"), value: "plain"}]
