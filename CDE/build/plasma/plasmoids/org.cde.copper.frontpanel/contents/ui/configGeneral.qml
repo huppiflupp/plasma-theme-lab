@@ -45,9 +45,6 @@ KCM.SimpleKCM {
     property alias cfg_visibilityMode: visibility.currentIndex
     property bool cfg_topEdge
     property int cfg_edge: -1
-    property alias cfg_windowsOnThisScreen: thisScreen.checked
-    property alias cfg_groupWindows: groupWindows.checked
-    property string cfg_windowDisplay: "strip"
     property alias cfg_launcherLabels: launcherLabels.checked
     property alias cfg_consoleLabel: label.text
     property real cfg_consoleScale: 1.0
@@ -78,39 +75,10 @@ KCM.SimpleKCM {
             Kirigami.FormData.label: i18nd("cde-copper", "Screens:")
             text: i18nd("cde-copper", "A console on every screen (off: one console for all)")
         }
-        ComboBox {
-            id: windowDisplay
-            Kirigami.FormData.label: i18nd("cde-copper", "Window display:")
-            readonly property var values: ["strip", "tileLeft", "tileRight"]
-            model: [i18nd("cde-copper", "Strip under the tiles"),
-                    i18nd("cde-copper", "Window tile left, beside the launchers"),
-                    i18nd("cde-copper", "Window tile right, beside the launchers")]
-            currentIndex: Math.max(0, values.indexOf(cfg_windowDisplay))
-            onActivated: index => cfg_windowDisplay = values[index]
-        }
-        Label {
-            Layout.maximumWidth: Kirigami.Units.gridUnit * 22
-            wrapMode: Text.WordWrap
-            font: Kirigami.Theme.smallFont
-            text: i18nd("cde-copper", "The workspace switcher can show the windows instead (Workspaces page).")
-        }
-        CheckBox {
-            id: thisScreen
-            Kirigami.FormData.label: i18nd("cde-copper", "Window list:")
-            text: i18nd("cde-copper", "Only windows on this console's screen")
-            // A single console shows the windows of every screen.
-            enabled: everyScreen.checked
-        }
         CheckBox {
             id: launcherLabels
             Kirigami.FormData.label: i18nd("cde-copper", "Launchers:")
             text: i18nd("cde-copper", "Labels under the icons (off: larger icons, names as tooltips)")
-        }
-        CheckBox {
-            id: groupWindows
-            // The tile's list shows every window by itself.
-            enabled: windowDisplay.currentIndex === 0
-            text: i18nd("cde-copper", "Group windows of one application (\"3× Konsole\")")
         }
         CheckBox {
             id: hideVolume

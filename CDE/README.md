@@ -339,9 +339,10 @@ in the upright console.
 Subpanels and menus accept Tab, Enter, Space, the arrow keys and Escape. The
 task strip scrolls when many windows are open. Windows of one application share
 a button ("3× Konsole", the titles in its tooltip); each click brings the next
-of them forward. General › "Group windows of one application" turns this off.
+of them forward. Workspaces › "Group windows of one application" turns this off.
 
-General › "Window display" puts a window tile in place of the strip, left or
+All ways of showing the open windows are on the Workspaces page, under "Open
+windows" › "Shown as". A window tile takes the place of the strip, left or
 right beside the launchers (next to the workspace switcher). The tile shows the
 active window's icon and the number of windows; its arrow or a click opens the
 list of all windows on every workspace, each with its workspace, the active one
@@ -350,9 +351,9 @@ next or previous window forward. Without the strip's row the console is 28
 pixels lower (upright: as tall as its tiles), and the volume becomes a tile of
 its own beside the session block.
 
-The workspace switcher can show the windows instead, on the Workspaces page
-(Windows), taking the place of strip or tile while the switcher is shown.
-"Icons under each button" puts low workspace buttons in one row,
+Or the workspace switcher shows the windows itself (these two need the
+switcher; hidden, the console shows the strip or tile chosen before).
+"Icons under each workspace button" puts low workspace buttons in one row,
 without the WORKSPACES label, each over a sunken well of window icons, two rows
 of four: the windows on that workspace
 (and those on all of them), the active one pressed in, minimized ones faint,
@@ -501,7 +502,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.8.12. The application style is a Kvantum theme, not a
+This is version 0.8.13. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

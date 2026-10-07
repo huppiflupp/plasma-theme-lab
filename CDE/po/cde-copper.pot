@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: cde-copper 0.8.12\n"
+"Project-Id-Version: cde-copper 0.8.13\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-07 21:40+0200\n"
+"POT-Creation-Date: 2026-10-07 21:50+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -175,129 +175,97 @@ msgstr ""
 msgid "Appointments come from KOrganizer/Akonadi (\"PIM Events\")."
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:63
+#: frontpanel/contents/ui/configGeneral.qml:60
 msgid "Visibility:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:64
+#: frontpanel/contents/ui/configGeneral.qml:61
 msgid "Always visible"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:64
+#: frontpanel/contents/ui/configGeneral.qml:61
 msgid "Auto-hide / edge reveal"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:64
+#: frontpanel/contents/ui/configGeneral.qml:61
 msgid "Dodge windows"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:67
+#: frontpanel/contents/ui/configGeneral.qml:64
 msgid "Screen edge:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:68
+#: frontpanel/contents/ui/configGeneral.qml:65
 msgid "Bottom"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:68
+#: frontpanel/contents/ui/configGeneral.qml:65
 msgid "Top"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:68
+#: frontpanel/contents/ui/configGeneral.qml:65
 msgid "Left"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:68
+#: frontpanel/contents/ui/configGeneral.qml:65
 msgid "Right"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:74
+#: frontpanel/contents/ui/configGeneral.qml:71
 msgid "Floating, a gap from the screen edge (off: on the edge)"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:78
+#: frontpanel/contents/ui/configGeneral.qml:75
 msgid "Screens:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:79
+#: frontpanel/contents/ui/configGeneral.qml:76
 msgid "A console on every screen (off: one console for all)"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:83
-msgid "Window display:"
-msgstr ""
-
-#: frontpanel/contents/ui/configGeneral.qml:85
-msgid "Strip under the tiles"
-msgstr ""
-
-#: frontpanel/contents/ui/configGeneral.qml:86
-msgid "Window tile left, beside the launchers"
-msgstr ""
-
-#: frontpanel/contents/ui/configGeneral.qml:87
-msgid "Window tile right, beside the launchers"
-msgstr ""
-
-#: frontpanel/contents/ui/configGeneral.qml:95
-msgid "The workspace switcher can show the windows instead (Workspaces page)."
-msgstr ""
-
-#: frontpanel/contents/ui/configGeneral.qml:99
-msgid "Window list:"
-msgstr ""
-
-#: frontpanel/contents/ui/configGeneral.qml:100
-msgid "Only windows on this console's screen"
-msgstr ""
-
-#: frontpanel/contents/ui/configGeneral.qml:106
+#: frontpanel/contents/ui/configGeneral.qml:80
 msgid "Launchers:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:107
+#: frontpanel/contents/ui/configGeneral.qml:81
 msgid "Labels under the icons (off: larger icons, names as tooltips)"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:113
-msgid "Group windows of one application (\"3× Konsole\")"
-msgstr ""
-
-#: frontpanel/contents/ui/configGeneral.qml:117
+#: frontpanel/contents/ui/configGeneral.qml:85
 msgid "System tray:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:118
+#: frontpanel/contents/ui/configGeneral.qml:86
 msgid "Leave the volume to the console"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:122
+#: frontpanel/contents/ui/configGeneral.qml:90
 msgid "Status icons only behind the console's button"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:126
+#: frontpanel/contents/ui/configGeneral.qml:94
 msgid "Panel:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:127
+#: frontpanel/contents/ui/configGeneral.qml:95
 msgid "Frame behind the console"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:131
+#: frontpanel/contents/ui/configGeneral.qml:99
 msgid "Text:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:132
+#: frontpanel/contents/ui/configGeneral.qml:100
 msgid ""
 "Hard contrast: black (white on dark surfaces) instead of the palette's "
 "colours"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:134
+#: frontpanel/contents/ui/configGeneral.qml:102
 msgid "Console label:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:136
+#: frontpanel/contents/ui/configGeneral.qml:104
 msgid "Size:"
 msgstr ""
 
@@ -495,7 +463,7 @@ msgid "Picture: %1"
 msgstr ""
 
 #: frontpanel/contents/ui/configStyle.qml:273
-#: backdrop/contents/ui/config.qml:74
+#: backdrop/contents/ui/config.qml:76
 msgid "Pixel size:"
 msgstr ""
 
@@ -511,47 +479,73 @@ msgid ""
 "wallpaper settings as \"CDE Backdrop\", one per workspace too."
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:61
+#: frontpanel/contents/ui/configWorkspaces.qml:64
 msgid "Switcher:"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:62
+#: frontpanel/contents/ui/configWorkspaces.qml:65
 msgid "Show the workspace switcher"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:66
+#: frontpanel/contents/ui/configWorkspaces.qml:69
 msgid "Number of workspaces:"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:72
+#: frontpanel/contents/ui/configWorkspaces.qml:75
 msgid "Button width:"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:78
+#: frontpanel/contents/ui/configWorkspaces.qml:81
 msgid "Each button in a colour of its own, as in CDE"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:83
-msgid "Windows:"
-msgstr ""
-
-#: frontpanel/contents/ui/configWorkspaces.qml:86
-msgid "Not here (strip or window tile, see General)"
-msgstr ""
-
 #: frontpanel/contents/ui/configWorkspaces.qml:87
-msgid "Icons under each button"
+msgid "Open windows"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:88
-msgid "Each workspace in miniature, with its windows"
+#: frontpanel/contents/ui/configWorkspaces.qml:90
+msgid "Shown as:"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:92
-msgid "Labels (empty: the number)"
+#: frontpanel/contents/ui/configWorkspaces.qml:94
+msgid "Strip under the tiles"
+msgstr ""
+
+#: frontpanel/contents/ui/configWorkspaces.qml:95
+msgid "Window tile left, beside the launchers"
+msgstr ""
+
+#: frontpanel/contents/ui/configWorkspaces.qml:96
+msgid "Window tile right, beside the launchers"
 msgstr ""
 
 #: frontpanel/contents/ui/configWorkspaces.qml:97
+msgid "Icons under each workspace button"
+msgstr ""
+
+#: frontpanel/contents/ui/configWorkspaces.qml:98
+msgid "Each workspace in miniature, with its windows"
+msgstr ""
+
+#: frontpanel/contents/ui/configWorkspaces.qml:116
+msgid ""
+"Needs the workspace switcher; while it is hidden the console shows the strip "
+"(or the tile chosen before)."
+msgstr ""
+
+#: frontpanel/contents/ui/configWorkspaces.qml:122
+msgid "Group windows of one application (\"3× Konsole\")"
+msgstr ""
+
+#: frontpanel/contents/ui/configWorkspaces.qml:126
+msgid "Only windows on this console's screen (with a console on every screen)"
+msgstr ""
+
+#: frontpanel/contents/ui/configWorkspaces.qml:128
+msgid "Labels (empty: the number)"
+msgstr ""
+
+#: frontpanel/contents/ui/configWorkspaces.qml:133
 msgid "Workspace %1:"
 msgstr ""
 
@@ -974,31 +968,31 @@ msgstr ""
 msgid "Clock and Calendar"
 msgstr ""
 
-#: backdrop/contents/ui/config.qml:57
+#: backdrop/contents/ui/config.qml:59
 msgid "%1 (natural colour)"
 msgstr ""
 
-#: backdrop/contents/ui/config.qml:81
+#: backdrop/contents/ui/config.qml:83
 msgid "Workspaces:"
 msgstr ""
 
-#: backdrop/contents/ui/config.qml:82
+#: backdrop/contents/ui/config.qml:84
 msgid "A backdrop for each workspace, as in CDE"
 msgstr ""
 
-#: backdrop/contents/ui/config.qml:86
+#: backdrop/contents/ui/config.qml:88
 msgid "Choosing for:"
 msgstr ""
 
-#: backdrop/contents/ui/config.qml:101
+#: backdrop/contents/ui/config.qml:103
 msgid "Colour behind the pattern:"
 msgstr ""
 
-#: backdrop/contents/ui/config.qml:102
+#: backdrop/contents/ui/config.qml:104
 msgid "Backdrop colour"
 msgstr ""
 
-#: backdrop/contents/ui/config.qml:105
+#: backdrop/contents/ui/config.qml:107
 msgid ""
 "Patterns from CDE (The Open Group, CC BY-SA 3.0) and material tiles, "
 "coloured with the palette %1; the tiles again in their natural colour; then "

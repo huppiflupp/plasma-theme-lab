@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: cde-copper 0.8.12\n"
+"Project-Id-Version: cde-copper 0.8.13\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-07 21:40+0200\n"
+"POT-Creation-Date: 2026-10-07 21:50+0200\n"
 "PO-Revision-Date: 2026-10-03 12:00+0200\n"
 "Last-Translator: CDE Copper contributors\n"
 "Language-Team: German\n"
@@ -176,133 +176,99 @@ msgstr "Termine aus"
 msgid "Appointments come from KOrganizer/Akonadi (\"PIM Events\")."
 msgstr "Termine stammen aus KOrganizer/Akonadi („PIM-Termine“)."
 
-#: frontpanel/contents/ui/configGeneral.qml:63
+#: frontpanel/contents/ui/configGeneral.qml:60
 msgid "Visibility:"
 msgstr "Sichtbarkeit:"
 
-#: frontpanel/contents/ui/configGeneral.qml:64
+#: frontpanel/contents/ui/configGeneral.qml:61
 msgid "Always visible"
 msgstr "Immer sichtbar"
 
-#: frontpanel/contents/ui/configGeneral.qml:64
+#: frontpanel/contents/ui/configGeneral.qml:61
 msgid "Auto-hide / edge reveal"
 msgstr "Automatisch ausblenden / am Bildschirmrand einblenden"
 
-#: frontpanel/contents/ui/configGeneral.qml:64
+#: frontpanel/contents/ui/configGeneral.qml:61
 msgid "Dodge windows"
 msgstr "Fenstern ausweichen"
 
-#: frontpanel/contents/ui/configGeneral.qml:67
+#: frontpanel/contents/ui/configGeneral.qml:64
 msgid "Screen edge:"
 msgstr "Bildschirmrand:"
 
-#: frontpanel/contents/ui/configGeneral.qml:68
+#: frontpanel/contents/ui/configGeneral.qml:65
 msgid "Bottom"
 msgstr "Unten"
 
-#: frontpanel/contents/ui/configGeneral.qml:68
+#: frontpanel/contents/ui/configGeneral.qml:65
 msgid "Top"
 msgstr "Oben"
 
-#: frontpanel/contents/ui/configGeneral.qml:68
+#: frontpanel/contents/ui/configGeneral.qml:65
 msgid "Left"
 msgstr "Links"
 
-#: frontpanel/contents/ui/configGeneral.qml:68
+#: frontpanel/contents/ui/configGeneral.qml:65
 msgid "Right"
 msgstr "Rechts"
 
-#: frontpanel/contents/ui/configGeneral.qml:74
+#: frontpanel/contents/ui/configGeneral.qml:71
 msgid "Floating, a gap from the screen edge (off: on the edge)"
 msgstr "Schwebend, mit Abstand zum Bildschirmrand (aus: am Rand)"
 
-#: frontpanel/contents/ui/configGeneral.qml:78
+#: frontpanel/contents/ui/configGeneral.qml:75
 msgid "Screens:"
 msgstr "Bildschirme:"
 
-#: frontpanel/contents/ui/configGeneral.qml:79
+#: frontpanel/contents/ui/configGeneral.qml:76
 msgid "A console on every screen (off: one console for all)"
 msgstr "Eine Konsole auf jedem Bildschirm (aus: eine für alle)"
 
-#: frontpanel/contents/ui/configGeneral.qml:83
-msgid "Window display:"
-msgstr "Fensteranzeige:"
-
-#: frontpanel/contents/ui/configGeneral.qml:85
-msgid "Strip under the tiles"
-msgstr "Leiste unter den Kacheln"
-
-#: frontpanel/contents/ui/configGeneral.qml:86
-msgid "Window tile left, beside the launchers"
-msgstr "Fensterkachel links bei den Startern"
-
-#: frontpanel/contents/ui/configGeneral.qml:87
-msgid "Window tile right, beside the launchers"
-msgstr "Fensterkachel rechts bei den Startern"
-
-#: frontpanel/contents/ui/configGeneral.qml:95
-msgid "The workspace switcher can show the windows instead (Workspaces page)."
-msgstr ""
-"Stattdessen kann der Arbeitsflächen-Umschalter die Fenster zeigen (Seite "
-"Arbeitsflächen)."
-
-#: frontpanel/contents/ui/configGeneral.qml:99
-msgid "Window list:"
-msgstr "Fensterliste:"
-
-#: frontpanel/contents/ui/configGeneral.qml:100
-msgid "Only windows on this console's screen"
-msgstr "Nur Fenster auf dem Bildschirm dieser Konsole"
-
-#: frontpanel/contents/ui/configGeneral.qml:106
+#: frontpanel/contents/ui/configGeneral.qml:80
 msgid "Launchers:"
 msgstr "Starter:"
 
-#: frontpanel/contents/ui/configGeneral.qml:107
+#: frontpanel/contents/ui/configGeneral.qml:81
 msgid "Labels under the icons (off: larger icons, names as tooltips)"
 msgstr ""
 "Beschriftung unter den Symbolen (aus: größere Symbole, Namen als Kurzinfo)"
 
-#: frontpanel/contents/ui/configGeneral.qml:113
-msgid "Group windows of one application (\"3× Konsole\")"
-msgstr "Fenster einer Anwendung gruppieren („3× Konsole“)"
-
-#: frontpanel/contents/ui/configGeneral.qml:117
+#: frontpanel/contents/ui/configGeneral.qml:85
 msgid "System tray:"
 msgstr "Systemabschnitt der Kontrollleiste:"
 
-#: frontpanel/contents/ui/configGeneral.qml:118
+#: frontpanel/contents/ui/configGeneral.qml:86
 msgid "Leave the volume to the console"
 msgstr "Lautstärkeregelung der Konsole überlassen"
 
-#: frontpanel/contents/ui/configGeneral.qml:122
+#: frontpanel/contents/ui/configGeneral.qml:90
 msgid "Status icons only behind the console's button"
 msgstr "Statussymbole nur über den Knopf der Konsole anzeigen"
 
-#: frontpanel/contents/ui/configGeneral.qml:126
+#: frontpanel/contents/ui/configGeneral.qml:94
 msgid "Panel:"
 msgstr "Kontrollleiste:"
 
-#: frontpanel/contents/ui/configGeneral.qml:127
+#: frontpanel/contents/ui/configGeneral.qml:95
 msgid "Frame behind the console"
 msgstr "Rahmen hinter der Konsole"
 
-#: frontpanel/contents/ui/configGeneral.qml:131
+#: frontpanel/contents/ui/configGeneral.qml:99
 msgid "Text:"
 msgstr "Schrift:"
 
-#: frontpanel/contents/ui/configGeneral.qml:132
+#: frontpanel/contents/ui/configGeneral.qml:100
 msgid ""
 "Hard contrast: black (white on dark surfaces) instead of the palette's "
 "colours"
 msgstr ""
 "Harter Kontrast: Schwarz (auf dunklen Flächen Weiß) statt der Palettenfarben"
 
-#: frontpanel/contents/ui/configGeneral.qml:134
+#: frontpanel/contents/ui/configGeneral.qml:102
 msgid "Console label:"
 msgstr "Beschriftung der Konsole:"
 
-#: frontpanel/contents/ui/configGeneral.qml:136
+#: frontpanel/contents/ui/configGeneral.qml:104
 msgid "Size:"
 msgstr "Größe:"
 
@@ -522,13 +488,14 @@ msgid "Picture: %1"
 msgstr "Bild: %1"
 
 #: frontpanel/contents/ui/configStyle.qml:273
-#: backdrop/contents/ui/config.qml:74
+#: backdrop/contents/ui/config.qml:76
 msgid "Pixel size:"
 msgstr "Pixelgröße:"
 
 #: frontpanel/contents/ui/configStyle.qml:284
 msgid "On dark palettes, patterns in a colour of the palette instead of white"
-msgstr "Bei dunklen Paletten die Muster in einer Farbe der Palette statt in Weiß"
+msgstr ""
+"Bei dunklen Paletten die Muster in einer Farbe der Palette statt in Weiß"
 
 #: frontpanel/contents/ui/configStyle.qml:322
 msgid ""
@@ -543,47 +510,75 @@ msgstr ""
 "in den Hintergrundeinstellungen der Arbeitsfläche als „CDE Backdrop“ "
 "auswählen, auch eines je Arbeitsfläche."
 
-#: frontpanel/contents/ui/configWorkspaces.qml:61
+#: frontpanel/contents/ui/configWorkspaces.qml:64
 msgid "Switcher:"
 msgstr "Umschalter:"
 
-#: frontpanel/contents/ui/configWorkspaces.qml:62
+#: frontpanel/contents/ui/configWorkspaces.qml:65
 msgid "Show the workspace switcher"
 msgstr "Arbeitsflächen-Umschalter anzeigen"
 
-#: frontpanel/contents/ui/configWorkspaces.qml:66
+#: frontpanel/contents/ui/configWorkspaces.qml:69
 msgid "Number of workspaces:"
 msgstr "Anzahl der Arbeitsflächen:"
 
-#: frontpanel/contents/ui/configWorkspaces.qml:72
+#: frontpanel/contents/ui/configWorkspaces.qml:75
 msgid "Button width:"
 msgstr "Knopfbreite:"
 
-#: frontpanel/contents/ui/configWorkspaces.qml:78
+#: frontpanel/contents/ui/configWorkspaces.qml:81
 msgid "Each button in a colour of its own, as in CDE"
 msgstr "Jeder Knopf in einer eigenen Farbe, wie in CDE"
 
-#: frontpanel/contents/ui/configWorkspaces.qml:83
-msgid "Windows:"
-msgstr "Fenster:"
-
-#: frontpanel/contents/ui/configWorkspaces.qml:86
-msgid "Not here (strip or window tile, see General)"
-msgstr "Nicht hier (Leiste oder Fensterkachel, siehe Allgemein)"
-
 #: frontpanel/contents/ui/configWorkspaces.qml:87
-msgid "Icons under each button"
-msgstr "Symbole unter jedem Knopf"
+msgid "Open windows"
+msgstr "Offene Fenster"
 
-#: frontpanel/contents/ui/configWorkspaces.qml:88
+#: frontpanel/contents/ui/configWorkspaces.qml:90
+msgid "Shown as:"
+msgstr "Anzeige:"
+
+#: frontpanel/contents/ui/configWorkspaces.qml:94
+msgid "Strip under the tiles"
+msgstr "Leiste unter den Kacheln"
+
+#: frontpanel/contents/ui/configWorkspaces.qml:95
+msgid "Window tile left, beside the launchers"
+msgstr "Fensterkachel links bei den Startern"
+
+#: frontpanel/contents/ui/configWorkspaces.qml:96
+msgid "Window tile right, beside the launchers"
+msgstr "Fensterkachel rechts bei den Startern"
+
+#: frontpanel/contents/ui/configWorkspaces.qml:97
+msgid "Icons under each workspace button"
+msgstr "Symbole unter jedem Arbeitsflächen-Knopf"
+
+#: frontpanel/contents/ui/configWorkspaces.qml:98
 msgid "Each workspace in miniature, with its windows"
 msgstr "Jede Arbeitsfläche als Miniatur mit ihren Fenstern"
 
-#: frontpanel/contents/ui/configWorkspaces.qml:92
+#: frontpanel/contents/ui/configWorkspaces.qml:116
+msgid ""
+"Needs the workspace switcher; while it is hidden the console shows the strip "
+"(or the tile chosen before)."
+msgstr ""
+"Braucht den Arbeitsflächen-Umschalter; solange er ausgeblendet ist, zeigt "
+"die Konsole die Leiste (oder die vorher gewählte Kachel)."
+
+#: frontpanel/contents/ui/configWorkspaces.qml:122
+msgid "Group windows of one application (\"3× Konsole\")"
+msgstr "Fenster einer Anwendung gruppieren („3× Konsole“)"
+
+#: frontpanel/contents/ui/configWorkspaces.qml:126
+msgid "Only windows on this console's screen (with a console on every screen)"
+msgstr "Nur Fenster auf dem Bildschirm dieser Konsole (bei einer Konsole je Bildschirm)"
+
+#: frontpanel/contents/ui/configWorkspaces.qml:128
 msgid "Labels (empty: the number)"
 msgstr "Beschriftungen (leer: die Nummer)"
 
-#: frontpanel/contents/ui/configWorkspaces.qml:97
+#: frontpanel/contents/ui/configWorkspaces.qml:133
 msgid "Workspace %1:"
 msgstr "Arbeitsfläche %1:"
 
@@ -1009,31 +1004,31 @@ msgstr "Arbeitsflächen"
 msgid "Clock and Calendar"
 msgstr "Uhr und Kalender"
 
-#: backdrop/contents/ui/config.qml:57
+#: backdrop/contents/ui/config.qml:59
 msgid "%1 (natural colour)"
 msgstr "%1 (Naturfarbe)"
 
-#: backdrop/contents/ui/config.qml:81
+#: backdrop/contents/ui/config.qml:83
 msgid "Workspaces:"
 msgstr "Arbeitsflächen:"
 
-#: backdrop/contents/ui/config.qml:82
+#: backdrop/contents/ui/config.qml:84
 msgid "A backdrop for each workspace, as in CDE"
 msgstr "Ein eigener Hintergrund für jede Arbeitsfläche, wie in CDE"
 
-#: backdrop/contents/ui/config.qml:86
+#: backdrop/contents/ui/config.qml:88
 msgid "Choosing for:"
 msgstr "Auswahl für:"
 
-#: backdrop/contents/ui/config.qml:101
+#: backdrop/contents/ui/config.qml:103
 msgid "Colour behind the pattern:"
 msgstr "Farbe hinter dem Muster:"
 
-#: backdrop/contents/ui/config.qml:102
+#: backdrop/contents/ui/config.qml:104
 msgid "Backdrop colour"
 msgstr "Hintergrundfarbe"
 
-#: backdrop/contents/ui/config.qml:105
+#: backdrop/contents/ui/config.qml:107
 msgid ""
 "Patterns from CDE (The Open Group, CC BY-SA 3.0) and material tiles, "
 "coloured with the palette %1; the tiles again in their natural colour; then "
@@ -1179,6 +1174,24 @@ msgstr "Das Passwort wurde nicht akzeptiert."
 #: shell/contents/lockscreen/LockScreen.qml:250
 msgid "No password is needed: press Unlock."
 msgstr "Kein Passwort nötig: auf „Entsperren“ klicken."
+
+#~ msgid "Window display:"
+#~ msgstr "Fensteranzeige:"
+
+#~ msgid ""
+#~ "The workspace switcher can show the windows instead (Workspaces page)."
+#~ msgstr ""
+#~ "Stattdessen kann der Arbeitsflächen-Umschalter die Fenster zeigen (Seite "
+#~ "Arbeitsflächen)."
+
+#~ msgid "Window list:"
+#~ msgstr "Fensterliste:"
+
+#~ msgid "Windows:"
+#~ msgstr "Fenster:"
+
+#~ msgid "Not here (strip or window tile, see General)"
+#~ msgstr "Nicht hier (Leiste oder Fensterkachel, siehe Allgemein)"
 
 #~ msgid ""
 #~ "Patterns from CDE (The Open Group, CC BY-SA 3.0), coloured with the "

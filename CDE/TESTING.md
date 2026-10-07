@@ -778,3 +778,13 @@ Checks of 2026-10-07 (pattern colour on dark palettes), VM:
 - Requests from the Style page carried `--pattern-colour palette` (the box
   reads the manifest's pattern_colour).
 
+
+Checks of 2026-10-07 (window settings moved to the Workspaces page), VM:
+
+- Front Console page: nothing about windows left. Workspaces page › "Open
+  windows": "Shown as" with all five views, grouping (only for the strip) and
+  "only this screen's windows".
+- "Window tile right" chosen and applied: windowDisplay=tileRight,
+  workspaceWindows back to its default, console 1141 long. Then "Each
+  workspace in miniature": workspaceWindows=pager, windowDisplay kept
+  tileRight for a hidden switcher, console 1369 long.
