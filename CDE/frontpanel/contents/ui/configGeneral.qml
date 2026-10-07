@@ -17,6 +17,7 @@ KCM.SimpleKCM {
     property var cfg_showWorkspacesDefault
     property var cfg_workspaceCountDefault
     property var cfg_groupWindowsDefault
+    property var cfg_windowDisplayDefault
     property var cfg_consoleLabelDefault
     property var cfg_consoleScaleDefault
     property var cfg_hideTrayVolumeDefault
@@ -45,6 +46,7 @@ KCM.SimpleKCM {
     property int cfg_edge: -1
     property alias cfg_windowsOnThisScreen: thisScreen.checked
     property alias cfg_groupWindows: groupWindows.checked
+    property string cfg_windowDisplay: "strip"
     property alias cfg_launcherLabels: launcherLabels.checked
     property alias cfg_consoleLabel: label.text
     property real cfg_consoleScale: 1.0
@@ -75,6 +77,16 @@ KCM.SimpleKCM {
             Kirigami.FormData.label: i18nd("cde-copper", "Screens:")
             text: i18nd("cde-copper", "A console on every screen (off: one console for all)")
         }
+        ComboBox {
+            id: windowDisplay
+            Kirigami.FormData.label: i18nd("cde-copper", "Window display:")
+            readonly property var values: ["strip", "tileLeft", "tileRight"]
+            model: [i18nd("cde-copper", "Strip under the tiles"),
+                    i18nd("cde-copper", "Window tile left, beside the launchers"),
+                    i18nd("cde-copper", "Window tile right, beside the launchers")]
+            currentIndex: Math.max(0, values.indexOf(cfg_windowDisplay))
+            onActivated: index => cfg_windowDisplay = values[index]
+        }
         CheckBox {
             id: thisScreen
             Kirigami.FormData.label: i18nd("cde-copper", "Window list:")
@@ -89,6 +101,8 @@ KCM.SimpleKCM {
         }
         CheckBox {
             id: groupWindows
+            // The tile's list shows every window by itself.
+            enabled: windowDisplay.currentIndex === 0
             text: i18nd("cde-copper", "Group windows of one application (\"3× Konsole\")")
         }
         CheckBox {

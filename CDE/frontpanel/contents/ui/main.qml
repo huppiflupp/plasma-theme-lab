@@ -78,6 +78,12 @@ PlasmoidItem {
     readonly property string dbus: Launch.DBUS
     readonly property var leftSlots: Launch.parse(Plasmoid.configuration.leftLaunchers, Launch.LEFT)
     readonly property var rightSlots: Launch.parse(Plasmoid.configuration.rightLaunchers, Launch.RIGHT)
+    // Open windows as the strip under the tiles, or as a window tile beside
+    // the launchers (left or right) whose list opens like a subpanel. With
+    // the tile the strip's row goes, and the console is lower.
+    readonly property string windowDisplay: ["tileLeft", "tileRight"].indexOf(Plasmoid.configuration.windowDisplay) >= 0
+                                            ? Plasmoid.configuration.windowDisplay : "strip"
+    readonly property bool windowTile: windowDisplay !== "strip"
 
     // Every colour comes from the active colour scheme: the console is the
     // Complementary set (CDE colour set 8 with a CDE palette), popups use
@@ -295,9 +301,11 @@ PlasmoidItem {
         // Floating, Plasma keeps a gap to the edge and the panel some air
         // around the console; on the edge the panel is exactly the console
         // (CanFillArea, below, drops the containment's margins).
-        const height = Math.round((Plasmoid.configuration.floating ? 128 : 116) * consoleColors.unit);
-        // Upright the console runs the full height, so the window list has room.
-        const length = edge === "left" || edge === "right" ? "fill" : "fit";
+        // The window tile drops the strip's row: 28 lower.
+        const height = Math.round(((Plasmoid.configuration.floating ? 128 : 116) - (root.windowTile ? 28 : 0)) * consoleColors.unit);
+        // Upright the console runs the full height, so the window list has
+        // room; with the window tile it is as tall as its tiles.
+        const length = (edge === "left" || edge === "right") && !root.windowTile ? "fill" : "fit";
         // Plasma reserves the screen edge that reveals a hidden panel when the
         // hiding mode is set, and does not move it with the panel: moved
         // afterwards (or in the same breath), the console could not be brought
@@ -415,6 +423,7 @@ PlasmoidItem {
         function onEdgeChanged() { root.configurePanel(); }
         function onConsoleScaleChanged() { root.configurePanel(); }
         function onFloatingChanged() { root.configurePanel(); }
+        function onWindowDisplayChanged() { root.configurePanel(); }
         function onEveryScreenChanged() { root.placeConsoles(); }
         function onHideTrayVolumeChanged() { root.syncTray(); }
         function onHideTrayIconsChanged() { root.syncTray(); root.placeTray(); }
@@ -451,7 +460,7 @@ PlasmoidItem {
 
     Component.onCompleted: {
         installTranslations();
-        if (Plasmoid.configuration.consoleScale !== 1 || !Plasmoid.configuration.floating) configurePanel();
+        if (Plasmoid.configuration.consoleScale !== 1 || !Plasmoid.configuration.floating || windowTile) configurePanel();
         workspaceSync.start();
         // The tray fills its item list on its first start; look once it has.
         trayTimer.start();
@@ -564,12 +573,14 @@ PlasmoidItem {
         virtualDesktop: desktops.currentDesktop
         activity: activities.currentActivity
         screenGeometry: Plasmoid.containment.screenGeometry
-        filterByVirtualDesktop: true
+        // The strip shows this workspace's windows; the tile's list all of
+        // them, each with its workspace.
+        filterByVirtualDesktop: !root.windowTile
         filterByActivity: true
         // With one console per screen, each lists the windows on its own
         // screen; a single console lists the windows of all screens.
         filterByScreen: Plasmoid.configuration.windowsOnThisScreen && Plasmoid.configuration.everyScreen
-        groupMode: Plasmoid.configuration.groupWindows ? TaskManager.TasksModel.GroupApplications : TaskManager.TasksModel.GroupDisabled
+        groupMode: Plasmoid.configuration.groupWindows && !root.windowTile ? TaskManager.TasksModel.GroupApplications : TaskManager.TasksModel.GroupDisabled
         groupInline: false
         // Group from the second window on, not only when the strip is full.
         groupingWindowTasksThreshold: -1
@@ -886,13 +897,143 @@ PlasmoidItem {
         return titles;
     }
 
+    // The window tile: an arrow strip like a launcher's over a tile with the
+    // active window's icon and the number of windows. Tile and arrow open
+    // the list; the wheel brings the next or previous window forward.
+    component WindowTile: GridLayout {
+        id: windowSlot
+        rows: root.vertical ? 1 : 2
+        columns: root.vertical ? 2 : 1
+        rowSpacing: 1; columnSpacing: 1
+        Layout.fillWidth: true; Layout.fillHeight: true
+        Layout.preferredWidth: root.vertical ? -1 : root.u(68)
+        Layout.preferredHeight: root.vertical ? root.u(62) : -1
+        function toggle(anchor) {
+            root.popupSegment = windowSlot;
+            if (windowsPopup.visible) { windowsPopup.visible = false; return; }
+            popup.visible = false;
+            windowsPopup.visualParent = anchor;
+            windowsPopup.visible = true;
+        }
+        ConsoleButton {
+            id: windowArrow
+            Layout.row: 0
+            Layout.column: root.vertical && !root.atRight ? 1 : 0
+            Layout.fillWidth: !root.vertical; Layout.fillHeight: root.vertical
+            Layout.preferredHeight: root.vertical ? -1 : root.u(13)
+            Layout.preferredWidth: root.vertical ? root.u(13) : -1
+            text: ""
+            Accessible.name: i18nd("cde-copper", "Open Windows")
+            selected: windowsPopup.visible
+            contentItem: Text {
+                text: root.arrowGlyph
+                color: consoleColors.panelText; font.pixelSize: root.u(12)
+                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+            }
+            onClicked: windowSlot.toggle(windowButton)
+        }
+        ConsoleButton {
+            id: windowButton
+            Layout.row: root.vertical ? 0 : 1
+            Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
+            Layout.fillWidth: true; Layout.fillHeight: true
+            labelled: Plasmoid.configuration.launcherLabels
+            text: i18ndp("cde-copper", "%1 window", "%1 windows", tasks.count)
+            Accessible.name: root.activeWindowTitle ? text + "\n" + root.activeWindowTitle : text
+            selected: windowsPopup.visible
+            // The list itself shows what the tooltip would.
+            ToolTip.visible: hovered && !windowsPopup.visible
+            onClicked: windowSlot.toggle(windowButton)
+            WheelHandler {
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                onWheel: event => root.stepWindow(event.angleDelta.y > 0 ? -1 : 1)
+            }
+            // The active window's own icon (a QIcon, which iconName cannot carry).
+            contentItem: Item {
+                implicitWidth: root.u(58); implicitHeight: root.u(55)
+                Kirigami.Icon {
+                    id: windowIcon
+                    source: root.activeWindowIcon || "preferences-system-windows"
+                    width: windowButton.iconSize; height: width
+                    x: (parent.width - width) / 2
+                    y: windowButton.labelled ? 0 : (parent.height - height) / 2
+                    active: false
+                }
+                Text {
+                    visible: windowButton.labelled
+                    text: windowButton.text
+                    color: windowButton.selected ? windowButton.accentText : windowButton.foreground
+                    font.family: consoleColors.font; font.pixelSize: root.u(11)
+                    font.weight: windowButton.selected ? Font.DemiBold : consoleColors.weight
+                    elide: Text.ElideRight
+                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                    y: windowIcon.height + 1
+                    width: parent.width; height: parent.height - y
+                }
+                // Without labels the number sits in the corner.
+                Text {
+                    visible: !windowButton.labelled && tasks.count > 0
+                    anchors { right: parent.right; bottom: parent.bottom }
+                    text: tasks.count
+                    color: windowButton.selected ? windowButton.accentText : windowButton.foreground
+                    font.family: consoleColors.font; font.pixelSize: root.u(11); font.weight: Font.DemiBold
+                }
+            }
+        }
+        HoverHandler { onHoveredChanged: root.hoverSegment(windowSlot, hovered) }
+    }
+    // The window active last: the open list takes the focus, and tile and
+    // list should still show the window the user came from.
+    property var activeWindowIcon: null
+    property string activeWindowTitle: ""
+    property string activeWindowId: ""
+    Connections {
+        target: tasks
+        function onActiveTaskChanged() {
+            if (!tasks.activeTask.valid) return;
+            root.activeWindowIcon = tasks.data(tasks.activeTask, Qt.DecorationRole);
+            root.activeWindowTitle = tasks.data(tasks.activeTask, Qt.DisplayRole) || "";
+            root.activeWindowId = String(tasks.data(tasks.activeTask, TaskManager.AbstractTasksModel.WinIdList));
+        }
+        // A window closed: forget it once nothing in the list is it.
+        function onCountChanged() {
+            for (let i = 0; i < tasks.count; i++)
+                if (String(tasks.data(tasks.makeModelIndex(i), TaskManager.AbstractTasksModel.WinIdList)) === root.activeWindowId) return;
+            root.activeWindowIcon = null; root.activeWindowTitle = ""; root.activeWindowId = "";
+        }
+    }
+    // The next (or previous) window after the active one comes forward.
+    function stepWindow(delta) {
+        const count = tasks.count;
+        if (count === 0) return;
+        let active = -1;
+        for (let i = 0; i < count; i++)
+            if (tasks.data(tasks.makeModelIndex(i), TaskManager.AbstractTasksModel.IsActive)) active = i;
+        const next = active < 0 ? (delta > 0 ? 0 : count - 1) : (active + delta + count) % count;
+        tasks.requestActivate(tasks.makeModelIndex(next));
+    }
+    // The workspace a window is on, as its button shows it; "∗" on all of
+    // them, nothing with a single workspace.
+    function windowWorkspace(onAll, ids) {
+        if (desktops.desktopIds.length < 2) return "";
+        if (onAll) return "∗";
+        const index = desktops.desktopIds.indexOf((ids || [])[0]);
+        return index >= 0 ? root.workspaceLabel(index) : "";
+    }
+
     component VolumeButton: ConsoleButton {
         id: status
+        // With the window tile the volume is a tile of the row, as tall as
+        // the launchers; otherwise a narrow button in the strip's row.
+        property bool tile: false
         Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
         // As wide as a launcher, so it lines up with the tiles above it.
         Layout.preferredWidth: root.vertical ? -1 : root.u(68)
-        Layout.preferredHeight: root.vertical ? root.u(26) : -1
-        text: root.volumeState; iconSize: root.u(18); horizontal: true
+        Layout.preferredHeight: root.vertical ? root.u(tile ? 62 : 26) : -1
+        text: root.volumeState
+        iconSize: tile ? Math.round((labelled ? 38 : 50) * consoleColors.unit) : root.u(18)
+        horizontal: !tile
+        labelled: !tile || Plasmoid.configuration.launcherLabels
         iconName: root.muted ? "audio-volume-muted" : "audio-volume-high"
         Accessible.name: i18nd("cde-copper", "Volume %1, %2", root.volumeState, root.networkState)
         onClicked: { volumePopup.visualParent = status; volumePopup.visible = !volumePopup.visible; }
@@ -908,15 +1049,15 @@ PlasmoidItem {
         // Across: as wide as its tiles, 116 high. Upright: 116 wide, and as
         // tall as the screen allows, the window list taking the rest.
         implicitWidth: root.vertical ? root.u(116) : content.implicitWidth + 10
-        implicitHeight: root.vertical ? content.implicitHeight + 10 : root.u(116)
+        implicitHeight: root.vertical ? content.implicitHeight + 10 : root.u(root.windowTile ? 88 : 116)
         // The panel sizes itself from these.
         Layout.minimumWidth: implicitWidth
         Layout.preferredWidth: implicitWidth
         Layout.maximumWidth: implicitWidth
         Layout.minimumHeight: implicitHeight
         Layout.preferredHeight: implicitHeight
-        Layout.maximumHeight: root.vertical ? Number.POSITIVE_INFINITY : implicitHeight
-        Layout.fillHeight: root.vertical
+        Layout.maximumHeight: root.vertical && !root.windowTile ? Number.POSITIVE_INFINITY : implicitHeight
+        Layout.fillHeight: root.vertical && !root.windowTile
         surface: consoleColors.panel
         ColumnLayout {
             id: content
@@ -928,11 +1069,15 @@ PlasmoidItem {
                 Layout.fillWidth: true; Layout.fillHeight: !root.vertical
                 ClockTile {}
                 Repeater { model: root.leftSlots; delegate: Slot {} }
+                WindowTile { visible: root.windowDisplay === "tileLeft" }
                 Workspaces {}
+                WindowTile { visible: root.windowDisplay === "tileRight" }
                 Repeater { model: root.rightSlots; delegate: Slot {} }
+                VolumeButton { visible: root.windowTile; tile: true }
                 SessionButtons {}
             }
             GridLayout {
+                visible: !root.windowTile
                 flow: root.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
                 rowSpacing: 3; columnSpacing: 3
                 Layout.fillWidth: true
@@ -962,6 +1107,7 @@ PlasmoidItem {
     Keeper { id: calendarKeeper; dialog: calendar; segment: calendar.visualParent; inside: calendarHover.hovered }
     Keeper { id: volumeKeeper; dialog: volumePopup; segment: volumePopup.visualParent; inside: volumeHover.hovered }
     Keeper { id: popupKeeper; dialog: popup; segment: root.popupSegment; inside: popupHover.hovered }
+    Keeper { id: windowsKeeper; dialog: windowsPopup; segment: root.popupSegment; inside: windowsHover.hovered }
     Keeper { id: layoutsKeeper; dialog: layoutsPopup; segment: layoutsPopup.visualParent ? layoutsPopup.visualParent.parent : null; inside: layoutsHover.hovered }
 
     PlasmaCore.Dialog {
@@ -1072,6 +1218,76 @@ PlasmoidItem {
                             // The style manager is a page of the console's settings.
                             if (modelData.command === "@style") Plasmoid.internalAction("configure").trigger();
                             else root.run(Launch.resolve(modelData.command, modelData.args, (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg)));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // The window tile's list: every window with its icon, title and
+    // workspace; the active one pressed in, minimized ones faint.
+    PlasmaCore.Dialog {
+        id: windowsPopup
+        visible: false
+        type: PlasmaCore.Dialog.PopupMenu
+        flags: Qt.WindowStaysOnTopHint
+        location: Plasmoid.location
+        hideOnWindowDeactivate: true
+        backgroundHints: PlasmaCore.Types.NoBackground
+        onVisibleChanged: if (visible) { windowsKeeper.opened(); windowsBody.forceActiveFocus(); }
+        mainItem: Bevel {
+            id: windowsBody
+            HoverHandler { id: windowsHover }
+            Keys.onPressed: windowsKeeper.keyboard = true
+            Keys.onEscapePressed: windowsPopup.visible = false
+            focus: true
+            width: 380
+            // Up to twelve rows; more scroll.
+            height: 41 + (tasks.count ? Math.min(tasks.count, 12) * 36 : 50)
+            surface: consoleColors.window
+            ColumnLayout {
+                anchors.fill: parent; anchors.margins: 5; spacing: 2
+                Bevel {
+                    Layout.fillWidth: true; Layout.preferredHeight: 27; surface: consoleColors.highlight
+                    Text { anchors.centerIn: parent; text: i18nd("cde-copper", "Open Windows"); color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
+                }
+                Text {
+                    visible: tasks.count === 0
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    text: i18nd("cde-copper", "No open windows")
+                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 12
+                }
+                ListView {
+                    id: windowList
+                    visible: tasks.count > 0
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    clip: true; spacing: 2
+                    model: tasks
+                    ScrollBar.vertical: ScrollBar { policy: windowList.contentHeight > windowList.height ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded }
+                    delegate: ConsoleButton {
+                        id: windowEntry
+                        required property int index
+                        required property var model
+                        width: windowList.width - (windowList.contentHeight > windowList.height ? 12 : 0)
+                        height: 34
+                        horizontal: true; surface: consoleColors.window; foreground: consoleColors.windowText
+                        text: model.display || i18nd("cde-copper", "Window")
+                        iconName: ""
+                        leftPadding: 36; rightPadding: 34
+                        selected: Boolean(model.IsActive) || String(model.WinIdList) === root.activeWindowId
+                        opacity: model.IsMinimized ? 0.6 : 1
+                        Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: 22; height: 22; source: windowEntry.model.decoration; active: false }
+                        Text {
+                            anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
+                            text: root.windowWorkspace(windowEntry.model.IsOnAllVirtualDesktops, windowEntry.model.VirtualDesktops)
+                            color: windowEntry.selected ? consoleColors.highlightText : consoleColors.windowText
+                            font.family: consoleColors.font; font.pixelSize: 11
+                        }
+                        onClicked: {
+                            windowsPopup.visible = false;
+                            const idx = tasks.makeModelIndex(index);
+                            if (model.IsActive) tasks.requestToggleMinimized(idx); else tasks.requestActivate(idx);
                         }
                     }
                 }

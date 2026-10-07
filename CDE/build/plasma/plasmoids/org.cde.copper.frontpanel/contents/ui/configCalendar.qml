@@ -18,6 +18,7 @@ KCM.SimpleKCM {
     property var cfg_windowsOnThisScreenDefault
     property var cfg_workspaceColoursDefault
     property var cfg_groupWindowsDefault
+    property var cfg_windowDisplayDefault
     property var cfg_consoleLabelDefault
     property var cfg_consoleScaleDefault
     property var cfg_hideTrayVolumeDefault

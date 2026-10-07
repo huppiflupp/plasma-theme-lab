@@ -681,3 +681,19 @@ Checks of 2026-10-07 (login screen, plasma-login-manager 6.7.5), VM at 1280×800
   group of its own, as Nobara has), the greeter's kdeglobals, and removed
   plasmarc, the Plasma theme, fonts and backdrop.
 - `python3 tests/verify.py`: 28 tests pass.
+
+Checks of 2026-10-07 (window display), VM at 1920x1080:
+
+- Default "strip": the console unchanged, task strip as before.
+- "tileLeft" set through the console's configuration (mirrored to
+  cdecopperrc [Console] windowDisplay): window tile between the left
+  launchers and the workspaces, the strip's row gone, the console lower,
+  volume as a tile beside the session block.
+- A click on the tile opened the list with all four windows and their
+  workspace; after a click into Konsole, Konsole was pressed in and its icon
+  on the tile although the open list holds the focus. A click on the KWrite
+  entry brought KWrite forward and closed the list.
+- "tileRight" with the console upright at the left edge: tile below the
+  workspaces, the console as tall as its tiles, the list opening to the right.
+- Not checked: the mouse wheel over the tile (the VM's test input has no
+  wheel), more than twelve windows (scrolling list).

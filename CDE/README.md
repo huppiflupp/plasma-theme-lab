@@ -41,7 +41,8 @@ languages can be added as `po/<language>.po`.
   subpanels, saved window layouts with previews, workspace switcher (its own settings page: one to eight
   workspaces, button width, a label per workspace, or switched off; each button in a colour of the palette,
   as in CDE), window task strip (several windows of
-  one application as one button, "3× Konsole"), volume
+  one application as one button, "3× Konsole") or instead a window tile
+  beside the launchers, volume
   control, and a launcher-wide block: its arrow strip opens the hidden tray
   icons, below it four square buttons for console settings, lock screen,
   show desktop and a load meter (processor and memory from Plasma's own
@@ -331,6 +332,15 @@ task strip scrolls when many windows are open. Windows of one application share
 a button ("3× Konsole", the titles in its tooltip); each click brings the next
 of them forward. General › "Group windows of one application" turns this off.
 
+General › "Window display" puts a window tile in place of the strip, left or
+right beside the launchers (next to the workspace switcher). The tile shows the
+active window's icon and the number of windows; its arrow or a click opens the
+list of all windows on every workspace, each with its workspace, the active one
+pressed in and minimized ones faint. The mouse wheel over the tile brings the
+next or previous window forward. Without the strip's row the console is 28
+pixels lower (upright: as tall as its tiles), and the volume becomes a tile of
+its own beside the session block.
+
 ### Arrange windows around the console
 
 Meta+Ctrl+C, the System subpanel's "Arrange Windows", or a tile with the
@@ -462,7 +472,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.8.7. The application style is a Kvantum theme, not a
+This is version 0.8.8. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,
