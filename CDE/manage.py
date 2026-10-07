@@ -227,6 +227,11 @@ def install():
     if shutil.which("fc-cache"):
         run("fc-cache", "-f", str(DATA / "fonts/CDECopper"), check=False)
     print("Installed CDE Copper. Original configuration: " + str(STATE / "config"))
+    # A running plasmashell keeps the front panel's old code and settings
+    # schema; new settings would not even be saved until it restarts.
+    if run("systemctl", "--user", "-q", "is-active", "plasma-plasmashell.service", check=False).returncode == 0:
+        print("Plasma is running: restart it to load the new front panel: "
+              "systemctl --user restart plasma-plasmashell")
 
 
 def palette_owned(target, patterns):
