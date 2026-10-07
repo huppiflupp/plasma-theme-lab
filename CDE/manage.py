@@ -227,11 +227,24 @@ def install():
     if shutil.which("fc-cache"):
         run("fc-cache", "-f", str(DATA / "fonts/CDECopper"), check=False)
     print("Installed CDE Copper. Original configuration: " + str(STATE / "config"))
-    # A running plasmashell keeps the front panel's old code and settings
-    # schema; new settings would not even be saved until it restarts.
-    if run("systemctl", "--user", "-q", "is-active", "plasma-plasmashell.service", check=False).returncode == 0:
-        print("Plasma is running: restart it to load the new front panel: "
-              "systemctl --user restart plasma-plasmashell")
+
+
+def offer_shell_restart(restart):
+    """A running plasmashell keeps the front panel's old code and settings
+    schema; new settings would not even be saved until it restarts. Asked
+    only at a terminal, so scripts and tests never restart the session."""
+    if run("systemctl", "--user", "-q", "is-active", "plasma-plasmashell.service", check=False).returncode:
+        return
+    if not restart and sys.stdin.isatty():
+        try:
+            restart = input("Restart Plasma now to load the new front panel? [y/N] ").strip().lower() in ("y", "yes", "j", "ja")
+        except EOFError:
+            pass
+    if restart:
+        run("systemctl", "--user", "restart", "plasma-plasmashell.service")
+        print("Plasma restarted.")
+    else:
+        print("Restart Plasma to load the new front panel: systemctl --user restart plasma-plasmashell")
 
 
 def palette_owned(target, patterns):
@@ -1013,6 +1026,7 @@ def main():
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--panel", action="store_true", help="replace the panel layout, backed up on installation")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--restart-shell", action="store_true", help="install: restart Plasma afterwards without asking")
     args = parser.parse_args()
     if args.action == "palettes":
         list_palettes()
@@ -1035,6 +1049,7 @@ def main():
         install()
         if args.apply:
             apply(args.panel, args.palette, args.backdrop, args.backdrop_scale)
+        offer_shell_restart(args.restart_shell)
     elif args.action == "apply":
         apply(args.panel, args.palette, args.backdrop, args.backdrop_scale)
     elif args.action == "follow-theme":

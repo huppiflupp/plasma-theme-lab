@@ -144,7 +144,9 @@ bash install.sh
 bash apply.sh --panel
 ```
 
-Log out and back in after applying. `--panel` explicitly replaces the current
+When Plasma is running, `install.sh` offers to restart it so the front console
+loads its new code; `--restart-shell` restarts it without asking. Log out and
+back in after applying. `--panel` explicitly replaces the current
 panel layout with one console per screen (the system tray beside the first);
 the installer backs up the previous layout first. Without that flag, your
 current panels stay in place. The front console can also be added as a widget
