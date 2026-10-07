@@ -78,12 +78,17 @@ PlasmoidItem {
     readonly property string dbus: Launch.DBUS
     readonly property var leftSlots: Launch.parse(Plasmoid.configuration.leftLaunchers, Launch.LEFT)
     readonly property var rightSlots: Launch.parse(Plasmoid.configuration.rightLaunchers, Launch.RIGHT)
-    // Open windows as the strip under the tiles, or as a window tile beside
-    // the launchers (left or right) whose list opens like a subpanel. With
-    // the tile the strip's row goes, and the console is lower.
-    readonly property string windowDisplay: ["tileLeft", "tileRight"].indexOf(Plasmoid.configuration.windowDisplay) >= 0
-                                            ? Plasmoid.configuration.windowDisplay : "strip"
-    readonly property bool windowTile: windowDisplay !== "strip"
+    // Open windows as the strip under the tiles, as a window tile beside
+    // the launchers (left or right) whose list opens like a subpanel, or as
+    // small icons under each workspace's button. Without the strip its row
+    // goes, and the console is lower. With the workspaces hidden their
+    // icons move to the tile.
+    readonly property string windowDisplay: {
+        const wanted = Plasmoid.configuration.windowDisplay;
+        if (wanted === "workspaces") return Plasmoid.configuration.showWorkspaces ? wanted : "tileLeft";
+        return ["tileLeft", "tileRight"].indexOf(wanted) >= 0 ? wanted : "strip";
+    }
+    readonly property bool stripHidden: windowDisplay !== "strip"
 
     // Every colour comes from the active colour scheme: the console is the
     // Complementary set (CDE colour set 8 with a CDE palette), popups use
@@ -302,10 +307,10 @@ PlasmoidItem {
         // around the console; on the edge the panel is exactly the console
         // (CanFillArea, below, drops the containment's margins).
         // The window tile drops the strip's row: 28 lower.
-        const height = Math.round(((Plasmoid.configuration.floating ? 128 : 116) - (root.windowTile ? 28 : 0)) * consoleColors.unit);
+        const height = Math.round(((Plasmoid.configuration.floating ? 128 : 116) - (root.stripHidden ? 28 : 0)) * consoleColors.unit);
         // Upright the console runs the full height, so the window list has
         // room; with the window tile it is as tall as its tiles.
-        const length = (edge === "left" || edge === "right") && !root.windowTile ? "fill" : "fit";
+        const length = (edge === "left" || edge === "right") && !root.stripHidden ? "fill" : "fit";
         // Plasma reserves the screen edge that reveals a hidden panel when the
         // hiding mode is set, and does not move it with the panel: moved
         // afterwards (or in the same breath), the console could not be brought
@@ -391,7 +396,14 @@ PlasmoidItem {
     function setVolume(percent) {
         const value = Math.max(0, Math.min(150, Math.round(percent)));
         root.volume = value;
+        root.volumeState = root.muted ? i18nd("cde-copper", "Muted") : value + "%";
         runner.connectSource("wpctl set-volume @DEFAULT_AUDIO_SINK@ " + value + "%");
+    }
+    function readVolume(stdout) {
+        const match = stdout.match(/Volume: ([0-9.]+)/);
+        root.muted = stdout.indexOf("MUTED") >= 0;
+        if (match) root.volume = Math.round(Number(match[1]) * 100);
+        root.volumeState = root.muted ? i18nd("cde-copper", "Muted") : match ? root.volume + "%" : i18nd("cde-copper", "Audio");
     }
 
     // The number, or the label from the console's settings; KWin's names
@@ -460,7 +472,7 @@ PlasmoidItem {
 
     Component.onCompleted: {
         installTranslations();
-        if (Plasmoid.configuration.consoleScale !== 1 || !Plasmoid.configuration.floating || windowTile) configurePanel();
+        if (Plasmoid.configuration.consoleScale !== 1 || !Plasmoid.configuration.floating || stripHidden) configurePanel();
         workspaceSync.start();
         // The tray fills its item list on its first start; look once it has.
         trayTimer.start();
@@ -558,12 +570,24 @@ PlasmoidItem {
         connectedSources: ["timeout 3s env LC_ALL=C nmcli -t -f STATE general", "timeout 3s wpctl get-volume @DEFAULT_AUDIO_SINK@"]
         onNewData: function(sourceName, data) {
             if (sourceName.indexOf("nmcli") >= 0) root.networkState = data.stdout.trim() === "connected" ? i18nd("cde-copper", "Connected") : i18nd("cde-copper", "Offline");
-            else {
-                const match = data.stdout.match(/Volume: ([0-9.]+)/);
-                root.muted = data.stdout.indexOf("MUTED") >= 0;
-                if (match) root.volume = Math.round(Number(match[1]) * 100);
-                root.volumeState = root.muted ? i18nd("cde-copper", "Muted") : match ? root.volume + "%" : i18nd("cde-copper", "Audio");
-            }
+            else root.readVolume(data.stdout);
+        }
+    }
+    // Changes from elsewhere (keys, the tray, other programs) at once: the
+    // watcher returns with the first sink event from PipeWire's pulse
+    // server, or after 20 s; then the volume is read and it watches again.
+    // Without pactl it only waits, and the 5 s poll above stays.
+    P5Support.DataSource {
+        id: volumeWatch
+        engine: "executable"
+        readonly property string watch: "if command -v pactl >/dev/null; then timeout 20s sh -c 'LC_ALL=C stdbuf -oL pactl subscribe | { grep -m1 -q \" on sink \"; pkill -P $$ -x pactl; }'; else sleep 20; fi"
+        readonly property string query: "timeout 3s wpctl get-volume @DEFAULT_AUDIO_SINK@"
+        connectedSources: [watch]
+        onNewData: function(sourceName, data) {
+            disconnectSource(sourceName);
+            if (sourceName === query) { root.readVolume(data.stdout); return; }
+            connectSource(query);
+            Qt.callLater(() => connectSource(watch));
         }
     }
     TaskManager.VirtualDesktopInfo { id: desktops }
@@ -575,12 +599,12 @@ PlasmoidItem {
         screenGeometry: Plasmoid.containment.screenGeometry
         // The strip shows this workspace's windows; the tile's list all of
         // them, each with its workspace.
-        filterByVirtualDesktop: !root.windowTile
+        filterByVirtualDesktop: !root.stripHidden
         filterByActivity: true
         // With one console per screen, each lists the windows on its own
         // screen; a single console lists the windows of all screens.
         filterByScreen: Plasmoid.configuration.windowsOnThisScreen && Plasmoid.configuration.everyScreen
-        groupMode: Plasmoid.configuration.groupWindows && !root.windowTile ? TaskManager.TasksModel.GroupApplications : TaskManager.TasksModel.GroupDisabled
+        groupMode: Plasmoid.configuration.groupWindows && !root.stripHidden ? TaskManager.TasksModel.GroupApplications : TaskManager.TasksModel.GroupDisabled
         groupInline: false
         // Group from the second window on, not only when the strip is full.
         groupingWindowTasksThreshold: -1
@@ -679,12 +703,19 @@ PlasmoidItem {
     }
 
     component Workspaces: Bevel {
+        id: workspacesBlock
         visible: Plasmoid.configuration.showWorkspaces
-        // Two rows across: more workspaces widen the block, upright they stack.
-        readonly property int columns: root.vertical ? 2 : Math.max(2, Math.ceil(desktops.desktopIds.length / 2))
+        // With the windows each button has a well of window icons below it.
+        readonly property bool withWindows: root.windowDisplay === "workspaces"
+        // Two rows across: more workspaces widen the block, upright they
+        // stack. With the windows one row across, for room under the buttons.
+        readonly property int columns: root.vertical ? 2
+                                     : withWindows ? Math.max(1, desktops.desktopIds.length)
+                                     : Math.max(2, Math.ceil(desktops.desktopIds.length / 2))
+        readonly property int rows: Math.max(1, Math.ceil(desktops.desktopIds.length / columns))
         Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
         Layout.preferredWidth: root.vertical ? -1 : root.u((Plasmoid.configuration.workspaceButtonWidth + 12) * columns)
-        Layout.preferredHeight: root.vertical ? root.u(72) : -1
+        Layout.preferredHeight: root.vertical ? root.u(withWindows ? 20 + rows * 66 : 72) : -1
         surface: Motif.shades(consoleColors.panel).bottom; sunken: true
         ColumnLayout {
             anchors.fill: parent; anchors.margins: 4; spacing: 3
@@ -698,10 +729,17 @@ PlasmoidItem {
                 Layout.fillWidth: true; Layout.fillHeight: true
                 Repeater {
                     model: desktops.desktopIds
-                    delegate: ConsoleButton {
+                    delegate: ColumnLayout {
+                        id: workspaceCell
                         required property int index
                         required property var modelData
                         Layout.fillWidth: true; Layout.fillHeight: true
+                        spacing: 2
+                    ConsoleButton {
+                        readonly property int index: workspaceCell.index
+                        readonly property var modelData: workspaceCell.modelData
+                        Layout.fillWidth: true; Layout.fillHeight: !workspacesBlock.withWindows
+                        Layout.preferredHeight: workspacesBlock.withWindows ? root.u(23) : -1
                         implicitWidth: root.u(root.vertical ? 40 : Plasmoid.configuration.workspaceButtonWidth); implicitHeight: root.u(23)
                         text: root.workspaceLabel(index)
                         Accessible.name: i18nd("cde-copper", "Workspace %1 %2", index + 1, desktops.desktopNames[index] || "")
@@ -715,7 +753,67 @@ PlasmoidItem {
                         accentText: own ? (consoleColors.hard ? Motif.stark(own.bg) : own.fg) : consoleColors.highlightText
                         onClicked: root.run(root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
                     }
+                    WindowWell {
+                        visible: workspacesBlock.withWindows
+                        desktop: workspaceCell.modelData
+                        Layout.fillWidth: true; Layout.fillHeight: true
+                    }
+                    }
                 }
+            }
+        }
+    }
+
+    // A workspace's windows as small icon buttons in a sunken well: a click
+    // brings a window forward (and its workspace), on the active one it
+    // minimizes. What does not fit is counted in the last place, "+3".
+    component WindowWell: Bevel {
+        id: well
+        property string desktop: ""
+        sunken: true
+        surface: Motif.shades(consoleColors.panel).bottom
+        readonly property var rows: root.windowRows(desktop, root.windowRevision)
+        // Two rows of icons in the well's height, no larger than 20.
+        readonly property int side: Math.max(10, Math.min(root.u(20), Math.floor((height - 4 - 1) / 2)))
+        readonly property int perRow: Math.max(1, Math.floor((width - 4 + 1) / (side + 1)))
+        readonly property int capacity: perRow * Math.max(1, Math.floor((height - 4 + 1) / (side + 1)))
+        readonly property bool overflow: rows.length > capacity
+        Flow {
+            anchors.fill: parent; anchors.margins: 2
+            spacing: 1
+            clip: true
+            Repeater {
+                model: well.overflow ? well.rows.slice(0, well.capacity - 1) : well.rows
+                delegate: ConsoleButton {
+                    id: windowIcon
+                    required property int modelData
+                    readonly property var idx: tasks.makeModelIndex(modelData)
+                    readonly property int revision: root.windowRevision
+                    width: well.side; height: well.side
+                    padding: 0; text: ""
+                    Accessible.name: (revision, tasks.data(idx, Qt.DisplayRole) || i18nd("cde-copper", "Window"))
+                    selected: (revision, Boolean(tasks.data(idx, TaskManager.AbstractTasksModel.IsActive)))
+                    opacity: (revision, tasks.data(idx, TaskManager.AbstractTasksModel.IsMinimized)) ? 0.5 : 1
+                    contentItem: Item {
+                        Kirigami.Icon {
+                            anchors.centerIn: parent
+                            width: Math.round(well.side * 0.75); height: width
+                            source: (windowIcon.revision, tasks.data(windowIcon.idx, Qt.DecorationRole))
+                            active: false; roundToIconSize: false
+                        }
+                    }
+                    onClicked: {
+                        if (selected) tasks.requestToggleMinimized(idx); else tasks.requestActivate(idx);
+                    }
+                }
+            }
+            Text {
+                visible: well.overflow
+                width: well.side; height: well.side
+                text: "+" + (well.rows.length - well.capacity + 1)
+                color: consoleColors.panelText
+                font.family: consoleColors.font; font.pixelSize: root.u(9)
+                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
             }
         }
     }
@@ -1012,6 +1110,30 @@ PlasmoidItem {
         const next = active < 0 ? (delta > 0 ? 0 : count - 1) : (active + delta + count) % count;
         tasks.requestActivate(tasks.makeModelIndex(next));
     }
+    // Bumped whenever the windows change, for bindings that read the model
+    // through tasks.data() rather than as a view's delegate.
+    property int windowRevision: 0
+    Connections {
+        target: tasks
+        function onDataChanged() { root.windowRevision++; }
+        function onRowsInserted() { root.windowRevision++; }
+        function onRowsRemoved() { root.windowRevision++; }
+        function onRowsMoved() { root.windowRevision++; }
+        function onModelReset() { root.windowRevision++; }
+    }
+    // The model rows of the windows on one workspace, those on all of them
+    // included.
+    function windowRows(desktop, revision) {
+        const rows = [];
+        if (root.windowDisplay !== "workspaces") return rows;
+        for (let i = 0; i < tasks.count; i++) {
+            const idx = tasks.makeModelIndex(i);
+            if (tasks.data(idx, TaskManager.AbstractTasksModel.IsOnAllVirtualDesktops)
+                    || (tasks.data(idx, TaskManager.AbstractTasksModel.VirtualDesktops) || []).indexOf(desktop) >= 0)
+                rows.push(i);
+        }
+        return rows;
+    }
     // The workspace a window is on, as its button shows it; "∗" on all of
     // them, nothing with a single workspace.
     function windowWorkspace(onAll, ids) {
@@ -1031,7 +1153,9 @@ PlasmoidItem {
         Layout.preferredWidth: root.vertical ? -1 : root.u(68)
         Layout.preferredHeight: root.vertical ? root.u(tile ? 62 : 26) : -1
         text: root.volumeState
-        iconSize: tile ? Math.round((labelled ? 38 : 50) * consoleColors.unit) : root.u(18)
+        // The speaker fills its square where application icons keep a margin:
+        // smaller than a launcher's icon, so it looks as large.
+        iconSize: tile ? Math.round((labelled ? 28 : 38) * consoleColors.unit) : root.u(18)
         horizontal: !tile
         labelled: !tile || Plasmoid.configuration.launcherLabels
         iconName: root.muted ? "audio-volume-muted" : "audio-volume-high"
@@ -1049,15 +1173,15 @@ PlasmoidItem {
         // Across: as wide as its tiles, 116 high. Upright: 116 wide, and as
         // tall as the screen allows, the window list taking the rest.
         implicitWidth: root.vertical ? root.u(116) : content.implicitWidth + 10
-        implicitHeight: root.vertical ? content.implicitHeight + 10 : root.u(root.windowTile ? 88 : 116)
+        implicitHeight: root.vertical ? content.implicitHeight + 10 : root.u(root.stripHidden ? 88 : 116)
         // The panel sizes itself from these.
         Layout.minimumWidth: implicitWidth
         Layout.preferredWidth: implicitWidth
         Layout.maximumWidth: implicitWidth
         Layout.minimumHeight: implicitHeight
         Layout.preferredHeight: implicitHeight
-        Layout.maximumHeight: root.vertical && !root.windowTile ? Number.POSITIVE_INFINITY : implicitHeight
-        Layout.fillHeight: root.vertical && !root.windowTile
+        Layout.maximumHeight: root.vertical && !root.stripHidden ? Number.POSITIVE_INFINITY : implicitHeight
+        Layout.fillHeight: root.vertical && !root.stripHidden
         surface: consoleColors.panel
         ColumnLayout {
             id: content
@@ -1073,11 +1197,11 @@ PlasmoidItem {
                 Workspaces {}
                 WindowTile { visible: root.windowDisplay === "tileRight" }
                 Repeater { model: root.rightSlots; delegate: Slot {} }
-                VolumeButton { visible: root.windowTile; tile: true }
+                VolumeButton { visible: root.stripHidden; tile: true }
                 SessionButtons {}
             }
             GridLayout {
-                visible: !root.windowTile
+                visible: !root.stripHidden
                 flow: root.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
                 rowSpacing: 3; columnSpacing: 3
                 Layout.fillWidth: true

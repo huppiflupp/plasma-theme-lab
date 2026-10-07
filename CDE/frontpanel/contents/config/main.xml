@@ -18,7 +18,8 @@
     <!-- Windows of one application as one task button: "3× Konsole" -->
     <entry name="groupWindows" type="Bool"><default>true</default></entry>
     <!-- Open windows: "strip" under the tiles, or a window tile with a list
-         beside the launchers, "tileLeft" or "tileRight" (no strip, a lower console) -->
+         beside the launchers, "tileLeft" or "tileRight", or "workspaces", icons
+         under each workspace's button (no strip, a lower console) -->
     <entry name="windowDisplay" type="String"><default>strip</default></entry>
     <entry name="consoleLabel" type="String"><default>CDE / COPPER</default></entry>
     <entry name="consoleScale" type="Double"><default>1.0</default></entry>

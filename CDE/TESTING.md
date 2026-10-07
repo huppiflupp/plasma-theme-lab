@@ -697,3 +697,17 @@ Checks of 2026-10-07 (window display), VM at 1920x1080:
   workspaces, the console as tall as its tiles, the list opening to the right.
 - Not checked: the mouse wheel over the tile (the VM's test input has no
   wheel), more than twelve windows (scrolling list).
+
+Checks of 2026-10-07 (window icons under the workspaces), VM at 1920x1080:
+
+- "workspaces": buttons 1-4 in one row, each over a well; eight windows on
+  workspace 1 in two rows of icons, the active one pressed in. Before the
+  icons were sized to two rows the well showed three and "+5".
+- KWin's "Window to Desktop 2": the window's icon moved to workspace 2's well.
+  A click on it switched to workspace 2 and brought the window forward.
+- Volume: `wpctl set-volume … 40%` from outside showed "40%" within 1.5 s
+  (pactl subscribe watcher; before, the 5 s poll). The speaker on the volume
+  tile is now smaller than a launcher's icon.
+- Not checked: overflow beyond ten windows on one workspace, the console
+  upright in this mode, a system without pactl (falls back to the 5 s poll).
+
