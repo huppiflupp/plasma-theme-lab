@@ -50,8 +50,10 @@ languages can be added as `po/<language>.po`.
   Settings' gear), lock screen, show desktop, a load meter (processor and
   memory from Plasma's own sensors; a click opens the system monitor), volume
   (click for the slider, wheel to change it; unchosen it sits in the strip's
-  row), network (WLAN signal, cable or offline; a click opens the connection
-  settings) and leave session. The Plasma system tray
+  row), network (WLAN signal, cable or offline; a click opens a list of the WLANs
+  around: one click joins a network, Plasma asking for a new one's passphrase,
+  a click on the one in use disconnects it; WLAN on/off and the connection
+  settings below) and leave session. The Plasma system tray
   stays in the console's panel for notifications, but by default it is out of
   sight: its entries open from the console's button; the tray's own volume
   icon is left out, since the console has one. By default the console stands
@@ -508,7 +510,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.9.1. The application style is a Kvantum theme, not a
+This is version 0.9.2. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

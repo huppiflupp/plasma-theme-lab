@@ -802,3 +802,20 @@ Checks of 2026-10-07 (icons, small buttons), VM:
   "Volume 40%".
 - Not checked: WLAN signal icons (the VM has no WLAN), the settings
   checkboxes in the dialog, the upright console with three pairs.
+
+Checks of 2026-10-07 (WLAN popup), VM with mac80211_hwsim (three virtual
+radios; kernel-modules-internal from Koji, the VM has no internet): two
+hotspots "CDE-Testnetz" and "Nachbar:WLAN" on wlan1/wlan2, wlan0 the client.
+
+- The popup listed both, the colon in "Nachbar:WLAN" read right, lock and
+  signal shown. Right after opening the list came back empty (the scan it
+  starts still running): it now says "Searching for WLANs…" and asks again
+  every 1.5 s, the list was there after about 8 s.
+- A click on a new secured network brought Plasma's own passphrase dialog
+  ("Authenticate CDE-Testnetz"); without ifname nmcli had taken the hotspot's
+  card, so the join now names the client device.
+- A click on the network in use disconnected wlan0 only (by device); a click
+  again brought the saved connection up on wlan0.
+- In this setup the header can name a hotspot's connection (a card sending a
+  network counts as connected); a laptop with one card has no such case.
+

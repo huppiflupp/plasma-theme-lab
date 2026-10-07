@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: cde-copper 0.9.1\n"
+"Project-Id-Version: cde-copper 0.9.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-07 22:11+0200\n"
+"POT-Creation-Date: 2026-10-07 22:32+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -311,7 +311,7 @@ msgid "Choose an application"
 msgstr ""
 
 #: frontpanel/contents/ui/configLaunchers.qml:153
-#: frontpanel/contents/ui/main.qml:1731
+#: frontpanel/contents/ui/main.qml:1900
 msgid "Search"
 msgstr ""
 
@@ -582,289 +582,313 @@ msgstr ""
 msgid "Workspace %1:"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:74 frontpanel/contents/ui/main.qml:222
+#: frontpanel/contents/ui/main.qml:74 frontpanel/contents/ui/main.qml:225
 msgid "Network"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:89 frontpanel/contents/ui/main.qml:221
-#: frontpanel/contents/ui/main.qml:441
+#: frontpanel/contents/ui/main.qml:92 frontpanel/contents/ui/main.qml:224
+#: frontpanel/contents/ui/main.qml:447
 msgid "Audio"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:157 frontpanel/contents/ui/launch.js:287
+#: frontpanel/contents/ui/main.qml:160 frontpanel/contents/ui/launch.js:287
 msgid "Places"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:158 frontpanel/contents/ui/launch.js:269
+#: frontpanel/contents/ui/main.qml:161 frontpanel/contents/ui/launch.js:269
 msgid "System"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:159 frontpanel/contents/ui/launch.js:270
+#: frontpanel/contents/ui/main.qml:162 frontpanel/contents/ui/launch.js:270
 msgid "Help"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:160 frontpanel/contents/ui/launch.js:268
+#: frontpanel/contents/ui/main.qml:163 frontpanel/contents/ui/launch.js:268
 msgid "Mail"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:162 frontpanel/contents/ui/launch.js:289
+#: frontpanel/contents/ui/main.qml:165 frontpanel/contents/ui/launch.js:289
 msgid "Terminals"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:163 frontpanel/contents/ui/launch.js:288
+#: frontpanel/contents/ui/main.qml:166 frontpanel/contents/ui/launch.js:288
 msgid "Bookmarks"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:164
+#: frontpanel/contents/ui/main.qml:167
 msgid "Recent Files"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:185
+#: frontpanel/contents/ui/main.qml:188
 msgid "No bookmarks found"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:185
+#: frontpanel/contents/ui/main.qml:188
 msgid "No recent files"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:210
+#: frontpanel/contents/ui/main.qml:213
 msgid "Home"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:211
+#: frontpanel/contents/ui/main.qml:214
 msgid "Documents"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:212
+#: frontpanel/contents/ui/main.qml:215
 msgid "Downloads"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:213
+#: frontpanel/contents/ui/main.qml:216
 msgid "Pictures"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:214
+#: frontpanel/contents/ui/main.qml:217
 msgid "File System"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:215 frontpanel/contents/ui/launch.js:271
+#: frontpanel/contents/ui/main.qml:218 frontpanel/contents/ui/launch.js:271
 msgid "Trash"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:218 frontpanel/contents/ui/launch.js:279
+#: frontpanel/contents/ui/main.qml:221 frontpanel/contents/ui/launch.js:279
 msgid "System Settings"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:219
+#: frontpanel/contents/ui/main.qml:222
 msgid "Style Manager…"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:220
+#: frontpanel/contents/ui/main.qml:223
 msgid "Arrange Windows"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:223
+#: frontpanel/contents/ui/main.qml:226
 #: lookandfeel/contents/splash/Splash.qml:24
 msgid "Display"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:224 frontpanel/contents/ui/main.qml:290
+#: frontpanel/contents/ui/main.qml:227 frontpanel/contents/ui/main.qml:293
 #: frontpanel/contents/ui/launch.js:280
 msgid "Help Center"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:225 frontpanel/contents/ui/main.qml:1035
+#: frontpanel/contents/ui/main.qml:228 frontpanel/contents/ui/main.qml:1041
 msgid "Lock Screen"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:226 frontpanel/contents/ui/main.qml:1039
+#: frontpanel/contents/ui/main.qml:229 frontpanel/contents/ui/main.qml:1045
 msgid "Leave Session..."
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:227
+#: frontpanel/contents/ui/main.qml:230
 msgid "Restart..."
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:228
+#: frontpanel/contents/ui/main.qml:231
 msgid "Shut Down..."
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:234
+#: frontpanel/contents/ui/main.qml:237
 msgid "New Message"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:235
+#: frontpanel/contents/ui/main.qml:238
 msgid "Open Mail"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:236
+#: frontpanel/contents/ui/main.qml:239
 msgid "Appointments"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:237
+#: frontpanel/contents/ui/main.qml:240
 msgid "Address Book"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:242
+#: frontpanel/contents/ui/main.qml:245
 msgid "New Terminal"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:243
+#: frontpanel/contents/ui/main.qml:246
 msgid "Three Terminals Around the Console"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:245
+#: frontpanel/contents/ui/main.qml:248
 msgid "Four Terminals on the Other Screen"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:246
+#: frontpanel/contents/ui/main.qml:249
 msgid "Seven Terminals on Both Screens"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:248
+#: frontpanel/contents/ui/main.qml:251
 msgid "Four Terminals"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:266
+#: frontpanel/contents/ui/main.qml:269
 msgid "Save Layout"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:267
+#: frontpanel/contents/ui/main.qml:270
 msgid "Name of the layout:"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:291
+#: frontpanel/contents/ui/main.qml:294
 msgid "Keyboard Shortcuts"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:292
+#: frontpanel/contents/ui/main.qml:295
 msgid "System Information"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:293
+#: frontpanel/contents/ui/main.qml:296
 msgid "About CDE Copper"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:419 frontpanel/contents/ui/main.qml:441
+#: frontpanel/contents/ui/main.qml:422 frontpanel/contents/ui/main.qml:447
 msgid "Muted"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:434
+#: frontpanel/contents/ui/main.qml:440
 msgid "Offline"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:435
+#: frontpanel/contents/ui/main.qml:441
 msgid "WLAN %1, %2 %"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:435
+#: frontpanel/contents/ui/main.qml:441
 msgid "Cable %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:694
+#: frontpanel/contents/ui/main.qml:700
 msgid "Open %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:772
+#: frontpanel/contents/ui/main.qml:778
 msgid "WORKSPACES"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:796
+#: frontpanel/contents/ui/main.qml:802
 msgid "Workspace %1 %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:876 frontpanel/contents/ui/main.qml:936
-#: frontpanel/contents/ui/main.qml:1157 frontpanel/contents/ui/main.qml:1581
+#: frontpanel/contents/ui/main.qml:882 frontpanel/contents/ui/main.qml:942
+#: frontpanel/contents/ui/main.qml:1164 frontpanel/contents/ui/main.qml:1750
 msgid "Window"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:984
+#: frontpanel/contents/ui/main.qml:990
 msgid "Hidden Icons"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1034
+#: frontpanel/contents/ui/main.qml:1040
 msgid "Configure Front Console"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1036
+#: frontpanel/contents/ui/main.qml:1042
 msgid "Show Desktop"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1037
+#: frontpanel/contents/ui/main.qml:1043
 msgid "Volume %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1071
+#: frontpanel/contents/ui/main.qml:1078
 msgid "Processor %1 %, memory %2 %"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1157
+#: frontpanel/contents/ui/main.qml:1164
 msgid "%1× %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1212 frontpanel/contents/ui/main.qml:1558
+#: frontpanel/contents/ui/main.qml:1219 frontpanel/contents/ui/main.qml:1727
 msgid "Open Windows"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1227 frontpanel/contents/ui/main.qml:1690
+#: frontpanel/contents/ui/main.qml:1234 frontpanel/contents/ui/main.qml:1859
 msgid "%1 window"
 msgid_plural "%1 windows"
 msgstr[0] ""
 msgstr[1] ""
 
-#: frontpanel/contents/ui/main.qml:1345
+#: frontpanel/contents/ui/main.qml:1352
 msgid "Volume %1, %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1460
-msgid "Audio  %1"
+#: frontpanel/contents/ui/main.qml:1519
+msgid "WLAN is switched off"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1468
-msgid "Volume"
+#: frontpanel/contents/ui/main.qml:1520
+msgid "Searching for WLANs…"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1474
-msgid "Unmute"
+#: frontpanel/contents/ui/main.qml:1520
+msgid "No WLAN found"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1474
-msgid "Mute"
+#: frontpanel/contents/ui/main.qml:1538
+msgid "%1, signal %2 %"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1481
+#: frontpanel/contents/ui/main.qml:1565
+msgid "WLAN off"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1565
+msgid "WLAN on"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1576 frontpanel/contents/ui/main.qml:1650
 msgid "Settings…"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1563
-msgid "No open windows"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml:1626 frontpanel/contents/ui/launch.js:291
-msgid "Saved layouts"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml:1630
-msgid "Save Current Layout…"
+#: frontpanel/contents/ui/main.qml:1629
+msgid "Audio  %1"
 msgstr ""
 
 #: frontpanel/contents/ui/main.qml:1637
+msgid "Volume"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1643
+msgid "Unmute"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1643
+msgid "Mute"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1732
+msgid "No open windows"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1795 frontpanel/contents/ui/launch.js:291
+msgid "Saved layouts"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1799
+msgid "Save Current Layout…"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1806
 msgid "No saved layouts yet. Arrange your windows, then save them here."
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1700
+#: frontpanel/contents/ui/main.qml:1869
 msgid "Delete?"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1703
+#: frontpanel/contents/ui/main.qml:1872
 msgid "Delete layout"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1727
+#: frontpanel/contents/ui/main.qml:1896
 msgid "Find Application"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1753
+#: frontpanel/contents/ui/main.qml:1922
 msgid "Application"
 msgstr ""
 

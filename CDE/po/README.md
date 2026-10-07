@@ -7,7 +7,7 @@ All theme QML uses the gettext domain `cde-copper`. Run these commands from
 xgettext -C --from-code=UTF-8 -k \
   -ki18nd:2 -ki18ndc:2c,3 -ki18ndp:2,3 -kI18N_NOOP:1 \
   --flag=i18nd:2:kde-format --flag=i18ndp:2:kde-format --flag=i18ndp:3:kde-format \
-  --package-name=cde-copper --package-version=0.9.1 \
+  --package-name=cde-copper --package-version=0.9.2 \
   -o po/cde-copper.pot \
   frontpanel/contents/ui/*.qml frontpanel/contents/ui/launch.js \
   frontpanel/contents/config/config.qml backdrop/contents/ui/config.qml \

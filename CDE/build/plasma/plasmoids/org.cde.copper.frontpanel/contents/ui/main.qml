@@ -76,6 +76,9 @@ PlasmoidItem {
     property string networkKind: ""
     property string networkName: ""
     property int networkSignal: 0
+    // The WLAN device to join with: a free one, else the connected one (one
+    // card: switching networks; a card sending a hotspot stays untouched).
+    property string wifiDevice: ""
     readonly property string networkIcon: networkKind === "wired" ? "network-wired-activated"
         : networkKind !== "wifi" ? "network-offline"
         : networkSignal >= 75 ? "network-wireless-signal-excellent" : networkSignal >= 50 ? "network-wireless-signal-good"
@@ -421,13 +424,16 @@ PlasmoidItem {
     }
     function readNetwork(stdout) {
         const parts = stdout.split("---");
-        let kind = "", name = "", signal = 0;
+        let kind = "", name = "", signal = 0, wifi = "", free = "";
         for (const line of (parts[0] || "").split("\n")) {
-            const f = line.split(":");
-            if (f.length < 3 || f[1] !== "connected") continue;
-            if (f[0] === "ethernet" && kind !== "wired") { kind = "wired"; name = f.slice(2).join(":"); }
-            else if (f[0] === "wifi" && !kind) { kind = "wifi"; name = f.slice(2).join(":"); }
+            const f = root.terseFields(line);
+            if (f.length < 4) continue;
+            if (f[0] === "wifi" && f[1] === "disconnected" && !free) free = f[3];
+            if (f[1] !== "connected") continue;
+            if (f[0] === "ethernet" && kind !== "wired") { kind = "wired"; name = f[2]; }
+            else if (f[0] === "wifi") { wifi = wifi || f[3]; if (!kind) { kind = "wifi"; name = f[2]; } }
         }
+        root.wifiDevice = free || wifi;
         for (const line of (parts[1] || "").split("\n"))
             if (line.indexOf("*:") === 0) signal = Number(line.slice(2)) || 0;
         root.networkKind = kind; root.networkName = name; root.networkSignal = signal;
@@ -610,7 +616,7 @@ PlasmoidItem {
         interval: 5000
         // The devices (type, state, connection), then the WLAN in use with its
         // signal; nmcli's cached scan, no new one.
-        connectedSources: ["sh -c 'timeout 3s env LC_ALL=C nmcli -t -f TYPE,STATE,CONNECTION device; echo ---; timeout 3s env LC_ALL=C nmcli -t -f IN-USE,SIGNAL device wifi list --rescan no'",
+        connectedSources: ["sh -c 'timeout 3s env LC_ALL=C nmcli -t -f TYPE,STATE,CONNECTION,DEVICE device; echo ---; timeout 3s env LC_ALL=C nmcli -t -f IN-USE,SIGNAL device wifi list --rescan no'",
                            "timeout 3s wpctl get-volume @DEFAULT_AUDIO_SINK@"]
         onNewData: function(sourceName, data) {
             if (sourceName.indexOf("nmcli") >= 0) root.readNetwork(data.stdout);
@@ -1048,10 +1054,11 @@ PlasmoidItem {
             // Plasma 6.7; its own "Show Desktop" shortcut toggles reliably.
             case "desktop": root.run(root.dbus + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop'"); break;
             case "volume": volumePopup.visualParent = quarter; volumePopup.visible = !volumePopup.visible; break;
-            case "network": root.run(Launch.resolve("@settings kcm_networkmanagement", [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg))); break;
+            case "network": networkPopup.visualParent = quarter; networkPopup.visible = !networkPopup.visible; break;
             case "logout": root.run(root.dbus + " org.kde.LogoutPrompt /LogoutPrompt promptAll"); break;
             }
         }
+        HoverHandler { onHoveredChanged: if (quarter.kind === "volume" || quarter.kind === "network") root.hoverSegment(quarter, hovered) }
         WheelHandler {
             enabled: quarter.kind === "volume"
             acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
@@ -1412,6 +1419,168 @@ PlasmoidItem {
 
     Keeper { id: calendarKeeper; dialog: calendar; segment: calendar.visualParent; inside: calendarHover.hovered }
     Keeper { id: volumeKeeper; dialog: volumePopup; segment: volumePopup.visualParent; inside: volumeHover.hovered }
+    Keeper { id: networkKeeper; dialog: networkPopup; segment: networkPopup.visualParent; inside: networkHover.hovered }
+    // The WLANs around, for the network popup: in use, SSID, signal, security
+    // (nmcli's terse form, ":" inside a field escaped), then the radio, then
+    // the saved connections. Read when the popup opens and every 10 s while
+    // it is open; the first read asks for a fresh scan if the list is old.
+    property var networks: []
+    // Right after opening the scan it starts is still running and the list
+    // comes back empty: ask again shortly, a few times, before "none".
+    property int networkTries: 0
+    readonly property bool networkSearching: networks.length === 0 && networkTries > 0 && networkTries < 4
+    Timer { id: networkRetry; interval: 1500; onTriggered: networkScan.connectSource(networkScan.command) }
+    property bool wifiRadio: true
+    property var savedConnections: []
+    P5Support.DataSource {
+        id: networkScan
+        engine: "executable"
+        readonly property string command: "sh -c 'export LC_ALL=C; timeout 8s nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY,DEVICE device wifi list --rescan auto; echo ---; timeout 3s nmcli -t -f WIFI radio; echo ---; timeout 3s nmcli -t -f NAME connection show'"
+        onNewData: function(sourceName, data) {
+            disconnectSource(sourceName);
+            root.readNetworks(data.stdout);
+            if (root.networks.length === 0 && root.networkTries > 0 && root.networkTries < 4 && networkPopup.visible) {
+                root.networkTries++;
+                networkRetry.restart();
+            }
+        }
+    }
+    Timer { interval: 10000; repeat: true; running: networkPopup.visible; onTriggered: networkScan.connectSource(networkScan.command) }
+    function terseFields(line) {
+        const out = [];
+        let field = "";
+        for (let i = 0; i < line.length; i++) {
+            if (line[i] === "\\" && i + 1 < line.length) { field += line[++i]; continue; }
+            if (line[i] === ":") { out.push(field); field = ""; continue; }
+            field += line[i];
+        }
+        out.push(field);
+        return out;
+    }
+    function readNetworks(stdout) {
+        const parts = stdout.split("---\n");
+        const seen = {};
+        for (const line of (parts[0] || "").split("\n")) {
+            const f = terseFields(line);
+            if (f.length < 5 || !f[1]) continue;
+            // A device sending the network itself (a hotspot) lists it in use
+            // at 0 %: in use counts only with a signal.
+            const signal = Number(f[2]) || 0;
+            const active = f[0] === "*" && signal > 0;
+            const entry = {ssid: f[1], signal: signal, secure: f[3] !== "" && f[3] !== "--", active: active, device: active ? f[4] : ""};
+            const known = seen[entry.ssid];
+            if (!known) seen[entry.ssid] = entry;
+            else seen[entry.ssid] = {ssid: entry.ssid, signal: Math.max(known.signal, entry.signal), secure: known.secure || entry.secure,
+                                     active: known.active || entry.active, device: known.device || entry.device};
+        }
+        root.networks = Object.values(seen).sort((a, b) => (b.active - a.active) || (b.signal - a.signal));
+        root.wifiRadio = (parts[1] || "").trim() !== "disabled";
+        root.savedConnections = (parts[2] || "").split("\n").filter(n => n).map(n => terseFields(n)[0]);
+    }
+    function signalIcon(signal) {
+        return signal >= 75 ? "network-wireless-signal-excellent" : signal >= 50 ? "network-wireless-signal-good"
+             : signal >= 25 ? "network-wireless-signal-ok" : "network-wireless-signal-weak";
+    }
+    // A saved network comes up by its connection; a new one is joined, and
+    // Plasma's own agent asks for the passphrase if it needs one.
+    function joinNetwork(ssid) {
+        const device = root.wifiDevice ? " ifname " + Launch.quote(root.wifiDevice) : "";
+        const command = root.savedConnections.indexOf(ssid) >= 0 ? "nmcli connection up id " + Launch.quote(ssid) + device
+                                                                  : "nmcli device wifi connect " + Launch.quote(ssid) + device;
+        root.run(command);
+    }
+    PlasmaCore.Dialog {
+        id: networkPopup
+        visible: false
+        type: PlasmaCore.Dialog.PopupMenu
+        flags: Qt.WindowStaysOnTopHint
+        location: Plasmoid.location
+        hideOnWindowDeactivate: true
+        backgroundHints: PlasmaCore.Types.NoBackground
+        onVisibleChanged: if (visible) { networkKeeper.opened(); networkBody.forceActiveFocus(); root.networkTries = 1; networkScan.connectSource(networkScan.command); }
+        mainItem: Bevel {
+            id: networkBody
+            HoverHandler { id: networkHover }
+            Keys.onPressed: networkKeeper.keyboard = true
+            readonly property int rows: Math.max(1, Math.min(8, root.networks.length))
+            width: 320; height: 41 + 4 + rows * 36 + 44
+            surface: consoleColors.window
+            focus: true
+            Keys.onEscapePressed: networkPopup.visible = false
+            ColumnLayout {
+                anchors.fill: parent; anchors.margins: 5; spacing: 4
+                Bevel {
+                    Layout.fillWidth: true; Layout.preferredHeight: 27; surface: consoleColors.highlight
+                    Text { anchors.centerIn: parent; text: root.networkState; color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
+                }
+                Text {
+                    visible: root.networks.length === 0
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    text: !root.wifiRadio ? i18nd("cde-copper", "WLAN is switched off")
+                        : root.networkSearching ? i18nd("cde-copper", "Searching for WLANs…") : i18nd("cde-copper", "No WLAN found")
+                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 12
+                }
+                ListView {
+                    id: networkList
+                    visible: root.networks.length > 0
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    clip: true; spacing: 2
+                    model: root.networks
+                    ScrollBar.vertical: ScrollBar { policy: networkList.contentHeight > networkList.height ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded }
+                    delegate: ConsoleButton {
+                        id: networkEntry
+                        required property var modelData
+                        width: networkList.width - (networkList.contentHeight > networkList.height ? 12 : 0)
+                        height: 34
+                        horizontal: true; surface: consoleColors.window; foreground: consoleColors.windowText
+                        text: modelData.ssid
+                        Accessible.name: i18nd("cde-copper", "%1, signal %2 %", modelData.ssid, modelData.signal)
+                        iconName: ""
+                        leftPadding: 36; rightPadding: 56
+                        selected: modelData.active
+                        Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: 22; height: 22; source: root.signalIcon(networkEntry.modelData.signal); active: false }
+                        Row {
+                            anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
+                            spacing: 4
+                            Kirigami.Icon { visible: networkEntry.modelData.secure; width: 14; height: 14; source: "system-lock-screen"; active: false; anchors.verticalCenter: parent.verticalCenter }
+                            Text {
+                                text: networkEntry.modelData.signal + "%"
+                                color: networkEntry.selected ? consoleColors.highlightText : consoleColors.windowText
+                                font.family: consoleColors.font; font.pixelSize: 11
+                            }
+                        }
+                        // The one in use: a click disconnects it.
+                        onClicked: {
+                            networkPopup.visible = false;
+                            if (modelData.active) root.run("nmcli device disconnect " + Launch.quote(modelData.device));
+                            else root.joinNetwork(modelData.ssid);
+                        }
+                    }
+                }
+                RowLayout {
+                    Layout.fillWidth: true
+                    ConsoleButton {
+                        Layout.fillWidth: true; implicitHeight: 36; horizontal: true; iconSize: 20
+                        text: root.wifiRadio ? i18nd("cde-copper", "WLAN off") : i18nd("cde-copper", "WLAN on")
+                        iconName: root.wifiRadio ? "network-wireless-disconnected" : "network-wireless"
+                        surface: consoleColors.window; foreground: consoleColors.windowText
+                        onClicked: {
+                            root.wifiRadio = !root.wifiRadio;
+                            root.run("nmcli radio wifi " + (root.wifiRadio ? "on" : "off"));
+                            networkScan.connectSource(networkScan.command);
+                        }
+                    }
+                    ConsoleButton {
+                        Layout.fillWidth: true; implicitHeight: 36; horizontal: true; iconSize: 20
+                        text: i18nd("cde-copper", "Settings…"); iconName: "preferences-system-network"
+                        surface: consoleColors.window; foreground: consoleColors.windowText
+                        onClicked: { networkPopup.visible = false; root.run(Launch.resolve("@settings kcm_networkmanagement", [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg))); }
+                    }
+                }
+            }
+        }
+    }
     Keeper { id: popupKeeper; dialog: popup; segment: root.popupSegment; inside: popupHover.hovered }
     Keeper { id: windowsKeeper; dialog: windowsPopup; segment: root.popupSegment; inside: windowsHover.hovered }
     Keeper { id: layoutsKeeper; dialog: layoutsPopup; segment: layoutsPopup.visualParent ? layoutsPopup.visualParent.parent : null; inside: layoutsHover.hovered }
