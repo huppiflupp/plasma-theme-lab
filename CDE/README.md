@@ -135,10 +135,13 @@ languages can be added as `po/<language>.po`.
 
 Requires Plasma 6 / Qt 6, Aurorae, Python 3, `kbuildsycoca6`, Plasma apply
 utilities, `qdbus-qt6` or `qdbus6`, and the Plasma 5 Support executable data
-engine. The Motif controls need the Kvantum style engine (package `kvantum`);
+engine. Tested on Fedora 44 (Plasma 6.7) and Kubuntu/Ubuntu 26.04 (Plasma 6.6).
+The Motif controls need the Kvantum style engine (package `kvantum`, on
+Ubuntu `qt6-style-kvantum`);
 without it the installer falls back to the built-in Qt Windows style and says
 so. The fonts are installed per user and need `fc-cache`. Network/audio status uses NetworkManager's
-`nmcli` and WirePlumber's `wpctl`. Launchers start `gtk-launch` or `kstart`;
+`nmcli` (a connection it does not manage shows by the default route) and
+WirePlumber's `wpctl`. Launchers start `gtk-launch` or `kstart`;
 appointments in the calendar come from KOrganizer/Akonadi when installed.
 Saved layouts use PyGObject (`python3-gobject`), Spectacle for the preview
 and `kdialog` for the name.
@@ -510,7 +513,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.9.2. The application style is a Kvantum theme, not a
+This is version 0.9.3. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

@@ -7,7 +7,7 @@ import tarfile
 ROOT = Path(__file__).resolve().parent
 DIST = ROOT / "dist"
 DIST.mkdir(exist_ok=True)
-archive = DIST / "cde-copper-0.9.2.tar.xz"
+archive = DIST / "cde-copper-0.9.3.tar.xz"
 items = ["build", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "wallpapers", "tools", "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "systemparts.py", "system.py",
          "kvantum.py", "palettes.py", "backdrops.py", "manage.py", "install.sh",
          "apply.sh", "uninstall.sh", "layout.js", "README.md", "LICENSE", "TESTING.md", "tests"]

@@ -819,3 +819,20 @@ hotspots "CDE-Testnetz" and "Nachbar:WLAN" on wlan1/wlan2, wlan0 the client.
 - In this setup the header can name a hotspot's connection (a card sending a
   network counts as connected); a laptop with one card has no such case.
 
+
+Checks of 2026-10-08 on Ubuntu 26.04 with Kubuntu's Plasma 6.6.6 (VM
+ubuntu-lab from the cloud image, Wayland, German):
+
+- `install.sh` fine. `apply.sh --panel` failed in layout.js: Plasma 6.6's
+  ConfigFile has keyList, not keys, so handing the saved console settings
+  back threw a TypeError after the old panels were already gone. Now
+  keyList, keys or nothing.
+- After the fix and a new login: console, clock, workspaces, launchers, the
+  wire basket and the small buttons as on Fedora.
+- Network showed offline: the cloud image leaves the cable to
+  systemd-networkd (nmcli: unmanaged). Without a connection NetworkManager
+  knows, the default route now decides (cable plug shown).
+- Without Kvantum the controls fell back to the Qt Windows style, as the
+  installer said; with `qt6-style-kvantum` and `apply.sh` again, Dolphin had
+  the Motif controls and the Motif window frame.
+- Not checked: the login screen and splash on Ubuntu (SDDM), XFile.

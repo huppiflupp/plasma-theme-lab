@@ -434,6 +434,12 @@ PlasmoidItem {
             else if (f[0] === "wifi") { wifi = wifi || f[3]; if (!kind) { kind = "wifi"; name = f[2]; } }
         }
         root.wifiDevice = free || wifi;
+        // Not NetworkManager's (an Ubuntu cloud image leaves the cable to
+        // systemd-networkd): the default route tells cable or WLAN.
+        if (!kind) {
+            const route = (parts[2] || "").match(/ dev (\S+)/);
+            if (route) { name = route[1]; kind = name.indexOf("wl") === 0 ? "wifi" : "wired"; }
+        }
         for (const line of (parts[1] || "").split("\n"))
             if (line.indexOf("*:") === 0) signal = Number(line.slice(2)) || 0;
         root.networkKind = kind; root.networkName = name; root.networkSignal = signal;
@@ -616,7 +622,7 @@ PlasmoidItem {
         interval: 5000
         // The devices (type, state, connection), then the WLAN in use with its
         // signal; nmcli's cached scan, no new one.
-        connectedSources: ["sh -c 'timeout 3s env LC_ALL=C nmcli -t -f TYPE,STATE,CONNECTION,DEVICE device; echo ---; timeout 3s env LC_ALL=C nmcli -t -f IN-USE,SIGNAL device wifi list --rescan no'",
+        connectedSources: ["sh -c 'timeout 3s env LC_ALL=C nmcli -t -f TYPE,STATE,CONNECTION,DEVICE device; echo ---; timeout 3s env LC_ALL=C nmcli -t -f IN-USE,SIGNAL device wifi list --rescan no; echo ---; ip -o route show default'",
                            "timeout 3s wpctl get-volume @DEFAULT_AUDIO_SINK@"]
         onNewData: function(sourceName, data) {
             if (sourceName.indexOf("nmcli") >= 0) root.readNetwork(data.stdout);
