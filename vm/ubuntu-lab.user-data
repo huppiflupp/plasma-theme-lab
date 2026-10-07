@@ -1,0 +1,92 @@
+#cloud-config
+# cloud-init fuer die Ubuntu-Test-VM. build-vm-ubuntu.sh ersetzt
+# SSH_PUBKEY_PLACEHOLDER durch id_lab.pub.
+#
+# Ziel ist derselbe Zustand wie in der Fedora-VM nach provision.sh:
+# Benutzer tester (Passwort tester, sudo ohne Passwort), Autologin in
+# Plasma, keine Bildschirmsperre, Marker /etc/plasma-lab-ready.
+
+hostname: ubuntu-lab
+locale: de_DE.UTF-8
+timezone: Europe/Berlin
+keyboard:
+  layout: de
+
+users:
+  - name: tester
+    gecos: Tester
+    groups: [adm, sudo]
+    shell: /bin/bash
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: false
+    ssh_authorized_keys:
+      - SSH_PUBKEY_PLACEHOLDER
+chpasswd:
+  expire: false
+  users:
+    - {name: tester, password: tester, type: text}
+ssh_pwauth: false
+
+package_update: true
+package_upgrade: true
+packages:
+  - qemu-guest-agent
+  - kubuntu-desktop
+  - language-pack-kde-de
+  - libxml2-utils
+  - imagemagick
+  - rsync
+
+runcmd:
+  - systemctl enable --now qemu-guest-agent
+  # Das Cloud-Image bootet ohne Menue, ohne Splash und mit der Konsole auf
+  # ttyS0. Fuer Tests von GRUB- und Plymouth-Themes muss es aussehen wie
+  # eine normale Desktop-Installation: Menue kurz sichtbar, "quiet splash".
+  - rm -f /etc/default/grub.d/50-cloudimg-settings.cfg
+  - sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=.*/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"/; s/^GRUB_TIMEOUT_STYLE=.*/GRUB_TIMEOUT_STYLE=menu/; s/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=3/' /etc/default/grub
+  - update-grub
+  - update-initramfs -u
+  # Autologin. Je nach Plasma-Stand ist SDDM oder der neue
+  # plasma-login-manager zustaendig - wie provision.sh beide bedienen.
+  - |
+    if [ -f /usr/lib/systemd/system/plasmalogin.service ]; then
+        mkdir -p /etc/plasmalogin.conf.d
+        printf '[Autologin]\nUser=tester\nSession=plasma\nRelogin=true\n' > /etc/plasmalogin.conf.d/10-autologin.conf
+        echo plasmalogin > /etc/plasma-lab-dm
+    else
+        # 99, nicht 10: Kubuntu liefert 20-kubuntu.conf mit leerem
+        # [Autologin] User= - SDDM liest alphabetisch, die spaetere gewinnt.
+        mkdir -p /etc/sddm.conf.d
+        printf '[Autologin]\nUser=tester\nSession=plasma\nRelogin=true\n' > /etc/sddm.conf.d/99-plasma-lab-autologin.conf
+        echo sddm > /etc/plasma-lab-dm
+    fi
+  - systemctl set-default graphical.target
+  # Bildschirmsperre, Energiesparen und Willkommensfenster aus - sonst
+  # liefert 'vmctl.sh shot' nach ein paar Minuten nur Schwarz oder den
+  # Sperrbildschirm (siehe provision.sh).
+  - |
+    sudo -u tester bash <<'USERCFG'
+    kwriteconfig6 --file kscreenlockerrc --group Daemon --key Autolock false
+    kwriteconfig6 --file kscreenlockerrc --group Daemon --key LockOnResume false
+    kwriteconfig6 --file kscreenlockerrc --group Daemon --key Timeout 0
+    # Plasma 6 liest powerdevilrc, nicht mehr powermanagementprofilesrc.
+    # Dort heisst ein Zeitlimit 0 "sofort", nicht "nie" - mit den alten
+    # Schluesseln war der Bildschirm direkt nach dem Anmelden aus.
+    for p in AC Battery LowBattery; do
+        kwriteconfig6 --file powerdevilrc --group "$p" --group Display --key DimDisplayWhenIdle false
+        kwriteconfig6 --file powerdevilrc --group "$p" --group Display --key TurnOffDisplayWhenIdle false
+        kwriteconfig6 --file powerdevilrc --group "$p" --group SuspendAndShutdown --key AutoSuspendAction 0
+    done
+    printf '[General]\nLastSeenVersion=99.99.99\n' > ~/.config/plasma-welcomerc
+    USERCFG
+  # Referenz des unveraenderten Systems, wie in der Fedora-VM.
+  - mkdir -p /var/lib/plasma-lab
+  - dpkg-query -W -f '${Package}\n' | sort > /var/lib/plasma-lab/ref-packages.txt
+  # Kein zweiter cloud-init-Lauf nach einem Snapshot-Revert.
+  - touch /etc/cloud/cloud-init.disabled
+  - touch /etc/plasma-lab-ready
+
+power_state:
+  mode: reboot
+  message: "plasma-lab: Einrichtung fertig, Neustart in die Plasma-Sitzung"
+  timeout: 60
