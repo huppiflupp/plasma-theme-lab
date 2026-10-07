@@ -214,6 +214,17 @@ PICTURES = (
     # One panorama split across two screens (wallpapers/gen/span.py): left 32", right 27", top-aligned.
     ("duene-links", "CDE Düne links", "Left half of a dune panorama for a 32-inch screen beside a 27-inch one"),
     ("duene-rechts", "CDE Düne rechts", "Right half of a dune panorama for a 27-inch screen beside a 32-inch one"),
+    ("weltraum-links", "CDE Weltraum links", "Left half of a space panorama for a 32-inch screen beside a 27-inch one"),
+    ("weltraum-rechts", "CDE Weltraum rechts", "Right half of a space panorama for a 27-inch screen beside a 32-inch one"),
+    # Landscape photographs, by day and by night.
+    ("alpen", "CDE Alpen", "Alpine peak and mountain lake, Alpine palette"),
+    ("dolomiten", "CDE Dolomiten", "Dolomite towers above meadows, Desert palette"),
+    ("elbsandstein", "CDE Elbsandstein", "Sandstone pillars above morning fog, Sand palette"),
+    ("fjord", "CDE Fjord", "Norwegian fjord, aurora at night, NorthernSky palette"),
+    ("island", "CDE Island", "Basalt columns on a black beach, Charcoal palette"),
+    ("schwarzwald", "CDE Schwarzwald", "Fir valley in fog, Grass palette"),
+    ("toskana", "CDE Toskana", "Wheat hills and cypresses, Wheat palette"),
+    ("watt", "CDE Watt", "Wadden Sea at low tide, SeaFoam palette"),
 )
 
 

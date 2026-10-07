@@ -575,5 +575,55 @@ const PICTURES = [
   "key": "duene-rechts",
   "name": "CDE D\u00fcne rechts",
   "palette": "Copper"
+ },
+ {
+  "key": "weltraum-links",
+  "name": "CDE Weltraum links",
+  "palette": "Copper"
+ },
+ {
+  "key": "weltraum-rechts",
+  "name": "CDE Weltraum rechts",
+  "palette": "Copper"
+ },
+ {
+  "key": "alpen",
+  "name": "CDE Alpen",
+  "palette": "Alpine"
+ },
+ {
+  "key": "dolomiten",
+  "name": "CDE Dolomiten",
+  "palette": "Desert"
+ },
+ {
+  "key": "elbsandstein",
+  "name": "CDE Elbsandstein",
+  "palette": "Sand"
+ },
+ {
+  "key": "fjord",
+  "name": "CDE Fjord",
+  "palette": "NorthernSky"
+ },
+ {
+  "key": "island",
+  "name": "CDE Island",
+  "palette": "Charcoal"
+ },
+ {
+  "key": "schwarzwald",
+  "name": "CDE Schwarzwald",
+  "palette": "Grass"
+ },
+ {
+  "key": "toskana",
+  "name": "CDE Toskana",
+  "palette": "Wheat"
+ },
+ {
+  "key": "watt",
+  "name": "CDE Watt",
+  "palette": "SeaFoam"
  }
 ];

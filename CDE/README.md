@@ -198,7 +198,7 @@ of its own ("A backdrop for each workspace"): Plasma itself knows wallpapers
 per screen and activity only, so the wallpaper follows the current virtual
 desktop by itself.
 
-30 picture wallpapers come along in 3840×2160, each with a dark version that
+40 picture wallpapers come along in 3840×2160, each with a dark version that
 Plasma shows on its own while a dark colour scheme is active:
 
 - **Copper Altai, Canopée, Cluster, Fluss, Kaskade**: low-poly landscapes after
@@ -209,8 +209,10 @@ Plasma shows on its own while a dark colour scheme is active:
   Mischpult, VLSI, Strömung**: what CDE workstations were used for in the 1990s.
 - **CDE Kristall, Marmor, Düne**: abstract, after the most popular KDE Store wallpapers.
 - **CDE Aquarell, Panorama**: late-1990s software box illustration.
-- **CDE Düne links, Düne rechts**: one dune panorama split across a 32-inch and a
-  27-inch screen (`wallpapers/gen/span.py` cuts it for other screens).
+- **CDE Düne links/rechts, Weltraum links/rechts**: panoramas split across a 32-inch
+  and a 27-inch screen (`wallpapers/gen/span.py` cuts them for other screens).
+- **CDE Alpen, Dolomiten, Elbsandstein, Fjord, Island, Schwarzwald, Toskana, Watt**:
+  landscape photographs, by day and by night.
 
 All but Strömung are AI-generated decoration without logos or lettering;
 Strömung is a computed potential flow around an airfoil.
@@ -432,7 +434,7 @@ purpose: a change to one must not alter the other (see `tools/README.md`).
 | `backdrops.py`, `backdrops/` | CDE backdrops, coloured per palette |
 | `decoration/` | the QML window frame |
 | `backdrop/` | the "CDE Backdrop" wallpaper type |
-| `wallpapers/` | the 30 picture wallpapers, light and dark, and the scripts that made them |
+| `wallpapers/` | the 40 picture wallpapers, 20 material tiles, light and dark, and the scripts that made them |
 | `frontpanel/` | the console plasmoid; `contents/code/menus.py` reads bookmarks and recent files, `layouts.py` saves and restores window layouts |
 | `arrange/` | the KWin script for the window arrangement |
 | `store.py` | the KDE Store edition (`tools/gen-motif-aurorae.py` draws its SVG window frame) |
