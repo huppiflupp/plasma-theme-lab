@@ -85,7 +85,7 @@ PlasmoidItem {
     // icons move to the tile.
     readonly property string windowDisplay: {
         const wanted = Plasmoid.configuration.windowDisplay;
-        if (wanted === "workspaces") return Plasmoid.configuration.showWorkspaces ? wanted : "tileLeft";
+        if (wanted === "workspaces" || wanted === "pager") return Plasmoid.configuration.showWorkspaces ? wanted : "tileLeft";
         return ["tileLeft", "tileRight"].indexOf(wanted) >= 0 ? wanted : "strip";
     }
     readonly property bool stripHidden: windowDisplay !== "strip"
@@ -706,7 +706,7 @@ PlasmoidItem {
         id: workspacesBlock
         visible: Plasmoid.configuration.showWorkspaces
         // With the windows each button has a well of window icons below it.
-        readonly property bool withWindows: root.windowDisplay === "workspaces"
+        readonly property bool withWindows: root.windowDisplay === "workspaces" || root.windowDisplay === "pager"
         // Two rows across: more workspaces widen the block, upright they
         // stack. With the windows one row across, for room under the buttons.
         readonly property int columns: root.vertical ? 2
@@ -760,14 +760,105 @@ PlasmoidItem {
                         onClicked: root.run(root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
                     }
                     WindowWell {
-                        visible: workspacesBlock.withWindows
+                        visible: root.windowDisplay === "workspaces"
                         desktop: workspaceCell.modelData
+                        Layout.fillWidth: true; Layout.fillHeight: true
+                    }
+                    WindowMap {
+                        visible: root.windowDisplay === "pager"
+                        desktop: workspaceCell.modelData
+                        desktopNumber: workspaceCell.index + 1
                         Layout.fillWidth: true; Layout.fillHeight: true
                     }
                     }
                 }
             }
         }
+    }
+
+    // A workspace in miniature, as the pagers of the 1990s drew it: each
+    // window a raised rectangle where it lies on the screens, its icon in
+    // it, the active one in the selection colour, minimized ones left out.
+    // A click brings a window forward; one beside the windows switches to
+    // the workspace.
+    component WindowMap: Bevel {
+        id: map
+        property string desktop: ""
+        property int desktopNumber: 1
+        sunken: true
+        surface: Motif.shades(consoleColors.panel).bottom
+        readonly property var rows: root.windowRows(desktop, root.windowRevision)
+        readonly property rect area: root.desktopArea
+        readonly property real scale: Math.min((width - 4) / Math.max(1, area.width), (height - 4) / Math.max(1, area.height))
+        MouseArea {
+            anchors.fill: parent
+            onClicked: root.run(root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + map.desktopNumber)
+        }
+        Item {
+            id: screens
+            width: Math.round(map.area.width * map.scale); height: Math.round(map.area.height * map.scale)
+            x: Math.round((map.width - width) / 2); y: Math.round((map.height - height) / 2)
+            clip: true
+            // The screens' outlines, for orientation with more than one.
+            Repeater {
+                model: Qt.application.screens.length > 1 ? Qt.application.screens : []
+                delegate: Rectangle {
+                    required property var modelData
+                    x: Math.round((modelData.virtualX - map.area.x) * map.scale)
+                    y: Math.round((modelData.virtualY - map.area.y) * map.scale)
+                    width: Math.round(modelData.width * map.scale); height: Math.round(modelData.height * map.scale)
+                    color: "transparent"
+                    border.width: 1; border.color: Motif.shades(consoleColors.panel).top
+                    opacity: 0.35
+                }
+            }
+            Repeater {
+                model: map.rows
+                delegate: ConsoleButton {
+                    id: windowRect
+                    required property int modelData
+                    readonly property var idx: tasks.makeModelIndex(modelData)
+                    readonly property int revision: root.windowRevision
+                    readonly property rect frame: (revision, tasks.data(idx, TaskManager.AbstractTasksModel.Geometry)) || Qt.rect(0, 0, 0, 0)
+                    visible: !(revision, tasks.data(idx, TaskManager.AbstractTasksModel.IsMinimized)) && frame.width > 0
+                    x: Math.round((frame.x - map.area.x) * map.scale)
+                    y: Math.round((frame.y - map.area.y) * map.scale)
+                    width: Math.max(6, Math.round(frame.width * map.scale))
+                    height: Math.max(6, Math.round(frame.height * map.scale))
+                    // Top windows over lower ones.
+                    z: (revision, tasks.data(idx, TaskManager.AbstractTasksModel.StackingOrder)) || 0
+                    padding: 0; text: ""
+                    Accessible.name: (revision, tasks.data(idx, Qt.DisplayRole) || i18nd("cde-copper", "Window"))
+                    selected: (revision, Boolean(tasks.data(idx, TaskManager.AbstractTasksModel.IsActive)))
+                    contentItem: Item {
+                        Kirigami.Icon {
+                            readonly property int side: Math.min(root.u(20), Math.min(windowRect.width, windowRect.height) - 4)
+                            visible: side >= 8
+                            anchors.centerIn: parent
+                            width: side; height: side
+                            source: (windowRect.revision, tasks.data(windowRect.idx, Qt.DecorationRole))
+                            active: false; roundToIconSize: false
+                        }
+                    }
+                    onClicked: {
+                        if (selected) tasks.requestToggleMinimized(idx); else tasks.requestActivate(idx);
+                    }
+                }
+            }
+        }
+    }
+    // All screens together, as one workspace spans them; with one console
+    // per screen listing only its own windows, that screen.
+    readonly property rect desktopArea: {
+        if (tasks.filterByScreen) return Plasmoid.containment.screenGeometry;
+        const all = Qt.application.screens;
+        if (!all.length) return Qt.rect(0, 0, 1920, 1080);
+        let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+        for (const s of all) {
+            left = Math.min(left, s.virtualX); top = Math.min(top, s.virtualY);
+            right = Math.max(right, s.virtualX + s.width); bottom = Math.max(bottom, s.virtualY + s.height);
+        }
+        return Qt.rect(left, top, right - left, bottom - top);
     }
 
     // A workspace's windows as small icon buttons in a sunken well: a click
@@ -1131,7 +1222,7 @@ PlasmoidItem {
     // included.
     function windowRows(desktop, revision) {
         const rows = [];
-        if (root.windowDisplay !== "workspaces") return rows;
+        if (root.windowDisplay !== "workspaces" && root.windowDisplay !== "pager") return rows;
         for (let i = 0; i < tasks.count; i++) {
             const idx = tasks.makeModelIndex(i);
             if (tasks.data(idx, TaskManager.AbstractTasksModel.IsOnAllVirtualDesktops)

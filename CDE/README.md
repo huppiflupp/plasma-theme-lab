@@ -42,7 +42,8 @@ languages can be added as `po/<language>.po`.
   workspaces, button width, a label per workspace, or switched off; each button in a colour of the palette,
   as in CDE), window task strip (several windows of
   one application as one button, "3× Konsole"), or instead a window tile
-  beside the launchers or window icons under each workspace, volume
+  beside the launchers, window icons under each workspace or a pager with each
+  workspace in miniature, volume
   control, and a launcher-wide block: its arrow strip opens the hidden tray
   icons, below it four square buttons for console settings, lock screen,
   show desktop and a load meter (processor and memory from Plasma's own
@@ -352,6 +353,15 @@ to its workspace; on the active window it minimizes. The console is lower and
 the volume a tile, as with the window tile. With the workspace switcher off the
 window tile takes their place.
 
+"Workspaces in miniature, with their windows" draws each workspace under its
+button as a pager of the 1990s did: the screens as a small sunken map (their
+outlines with more than one screen), every window a raised rectangle where it
+lies, with its icon, the active one in the selection colour, minimized windows
+left out, the topmost drawn over the others. It follows moves and resizes as
+they happen. A click on a window brings it forward, a click beside the windows
+switches to that workspace. With one console per screen, each listing only its
+own screen's windows, the map shows that screen.
+
 ### Arrange windows around the console
 
 Meta+Ctrl+C, the System subpanel's "Arrange Windows", or a tile with the
@@ -483,7 +493,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.8.10. The application style is a Kvantum theme, not a
+This is version 0.8.11. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

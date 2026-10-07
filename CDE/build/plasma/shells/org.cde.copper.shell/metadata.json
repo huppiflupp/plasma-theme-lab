@@ -3,7 +3,7 @@
     "Id": "org.cde.copper.shell",
     "Name": "CDE Copper",
     "Description": "Plasma's desktop shell with CDE's lock screen; everything else comes from org.kde.plasma.desktop",
-    "Version": "0.8.10",
+    "Version": "0.8.11",
     "License": "GPL-2.0-or-later",
     "Authors": [
       {

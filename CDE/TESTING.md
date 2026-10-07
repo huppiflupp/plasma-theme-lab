@@ -714,3 +714,20 @@ Checks of 2026-10-07 (window icons under the workspaces), VM at 1920x1080:
   four (the wells widened to at least 104); seven windows on workspace 1
   all shown without "+".
 
+Checks of 2026-10-07 (pager: workspaces in miniature), VM with two outputs
+(1920x1080 and 1280 wide beside it):
+
+- "pager": under each button a map of both screens, their outlines drawn;
+  KWrite, Dolphin and Konsole on workspace 1 at their places on the left
+  screen, three Konsoles on the right one, the active Konsole in the
+  selection colour and over the windows below it.
+- A click on Dolphin's rectangle under workspace 2 switched to workspace 2;
+  a click on the empty map of workspace 3 switched to workspace 3.
+- "Window Maximize" on Dolphin: its rectangle filled the left screen's map at
+  once (geometry changes reach the map).
+- Not checked: one console per screen with "only this screen's windows" (the
+  map then shows that screen), the console upright in this mode, a live drag.
+- Screens changed while running: the second output disabled, the map showed
+  one screen with the windows KWin moved onto it; enabled again below the
+  first, the map showed both stacked; moved back beside it, side by side.
+

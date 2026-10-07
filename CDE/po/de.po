@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: cde-copper 0.8.10\n"
+"Project-Id-Version: cde-copper 0.8.11\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-07 20:50+0200\n"
+"POT-Creation-Date: 2026-10-07 21:06+0200\n"
 "PO-Revision-Date: 2026-10-03 12:00+0200\n"
 "Last-Translator: CDE Copper contributors\n"
 "Language-Team: German\n"
@@ -244,63 +244,67 @@ msgstr "Fensterkachel rechts bei den Startern"
 msgid "Icons under the workspaces"
 msgstr "Symbole unter den Arbeitsflächen"
 
-#: frontpanel/contents/ui/configGeneral.qml:93
+#: frontpanel/contents/ui/configGeneral.qml:88
+msgid "Workspaces in miniature, with their windows"
+msgstr "Arbeitsflächen als Miniatur mit ihren Fenstern"
+
+#: frontpanel/contents/ui/configGeneral.qml:94
 msgid "Window list:"
 msgstr "Fensterliste:"
 
-#: frontpanel/contents/ui/configGeneral.qml:94
+#: frontpanel/contents/ui/configGeneral.qml:95
 msgid "Only windows on this console's screen"
 msgstr "Nur Fenster auf dem Bildschirm dieser Konsole"
 
-#: frontpanel/contents/ui/configGeneral.qml:100
+#: frontpanel/contents/ui/configGeneral.qml:101
 msgid "Launchers:"
 msgstr "Starter:"
 
-#: frontpanel/contents/ui/configGeneral.qml:101
+#: frontpanel/contents/ui/configGeneral.qml:102
 msgid "Labels under the icons (off: larger icons, names as tooltips)"
 msgstr ""
 "Beschriftung unter den Symbolen (aus: größere Symbole, Namen als Kurzinfo)"
 
-#: frontpanel/contents/ui/configGeneral.qml:107
+#: frontpanel/contents/ui/configGeneral.qml:108
 msgid "Group windows of one application (\"3× Konsole\")"
 msgstr "Fenster einer Anwendung gruppieren („3× Konsole“)"
 
-#: frontpanel/contents/ui/configGeneral.qml:111
+#: frontpanel/contents/ui/configGeneral.qml:112
 msgid "System tray:"
 msgstr "Systemabschnitt der Kontrollleiste:"
 
-#: frontpanel/contents/ui/configGeneral.qml:112
+#: frontpanel/contents/ui/configGeneral.qml:113
 msgid "Leave the volume to the console"
 msgstr "Lautstärkeregelung der Konsole überlassen"
 
-#: frontpanel/contents/ui/configGeneral.qml:116
+#: frontpanel/contents/ui/configGeneral.qml:117
 msgid "Status icons only behind the console's button"
 msgstr "Statussymbole nur über den Knopf der Konsole anzeigen"
 
-#: frontpanel/contents/ui/configGeneral.qml:120
+#: frontpanel/contents/ui/configGeneral.qml:121
 msgid "Panel:"
 msgstr "Kontrollleiste:"
 
-#: frontpanel/contents/ui/configGeneral.qml:121
+#: frontpanel/contents/ui/configGeneral.qml:122
 msgid "Frame behind the console"
 msgstr "Rahmen hinter der Konsole"
 
-#: frontpanel/contents/ui/configGeneral.qml:125
+#: frontpanel/contents/ui/configGeneral.qml:126
 msgid "Text:"
 msgstr "Schrift:"
 
-#: frontpanel/contents/ui/configGeneral.qml:126
+#: frontpanel/contents/ui/configGeneral.qml:127
 msgid ""
 "Hard contrast: black (white on dark surfaces) instead of the palette's "
 "colours"
 msgstr ""
 "Harter Kontrast: Schwarz (auf dunklen Flächen Weiß) statt der Palettenfarben"
 
-#: frontpanel/contents/ui/configGeneral.qml:128
+#: frontpanel/contents/ui/configGeneral.qml:129
 msgid "Console label:"
 msgstr "Beschriftung der Konsole:"
 
-#: frontpanel/contents/ui/configGeneral.qml:130
+#: frontpanel/contents/ui/configGeneral.qml:131
 msgid "Size:"
 msgstr "Größe:"
 
@@ -309,7 +313,7 @@ msgid "Choose an application"
 msgstr "Anwendung auswählen"
 
 #: frontpanel/contents/ui/configLaunchers.qml:151
-#: frontpanel/contents/ui/main.qml:1548
+#: frontpanel/contents/ui/main.qml:1646
 msgid "Search"
 msgstr "Suchen"
 
@@ -656,7 +660,7 @@ msgstr "Bildschirm"
 msgid "Help Center"
 msgstr "Hilfezentrum"
 
-#: frontpanel/contents/ui/main.qml:205 frontpanel/contents/ui/main.qml:863
+#: frontpanel/contents/ui/main.qml:205 frontpanel/contents/ui/main.qml:961
 msgid "Lock Screen"
 msgstr "Bildschirm sperren"
 
@@ -744,103 +748,103 @@ msgstr "Offline"
 msgid "Open %1"
 msgstr "%1 öffnen"
 
-#: frontpanel/contents/ui/main.qml:723
+#: frontpanel/contents/ui/main.qml:727
 msgid "WORKSPACES"
 msgstr "ARBEITSFLÄCHEN"
 
-#: frontpanel/contents/ui/main.qml:745
+#: frontpanel/contents/ui/main.qml:751
 msgid "Workspace %1 %2"
 msgstr "Arbeitsfläche %1 %2"
 
-#: frontpanel/contents/ui/main.qml:793 frontpanel/contents/ui/main.qml:968
-#: frontpanel/contents/ui/main.qml:1398
+#: frontpanel/contents/ui/main.qml:831 frontpanel/contents/ui/main.qml:891
+#: frontpanel/contents/ui/main.qml:1066 frontpanel/contents/ui/main.qml:1496
 msgid "Window"
 msgstr "Fenster"
 
-#: frontpanel/contents/ui/main.qml:842
+#: frontpanel/contents/ui/main.qml:940
 msgid "Hidden Icons"
 msgstr "Ausgeblendete Symbole"
 
-#: frontpanel/contents/ui/main.qml:859
+#: frontpanel/contents/ui/main.qml:957
 msgid "Configure Front Console"
 msgstr "Frontkonsole einrichten"
 
-#: frontpanel/contents/ui/main.qml:867
+#: frontpanel/contents/ui/main.qml:965
 msgid "Show Desktop"
 msgstr "Arbeitsfläche anzeigen"
 
-#: frontpanel/contents/ui/main.qml:885
+#: frontpanel/contents/ui/main.qml:983
 msgid "Processor %1 %, memory %2 %"
 msgstr "Prozessor %1 %, Speicher %2 %"
 
-#: frontpanel/contents/ui/main.qml:968
+#: frontpanel/contents/ui/main.qml:1066
 msgid "%1× %2"
 msgstr "%1× %2"
 
-#: frontpanel/contents/ui/main.qml:1023 frontpanel/contents/ui/main.qml:1375
+#: frontpanel/contents/ui/main.qml:1121 frontpanel/contents/ui/main.qml:1473
 msgid "Open Windows"
 msgstr "Offene Fenster"
 
-#: frontpanel/contents/ui/main.qml:1038 frontpanel/contents/ui/main.qml:1507
+#: frontpanel/contents/ui/main.qml:1136 frontpanel/contents/ui/main.qml:1605
 msgid "%1 window"
 msgid_plural "%1 windows"
 msgstr[0] "%1 Fenster"
 msgstr[1] "%1 Fenster"
 
-#: frontpanel/contents/ui/main.qml:1161
+#: frontpanel/contents/ui/main.qml:1259
 msgid "Volume %1, %2"
 msgstr "Lautstärke %1, %2"
 
-#: frontpanel/contents/ui/main.qml:1277
+#: frontpanel/contents/ui/main.qml:1375
 msgid "Audio  %1"
 msgstr "Audio  %1"
 
-#: frontpanel/contents/ui/main.qml:1285
+#: frontpanel/contents/ui/main.qml:1383
 msgid "Volume"
 msgstr "Lautstärke"
 
-#: frontpanel/contents/ui/main.qml:1291
+#: frontpanel/contents/ui/main.qml:1389
 msgid "Unmute"
 msgstr "Stummschaltung aufheben"
 
-#: frontpanel/contents/ui/main.qml:1291
+#: frontpanel/contents/ui/main.qml:1389
 msgid "Mute"
 msgstr "Stummschalten"
 
-#: frontpanel/contents/ui/main.qml:1298
+#: frontpanel/contents/ui/main.qml:1396
 msgid "Settings…"
 msgstr "Einstellungen…"
 
-#: frontpanel/contents/ui/main.qml:1380
+#: frontpanel/contents/ui/main.qml:1478
 msgid "No open windows"
 msgstr "Keine offenen Fenster"
 
-#: frontpanel/contents/ui/main.qml:1443 frontpanel/contents/ui/launch.js:291
+#: frontpanel/contents/ui/main.qml:1541 frontpanel/contents/ui/launch.js:291
 msgid "Saved layouts"
 msgstr "Gespeicherte Anordnungen"
 
-#: frontpanel/contents/ui/main.qml:1447
+#: frontpanel/contents/ui/main.qml:1545
 msgid "Save Current Layout…"
 msgstr "Aktuelle Anordnung speichern …"
 
-#: frontpanel/contents/ui/main.qml:1454
+#: frontpanel/contents/ui/main.qml:1552
 msgid "No saved layouts yet. Arrange your windows, then save them here."
 msgstr ""
 "Noch keine gespeicherten Anordnungen. Fenster anordnen, dann hier speichern."
 
-#: frontpanel/contents/ui/main.qml:1517
+#: frontpanel/contents/ui/main.qml:1615
 msgid "Delete?"
 msgstr "Löschen?"
 
-#: frontpanel/contents/ui/main.qml:1520
+#: frontpanel/contents/ui/main.qml:1618
 msgid "Delete layout"
 msgstr "Anordnung löschen"
 
-#: frontpanel/contents/ui/main.qml:1544
+#: frontpanel/contents/ui/main.qml:1642
 msgid "Find Application"
 msgstr "Anwendung suchen"
 
-#: frontpanel/contents/ui/main.qml:1570
+#: frontpanel/contents/ui/main.qml:1668
 msgid "Application"
 msgstr "Anwendung"
 

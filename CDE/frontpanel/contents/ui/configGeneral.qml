@@ -80,11 +80,12 @@ KCM.SimpleKCM {
         ComboBox {
             id: windowDisplay
             Kirigami.FormData.label: i18nd("cde-copper", "Window display:")
-            readonly property var values: ["strip", "tileLeft", "tileRight", "workspaces"]
+            readonly property var values: ["strip", "tileLeft", "tileRight", "workspaces", "pager"]
             model: [i18nd("cde-copper", "Strip under the tiles"),
                     i18nd("cde-copper", "Window tile left, beside the launchers"),
                     i18nd("cde-copper", "Window tile right, beside the launchers"),
-                    i18nd("cde-copper", "Icons under the workspaces")]
+                    i18nd("cde-copper", "Icons under the workspaces"),
+                    i18nd("cde-copper", "Workspaces in miniature, with their windows")]
             currentIndex: Math.max(0, values.indexOf(cfg_windowDisplay))
             onActivated: index => cfg_windowDisplay = values[index]
         }
