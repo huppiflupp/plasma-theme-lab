@@ -45,9 +45,13 @@ languages can be added as `po/<language>.po`.
   beside the launchers, window icons under each workspace or a pager with each
   workspace in miniature, volume
   control, and a launcher-wide block: its arrow strip opens the hidden tray
-  icons, below it four square buttons for console settings, lock screen,
-  show desktop and a load meter (processor and memory from Plasma's own
-  sensors; a click opens the system monitor). The Plasma system tray
+  icons, below it small square buttons, two to a column, chosen under Front
+  Console › Small buttons: console settings (faders, apart from System
+  Settings' gear), lock screen, show desktop, a load meter (processor and
+  memory from Plasma's own sensors; a click opens the system monitor), volume
+  (click for the slider, wheel to change it; unchosen it sits in the strip's
+  row), network (WLAN signal, cable or offline; a click opens the connection
+  settings) and leave session. The Plasma system tray
   stays in the console's panel for notifications, but by default it is out of
   sight: its entries open from the console's button; the tray's own volume
   icon is left out, since the console has one. By default the console stands
@@ -504,7 +508,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.9.0. The application style is a Kvantum theme, not a
+This is version 0.9.1. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

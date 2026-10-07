@@ -105,7 +105,13 @@ def build_icons(out: Path):
     home = path("M6 29L31 7L58 29H51V57H13V29Z", "#afc2c2") + path("M5 29L31 7L58 29", "none", COPPER, 5) + rect(27, 36, 11, 21, TEAL) + rect(27, 21, 10, 9, TEAL) + path("M16 31V54", "none", LIGHT)
     globe = circle(32, 32, 25, TEAL) + path("M10 22L20 11L29 12L26 23L18 30L21 38L16 42L9 32Z M36 9L47 14L49 23L42 29L47 39L38 53L32 49L33 34L27 29L33 21Z", COPPER, INK, 1.5) + path("M10 20Q30 5 50 19", "none", LIGHT)
     mail = rect(6, 15, 52, 37, "#afc2c2") + path("M7 16L32 35L57 16", COPPER) + path("M7 51L24 33M57 51L40 33")
-    trash = path("M13 18H51L46 57H18Z", "#86a4aa") + rect(10, 12, 44, 7, TEAL) + rect(25, 6, 15, 6, COPPER) + path("M22 25L24 50M32 25V50M42 25L40 50", "none", LIGHT, 3)
+    # A wire wastepaper basket: open mesh under a copper rim.
+    trash = (path("M10 12H54L47 58H17Z", "none") + path("M14 22H50M15 32H49M16 42H48M17 52H47", "none", INK, 1.5)
+             + path("M21 12L24 58M32 12V58M43 12L40 58", "none", INK, 1.5) + rect(8, 9, 48, 5, COPPER))
+    # The front console's own settings, not System Settings' gear: faders.
+    faders = (rect(6, 6, 52, 52, "#86a4aa") + path("M8 56V8H56", "none", LIGHT)
+              + "".join(rect(x, 13, 4, 38, "#061c22", INK, 1) for x in (16, 30, 44))
+              + rect(11, 36, 14, 8, COPPER) + rect(25, 18, 14, 8, "#c4d2d0") + rect(39, 29, 14, 8, TEAL))
     network = rect(23, 6, 18, 15, TEAL) + path("M32 21V33M12 33H52M12 33V43M32 33V43M52 33V43") + "".join(rect(x, 43, 14, 13, COPPER) for x in (5, 25, 45))
     audio = path("M8 25H19L33 12V52L19 39H8Z", "#86a4aa") + path("M39 22Q51 32 39 42M45 14Q63 32 45 50", "none", COPPER, 4)
     gear = path("M26 5H38L40 14L47 17L55 14L61 25L54 31V37L61 43L55 54L46 51L40 55L38 62H26L24 54L17 51L9 54L3 43L10 37V30L3 24L9 14L18 17L24 13Z", "#86a4aa") + circle(32, 33, 12, TEAL) + path("M24 22Q36 14 44 27", "none", LIGHT)
@@ -133,6 +139,7 @@ def build_icons(out: Path):
         "utilities-terminal": monitor(True), "computer": monitor(), "internet-web-browser": globe,
         "internet-mail": mail, "accessories-text-editor": edit, "user-trash": trash,
         "network-workgroup": network, "audio-volume-high": audio, "preferences-system": gear,
+        "cde-console-configure": faders,
         "preferences-desktop-virtual": workspaces, "text-x-generic": document(text),
         "application-x-executable": cabinet, "drive-harddisk": cabinet, "chronometer": clock,
         "system-lock-screen": lock, "system-shutdown": power,
@@ -433,7 +440,8 @@ def more_icons(text, picture, home, globe, mail, trash, gear, lock, document, fo
     d["media-flash"] = path("M14 6H42L50 14V58H14Z", DARK) + "".join(rect(x, 8, 4, 10, COPPER, "none") for x in (20, 27, 34, 41)) + rect(18, 30, 28, 22, PALE)
     d["computer-laptop"] = rect(12, 10, 40, 30, GREY) + rect(16, 14, 32, 22, TEAL) + path("M4 48L10 40H54L60 48Z", PALE) + rect(28, 43, 8, 3, COPPER, "none")
     d["network-server"] = rect(16, 4, 32, 56, GREY) + "".join(rect(20, y, 24, 8, PALE) + circle(40, y + 4, 2, COPPER, "none") for y in (9, 21, 33)) + path("M18 58V6H46", "none", "#ffffff")
-    d["user-trash-full"] = trash + path("M18 12L28 4L40 10L50 4", "none", INK, 2) + path("M20 14L28 6L38 12L48 6V14H20Z", PAPER)
+    # Crumpled paper in the basket, behind its mesh.
+    d["user-trash-full"] = (path("M14 14L16 3L30 1L34 9L44 3L54 11L50 16H14Z", PAPER) + path("M20 6L26 10M38 8L44 12", "none", INK, 1.5) + trash)
     d["folder-open"] = (path("M5 16V10H24L30 16H57V54H5Z", TEAL) + path("M5 54L12 26H62L55 54Z", PALE) + path("M13 28H60", "none", "#ffffff"))
     d["document-open"] = d["folder-open"]
     d["folder-root"] = folder(path("M38 24L26 50", "none", COPPER, 5))
@@ -931,11 +939,25 @@ def px_home(p):
 
 
 def px_trash(p):
-    p.shape(p.rect(6, 0.5, 4, 2.5), COPPER)
-    p.shape(p.poly([(3, 4.5), (13, 4.5), (12, 16), (4, 16)]), GREY, light=WHITE)
-    for x in (6, 8, 10):
-        p.fill(p.vline(x, 7, 6.5), PALE)
-    p.shape(p.rect(1.5, 2.5, 13, 3), TEAL)
+    # The wire basket: an outline with a mesh, a copper rim.
+    body = p.poly([(2, 4), (14, 4), (11.5, 16), (4.5, 16)])
+    border = {(i, j) for i, j in body if any(q not in body for q in ((i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)))}
+    p.fill(border, INK)
+    # A coarser mesh at 16 px, where every line is a whole pixel.
+    for y in ((10,) if p.n < 20 else (8.5, 12)):
+        p.fill(p.hline(2, y, 12) & body, INK)
+    for x in ((8,) if p.n < 20 else (6.4, 9.6)):
+        p.fill(p.vline(x, 4, 12) & body, INK)
+    p.shape(p.rect(1.5, 2, 13, 3), COPPER)
+
+
+def px_faders(p):
+    p.shape(p.rect(1, 1, 14, 14), GREY, light=WHITE)
+    for x in (4, 8, 12):
+        p.fill(p.vline(x, 3, 10), DARK)
+    p.shape(p.rect(2.5, 9, 3, 3), COPPER)
+    p.shape(p.rect(6.5, 4, 3, 3), PAPER)
+    p.shape(p.rect(10.5, 6.5, 3, 3), TEAL)
 
 
 def px_network(p):
@@ -1093,6 +1115,7 @@ PIXEL = {
                               p.shape(p.poly([(0, 15), (3, 7), (16, 7), (13, 15)]), PALE, light=WHITE)),
     "user-home": px_home,
     "user-trash": px_trash,
+    "cde-console-configure": px_faders,
     "computer": px_monitor,
     "utilities-terminal": lambda p: (px_monitor(p, DARK), p.fill(p.line(4, 4.5, 6, 6) | p.line(6, 6, 4, 7.5), COPPER), p.fill(p.hline(7, 7.5, 3), COPPER)),
     "network-workgroup": px_network,

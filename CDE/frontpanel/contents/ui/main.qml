@@ -72,6 +72,20 @@ PlasmoidItem {
     property date now: new Date()
     property string activeSection: ""
     property string networkState: i18nd("cde-copper", "Network")
+    // "wifi", "wired" or "" (offline), the connection's name, WLAN signal 0-100
+    property string networkKind: ""
+    property string networkName: ""
+    property int networkSignal: 0
+    readonly property string networkIcon: networkKind === "wired" ? "network-wired-activated"
+        : networkKind !== "wifi" ? "network-offline"
+        : networkSignal >= 75 ? "network-wireless-signal-excellent" : networkSignal >= 50 ? "network-wireless-signal-good"
+        : networkSignal >= 25 ? "network-wireless-signal-ok" : "network-wireless-signal-weak"
+    // The session block's small buttons, the known ones in the chosen order.
+    readonly property var smallKinds: ["configure", "lock", "desktop", "load", "volume", "network", "logout"]
+    readonly property var smallButtons: {
+        const chosen = (Plasmoid.configuration.smallButtons || []).filter(k => smallKinds.indexOf(k) >= 0);
+        return chosen.length ? chosen : ["configure"];
+    }
     property string volumeState: i18nd("cde-copper", "Audio")
     property int volume: 0
     property bool muted: false
@@ -405,6 +419,21 @@ PlasmoidItem {
         root.volumeState = root.muted ? i18nd("cde-copper", "Muted") : value + "%";
         runner.connectSource("wpctl set-volume @DEFAULT_AUDIO_SINK@ " + value + "%");
     }
+    function readNetwork(stdout) {
+        const parts = stdout.split("---");
+        let kind = "", name = "", signal = 0;
+        for (const line of (parts[0] || "").split("\n")) {
+            const f = line.split(":");
+            if (f.length < 3 || f[1] !== "connected") continue;
+            if (f[0] === "ethernet" && kind !== "wired") { kind = "wired"; name = f.slice(2).join(":"); }
+            else if (f[0] === "wifi" && !kind) { kind = "wifi"; name = f.slice(2).join(":"); }
+        }
+        for (const line of (parts[1] || "").split("\n"))
+            if (line.indexOf("*:") === 0) signal = Number(line.slice(2)) || 0;
+        root.networkKind = kind; root.networkName = name; root.networkSignal = signal;
+        root.networkState = !kind ? i18nd("cde-copper", "Offline")
+            : kind === "wifi" ? i18nd("cde-copper", "WLAN %1, %2 %", name, signal) : i18nd("cde-copper", "Cable %1", name);
+    }
     function readVolume(stdout) {
         const match = stdout.match(/Volume: ([0-9.]+)/);
         root.muted = stdout.indexOf("MUTED") >= 0;
@@ -579,9 +608,12 @@ PlasmoidItem {
     P5Support.DataSource {
         engine: "executable"
         interval: 5000
-        connectedSources: ["timeout 3s env LC_ALL=C nmcli -t -f STATE general", "timeout 3s wpctl get-volume @DEFAULT_AUDIO_SINK@"]
+        // The devices (type, state, connection), then the WLAN in use with its
+        // signal; nmcli's cached scan, no new one.
+        connectedSources: ["sh -c 'timeout 3s env LC_ALL=C nmcli -t -f TYPE,STATE,CONNECTION device; echo ---; timeout 3s env LC_ALL=C nmcli -t -f IN-USE,SIGNAL device wifi list --rescan no'",
+                           "timeout 3s wpctl get-volume @DEFAULT_AUDIO_SINK@"]
         onNewData: function(sourceName, data) {
-            if (sourceName.indexOf("nmcli") >= 0) root.networkState = data.stdout.trim() === "connected" ? i18nd("cde-copper", "Connected") : i18nd("cde-copper", "Offline");
+            if (sourceName.indexOf("nmcli") >= 0) root.readNetwork(data.stdout);
             else root.readVolume(data.stdout);
         }
     }
@@ -928,11 +960,9 @@ PlasmoidItem {
         }
     }
 
-    // Four small buttons in the space of one launcher with its arrow: the
-    // tray's hidden icons, the console's settings, lock and show desktop.
-    // The session block: an arrow strip like the launchers' over four
-    // square quarter buttons. The arrow opens the tray's hidden icons;
-    // the quarters are settings, lock, show desktop and a load meter.
+    // The session block: an arrow strip like the launchers' over square
+    // quarter buttons, two to a column. The arrow opens the tray's hidden
+    // icons; which quarters there are is a setting (smallButtons).
     component SessionButtons: GridLayout {
         id: session
         rows: root.vertical ? 1 : 2
@@ -941,8 +971,9 @@ PlasmoidItem {
         Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
         // The side of one square, from the space beside the arrow strip.
         readonly property int quarter: Math.max(10, Math.floor(((root.vertical ? width : height) - root.u(13) - 2) / 2))
-        Layout.preferredWidth: root.vertical ? -1 : 2 * quarter + 1
-        Layout.preferredHeight: root.vertical ? 2 * quarter + 1 : -1
+        readonly property int pairs: Math.max(1, Math.ceil(root.smallButtons.length / 2))
+        Layout.preferredWidth: root.vertical ? -1 : pairs * quarter + pairs - 1
+        Layout.preferredHeight: root.vertical ? pairs * quarter + pairs - 1 : -1
         ConsoleButton {
             Layout.row: 0
             Layout.column: root.vertical && !root.atRight ? 1 : 0
@@ -962,25 +993,69 @@ PlasmoidItem {
             Layout.row: root.vertical ? 0 : 1
             Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
             Layout.alignment: Qt.AlignCenter
-            Layout.preferredWidth: 2 * session.quarter + 1
-            Layout.preferredHeight: 2 * session.quarter + 1
-            rows: 2; columns: 2
+            Layout.preferredWidth: root.vertical ? 2 * session.quarter + 1 : session.pairs * session.quarter + session.pairs - 1
+            Layout.preferredHeight: root.vertical ? session.pairs * session.quarter + session.pairs - 1 : 2 * session.quarter + 1
+            // Across: columns of two, filled top to bottom; upright: rows of two.
+            flow: root.vertical ? GridLayout.LeftToRight : GridLayout.TopToBottom
+            rows: root.vertical ? session.pairs : 2
+            columns: root.vertical ? 2 : session.pairs
             rowSpacing: 1; columnSpacing: 1
-            SmallButton {
-                iconName: "configure"; Accessible.name: i18nd("cde-copper", "Configure Front Console")
-                onClicked: Plasmoid.internalAction("configure").trigger()
+            Repeater {
+                model: root.smallButtons
+                delegate: Loader {
+                    required property string modelData
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    Layout.preferredWidth: 1; Layout.preferredHeight: 1
+                    sourceComponent: modelData === "load" ? loadMeter : quarterButton
+                    onLoaded: if (item.kind !== undefined) item.kind = modelData
+                }
             }
-            SmallButton {
-                iconName: "system-lock-screen"; Accessible.name: i18nd("cde-copper", "Lock Screen")
-                onClicked: root.run(root.dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock")
+        }
+        Component { id: loadMeter; LoadMeter {} }
+        Component { id: quarterButton; QuarterButton {} }
+    }
+    // One of the session block's quarters, by kind.
+    component QuarterButton: SmallButton {
+        id: quarter
+        property string kind: ""
+        iconName: {
+            switch (kind) {
+            case "configure": return "cde-console-configure";
+            case "lock": return "system-lock-screen";
+            case "desktop": return "user-desktop";
+            case "volume": return root.muted ? "audio-volume-muted" : "audio-volume-high";
+            case "network": return root.networkIcon;
+            case "logout": return "system-log-out";
             }
-            SmallButton {
-                iconName: "user-desktop"; Accessible.name: i18nd("cde-copper", "Show Desktop")
-                // KWin's D-Bus showDesktop(bool) is accepted but does nothing in
-                // Plasma 6.7; its own "Show Desktop" shortcut toggles reliably.
-                onClicked: root.run(root.dbus + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop'")
+            return "";
+        }
+        Accessible.name: {
+            switch (kind) {
+            case "configure": return i18nd("cde-copper", "Configure Front Console");
+            case "lock": return i18nd("cde-copper", "Lock Screen");
+            case "desktop": return i18nd("cde-copper", "Show Desktop");
+            case "volume": return i18nd("cde-copper", "Volume %1", root.volumeState);
+            case "network": return root.networkState;
+            case "logout": return i18nd("cde-copper", "Leave Session...");
             }
-            LoadMeter {}
+            return "";
+        }
+        onClicked: {
+            switch (kind) {
+            case "configure": Plasmoid.internalAction("configure").trigger(); break;
+            case "lock": root.run(root.dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock"); break;
+            // KWin's D-Bus showDesktop(bool) is accepted but does nothing in
+            // Plasma 6.7; its own "Show Desktop" shortcut toggles reliably.
+            case "desktop": root.run(root.dbus + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop'"); break;
+            case "volume": volumePopup.visualParent = quarter; volumePopup.visible = !volumePopup.visible; break;
+            case "network": root.run(Launch.resolve("@settings kcm_networkmanagement", [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg))); break;
+            case "logout": root.run(root.dbus + " org.kde.LogoutPrompt /LogoutPrompt promptAll"); break;
+            }
+        }
+        WheelHandler {
+            enabled: quarter.kind === "volume"
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: event => root.setVolume(root.volume + (event.angleDelta.y > 0 ? 5 : -5))
         }
     }
     // CPU and memory load as two sunken Motif meters (Plasma's own sensors,
@@ -1038,6 +1113,8 @@ PlasmoidItem {
     // A quarter launcher: the icon follows the button, whole pixels.
     component SmallButton: ConsoleButton {
         id: small
+        // For CDE Copper's own icons under another icon theme.
+        property string fallbackName: iconName === "cde-console-configure" ? "configure" : ""
         Layout.fillWidth: true; Layout.fillHeight: true
         Layout.preferredWidth: 1; Layout.preferredHeight: 1
         implicitWidth: 0; implicitHeight: 0
@@ -1048,6 +1125,7 @@ PlasmoidItem {
                 width: side; height: side
                 x: Math.round((parent.width - side) / 2); y: Math.round((parent.height - side) / 2)
                 source: small.iconName
+                fallback: small.fallbackName
                 active: false
                 // Not snapped down to 16/22/32: the icon grows with the console.
                 roundToIconSize: false
@@ -1253,21 +1331,16 @@ PlasmoidItem {
         return index >= 0 ? root.workspaceLabel(index) : "";
     }
 
+    // The volume in the strip's row, when it is not one of the small buttons.
     component VolumeButton: ConsoleButton {
         id: status
-        // With the window tile the volume is a tile of the row, as tall as
-        // the launchers; otherwise a narrow button in the strip's row.
-        property bool tile: false
         Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
         // As wide as a launcher, so it lines up with the tiles above it.
         Layout.preferredWidth: root.vertical ? -1 : root.u(68)
-        Layout.preferredHeight: root.vertical ? root.u(tile ? 62 : 26) : -1
+        Layout.preferredHeight: root.vertical ? root.u(26) : -1
         text: root.volumeState
-        // The speaker fills its square where application icons keep a margin:
-        // smaller than a launcher's icon, so it looks as large.
-        iconSize: tile ? Math.round((labelled ? 28 : 38) * consoleColors.unit) : root.u(18)
-        horizontal: !tile
-        labelled: !tile || Plasmoid.configuration.launcherLabels
+        iconSize: root.u(18)
+        horizontal: true
         iconName: root.muted ? "audio-volume-muted" : "audio-volume-high"
         Accessible.name: i18nd("cde-copper", "Volume %1, %2", root.volumeState, root.networkState)
         onClicked: { volumePopup.visualParent = status; volumePopup.visible = !volumePopup.visible; }
@@ -1307,7 +1380,6 @@ PlasmoidItem {
                 Workspaces {}
                 WindowTile { visible: root.windowDisplay === "tileRight" }
                 Repeater { model: root.rightSlots; delegate: Slot {} }
-                VolumeButton { visible: root.stripHidden; tile: true }
                 SessionButtons {}
             }
             GridLayout {
@@ -1326,7 +1398,7 @@ PlasmoidItem {
                     font.weight: consoleColors.weight
                 }
                 TaskStrip {}
-                VolumeButton {}
+                VolumeButton { visible: root.smallButtons.indexOf("volume") < 0 }
             }
         }
     }

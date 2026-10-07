@@ -19,6 +19,7 @@ KCM.SimpleKCM {
     property var cfg_workspaceColoursDefault
     property var cfg_groupWindowsDefault
     property var cfg_windowDisplayDefault
+    property var cfg_smallButtonsDefault
     property var cfg_workspaceWindowsDefault
     property var cfg_consoleLabelDefault
     property var cfg_consoleScaleDefault

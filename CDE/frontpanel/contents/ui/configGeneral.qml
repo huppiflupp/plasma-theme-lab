@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
 
 KCM.SimpleKCM {
+    id: page
     // Plasma hands every settings page every setting's default; declared so
     // it takes them quietly. (Not the settings themselves: Plasma saves every
     // cfg_ property a page has, and an unshown one would write back a stale
@@ -18,6 +19,7 @@ KCM.SimpleKCM {
     property var cfg_workspaceCountDefault
     property var cfg_groupWindowsDefault
     property var cfg_windowDisplayDefault
+    property var cfg_smallButtonsDefault
     property var cfg_workspaceWindowsDefault
     property var cfg_consoleLabelDefault
     property var cfg_consoleScaleDefault
@@ -54,6 +56,21 @@ KCM.SimpleKCM {
     property alias cfg_hardContrast: hardContrast.checked
     property alias cfg_floating: floating.checked
     property alias cfg_everyScreen: everyScreen.checked
+    // The session block's small buttons, kept in this order.
+    property var cfg_smallButtons: []
+    readonly property var smallChoices: [
+        {kind: "configure", text: i18nd("cde-copper", "Console settings")},
+        {kind: "lock", text: i18nd("cde-copper", "Lock screen")},
+        {kind: "desktop", text: i18nd("cde-copper", "Show desktop")},
+        {kind: "load", text: i18nd("cde-copper", "Load meter (processor and memory)")},
+        {kind: "volume", text: i18nd("cde-copper", "Volume (otherwise in the strip's row)")},
+        {kind: "network", text: i18nd("cde-copper", "Network (WLAN or cable)")},
+        {kind: "logout", text: i18nd("cde-copper", "Leave session")}]
+    function setSmall(kind, on) {
+        const chosen = smallChoices.map(c => c.kind)
+            .filter(k => k === kind ? on : (cfg_smallButtons || []).indexOf(k) >= 0);
+        cfg_smallButtons = chosen.length ? chosen : ["configure"];
+    }
     Kirigami.FormLayout {
         ComboBox {
             id: visibility
@@ -79,6 +96,17 @@ KCM.SimpleKCM {
             id: launcherLabels
             Kirigami.FormData.label: i18nd("cde-copper", "Launchers:")
             text: i18nd("cde-copper", "Labels under the icons (off: larger icons, names as tooltips)")
+        }
+        Repeater {
+            model: page.smallChoices
+            delegate: CheckBox {
+                required property int index
+                required property var modelData
+                Kirigami.FormData.label: index === 0 ? i18nd("cde-copper", "Small buttons:") : ""
+                text: modelData.text
+                checked: (page.cfg_smallButtons || []).indexOf(modelData.kind) >= 0
+                onToggled: page.setSmall(modelData.kind, checked)
+            }
         }
         CheckBox {
             id: hideVolume

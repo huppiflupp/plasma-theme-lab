@@ -788,3 +788,17 @@ Checks of 2026-10-07 (window settings moved to the Workspaces page), VM:
   workspaceWindows back to its default, console 1141 long. Then "Each
   workspace in miniature": workspaceWindows=pager, windowDisplay kept
   tileRight for a hidden switcher, console 1369 long.
+
+Checks of 2026-10-07 (icons, small buttons), VM:
+
+- Proof sheets of ten proposals each; chosen: faders for the console's
+  settings (cde-console-configure, falling back to "configure" under other
+  icon themes), the wire basket for the trash (64, 22 and 16 px drawn).
+- Small buttons default configure, lock, desktop, load, volume, network: three
+  columns beside the arrow strip; network showed the cable plug (VM on
+  virtio ethernet). The volume tile is gone; in strip mode the strip's row
+  has no volume button while volume is a small button.
+- A click on the small speaker opened the volume popup above it, tooltip
+  "Volume 40%".
+- Not checked: WLAN signal icons (the VM has no WLAN), the settings
+  checkboxes in the dialog, the upright console with three pairs.
