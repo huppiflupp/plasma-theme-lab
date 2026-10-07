@@ -81,14 +81,20 @@ PlasmoidItem {
     // Open windows as the strip under the tiles, as a window tile beside
     // the launchers (left or right) whose list opens like a subpanel, or as
     // small icons under each workspace's button. Without the strip its row
-    // goes, and the console is lower. With the workspaces hidden their
-    // icons move to the tile.
+    // goes, and the console is lower. The workspaces' own setting comes
+    // first while the switcher is shown; hidden, the strip or tile again.
     readonly property string windowDisplay: {
+        if (Plasmoid.configuration.showWorkspaces) {
+            const own = Plasmoid.configuration.workspaceWindows;
+            if (own === "icons") return "workspaces";
+            if (own === "pager") return "pager";
+        }
         const wanted = Plasmoid.configuration.windowDisplay;
-        if (wanted === "workspaces" || wanted === "pager") return Plasmoid.configuration.showWorkspaces ? wanted : "tileLeft";
         return ["tileLeft", "tileRight"].indexOf(wanted) >= 0 ? wanted : "strip";
     }
     readonly property bool stripHidden: windowDisplay !== "strip"
+    // Whichever setting hides or brings back the strip: the panel's height.
+    onStripHiddenChanged: configurePanel()
 
     // Every colour comes from the active colour scheme: the console is the
     // Complementary set (CDE colour set 8 with a CDE palette), popups use
@@ -435,7 +441,6 @@ PlasmoidItem {
         function onEdgeChanged() { root.configurePanel(); }
         function onConsoleScaleChanged() { root.configurePanel(); }
         function onFloatingChanged() { root.configurePanel(); }
-        function onWindowDisplayChanged() { root.configurePanel(); }
         function onEveryScreenChanged() { root.placeConsoles(); }
         function onHideTrayVolumeChanged() { root.syncTray(); }
         function onHideTrayIconsChanged() { root.syncTray(); root.placeTray(); }
@@ -451,6 +456,7 @@ PlasmoidItem {
             if (/^(copper|palette|white|#[0-9a-fA-F]{6})$/.test(request.cursor || "")) command += " --cursor " + Launch.quote(request.cursor);
             if (request.lockscreen === "cde" || request.lockscreen === "plasma") command += " --lockscreen " + request.lockscreen;
             if (typeof request.windowShadow === "boolean") command += " --window-shadow " + (request.windowShadow ? "on" : "off");
+            if (typeof request.patternColour === "boolean") command += " --pattern-colour " + (request.patternColour ? "palette" : "cde");
             root.run(command);
         }
     }
@@ -471,6 +477,12 @@ PlasmoidItem {
     }
 
     Component.onCompleted: {
+        // 0.8.9-0.8.11 kept the workspace views in windowDisplay.
+        const legacy = {workspaces: "icons", pager: "pager"}[Plasmoid.configuration.windowDisplay];
+        if (legacy) {
+            Plasmoid.configuration.workspaceWindows = legacy;
+            Plasmoid.configuration.windowDisplay = "strip";
+        }
         installTranslations();
         if (Plasmoid.configuration.consoleScale !== 1 || !Plasmoid.configuration.floating || stripHidden) configurePanel();
         workspaceSync.start();

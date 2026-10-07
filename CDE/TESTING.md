@@ -731,3 +731,50 @@ Checks of 2026-10-07 (pager: workspaces in miniature), VM with two outputs
   one screen with the windows KWin moved onto it; enabled again below the
   first, the map showed both stacked; moved back beside it, side by side.
 
+Checks of 2026-10-07 (workspace views on the Workspaces page):
+
+- A console with windowDisplay=pager from 0.8.11 came up with
+  workspaceWindows=pager and windowDisplay=strip (migrated on start, mirrored
+  to cdecopperrc).
+- Workspaces page › Windows: "Icons under each button" chosen in the dialog
+  and applied: workspaceWindows=icons, the console switched. General shows
+  only strip and the two tiles, with a note pointing to the Workspaces page.
+- Panel height on every change of the strip: pager 100, switcher hidden 128
+  (the strip back), shown again 100, "none" 128, tileRight 100, strip 128.
+  Before, only a change of windowDisplay itself reached the panel, so
+  switching on the Workspaces page left the strip squeezed into 100.
+- The VM had consoleScale=1.5 left from an earlier test (panel 2031 long);
+  reset to 1, the pager console is 1369 long.
+
+Checks of 2026-10-07 (backdrop after palette changes), VM:
+
+- Host report: after several quick palette switches the left desktop showed
+  only its colour. Cause: the tool wrote the palette only to desktops showing
+  the CDE Backdrop at that moment; this one, switched back to it later, still
+  named BeigeRose, whose tiles had been removed; the fallback to the packaged
+  tile then failed in a binding loop ("Binding loop detected for property
+  source"), so no tile at all.
+- Now: Backdrop=Ankh with Palette=BeigeRose (no such tiles): Ankh drawn from
+  backdrops/current, no binding loop in the log.
+- Desktops on "Plain colour", `manage.py palette --palette Mustard`, then
+  back to CDE Backdrop: Palette=Mustard and the palette's colour behind the
+  pattern were there, no "Cannot open". `current` follows the palette.
+- The backdrop dialog names the palette in use (Mustard) and shows its tiles;
+  every preview the same width, long names such as "Akustikschaum (natural
+  colour)" shortened, the full name as tooltip.
+
+- Stale desktops are also corrected by `install`: Palette=BeigeRose and
+  Color=#b78989 written to both desktops, then `./install.sh` (applied with
+  Mustard): both back to Mustard and #4d648d.
+
+Checks of 2026-10-07 (pattern colour on dark palettes), VM:
+
+- Amber, BrickWall: `--pattern-colour cde` white on #1c160a (the host showed
+  the same two colours: as in CDE, not a fault); `--pattern-colour palette`
+  #ffb340 on #1c160a, the desktop changed at once.
+- Before, the desktop kept the white bricks after the second run: same palette,
+  same file name, so the image was not read again. The tool now writes a
+  Revision with every palette run and the wallpaper adds it to the address.
+- Requests from the Style page carried `--pattern-colour palette` (the box
+  reads the manifest's pattern_colour).
+

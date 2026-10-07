@@ -18,10 +18,13 @@
     <!-- Windows of one application as one task button: "3× Konsole" -->
     <entry name="groupWindows" type="Bool"><default>true</default></entry>
     <!-- Open windows: "strip" under the tiles, or a window tile with a list
-         beside the launchers, "tileLeft" or "tileRight", "workspaces", icons
-         under each workspace's button, or "pager", each workspace in miniature
-         with its windows where they lie (no strip, a lower console) -->
+         beside the launchers, "tileLeft" or "tileRight" (no strip, a lower console).
+         "workspaces" and "pager" from 0.8.9-0.8.11 move to workspaceWindows. -->
     <entry name="windowDisplay" type="String"><default>strip</default></entry>
+    <!-- The workspace switcher shows the windows: "none", "icons" under each
+         button, or "pager", each workspace in miniature with its windows where
+         they lie. Takes the place of windowDisplay while the switcher is shown. -->
+    <entry name="workspaceWindows" type="String"><default>none</default></entry>
     <entry name="consoleLabel" type="String"><default>CDE / COPPER</default></entry>
     <entry name="consoleScale" type="Double"><default>1.0</default></entry>
     <!-- The console shows the volume; keep the tray from showing it twice -->

@@ -29,6 +29,7 @@ KCM.SimpleKCM {
     property var cfg_workspaceColoursDefault
     property var cfg_groupWindowsDefault
     property var cfg_windowDisplayDefault
+    property var cfg_workspaceWindowsDefault
     property var cfg_consoleLabelDefault
     property var cfg_consoleScaleDefault
     property var cfg_hideTrayVolumeDefault
@@ -99,6 +100,9 @@ KCM.SimpleKCM {
                 let shadow = true;
                 try { shadow = JSON.parse(data.stdout).window_shadow !== false; } catch (e) {}
                 windowShadow.checked = shadow;
+                let patterns = "cde";
+                try { patterns = JSON.parse(data.stdout).pattern_colour || "cde"; } catch (e) {}
+                patternColour.checked = patterns === "palette";
             }
         }
     }
@@ -121,6 +125,7 @@ KCM.SimpleKCM {
                                            cursor: cursorBox.currentIndex === 3 ? cursorColour.color.toString().substring(0, 7) : cursorStyles[cursorBox.currentIndex].value,
                                            lockscreen: lockBox.currentIndex === 1 ? "plasma" : "cde",
                                            windowShadow: windowShadow.checked,
+                                           patternColour: patternColour.checked,
                                            at: Date.now()});
     }
 
@@ -273,6 +278,11 @@ KCM.SimpleKCM {
                     textFromValue: value => value + " ×"
                     onValueModified: page.request()
                 }
+            }
+            CheckBox {
+                id: patternColour
+                text: i18nd("cde-copper", "On dark palettes, patterns in a colour of the palette instead of white")
+                onToggled: page.request()
             }
             Rectangle {
                 // A preview of the pattern, in the palette in use (its tiles are

@@ -158,6 +158,13 @@ def install_tool():
         import backdrops
         backdrops.write_all(palettes.copper_desktop(), tiles / "Copper")
         backdrops.write_tiles(palettes.copper_desktop(), tiles / "Copper", material_tiles())
+    # Tiles from before 0.8.12 have no "current" link: the one palette there.
+    current = tiles / "current"
+    if not current.exists():
+        remove(current)
+        folders = sorted(f.name for f in tiles.iterdir() if f.is_dir() and not f.is_symlink())
+        if folders:
+            current.symlink_to(folders[0])
 
 
 def install():
@@ -226,6 +233,10 @@ def install():
     run("kbuildsycoca6", check=False)
     if shutil.which("fc-cache"):
         run("fc-cache", "-f", str(DATA / "fonts/CDECopper"), check=False)
+    # Desktops whose backdrop settings still name an older palette (saved by
+    # a settings dialog opened before a palette change) get the one applied.
+    if manifest.get("applied") and run("systemctl", "--user", "-q", "is-active", "plasma-plasmashell.service", check=False).returncode == 0:
+        sync_desktops(manifest, manifest.get("palette", "Copper"), check=False)
     print("Installed CDE Copper. Original configuration: " + str(STATE / "config"))
 
 
@@ -443,6 +454,53 @@ def refresh_running_windows():
         dbus("org.kde.KWin", "/KWin", "reconfigure")
 
 
+def sync_desktops(manifest, name, check=True):
+    """Desktops showing a backdrop follow the palette; a plain desktop colour
+    follows it only when the theme set it: --backdrop none, or the colour
+    is a palette's desktop colour (the global theme's layout sets Copper's)."""
+    colour_set = workspace_set(name)
+    ours = sorted({workspace_set(p)["bg"].lower() for p in ("Copper", *palettes.names())})
+    always = "true" if manifest.get("backdrop") == "none" else "false"
+    plain = ("if (d.wallpaperPlugin === 'org.kde.color') { d.currentConfigGroup = ['Wallpaper', 'org.kde.color', 'General'];"
+             f" if ({always} || {json.dumps(ours)}.indexOf(String(d.readConfig('Color')).toLowerCase()) >= 0)"
+             f" d.writeConfig('Color', '{colour_set['bg']}'); }}")
+    # The palette (and its colour behind the pattern) goes to every desktop's
+    # backdrop settings, also where another wallpaper type is shown now:
+    # switched back, it would otherwise look for an older palette's tiles,
+    # which are gone.
+    script = ("for (var d of desktops()) { var shown = d.wallpaperPlugin;"
+                " d.currentConfigGroup = ['Wallpaper', 'org.cde.copper.backdrop', 'General'];"
+                f" d.writeConfig('Palette', '{name}'); d.writeConfig('Color', '{colour_set['bg']}');"
+                f" d.writeConfig('Revision', '{int(time.time() * 1000)}');"
+                " if (shown !== 'org.cde.copper.backdrop') { " + plain + " } }")
+    if check:
+        plasma_script(script)
+    else:
+        exe = shutil.which("qdbus6") or shutil.which("qdbus-qt6") or "/usr/lib/qt6/bin/qdbus"
+        run(exe, "org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell.evaluateScript", script, check=False)
+
+
+def pattern_set(manifest, name, colour_set):
+    """The colours CDE's two-colour patterns are drawn in: the workspace set,
+    white (or black) on the desktop colour as in CDE. With the option
+    "palette" a dark palette draws them in its most colourful light colour
+    instead of white, Amber's amber on its dark brown."""
+    if manifest.get("pattern_colour") != "palette" or palettes.readable(colour_set["bg"]) != "#ffffff":
+        return colour_set
+    try:
+        candidates = [s["bg"] for s in palettes.load(name)]
+    except KeyError:
+        candidates = [palettes.copper_desktop()["ts"]]
+    def colourful(c):
+        r, g, b = (int(c[i:i+2], 16) / 255 for i in (1, 3, 5))
+        high, low = max(r, g, b), min(r, g, b)
+        return (high - low) * high
+    legible = [c for c in candidates if palettes.contrast(c, colour_set["bg"]) >= 3]
+    if not legible:
+        return colour_set
+    return {**colour_set, "fg": max(legible, key=colourful)}
+
+
 def set_palette(manifest, name):
     """Switch everything to one palette: colour scheme, Plasma surfaces,
     Kvantum controls, and the backdrop tiles and desktop colour."""
@@ -463,20 +521,13 @@ def set_palette(manifest, name):
     # Tiles for the "CDE Backdrop" wallpaper type, in this palette's colours.
     folder = DATA / TOOL / "backdrops"
     remove(folder)
-    backdrops.write_all(colour_set, folder / name)
+    backdrops.write_all(pattern_set(manifest, name, colour_set), folder / name)
     backdrops.write_tiles(colour_set, folder / name, material_tiles())
-    # Desktops showing a backdrop follow the palette; a plain desktop colour
-    # follows it only when the theme set it: --backdrop none, or the colour
-    # is a palette's desktop colour (the global theme's layout sets Copper's).
-    ours = sorted({workspace_set(p)["bg"].lower() for p in ("Copper", *palettes.names())})
-    always = "true" if manifest.get("backdrop") == "none" else "false"
-    plain = ("if (d.wallpaperPlugin === 'org.kde.color') { d.currentConfigGroup = ['Wallpaper', 'org.kde.color', 'General'];"
-             f" if ({always} || {json.dumps(ours)}.indexOf(String(d.readConfig('Color')).toLowerCase()) >= 0)"
-             f" d.writeConfig('Color', '{colour_set['bg']}'); }}")
-    plasma_script("for (var d of desktops()) { if (d.wallpaperPlugin === 'org.cde.copper.backdrop') {"
-                  " d.currentConfigGroup = ['Wallpaper', 'org.cde.copper.backdrop', 'General'];"
-                  f" d.writeConfig('Palette', '{name}'); d.writeConfig('Color', '{colour_set['bg']}'); }}"
-                  " else " + plain + " }")
+    # The palette's folder under a fixed name too: a desktop that still names
+    # an older palette (its wallpaper settings were saved elsewhere) finds
+    # tiles there instead of none.
+    (folder / "current").symlink_to(name)
+    sync_desktops(manifest, name)
     integrate_xfile()
     update_splash(name)
     update_icons(name)
@@ -809,7 +860,7 @@ def set_window_shadow(manifest, on):
 
 
 def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=False, progress=None, cursor=None, lockscreen=None,
-                   window_shadow=None):
+                   window_shadow=None, pattern_colour=None):
     """Switch palette (and backdrop) of an applied installation; with follow,
     take the palette from the colour scheme chosen in System Settings."""
     if not session_ready():
@@ -839,6 +890,11 @@ def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=Fa
             manifest["cursor"] = cursor
             install_cursors(manifest)
             save_manifest(manifest)
+        if pattern_colour and pattern_colour != manifest.get("pattern_colour", "cde"):
+            # The patterns are drawn when a palette is applied: draw again.
+            manifest["pattern_colour"] = pattern_colour
+            name = name or manifest.get("palette", "Copper")
+            follow = False
         if progress:
             # A progress style, even the same again, rebuilds the controls of
             # the palette in use (an older installation may lack it).
@@ -1022,6 +1078,8 @@ def main():
     parser.add_argument("--cursor", type=lambda v: v if v in ("copper", "palette", "white") or re.fullmatch(r"#[0-9a-fA-F]{6}", v) else parser.error(f"--cursor: {v!r}"),
                         help="palette: rim of the cursors: copper, palette (its accent), white or #rrggbb")
     parser.add_argument("--window-shadow", choices=("on", "off"), help="palette: the window frame's short hard shadow")
+    parser.add_argument("--pattern-colour", choices=("cde", "palette"),
+                        help="palette: CDE's patterns in white (or black) as in CDE, or on dark palettes in a colour of the palette")
     parser.add_argument("--lockscreen", choices=("cde", "plasma"), help="palette: CDE's lock screen (a shell package of its own) or Plasma's")
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--panel", action="store_true", help="replace the panel layout, backed up on installation")
@@ -1056,7 +1114,7 @@ def main():
         follow_theme()
     elif args.action == "palette":
         palette_action(args.palette, args.backdrop, args.backdrop_scale, args.follow_scheme, args.notify, args.progress, args.cursor, args.lockscreen,
-                       None if args.window_shadow is None else args.window_shadow == "on")
+                       None if args.window_shadow is None else args.window_shadow == "on", args.pattern_colour)
     else:
         uninstall()
 

@@ -219,6 +219,12 @@ of its own ("A backdrop for each workspace"): Plasma itself knows wallpapers
 per screen and activity only, so the wallpaper follows the current virtual
 desktop by itself.
 
+CDE draws its two-colour patterns (BrickWall, Pebbles ...) in white or black on
+the desktop colour, so under a dark palette such as Amber they look black and
+white. The console's Style page › Backdrop can draw them on dark palettes in the
+palette's most colourful light colour instead (Amber's amber, DeepSea's
+turquoise); off by default, `--pattern-colour palette|cde` from a shell.
+
 40 picture wallpapers come along in 3840×2160, each with a dark version that
 Plasma shows on its own while a dark colour scheme is active:
 
@@ -344,16 +350,18 @@ next or previous window forward. Without the strip's row the console is 28
 pixels lower (upright: as tall as its tiles), and the volume becomes a tile of
 its own beside the session block.
 
-"Icons under the workspaces" instead puts low workspace buttons in one row,
+The workspace switcher can show the windows instead, on the Workspaces page
+(Windows), taking the place of strip or tile while the switcher is shown.
+"Icons under each button" puts low workspace buttons in one row,
 without the WORKSPACES label, each over a sunken well of window icons, two rows
 of four: the windows on that workspace
 (and those on all of them), the active one pressed in, minimized ones faint,
 what does not fit counted as "+3". A click brings the window forward, switching
 to its workspace; on the active window it minimizes. The console is lower and
-the volume a tile, as with the window tile. With the workspace switcher off the
-window tile takes their place.
+the volume a tile, as with the window tile. With the switcher off, the strip
+or tile from General returns.
 
-"Workspaces in miniature, with their windows" draws each workspace under its
+"Each workspace in miniature, with its windows" draws each workspace under its
 button as a pager of the 1990s did: the screens as a small sunken map (their
 outlines with more than one screen), every window a raised rectangle where it
 lies, with its icon, the active one in the selection colour, minimized windows
@@ -493,7 +501,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.8.11. The application style is a Kvantum theme, not a
+This is version 0.8.12. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

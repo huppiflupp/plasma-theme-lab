@@ -29,6 +29,10 @@ WallpaperItem {
     readonly property string backdrop: (root.configuration.PerWorkspace && workspace >= 0 && perWorkspace[workspace])
                                        || root.configuration.Backdrop || "Pebbles"
     readonly property string paletteName: root.configuration.Palette || "Copper"
+    // Same file names when the tool draws the tiles again (another pattern
+    // colour, the same palette applied anew): the revision makes the address
+    // new, so the image is read again.
+    readonly property string revision: root.configuration.Revision ? "?r=" + root.configuration.Revision : ""
     readonly property int pixel: Math.max(1, Math.min(4, root.configuration.PixelSize || 1))
     // Material tiles (wallpapers/tiles) are JPEGs: "<key>" is tinted per
     // palette by the tool like the patterns, "natural:<key>" is the tile as
@@ -37,9 +41,11 @@ WallpaperItem {
     readonly property string key: natural ? backdrop.slice(8) : backdrop
     readonly property bool isTile: Backdrops.TILES.some(t => t.key === key)
     readonly property string suffix: isTile ? ".jpg" : ".png"
+    readonly property string profile: StandardPaths.writableLocation(StandardPaths.GenericDataLocation) + "/cde-copper/backdrops/"
     readonly property string profileTile: natural ? Qt.resolvedUrl("../images/tiles/" + key + ".jpg")
-        : StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
-        + "/cde-copper/backdrops/" + paletteName + "/" + key + suffix
+        : profile + paletteName + "/" + key + suffix
+    // The palette in use, whatever this desktop's settings name.
+    readonly property string currentTile: natural ? profileTile : profile + "current/" + key + suffix
     readonly property string packageTile: natural ? profileTile : Qt.resolvedUrl("../images/Copper/" + key + suffix)
     readonly property bool isPicture: backdrop.startsWith("picture:")
     readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
@@ -51,12 +57,14 @@ WallpaperItem {
         color: root.configuration.Color
     }
     // Loads the tile once at its natural size; the visible copy scales it by
-    // whole pixels. Falls back to the packaged Copper tile.
-    // A flag rather than assigning the source, so the binding survives a
-    // change of workspace or backdrop.
-    property bool fallback: false
-    onBackdropChanged: fallback = false
-    onPaletteNameChanged: fallback = false
+    // whole pixels. Falls back to the palette in use ("current"), then to
+    // the packaged Copper tile. A step counter rather than assigning the
+    // source, so the binding survives a change of workspace or backdrop;
+    // stepped after the failed load, not inside it (a binding loop there
+    // left the desktop without any tile).
+    property int fallback: 0
+    onBackdropChanged: fallback = 0
+    onPaletteNameChanged: fallback = 0
     Image {
         anchors.fill: parent
         visible: root.isPicture
@@ -71,8 +79,8 @@ WallpaperItem {
         id: probe
         visible: false
         cache: false
-        source: root.isPicture ? "" : root.fallback ? root.packageTile : root.profileTile
-        onStatusChanged: if (status === Image.Error && !root.fallback) root.fallback = true
+        source: root.isPicture ? "" : [root.profileTile, root.currentTile, root.packageTile][root.fallback] + root.revision
+        onStatusChanged: if (status === Image.Error && root.fallback < 2) Qt.callLater(() => { if (status === Image.Error && root.fallback < 2) root.fallback++; })
     }
     Image {
         anchors.fill: parent

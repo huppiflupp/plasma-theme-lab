@@ -18,6 +18,7 @@ KCM.SimpleKCM {
     property var cfg_workspaceCountDefault
     property var cfg_groupWindowsDefault
     property var cfg_windowDisplayDefault
+    property var cfg_workspaceWindowsDefault
     property var cfg_consoleLabelDefault
     property var cfg_consoleScaleDefault
     property var cfg_hideTrayVolumeDefault
@@ -80,14 +81,18 @@ KCM.SimpleKCM {
         ComboBox {
             id: windowDisplay
             Kirigami.FormData.label: i18nd("cde-copper", "Window display:")
-            readonly property var values: ["strip", "tileLeft", "tileRight", "workspaces", "pager"]
+            readonly property var values: ["strip", "tileLeft", "tileRight"]
             model: [i18nd("cde-copper", "Strip under the tiles"),
                     i18nd("cde-copper", "Window tile left, beside the launchers"),
-                    i18nd("cde-copper", "Window tile right, beside the launchers"),
-                    i18nd("cde-copper", "Icons under the workspaces"),
-                    i18nd("cde-copper", "Workspaces in miniature, with their windows")]
+                    i18nd("cde-copper", "Window tile right, beside the launchers")]
             currentIndex: Math.max(0, values.indexOf(cfg_windowDisplay))
             onActivated: index => cfg_windowDisplay = values[index]
+        }
+        Label {
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 22
+            wrapMode: Text.WordWrap
+            font: Kirigami.Theme.smallFont
+            text: i18nd("cde-copper", "The workspace switcher can show the windows instead (Workspaces page).")
         }
         CheckBox {
             id: thisScreen

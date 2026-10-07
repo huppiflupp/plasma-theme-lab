@@ -23,10 +23,15 @@ ColumnLayout {
     property var cfg_PaletteDefault
     property var cfg_PixelSizeDefault
     property var cfg_ColorDefault
+    property var cfg_RevisionDefault
     spacing: Kirigami.Units.largeSpacing
     property alias formLayout: form
     property string cfg_Backdrop: "Pebbles"
-    property string cfg_Palette: "Copper"
+    // The palette is set by CDE Copper's tool, not here: read, never saved,
+    // so the page cannot write back one that was replaced meanwhile.
+    property var wallpaperConfiguration
+    readonly property string palette: (wallpaperConfiguration && wallpaperConfiguration.Palette) || "Copper"
+    readonly property string revision: wallpaperConfiguration && wallpaperConfiguration.Revision ? "?r=" + wallpaperConfiguration.Revision : ""
     property alias cfg_PixelSize: pixels.value
     property alias cfg_Color: colour.color
     property alias cfg_PerWorkspace: perWorkspace.checked
@@ -45,8 +50,8 @@ ColumnLayout {
     readonly property var choices: Backdrops.NAMES
         .concat(Backdrops.TILES.map(t => t.key))
         .concat(Backdrops.TILES.map(t => "natural:" + t.key))
-        .concat(Backdrops.PICTURES.filter(p => p.palette === cfg_Palette).map(p => "picture:" + p.key))
-        .concat(Backdrops.PICTURES.filter(p => p.palette !== cfg_Palette).map(p => "picture:" + p.key))
+        .concat(Backdrops.PICTURES.filter(p => p.palette === palette).map(p => "picture:" + p.key))
+        .concat(Backdrops.PICTURES.filter(p => p.palette !== palette).map(p => "picture:" + p.key))
     function label(value) {
         const picture = Backdrops.PICTURES.find(p => "picture:" + p.key === value);
         const natural = value.startsWith("natural:");
@@ -59,8 +64,9 @@ ColumnLayout {
         return value.startsWith("natural:") ? Qt.resolvedUrl("../images/tiles/" + value.slice(8) + ".jpg") : folder + value + ".jpg";
     }
     readonly property string pictures: StandardPaths.writableLocation(StandardPaths.GenericDataLocation) + "/wallpapers/"
+    // The palette in use, kept under this name by the tool.
     readonly property string folder: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
-        + "/cde-copper/backdrops/" + cfg_Palette + "/"
+        + "/cde-copper/backdrops/current/"
 
     Kirigami.FormLayout {
         id: form
@@ -98,7 +104,7 @@ ColumnLayout {
             dialogTitle: i18nd("cde-copper", "Backdrop colour")
         }
         Label {
-            text: i18nd("cde-copper", "Patterns from CDE (The Open Group, CC BY-SA 3.0) and material tiles, coloured with the palette %1; the tiles again in their natural colour; then the pictures, those for %1 first.", root.cfg_Palette)
+            text: i18nd("cde-copper", "Patterns from CDE (The Open Group, CC BY-SA 3.0) and material tiles, coloured with the palette %1; the tiles again in their natural colour; then the pictures, those for %1 first.", root.palette)
             opacity: 0.7
             font: Kirigami.Theme.smallFont
         }
@@ -121,10 +127,14 @@ ColumnLayout {
             height: grid.cellHeight - 6
             highlighted: (perWorkspace.checked ? root.chosen(root.editing) : root.cfg_Backdrop) === modelData
             onClicked: root.choose(modelData)
+            ToolTip.visible: hovered
+            ToolTip.text: root.label(modelData)
+            ToolTip.delay: 600
             contentItem: ColumnLayout {
                 spacing: 2
                 Rectangle {
                     Layout.fillWidth: true; Layout.fillHeight: true
+                    Layout.preferredWidth: 0
                     color: root.cfg_Color
                     border.width: cell.highlighted ? 3 : 1
                     border.color: cell.highlighted ? Kirigami.Theme.highlightColor : Kirigami.Theme.disabledTextColor
@@ -140,7 +150,7 @@ ColumnLayout {
                     Image {
                         anchors.fill: parent; anchors.margins: parent.border.width
                         visible: !cell.isPicture
-                        source: cell.isPicture ? "" : root.isTile(cell.modelData) ? root.tileSource(cell.modelData) : root.folder + cell.modelData + ".png"
+                        source: cell.isPicture ? "" : root.isTile(cell.modelData) ? root.tileSource(cell.modelData) + root.revision : root.folder + cell.modelData + ".png" + root.revision
                         fillMode: Image.Tile
                         smooth: !root.isTile(cell.modelData)
                         cache: false
@@ -149,7 +159,13 @@ ColumnLayout {
                         onStatusChanged: if (status === Image.Error && !cell.modelData.startsWith("natural:")) source = Qt.resolvedUrl("../images/Copper/" + cell.modelData + (root.isTile(cell.modelData) ? ".jpg" : ".png"))
                     }
                 }
-                Label { text: root.label(cell.modelData); Layout.alignment: Qt.AlignHCenter; font: Kirigami.Theme.smallFont }
+                // Shortened rather than widening the cell: every preview as wide.
+                Label {
+                    text: root.label(cell.modelData)
+                    Layout.fillWidth: true; Layout.preferredWidth: 0
+                    horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
+                    font: Kirigami.Theme.smallFont
+                }
             }
         }
     }

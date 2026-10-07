@@ -8,6 +8,9 @@
     <entry name="Workspaces" type="StringList"><default>Pebbles,Lattice,RicePaper,Crochet</default></entry>
     <!-- Set by CDE Copper's tool when a palette is applied -->
     <entry name="Palette" type="String"><default>Copper</default></entry>
+    <!-- Set by the tool whenever it draws the tiles again, also for the same
+         palette: a new value makes the desktop load them anew -->
+    <entry name="Revision" type="String"><default></default></entry>
     <entry name="PixelSize" type="Int"><default>1</default></entry>
     <entry name="Color" type="Color"><default>#086875</default></entry>
   </group>

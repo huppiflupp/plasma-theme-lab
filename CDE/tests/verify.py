@@ -454,10 +454,16 @@ class Stability(unittest.TestCase):
             copper = manage.workspace_set("Copper")["bg"].upper()
         harness = """
 const assert = require('assert');
+// Settings per config group, as Plasma keeps them: the plain colour's and
+// the backdrop's are separate.
 function desktop(plugin, color) {
-    return {wallpaperPlugin: plugin, values: {Color: color},
-            readConfig(key) { return this.values[key]; },
-            writeConfig(key, value) { this.values[key] = value; }};
+    return {wallpaperPlugin: plugin, currentConfigGroup: [],
+            groups: {'Wallpaper/org.kde.color/General': {Color: color}},
+            group() { const key = this.currentConfigGroup.join('/'); return this.groups[key] = this.groups[key] || {}; },
+            get values() { return this.groups['Wallpaper/org.kde.color/General']; },
+            get backdropValues() { return this.groups['Wallpaper/org.cde.copper.backdrop/General'] || {}; },
+            readConfig(key) { return this.group()[key]; },
+            writeConfig(key, value) { this.group()[key] = value; }};
 }
 const missing = desktop('org.kde.color', undefined);
 const custom = desktop('org.kde.color', '#123456');
@@ -469,8 +475,13 @@ function desktops() { return [missing, custom, ours, backdrop]; }
 assert.strictEqual(missing.values.Color, undefined);
 assert.strictEqual(custom.values.Color, '#123456');
 assert.strictEqual(ours.values.Color, EXPECTED);
-assert.strictEqual(backdrop.values.Color, EXPECTED);
-assert.strictEqual(backdrop.values.Palette, 'NorthernSky');
+assert.strictEqual(backdrop.backdropValues.Color, EXPECTED);
+assert.strictEqual(backdrop.backdropValues.Palette, 'NorthernSky');
+// Desktops showing another wallpaper type get the palette for later too.
+for (const d of [missing, custom, ours]) {
+    assert.strictEqual(d.backdropValues.Palette, 'NorthernSky');
+    assert.strictEqual(d.backdropValues.Color, EXPECTED);
+}
 """.replace("EXPECTED", json.dumps(expected))
         result = subprocess.run(["node", "-e", harness], text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)

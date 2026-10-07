@@ -20,6 +20,7 @@ KCM.SimpleKCM {
     property var cfg_workspaceColoursDefault
     property var cfg_groupWindowsDefault
     property var cfg_windowDisplayDefault
+    property var cfg_workspaceWindowsDefault
     property var cfg_consoleLabelDefault
     property var cfg_consoleScaleDefault
     property var cfg_hideTrayVolumeDefault
@@ -45,6 +46,7 @@ KCM.SimpleKCM {
     property alias cfg_workspaceCount: workspaceCount.value
     property alias cfg_workspaceButtonWidth: buttonWidth.value
     property alias cfg_workspaceColours: workspaceColours.checked
+    property string cfg_workspaceWindows: "none"
     // One label per workspace; an empty one shows the number.
     property var cfg_workspaceLabels: []
     function setLabel(index, text) {
@@ -75,6 +77,17 @@ KCM.SimpleKCM {
             id: workspaceColours
             text: i18nd("cde-copper", "Each button in a colour of its own, as in CDE")
             enabled: showWorkspaces.checked
+        }
+        ComboBox {
+            id: workspaceWindows
+            Kirigami.FormData.label: i18nd("cde-copper", "Windows:")
+            enabled: showWorkspaces.checked
+            readonly property var values: ["none", "icons", "pager"]
+            model: [i18nd("cde-copper", "Not here (strip or window tile, see General)"),
+                    i18nd("cde-copper", "Icons under each button"),
+                    i18nd("cde-copper", "Each workspace in miniature, with its windows")]
+            currentIndex: Math.max(0, values.indexOf(cfg_workspaceWindows))
+            onActivated: index => cfg_workspaceWindows = values[index]
         }
         Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18nd("cde-copper", "Labels (empty: the number)") }
         Repeater {
