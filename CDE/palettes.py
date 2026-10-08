@@ -178,6 +178,9 @@ def theme(name):
         kopf_aktiv=active["bg"], kopf_aktiv_text=active["fg"],
         kopf_inaktiv=inactive["bg"], kopf_inaktiv_text=inactive["fg"],
         aktiv=active["bg"], auswahl=active["bg"], auswahl_text=active["fg"], hover=active["ts"],
+        # Motif's shadows of the selection colour, for surfaces drawn in it
+        # (Plasma's plasmoid headings).
+        auswahl_hell=active["ts"], auswahl_dunkel=active["bs"],
         desktop=desk["bg"],
         warnung="#aa571b", fehler="#a32626", positiv="#24643d",
         knopf_hover=mix(primary["bg"], primary["ts"], 0.3),

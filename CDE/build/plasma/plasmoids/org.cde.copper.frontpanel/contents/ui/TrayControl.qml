@@ -15,6 +15,8 @@ Item {
         target: Plasmoid.configuration
         function onHideTrayVolumeChanged() { tray.syncTray(); }
         function onHideTrayIconsChanged() { tray.syncTray(); tray.placeTray(); }
+        // The network button chosen or dropped: the tray's network entry follows.
+        function onSmallButtonsChanged() { tray.syncTray(); }
         function onPanelFrameChanged() { tray.placePanelFrame(); }
     }
     // The tray beside the console would show a second volume control; the
@@ -25,6 +27,18 @@ Item {
         // list: the tray beside the console shrinks to its arrow (and what
         // asks for attention), the entries open from the console's button.
         const icons = Plasmoid.configuration.hideTrayIcons;
+        // With the entries behind the button, the list is kept short: the
+        // tray's entries the console covers itself (its network button) or
+        // that are set up once and never opened again (weather, input
+        // methods, screen layout, vaults) are switched off in the tray
+        // (taken out of extraItems), recorded in the tray's own settings
+        // (cdeDisabledItems) and put back when the option goes off. One the
+        // user switches on again in the tray's settings stays on: only
+        // entries not yet recorded are taken out.
+        const smallButtons = Plasmoid.configuration.smallButtons || [];
+        const curated = ["org.kde.plasma.weather", "org.kde.plasma.keyboardlayout", "org.kde.plasma.manage-inputmethod",
+                         "org.kde.kscreen", "org.kde.plasma.vault"]
+            .concat(smallButtons.indexOf("network") >= 0 ? ["org.kde.plasma.networkmanagement"] : []);
         // Applications' status icons are not in the tray's list; their ids
         // come from the helper (statusIds, refreshed by trayIds below).
         // The entries the console hid itself are recorded in its own
@@ -36,8 +50,13 @@ Item {
             + " for (var w of p.widgets()) { if (w.type !== 'org.kde.plasma.systemtray') continue; w.currentConfigGroup = ['General'];"
             + " var items = w.readConfig('extraItems', []); if (typeof items === 'string') items = items ? items.split(',') : [];"
             + " var has = items.indexOf('org.kde.plasma.volume') >= 0;"
-            + (hide ? " if (has) w.writeConfig('extraItems', items.filter(function (i) { return i !== 'org.kde.plasma.volume'; }));"
-                    : " if (!has && items.length) { items.push('org.kde.plasma.volume'); w.writeConfig('extraItems', items); }")
+            + (hide ? " if (has) items = items.filter(function (i) { return i !== 'org.kde.plasma.volume'; });"
+                    : " if (!has && items.length) items.push('org.kde.plasma.volume');")
+            + " var off = list(w, 'cdeDisabledItems'); var curated = " + JSON.stringify(curated) + ";"
+            + (icons ? " var out = curated.filter(function (i) { return items.indexOf(i) >= 0 && off.indexOf(i) < 0; });"
+                       + " if (out.length) { items = items.filter(function (i) { return out.indexOf(i) < 0; }); w.writeConfig('cdeDisabledItems', off.concat(out)); }"
+                     : " if (off.length) { off.forEach(function (i) { if (items.indexOf(i) < 0) items.push(i); }); w.writeConfig('cdeDisabledItems', []); }")
+            + " w.writeConfig('extraItems', items);"
             + " var now = list(w, 'hiddenItems');"
             + (icons ? " var add = list(w, 'knownItems').concat(" + JSON.stringify(tray.statusIds) + ").filter(function (i, k, all) { return now.indexOf(i) < 0 && all.indexOf(i) === k; });"
                        + " if (add.length) { w.writeConfig('hiddenItems', now.concat(add)); ours.writeConfig('trayHiddenByConsole', mine.concat(add)); }"

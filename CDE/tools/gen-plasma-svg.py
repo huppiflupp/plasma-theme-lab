@@ -162,6 +162,18 @@ WIDGETS = {
         "praefixe": ["header", "footer"],
         "hints": ["margin"],
         "masken": [],
+        # Die Kopfzeile ist ein Titelbalken wie an den Subpanels der
+        # Konsole: Auswahlfarbe mit Motifs Schatten dieser Farbe. Plasma
+        # zeichnet sie in der Farbgruppe "Header" (PlasmoidHeading.qml),
+        # die das Farbschema auf die Auswahlfarbe legt; die Klasse bleibt
+        # darum ColorScheme-Background. Die Fusszeile bleibt Flaeche.
+        # Fest, nicht ueber die Farbschema-Klasse: ueber die Klasse kam
+        # die Kopfzeile in Plasmas Systemabschnitt-Dialog weiter in der
+        # Fensterfarbe (ubuntu-lab, Plasma 6.6). Jede Palette erzeugt ihre
+        # eigenen Flaechen, die Farbe stimmt also trotzdem.
+        "fest": True,
+        "zustaende": {"header": ("aktiv", False, None)},
+        "kanten": {"header": ("auswahl_hell", "auswahl_dunkel")},
     },
     "scrollbar": {
         "beschreibung": "Bildlaufleisten",
@@ -838,10 +850,30 @@ class Generator:
                 self.p["rahmen"] = alt_rahmen
                 self.stil = alt_stil
             else:
+                # Ein Zustand darf seine 3D-Kanten aus anderen Schluesseln
+                # der Palette nehmen (Schatten der Auswahlfarbe statt der
+                # Flaeche); fehlen die Schluessel, bleibt es bei hell/dunkel.
+                kanten = spec.get("kanten", {}).get(basis)
+                alt_p = self.p
+                if kanten:
+                    hell, dunkel = self.p.get(kanten[0]), self.p.get(kanten[1])
+                    if not (hell and dunkel):
+                        # Die Palette (CDE Copper's eigene) kennt die
+                        # Schluessel nicht: Motifs Schatten der Flaeche
+                        # selbst, aus palettes.py neben dem Build.
+                        try:
+                            import palettes
+                            satz = palettes.colour_set(self.p[farb_key])
+                            hell, dunkel = satz["ts"], satz["bs"]
+                        except Exception:
+                            hell = dunkel = None
+                    if hell and dunkel:
+                        self.p = dict(self.p, hell=hell, dunkel=dunkel)
                 self._neun_patch(praefix, ox, oy, farb_key, invertiert,
                                  klasse=klasse_hier,
                                  nur_rahmen=spec.get("nur_rahmen", False),
                                  dither=basis in spec.get("dither", ()))
+                self.p = alt_p
                 self._hints(praefix, ox, oy, hints)
 
         for j, (fid, (art, farbkey)) in enumerate(formen):

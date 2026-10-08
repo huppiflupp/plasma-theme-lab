@@ -969,3 +969,31 @@ Not verified: the KDE Store edition's fallback to System Settings ›
 Colours (no store installation in the VM), GTK 4, Flatpak and Electron
 programs in the restart list (only the classification test).
 
+Checks of 2026-10-09 (the system tray's popup, "Status und
+Benachrichtigungen"), VM `ubuntu-lab` (Plasma 6.6.6, Wayland, 1280×800),
+opened by a QMP click on the console's arrow button:
+
+- Heading: a bar in the selection colour with Motif's shadows of that
+  colour, the title in the selection's text colour, as on the console's
+  subpanels. Two things were needed: the colour scheme's "Header" group on
+  selection colour and text (Plasma's PlasmoidHeading draws in that group),
+  and `widgets/plasmoidheading.svg` with the colour fixed in the file: drawn
+  through the ColorScheme-Background class the bar stayed in the window
+  colour, with the colour scheme re-applied and the SVG caches cleared.
+  Every palette generates its own SVG, so the fixed colour follows the
+  palette. The colour scheme must be re-applied once after upgrading
+  (`apply.sh --palette <name>` does), or the heading keeps the old text
+  colour.
+- Entries: with "Status icons only behind the console's button" the tray's
+  weather, input methods, keyboard layout, screen layout and vault entries
+  and, with the network button chosen, the network entry are switched off
+  (`extraItems`), recorded in the tray's `cdeDisabledItems`; seven entries
+  remained in the VM (the kded crash notifier among them). Not yet checked:
+  switching the option off puts them back (written, not clicked).
+- System Settings (Colours page) after the change: no header turned copper,
+  Kirigami keeps its toolbars on the window colour.
+- `tests/verify.py`: 43 pass.
+- Icons: `battery`, `battery-full`, `battery-charging`, `battery-low`,
+  `battery-caution`, `battery-missing` and `battery-empty` are now aliases
+  of the drawn battery levels (the tray's power entry asked for the plain
+  name and fell back to Breeze). OneDrive and Solaar keep their own icons.

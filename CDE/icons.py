@@ -617,6 +617,10 @@ SETTINGS_ALIASES = {
 }
 
 MORE_ALIASES = {
+    # The plain battery names the tray's entries and applications ask for.
+    "battery-100": ["battery", "battery-full"],
+    "battery-100-charging": ["battery-charging", "battery-full-charging"],
+    "battery-020": ["battery-low"], "battery-010": ["battery-caution"], "battery-000": ["battery-missing", "battery-empty"],
     "x-office-spreadsheet": ["libreoffice-calc", "application-vnd.oasis.opendocument.spreadsheet", "text-csv", "application-vnd.ms-excel"],
     "x-office-presentation": ["libreoffice-impress", "application-vnd.oasis.opendocument.presentation", "application-vnd.ms-powerpoint"],
     "x-office-document": ["libreoffice-writer", "application-vnd.oasis.opendocument.text", "application-msword", "applications-office"],

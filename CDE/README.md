@@ -79,7 +79,14 @@ languages can be added as `po/<language>.po`.
   Invalid entries are ignored; unreachable nodes contribute zero. The Plasma system tray
   stays in the console's panel for notifications, but by default it is out of
   sight: its entries open from the console's button; the tray's own volume
-  icon is left out, since the console has one. By default the console stands
+  icon is left out, since the console has one, and so are the entries the
+  console covers itself (the network entry, with the network button chosen)
+  or that are set up once and never opened again (weather, input methods,
+  screen layout, vaults). They are switched off in the tray's settings and
+  come back when "Status icons only behind the console's button" is switched
+  off; one you switch on again there stays on. The popup's heading is a
+  title bar in the palette's selection colour, as on the console's own
+  subpanels. By default the console stands
   by itself; the panel's own frame around it can be switched on.
 - CDE's 37 colour palettes and ten dark ones of our own (`palettes/copper/`,
   among them Graphite in greys and Darkroom with red text), shaded with

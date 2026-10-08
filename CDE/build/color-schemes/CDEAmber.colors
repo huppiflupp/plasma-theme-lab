@@ -91,11 +91,11 @@ DecorationFocus=255,179,64
 DecorationHover=46,36,20
 
 [Colors:Header]
-BackgroundNormal=58,46,24
-BackgroundAlternate=58,46,24
-ForegroundNormal=255,255,255
+BackgroundNormal=255,179,64
+BackgroundAlternate=255,179,64
+ForegroundNormal=0,0,0
 ForegroundInactive=176,171,163
-ForegroundActive=255,255,255
+ForegroundActive=0,0,0
 ForegroundLink=164,162,157
 ForegroundVisited=117,109,93
 ForegroundNegative=163,38,38

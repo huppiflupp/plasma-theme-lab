@@ -55,7 +55,7 @@ def colors(P, scheme="CDECopper", name="CDE Copper", base=None):
     groups = {"Window": ("flaeche", "text"), "Button": ("flaeche", "text"),
               "View": ("fenster", "fenster_text"), "Selection": ("auswahl", "auswahl_text"),
               "Tooltip": ("fenster", "fenster_text"), "Complementary": ("panel", "panel_text"),
-              "Header": ("flaeche", "text")}
+              "Header": ("auswahl", "auswahl_text")}
     for group, (bg, fg) in groups.items():
         lines += ["", f"[Colors:{group}]"]
         for key, value in {"BackgroundNormal": bg, "BackgroundAlternate": bg,

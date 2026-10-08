@@ -1521,3 +1521,174 @@ msgstr "Kurzer harter Schatten rechts und unten an jedem Fenster"
 #: stylemanager/contents/ui/WindowDialog.qml:22
 msgid "Open windows take it at once."
 msgstr "Geöffnete Fenster übernehmen ihn sofort."
+
+#~ msgid ""
+#~ "CDE's 37 palettes and CDE Copper. The stripes: console, windows, text "
+#~ "fields, active and inactive title, desktop. Choose one (and a backdrop "
+#~ "below), then Apply or OK. ● marks the palette in use."
+#~ msgstr ""
+#~ "Die 37 CDE-Paletten und CDE Copper. Die Streifen zeigen Konsole, Fenster, "
+#~ "Textfelder, aktive und inaktive Titelleiste sowie Arbeitsfläche. Wählen "
+#~ "Sie eine Palette (und unten einen Hintergrund), dann Anwenden oder OK. ● "
+#~ "kennzeichnet die verwendete Palette."
+
+#~ msgid "%1 (in use)"
+#~ msgstr "%1 (wird verwendet)"
+
+#~ msgid ""
+#~ "In the programs' controls (Kvantum); the bar beside shows the style in "
+#~ "use. Programs already open take it when restarted."
+#~ msgstr ""
+#~ "Für die Bedienelemente der Programme (Kvantum); der Balken daneben zeigt "
+#~ "den verwendeten Stil. Bereits geöffnete Programme übernehmen ihn nach "
+#~ "einem Neustart."
+
+#~ msgid "Mouse cursors"
+#~ msgstr "Mauszeiger"
+
+#~ msgid "Windows"
+#~ msgstr "Fenster"
+
+#~ msgid "Style"
+#~ msgstr "Stil"
+
+#~ msgid "Load meter (processor and memory)"
+#~ msgstr "Auslastung (Prozessor und Speicher)"
+
+#~ msgid "LLM cluster (tokens per second)"
+#~ msgstr "LLM-Verbund (Token pro Sekunde)"
+
+#~ msgid "Volume (otherwise in the strip's row)"
+#~ msgstr "Lautstärke (sonst in der Zeile der Leiste)"
+
+#~ msgid "Network (WLAN or cable)"
+#~ msgstr "Netzwerk (WLAN oder Kabel)"
+
+#~ msgid "Where the console stands"
+#~ msgstr "Wo die Konsole steht"
+
+#~ msgid "Placement:"
+#~ msgstr "Platzierung:"
+
+#~ msgid "On the screen edge"
+#~ msgstr "Am Bildschirmrand"
+
+#~ msgid "Floating, with a gap"
+#~ msgstr "Schwebend, mit Abstand"
+
+#~ msgid "One console for all screens"
+#~ msgstr "Eine Konsole für alle Bildschirme"
+
+#~ msgid "What it shows"
+#~ msgstr "Was sie zeigt"
+
+#~ msgid "Small buttons:"
+#~ msgstr "Kleine Knöpfe:"
+
+#~ msgid "LLM cluster:"
+#~ msgstr "LLM-Verbund:"
+
+#~ msgid "As a large tile beside the launchers"
+#~ msgstr "Als große Kachel neben den Startern"
+
+#~ msgid ""
+#~ "Comma-separated name=http://host:port or name=ssh:PORT (SSH runs curl on "
+#~ "that host). Only llama.cpp server ports; empty shows no cluster."
+#~ msgstr ""
+#~ "Durch Kommas getrennt: name=http://host:port oder name=ssh:PORT (SSH ruft "
+#~ "curl auf dem Knoten auf). Nur Ports von llama.cpp-Servern; leer zeigt "
+#~ "keinen Verbund."
+
+#~ msgid "System tray:"
+#~ msgstr "Systemabschnitt der Kontrollleiste:"
+
+#~ msgid "Status icons only behind the console's arrow button"
+#~ msgstr "Statussymbole nur hinter dem Pfeilknopf der Konsole"
+
+#~ msgid "Leave the volume to the console"
+#~ msgstr "Lautstärkeregelung der Konsole überlassen"
+
+#~ msgid "How it looks"
+#~ msgstr "Wie sie aussieht"
+
+#~ msgid "Launchers:"
+#~ msgstr "Starter:"
+
+#~ msgid "Icon with its name below"
+#~ msgstr "Symbol mit Namen darunter"
+
+#~ msgid "Larger icon, the name as a tooltip"
+#~ msgstr "Größeres Symbol, Name als Tooltip"
+
+#~ msgid "Small buttons style:"
+#~ msgstr "Stil der kleinen Knöpfe:"
+
+#~ msgid "In the palette's colours"
+#~ msgstr "In den Farben der Palette"
+
+#~ msgid "Hard contrast, black or white"
+#~ msgstr "Harter Kontrast, schwarz oder weiß"
+
+#~ msgid ""
+#~ "Shown with the workspace switcher only; while it is hidden the console "
+#~ "shows the strip or tile chosen before."
+#~ msgstr ""
+#~ "Nur mit dem Arbeitsflächen-Umschalter; ist er ausgeblendet, zeigt die "
+#~ "Konsole die zuvor gewählte Leiste oder Kachel."
+
+#~ msgid "Front Console"
+#~ msgstr "Frontkonsole"
+
+#~ msgid "Launchers"
+#~ msgstr "Starter"
+
+#~ msgid "Workspaces"
+#~ msgstr "Arbeitsflächen"
+
+#~ msgid "Floating, a gap from the screen edge (off: on the edge)"
+#~ msgstr "Schwebend, mit Abstand zum Bildschirmrand (aus: am Rand)"
+
+#~ msgid "Labels under the icons (off: larger icons, names as tooltips)"
+#~ msgstr ""
+#~ "Beschriftung unter den Symbolen (aus: größere Symbole, Namen als Kurzinfo)"
+
+#~ msgid "LLM cluster as a large tile"
+#~ msgstr "LLM-Verbund als große Kachel"
+
+#~ msgid "LLM hosts (comma-separated):"
+#~ msgstr "LLM-Knoten (durch Kommas getrennt):"
+
+#~ msgid ""
+#~ "Hard contrast: black (white on dark surfaces) instead of the palette's "
+#~ "colours"
+#~ msgstr ""
+#~ "Harter Kontrast: Schwarz (auf dunklen Flächen Weiß) statt der "
+#~ "Palettenfarben"
+
+#~ msgid "Connected"
+#~ msgstr "Verbunden"
+
+#~ msgid "Window display:"
+#~ msgstr "Fensteranzeige:"
+
+#~ msgid ""
+#~ "The workspace switcher can show the windows instead (Workspaces page)."
+#~ msgstr ""
+#~ "Stattdessen kann der Arbeitsflächen-Umschalter die Fenster zeigen (Seite "
+#~ "Arbeitsflächen)."
+
+#~ msgid "Window list:"
+#~ msgstr "Fensterliste:"
+
+#~ msgid "Windows:"
+#~ msgstr "Fenster:"
+
+#~ msgid "Not here (strip or window tile, see General)"
+#~ msgstr "Nicht hier (Leiste oder Fensterkachel, siehe Allgemein)"
+
+#~ msgid ""
+#~ "Patterns from CDE (The Open Group, CC BY-SA 3.0), coloured with the "
+#~ "palette %1; then the pictures, those for %1 first."
+#~ msgstr ""
+#~ "Muster aus CDE (The Open Group, CC BY-SA 3.0), eingefärbt mit der Palette "
+#~ "%1; danach die Bilder, die zu %1 zuerst."
