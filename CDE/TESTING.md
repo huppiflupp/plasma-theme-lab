@@ -923,6 +923,22 @@ the guest's journal (the tile's `systemd-run` unit) and `pgrep konsole`:
   Editor, Terminal), no terminal was started; dragged back the same way.
 - `python3 build.py`, `tests/verify.py`: 38 tests pass.
 
+Checks of 2026-10-09 (minimized windows in the pager), VM `ubuntu-lab`
+(Plasma 6.6.6, Wayland, 1280×800), "Each workspace in miniature" set through
+the panel script, windows minimized with a KWin script:
+
+- A minimized Konsole appears as a small icon at the lower left of its
+  workspace's map, without a frame, on the sunken surface; Dolphin, still
+  open, stays a raised rectangle. With two Konsole windows and Kate
+  minimized: three icons in a row.
+- A click on an icon (after the pointer rested on it) restored Kate and
+  made it active, read back from KWin. A click right after moving onto the
+  icon did nothing once; not reproduced.
+- No messages from Workspaces.qml in the journal. `build.py` fine;
+  `tests/verify.py`: 42 of 43 pass, the failing one
+  (`StyleManager.test_console_opens_the_window`) belongs to the style
+  manager being built in the other session, not to this change.
+
 Checks of 2026-10-09 (Style Manager as a window of its own), VM
 `plasma-lab` (Plasma 6.7.5, Wayland), the working tree, clicks through
 QEMU's QMP tablet, results read from the manifest and `kreadconfig6`:

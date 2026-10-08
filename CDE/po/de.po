@@ -913,8 +913,9 @@ msgstr "Schließen"
 #: frontpanel/contents/ui/TaskMenu.qml:187
 #: frontpanel/contents/ui/TaskStrip.qml:26
 #: frontpanel/contents/ui/WindowsPopup.qml:62
-#: frontpanel/contents/ui/Workspaces.qml:144
-#: frontpanel/contents/ui/Workspaces.qml:202
+#: frontpanel/contents/ui/Workspaces.qml:146
+#: frontpanel/contents/ui/Workspaces.qml:197
+#: frontpanel/contents/ui/Workspaces.qml:258
 #: stylemanager/contents/ui/main.qml:179
 #: stylemanager/contents/ui/WindowDialog.qml:9
 msgid "Window"
@@ -949,11 +950,11 @@ msgstr "Offene Fenster"
 msgid "No open windows"
 msgstr "Keine offenen Fenster"
 
-#: frontpanel/contents/ui/Workspaces.qml:36
+#: frontpanel/contents/ui/Workspaces.qml:37
 msgid "WORKSPACES"
 msgstr "ARBEITSFLÄCHEN"
 
-#: frontpanel/contents/ui/Workspaces.qml:60
+#: frontpanel/contents/ui/Workspaces.qml:61
 msgid "Workspace %1 %2"
 msgstr "Arbeitsfläche %1 %2"
 

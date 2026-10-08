@@ -414,9 +414,11 @@ or tile from General returns.
 "Each workspace in miniature, with its windows" draws each workspace under its
 button as a pager of the 1990s did: the screens as a small sunken map (their
 outlines with more than one screen), every window a raised rectangle where it
-lies, with its icon, the active one in the selection colour, minimized windows
-left out, the topmost drawn over the others. It follows moves and resizes as
-they happen. A click on a window brings it forward, a click beside the windows
+lies, with its icon, the active one in the selection colour, the topmost drawn
+over the others. Minimized windows lie as small icons along the lower edge of
+the map, where dtwm put its icons; what does not fit is counted, "+3". It
+follows moves and resizes as they happen. A click on a window (or an icon)
+brings it forward, a click beside the windows
 switches to that workspace. With one console per screen, each listing only its
 own screen's windows, the map shows that screen.
 

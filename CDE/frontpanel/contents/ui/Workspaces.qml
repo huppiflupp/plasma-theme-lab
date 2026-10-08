@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls as QQC2
 import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager
@@ -88,7 +89,8 @@ Bevel {
 
     // A workspace in miniature, as the pagers of the 1990s drew it: each
     // window a raised rectangle where it lies on the screens, its icon in
-    // it, the active one in the selection colour, minimized ones left out.
+    // it, the active one in the selection colour. Minimized windows lie as
+    // small icons along the map's lower edge, where dtwm put its icons.
     // A click brings a window forward; one beside the windows switches to
     // the workspace.
     component WindowMap: Bevel {
@@ -165,6 +167,60 @@ Bevel {
                         onPressed: map.root.taskMenu.open(windowRect.modelData, windowRect)
                     }
                 }
+            }
+        }
+
+        // Minimized windows, as dtwm laid its icons along the bottom of the
+        // screen: a row of small icons at the map's lower left, without a
+        // frame, on the sunken surface. A click brings the window back, the
+        // right button opens its menu; what does not fit is counted, "+3".
+        Row {
+            id: iconRow
+            anchors.left: parent.left; anchors.bottom: parent.bottom; anchors.margins: 2
+            spacing: 1
+            z: 2
+            readonly property int side: Math.max(8, Math.min(map.root.u(14), Math.floor((map.height - 4) / 3)))
+            readonly property var minimized: {
+                const revision = map.root.windowRevision;
+                return map.rows.filter(i => Boolean(map.root.taskModel.data(map.root.taskModel.makeModelIndex(i), TaskManager.AbstractTasksModel.IsMinimized)));
+            }
+            readonly property int capacity: Math.max(1, Math.floor((map.width - 4 + 1) / (side + 1)))
+            readonly property bool overflow: minimized.length > capacity
+            Repeater {
+                model: iconRow.overflow ? iconRow.minimized.slice(0, iconRow.capacity - 1) : iconRow.minimized
+                delegate: Item {
+                    id: minimizedIcon
+                    required property int modelData
+                    readonly property var idx: map.root.taskModel.makeModelIndex(modelData)
+                    readonly property int revision: map.root.windowRevision
+                    width: iconRow.side; height: iconRow.side
+                    Accessible.name: (revision, map.root.taskModel.data(idx, Qt.DisplayRole) || i18nd("cde-copper", "Window"))
+                    Kirigami.Icon {
+                        anchors.fill: parent
+                        source: (minimizedIcon.revision, map.root.taskModel.data(minimizedIcon.idx, Qt.DecorationRole))
+                        active: false; roundToIconSize: false
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        hoverEnabled: true
+                        QQC2.ToolTip.visible: containsMouse
+                        QQC2.ToolTip.text: minimizedIcon.Accessible.name
+                        QQC2.ToolTip.delay: 750
+                        onClicked: mouse => {
+                            if (mouse.button === Qt.RightButton) map.root.taskMenu.open(minimizedIcon.modelData, minimizedIcon);
+                            else map.root.taskModel.requestActivate(minimizedIcon.idx);
+                        }
+                    }
+                }
+            }
+            Text {
+                visible: iconRow.overflow
+                width: iconRow.side; height: iconRow.side
+                text: "+" + (iconRow.minimized.length - iconRow.capacity + 1)
+                color: map.colors.panelText
+                font.family: map.colors.font; font.pixelSize: map.root.u(9)
+                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
             }
         }
     }

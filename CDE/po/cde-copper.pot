@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cde-copper 0.9.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 01:19+0200\n"
+"POT-Creation-Date: 2026-10-09 01:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -902,8 +902,9 @@ msgstr ""
 #: frontpanel/contents/ui/TaskMenu.qml:187
 #: frontpanel/contents/ui/TaskStrip.qml:26
 #: frontpanel/contents/ui/WindowsPopup.qml:62
-#: frontpanel/contents/ui/Workspaces.qml:144
-#: frontpanel/contents/ui/Workspaces.qml:202
+#: frontpanel/contents/ui/Workspaces.qml:146
+#: frontpanel/contents/ui/Workspaces.qml:197
+#: frontpanel/contents/ui/Workspaces.qml:258
 #: stylemanager/contents/ui/main.qml:179
 #: stylemanager/contents/ui/WindowDialog.qml:9
 msgid "Window"
@@ -938,11 +939,11 @@ msgstr ""
 msgid "No open windows"
 msgstr ""
 
-#: frontpanel/contents/ui/Workspaces.qml:36
+#: frontpanel/contents/ui/Workspaces.qml:37
 msgid "WORKSPACES"
 msgstr ""
 
-#: frontpanel/contents/ui/Workspaces.qml:60
+#: frontpanel/contents/ui/Workspaces.qml:61
 msgid "Workspace %1 %2"
 msgstr ""
 
