@@ -922,3 +922,34 @@ the guest's journal (the tile's `systemd-run` unit) and `pgrep konsole`:
   Terminal changed places (`cdecopperrc` leftLaunchers: Apps, Files,
   Editor, Terminal), no terminal was started; dragged back the same way.
 - `python3 build.py`, `tests/verify.py`: 38 tests pass.
+
+Checks of 2026-10-09 (Style Manager as a window of its own), VM
+`plasma-lab` (Plasma 6.7.5, Wayland), the working tree, clicks through
+QEMU's QMP tablet, results read from the manifest and `kreadconfig6`:
+
+- `plasmawindowed org.cde.copper.stylemanager`: one decorated window titled
+  "Style Manager" ("Stilverwaltung" under German), in the console's window
+  strip, sized to its row of six buttons; the close button ends the
+  process. A second start is ignored by plasmawindowed; the console's
+  `open.sh` then brings the open window forward (tested with KWrite in
+  front).
+- System subpanel › Style Manager… opens it (after a shell restart for the
+  new SectionPopup.qml). Palette › Broica › Apply: colour scheme
+  `CDEBroica`, console, frames and KDE programs recoloured; the window
+  reported "The open programs have taken the new style". Palette › Indigo
+  › OK with a KWrite started under `QT_QPA_PLATFORMTHEME=generic`: the
+  window named KWrite as keeping the old style until restarted (its frame
+  and controls had stayed as they were).
+- Controls › Floating › Apply and back to Outlined; Window › shadow off ›
+  Apply (auroraerc `windowShadow=false`), on again; Backdrop shows the
+  installed material tile (Filz) selected and previewed, Pointer and Lock
+  Screen open with the state in use. The VM was left as before: Indigo,
+  Filz, outlined, copper cursors, CDE's lock screen, shadow on.
+- `tests/verify.py`: StyleManager (package, domains, tool options, the
+  console's opener, stale.py on a made-up /proc) and the installer round
+  trip with the new package pass.
+
+Not verified: the KDE Store edition's fallback to System Settings ›
+Colours (no store installation in the VM), GTK 4, Flatpak and Electron
+programs in the restart list (only the classification test).
+

@@ -1,5 +1,8 @@
 // Launcher slots and the commands behind them.
 //
+// "@llm" is no program: the slot shows the LLM cluster's tile (LlmTile.qml)
+// in its place.
+//
 // A slot is {label, icon, command, menu}. command is either a token that
 // follows the desktop's own choice of application, an installed
 // application ("app:<desktop id>"), or a shell command. menu names the
@@ -36,6 +39,7 @@ const PRESETS = [
     {text: "Saved layouts", value: "@layouts", icon: "preferences-system-windows"},
     {text: "Applications menu", value: "@applications", icon: "cde-menu"},
     {text: "Arrange windows around the console", value: "@arrange", icon: "view-split-left-right"},
+    {text: "LLM cluster (tokens per second)", value: "@llm", icon: "network-server"},
     {text: "Installed application…", value: "app:", icon: "application-x-executable"},
     {text: "Custom command…", value: "", icon: "system-run"}
 ];
@@ -226,7 +230,7 @@ function check(command) {
     const token = command.trim().split(/\s+/)[0] || "";
     if (token === "") return "echo missing";
     if (token === "@terminals") return "command -v konsole >/dev/null 2>&1 && echo ok || echo missing";
-    if (token === "@applications" || token === "@layouts" || token === "@arrange" || token.indexOf("$(") === 0) return "echo ok";
+    if (token === "@applications" || token === "@layouts" || token === "@arrange" || token === "@llm" || token.indexOf("$(") === 0) return "echo ok";
     if (TOKENS[token]) return chain(token, "", true);
     if (token.indexOf("app:") === 0) {
         const file = quote(token.substring(4).replace(/\.desktop$/, "") + ".desktop");

@@ -21,15 +21,23 @@ class LlmVerbund(unittest.TestCase):
         self.assertIsNotNone(entry)
         self.assertEqual(entry.get("type"), "Bool")
         self.assertEqual(entry.find("{*}default").text, "false")
+        # Every page declares every default through ConfigPage.qml, which
+        # configpage.py writes from main.xml: it must be current.
+        sys.path.insert(0, str(ROOT))
+        import configpage
+        self.assertEqual((ROOT / "frontpanel/contents/ui/ConfigPage.qml").read_text(), configpage.render(),
+                         "ConfigPage.qml is stale: run python3 configpage.py")
         for page in (ROOT / "frontpanel/contents/ui").glob("config*.qml"):
             text = page.read_text()
-            self.assertIn("property var cfg_llmTileDefault", text, page.name)
-            if page.name != "configGeneral.qml":
-                self.assertNotIn("property alias cfg_llmTile:", text)
-        general = (ROOT / "frontpanel/contents/ui/configGeneral.qml").read_text()
-        self.assertIn("property alias cfg_llmTile: llmTile.checked", general)
-        self.assertNotIn("cfg_leftLaunchers:", general)
-        self.assertNotIn("cfg_rightLaunchers:", general)
+            self.assertIn("ConfigPage {", text, page.name)
+            # The tile is an entry of the launcher list now ("@llm"); the
+            # old switch is only read once, to move it into the list.
+            self.assertNotIn("cfg_llmTile", text, page.name)
+        launch = (ROOT / "frontpanel/contents/ui/launch.js").read_text()
+        self.assertIn('value: "@llm"', launch)
+        main = (ROOT / "frontpanel/contents/ui/main.qml").read_text()
+        self.assertIn('entry.modelData.command === "@llm" ? clusterTile : launcherTile', main)
+        self.assertIn("Plasmoid.configuration.llmTile = false", main)
 
     def test_no_private_hosts_in_product(self):
         # The theme is published: no names from the author's home network.
@@ -233,7 +241,7 @@ class Separation(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="cde-copy-") as temp:
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
-            for item in ("tools", "frontpanel", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "wallpapers", "screenshots",
+            for item in ("tools", "frontpanel", "stylemanager", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "wallpapers", "screenshots",
                          "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "systemparts.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
@@ -463,6 +471,7 @@ class Installer(unittest.TestCase):
             self.assertTrue((self.config / "Kvantum/CDECopper/CDECopper.kvconfig").is_file())
             self.assertTrue((self.data / "kwin/decorations/kwin4_decoration_qml_cdecopper/contents/ui/main.qml").is_file())
             self.assertTrue((self.data / "kwin/scripts/cde-copper-arrange/contents/code/main.js").is_file())
+            self.assertTrue((self.data / "plasma/plasmoids/org.cde.copper.stylemanager/contents/ui/main.qml").is_file())
             self.assertTrue((self.data / "plasma/wallpapers/org.cde.copper.backdrop/contents/images/Copper/Pebbles.png").is_file())
             self.assertEqual(len(list((self.data / "color-schemes").glob("CDE*.colors"))), 48)
             # The palette tool runs from the profile, without the archive.
@@ -475,6 +484,7 @@ class Installer(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertFalse((self.data / "icons/CDECopper").exists())
             self.assertFalse((self.config / "Kvantum/CDECopper").exists())
+            self.assertFalse((self.data / "plasma/plasmoids/org.cde.copper.stylemanager").exists())
             self.assertEqual(unrelated.read_text(), "keep")
             self.assertEqual((self.config / "kdeglobals").read_bytes(), before)
 
@@ -778,6 +788,85 @@ submit(); assert.strictEqual(root.authSucceeded, true);
             system.plymouth_uninstall({"parts": {}})
             remove.assert_not_called()
             save.assert_not_called()
+
+
+class StyleManager(unittest.TestCase):
+    """The style manager: a plasmoid of its own, shown by plasmawindowed."""
+    PACKAGE = ROOT / "build/plasma/plasmoids/org.cde.copper.stylemanager"
+
+    def test_package_is_built_whole(self):
+        meta = json.loads((self.PACKAGE / "metadata.json").read_text())
+        self.assertEqual(meta["KPlugin"]["Id"], "org.cde.copper.stylemanager")
+        self.assertEqual(meta["KPackageStructure"], "Plasma/Applet")
+        # Not offered in Add Widgets: it is a window, not a panel widget.
+        self.assertTrue(meta["NoDisplay"])
+        ui = self.PACKAGE / "contents/ui"
+        for name in ("main.qml", "StyleDialog.qml", "PaletteDialog.qml", "BackdropDialog.qml", "WindowDialog.qml",
+                     "PointerDialog.qml", "LockDialog.qml", "ControlsDialog.qml", "IconButton.qml", "palettes.js"):
+            self.assertTrue((ui / name).is_file(), name)
+        # One Motif bevel for console and style manager.
+        for name in ("Bevel.qml", "motif.js"):
+            self.assertEqual((ui / name).read_bytes(), (ROOT / "frontpanel/contents/ui" / name).read_bytes(), name)
+        self.assertIn("const PALETTES", (ui / "palettes.js").read_text())
+        self.assertTrue((self.PACKAGE / "contents/code/stale.py").is_file())
+
+    def test_texts_in_the_theme_domain(self):
+        import re
+        for page in (ROOT / "stylemanager/contents/ui").glob("*.qml"):
+            text = page.read_text()
+            self.assertNotRegex(text, r"\bi18nc?p?\(", page.name)
+            for domain in re.findall(r'i18ndc?p?\("([^"]*)"', text):
+                self.assertEqual(domain, "cde-copper", page.name)
+
+    def test_tool_arguments_exist(self):
+        # Every option the dialogs pass is one manage.py palette takes.
+        import re
+        manage = (ROOT / "manage.py").read_text()
+        used = set()
+        for page in (ROOT / "stylemanager/contents/ui").glob("*.qml"):
+            used |= set(re.findall(r'"(--[a-z-]+) ', page.read_text()))
+        self.assertTrue(used)
+        for option in used:
+            self.assertIn('"%s"' % option, manage, option)
+
+    def test_console_opens_the_window(self):
+        popup = (ROOT / "frontpanel/contents/ui/SectionPopup.qml").read_text()
+        self.assertIn("org.cde.copper.stylemanager/contents/code/open.sh", popup)
+        opener = (ROOT / "stylemanager/contents/code/open.sh").read_text()
+        self.assertIn('exec plasmawindowed "$applet"', opener)
+        self.assertEqual(subprocess.run(["sh", "-n", str(ROOT / "stylemanager/contents/code/open.sh")]).returncode, 0)
+        # Without the package (KDE Store edition): System Settings' colours.
+        self.assertIn("systemsettings kcm_colors", popup)
+
+    def test_programs_that_keep_the_old_style(self):
+        with tempfile.TemporaryDirectory(prefix="cde-proc-") as temp:
+            proc = Path(temp)
+
+            def process(pid, libs, exe="/usr/bin/program", flatpak=False):
+                folder = proc / str(pid)
+                (folder / "root").mkdir(parents=True)
+                (folder / "maps").write_text("".join(
+                    f"7f00-7f01 r-xp 00000000 00:1f 42                         /usr/lib64/{lib}\n" for lib in libs)
+                    + "7ffd-7ffe rw-p 00000000 00:00 0                          [stack]\n")
+                (folder / "exe").symlink_to(exe)
+                if flatpak:
+                    (folder / "root/.flatpak-info").write_text("[Application]\n")
+
+            process(10, ["libQt6Gui.so.6.10.0", "KDEPlasmaPlatformTheme6.so"])
+            process(11, ["libQt6Gui.so.6.10.0"])
+            process(12, ["libgtk-3.so.0.2400.41"])
+            process(13, ["libgtk-4.so.1.1800.0"])
+            process(14, ["libgtk-4.so.1.1800.0", "libadwaita-1.so.0"])
+            process(15, ["libgtk-3.so.0.2400.41"], exe="/opt/google/chrome/chrome")
+            process(16, ["libQt6Gui.so.6.10.0", "KDEPlasmaPlatformTheme6.so"], flatpak=True)
+            process(17, ["libXm.so.4"])
+            result = subprocess.run([sys.executable, str(ROOT / "stylemanager/contents/code/stale.py"),
+                                     *map(str, range(10, 19)), "x"],
+                                    env={**os.environ, "CDE_COPPER_PROC": temp}, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout),
+                             {"10": "live", "11": "restart", "12": "live", "13": "restart", "14": "own",
+                              "15": "restart", "16": "own", "17": "restart", "18": "restart"})
 
 
 class ConsoleDrops(unittest.TestCase):

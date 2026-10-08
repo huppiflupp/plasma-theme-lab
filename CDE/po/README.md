@@ -12,7 +12,7 @@ xgettext -C --from-code=UTF-8 -k \
   frontpanel/contents/ui/*.qml frontpanel/contents/ui/launch.js \
   frontpanel/contents/config/config.qml backdrop/contents/ui/config.qml \
   lookandfeel/contents/splash/Splash.qml lookandfeel/contents/logout/Logout.qml \
-  shell/contents/lockscreen/LockScreen.qml
+  shell/contents/lockscreen/LockScreen.qml stylemanager/contents/ui/*.qml
 for catalog in po/*.po; do
   msgmerge --update --backup=none "$catalog" po/cde-copper.pot
 done

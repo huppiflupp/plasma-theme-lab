@@ -1,0 +1,17 @@
+{
+  "KPlugin": {
+    "Id": "org.cde.copper.stylemanager",
+    "Name": "Style Manager",
+    "Name[de]": "Stilverwaltung",
+    "Description": "CDE Copper's palettes, backdrops, window shadow, pointer, lock screen and controls, after CDE's dtstyle",
+    "Description[de]": "Paletten, Hintergründe, Fensterschatten, Zeiger, Sperrbildschirm und Bedienelemente von CDE Copper, nach CDEs dtstyle",
+    "Icon": "preferences-desktop-color",
+    "Version": "0.9.5",
+    "License": "GPL-2.0-or-later",
+    "Authors": [{"Name": "CDE Copper contributors"}],
+    "Category": "System Information"
+  },
+  "KPackageStructure": "Plasma/Applet",
+  "X-Plasma-API-Minimum-Version": "6.0",
+  "NoDisplay": true
+}

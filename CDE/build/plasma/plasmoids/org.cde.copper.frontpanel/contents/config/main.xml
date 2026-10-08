@@ -51,8 +51,6 @@
     <entry name="floating" type="Bool"><default>true</default></entry>
     <!-- One console for all screens, or one per screen (cdecopperrc too) -->
     <entry name="everyScreen" type="Bool"><default>false</default></entry>
-    <!-- Written by the Style page; the console applies it (JSON: palette, backdrop, scale) -->
-    <entry name="styleRequest" type="String"><default></default></entry>
   </group>
   <group name="Launchers">
     <!-- JSON lists of {label, icon, command, menu}; empty means the defaults in launch.js -->

@@ -3,49 +3,9 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.kcmutils as KCM
 
-KCM.SimpleKCM {
+ConfigPage {
     id: page
-    // Plasma hands every settings page every setting's default; declared so
-    // it takes them quietly (see configGeneral.qml).
-    property var cfg_visibilityModeDefault
-    property var cfg_topEdgeDefault
-    property var cfg_edgeDefault
-    property var cfg_windowsOnThisScreenDefault
-    property var cfg_showWorkspacesDefault
-    property var cfg_workspaceCountDefault
-    property var cfg_workspaceButtonWidthDefault
-    property var cfg_workspaceLabelsDefault
-    property var cfg_workspaceColoursDefault
-    property var cfg_groupWindowsDefault
-    property var cfg_windowDisplayDefault
-    property var cfg_llmTileDefault
-    property var cfg_llmHostsDefault
-    property var cfg_smallButtonsDefault
-    property var cfg_smallStyleDefault
-    property var cfg_workspaceWindowsDefault
-    property var cfg_consoleLabelDefault
-    property var cfg_consoleScaleDefault
-    property var cfg_hideTrayVolumeDefault
-    property var cfg_hideTrayIconsDefault
-    property var cfg_trayHiddenByConsoleDefault
-    property var cfg_panelFrameDefault
-    property var cfg_hardContrastDefault
-    property var cfg_floatingDefault
-    property var cfg_everyScreenDefault
-    property var cfg_styleRequestDefault
-    property var cfg_launcherLabelsDefault
-    property var cfg_leftLaunchersDefault
-    property var cfg_rightLaunchersDefault
-    property var cfg_clockOpensAppDefault
-    property var cfg_clockStyleDefault
-    property var cfg_clockDialDefault
-    property var cfg_clockSecondsDefault
-    property var cfg_clockSegmentEdgeDefault
-    property var cfg_clockSegmentShadowDefault
-    property var cfg_calendarCommandDefault
-    property var cfg_enabledCalendarPluginsDefault
     property alias cfg_showWorkspaces: showWorkspaces.checked
     property alias cfg_workspaceCount: workspaceCount.value
     property alias cfg_workspaceButtonWidth: buttonWidth.value
@@ -110,8 +70,8 @@ KCM.SimpleKCM {
                 required property int index
                 required property string modelData
                 width: windowView.width
-                text: modelData
                 enabled: index < 3 || showWorkspaces.checked
+                text: enabled ? modelData : i18nd("cde-copper", "%1 – needs the workspace switcher", modelData)
                 highlighted: windowView.highlightedIndex === index
             }
             onActivated: index => {
@@ -120,13 +80,6 @@ KCM.SimpleKCM {
                 if (values[index][1] === "none") cfg_windowDisplay = values[index][0];
                 cfg_workspaceWindows = values[index][1];
             }
-        }
-        Label {
-            visible: windowView.currentIndex >= 3 && !showWorkspaces.checked
-            Layout.maximumWidth: Kirigami.Units.gridUnit * 22
-            wrapMode: Text.WordWrap
-            font: Kirigami.Theme.smallFont
-            text: i18nd("cde-copper", "Shown with the workspace switcher only; while it is hidden the console shows the strip or tile chosen before.")
         }
         CheckBox {
             id: groupWindows

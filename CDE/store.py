@@ -19,7 +19,8 @@ What the store edition leaves out, because the store has no category for
 it or it needs manage.py: the Kvantum Motif controls (an optional archive
 for Kvantum Manager is made), CDE's lock screen (Plasma's is used), the 37
 palettes with recoloured Plasma surfaces (the colour schemes are included;
-the console's style manager says so), and the QML window frame (an SVG
+the console's "Style Manager…" entry opens System Settings' colours there),
+the Style Manager window itself, and the QML window frame (an SVG
 Aurorae frame drawn by tools/gen-motif-aurorae.py stands in for it).
 """
 import argparse

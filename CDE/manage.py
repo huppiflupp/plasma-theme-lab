@@ -40,7 +40,7 @@ TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "
            "kwin/tabbox/org.cde.copper.switcher",
            "plasma/desktoptheme/cde-copper", "plasma/look-and-feel/org.cde.copper.desktop",
            "plasma/look-and-feel/org.cde.copper.night",
-           "plasma/plasmoids/org.cde.copper.frontpanel", "icons/CDECopper",
+           "plasma/plasmoids/org.cde.copper.frontpanel", "plasma/plasmoids/org.cde.copper.stylemanager", "icons/CDECopper",
            "wallpapers/org.cde.copper", "plasma/wallpapers/org.cde.copper.backdrop",
            *(f"wallpapers/org.cde.copper.{key}" for key, _, _ in PICTURES),
            "konsole/CDECopper.colorscheme", "konsole/CDE Copper.profile",
@@ -166,6 +166,8 @@ REQUIREMENTS = (
     ("kdialog", lambda: bool(shutil.which("kdialog")), "naming a saved layout"),
     ("ksystemstats sensors", lambda: qml_module("org/kde/ksysguard/sensors"), "load meter (processor, memory)"),
     ("fc-cache (fontconfig)", lambda: bool(shutil.which("fc-cache")), "the bundled fonts take effect at once"),
+    ("plasmawindowed (plasma-workspace)", lambda: bool(shutil.which("plasmawindowed")),
+     "the Style Manager window (System Settings › Colours opens instead)"),
 )
 
 

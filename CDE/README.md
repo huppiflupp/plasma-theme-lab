@@ -24,8 +24,8 @@ languages can be added as `po/<language>.po`.
   sunken well. Its colours come from the active
   colour scheme and its shadows from Motif's own shading rule, so it follows
   every palette. Title-bar height is adjustable; the buttons scale with it.
-  A short hard shadow at the right and bottom (switchable in the console's
-  Style page or the decoration's settings); inactive frames have a flatter
+  A short hard shadow at the right and bottom (switchable in the Style
+  Manager › Window or the decoration's settings); inactive frames have a flatter
   bevel.
 - Kvantum widget style with Motif controls: bevelled buttons, sunken fields,
   diamond radio buttons, copper focus frame, default button and selection,
@@ -55,13 +55,14 @@ languages can be added as `po/<language>.po`.
   a click on the one in use disconnects it; WLAN on/off and the connection
   settings below) and leave session. The optional LLM cluster button shows the
   combined generation tokens per second; a click lists each host, its state
-  and a bar relative to the session peak. Enable it under Front Console ›
-  Small buttons. Independently, “LLM cluster as a large tile” adds a full-size
-  tile after the right launchers; both displays can be enabled together. Its
+  and a bar relative to the session peak. Enable it under Tiles › Small
+  buttons. Independently, a launcher whose program is “LLM cluster” shows a
+  full-size tile in its place (anywhere in either list); both displays can be
+  enabled together. Its
   arrow and tile open the same popup, also with Tab and Enter or Space from
   the keyboard (Escape closes it). Launcher labels also control its “LLM”
   caption. Polling runs while either display is visible, using one timer.
-  Set the comma-separated LLM hosts on the same settings page (empty by
+  Set the comma-separated LLM hosts under Tiles › Advanced (empty by
   default; for example `desk=http://127.0.0.1:8080,server=ssh:8080`).
   Use `name=http://host:port` for direct HTTP or `name=ssh:PORT` for
   passwordless SSH with curl on the host. Python 3.11 or newer is required
@@ -90,8 +91,8 @@ languages can be added as `po/<language>.po`.
 - Mouse cursors after the X11 cursor font of CDE and Motif (arrow, I-beam,
   wristwatch, hand, crosshair, resize arrows...), 28 drawings under 99 names,
   pixel-exact at 24, 32, 48 and 64 px: slim black shapes on a coloured rim
-  (copper, the palette's accent, white or any colour, chosen in the console's
-  Style page) with a soft shadow.
+  (copper, the palette's accent, white or any colour, chosen in the Style
+  Manager › Pointer) with a soft shadow.
 - Original SVG icon artwork, 248 drawings under 652 names (applications,
   menu categories, actions, documents, devices, places, battery, network and
   other status icons), with no embedded raster images; the 59 most visible
@@ -110,7 +111,7 @@ languages can be added as `po/<language>.po`.
   the lock screen from its shell package, so it comes as a shell package of
   its own (org.cde.copper.shell) that takes everything else from Plasma's;
   applying the theme switches to it, moving the panel and desktop
-  configuration along (Style page › Lock screen switches back). It talks to
+  configuration along (Style Manager › Lock Screen switches back). It talks to
   the authenticator as Plasma's lock screen does (one entry per prompt, a
   short wait after a failure, fingerprint readers left alone). Global
   themes other than CDE's, applied with their layout while this shell
@@ -205,7 +206,8 @@ The store edition is a subset of the theme:
   own, which the store cannot install);
 - the 37 palettes as colour schemes, but no style manager: the Plasma
   surfaces follow the colour scheme, the window frame stays Copper (or
-  Northern Sky at night) — the console's Style page says so;
+  Northern Sky at night); the console's System › Style Manager… opens
+  System Settings › Colours instead;
 - an SVG window frame drawn after the QML one (the store installs only SVG
   Aurorae frames): no corner grooves, and the window's icon on the menu
   button;
@@ -223,11 +225,21 @@ the console notices the new colours and brings the rest along, the Plasma
 surfaces, the Kvantum controls and the backdrop. Applications that are already
 open take the new controls when restarted; a notification says so.
 
-The **style manager** does the same from the console, after CDE's dtstyle:
-System subpanel › Style Manager (or the console's settings › Style) shows
-every palette as colour stripes and every backdrop pattern, and the style of
-progress bars (outlined, floating in the groove, or slim); choosing and
-pressing the settings dialog's Apply or OK applies them. In System Settings ›
+The **Style Manager** does the same, after CDE's dtstyle: a window of its
+own (System subpanel › Style Manager…, or `plasmawindowed
+org.cde.copper.stylemanager`) with a row of large buttons, each opening the
+dialog of one part of the desktop's style: **Palette** (every palette as
+colour stripes), **Backdrop** (the patterns and pictures beside a preview,
+pixel size, pattern colour), **Window** (the frame's shadow), **Pointer**
+(the cursors' rim), **Lock Screen** (CDE's or Plasma's) and **Controls**
+(progress bars outlined, floating in the groove, or slim). OK or Apply
+runs the theme's tool at once; the window shows what it is doing, and
+after a change to the programs' style it names the open programs that keep
+the old style until they are restarted: Qt programs without KDE's platform
+theme, GTK 4, Chromium and Electron, X11 and Motif programs. KDE programs
+and GTK 3 programs follow at once; Flatpak and libadwaita programs keep
+their own look either way. These settings concern the whole desktop, not
+the console, so they are not in the console's settings. In System Settings ›
 Application Style the controls are listed as "CDE".
 
 **XFile**, a Motif file manager (fastestcode.org, MIT licence), is the closest
@@ -256,7 +268,7 @@ desktop by itself.
 
 CDE draws its two-colour patterns (BrickWall, Pebbles ...) in white or black on
 the desktop colour, so under a dark palette such as Amber they look black and
-white. The console's Style page › Backdrop can draw them on dark palettes in the
+white. The Style Manager › Backdrop can draw them on dark palettes in the
 palette's most colourful light colour instead (Amber's amber, DeepSea's
 turquoise); off by default, `--pattern-colour palette|cde` from a shell.
 
@@ -280,7 +292,7 @@ All but Strömung are AI-generated decoration without logos or lettering;
 Strömung is a computed potential flow around an airfoil.
 `wallpapers/README.md` records how each was made.
 
-They are backdrops too: the console's Style page and the "CDE Backdrop"
+They are backdrops too: the Style Manager › Backdrop and the "CDE Backdrop"
 wallpaper list them after the patterns, the ones painted for the chosen
 palette first, and "A backdrop for each workspace" takes pictures as well as
 patterns (`--backdrop picture:origami` from a shell). Under a dark palette

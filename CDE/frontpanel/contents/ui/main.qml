@@ -319,6 +319,41 @@ PlasmoidItem {
             + " if (mine && q.screen !== keep) q.remove(); } }";
         runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(script));
     }
+    // One entry of a launcher list: a launcher tile, or for "@llm" the LLM
+    // cluster's tile. The loader passes its child's layout wishes on.
+    component SlotEntry: Loader {
+        id: entry
+        required property var modelData
+        required property int index
+        property string side: ""
+        Layout.fillWidth: item ? item.Layout.fillWidth : false
+        Layout.fillHeight: item ? item.Layout.fillHeight : false
+        Layout.preferredWidth: item ? item.Layout.preferredWidth : -1
+        Layout.preferredHeight: item ? item.Layout.preferredHeight : -1
+        sourceComponent: entry.modelData.command === "@llm" ? clusterTile : launcherTile
+        Component {
+            id: launcherTile
+            Slot { root: root; colors: consoleColors; side: entry.side; modelData: entry.modelData; index: entry.index }
+        }
+        Component {
+            id: clusterTile
+            LlmTile { root: root; colors: consoleColors }
+        }
+    }
+    // The settings dialog opens large enough to show a page without
+    // scrolling: 1180 x 900, at most 85 % of the screen. Only where its size
+    // was never chosen: no size stored, or Plasma's small default (about
+    // 810 x 630) that it stores when the dialog closes.
+    function sizeSettingsDialog() {
+        const script = "for (var p of panels()) for (var w of p.widgets()) if (w.type === 'org.cde.copper.frontpanel') {"
+            + " w.currentConfigGroup = ['ConfigDialog'];"
+            + " var cw = Number(w.readConfig('DialogWidth', 0)), ch = Number(w.readConfig('DialogHeight', 0));"
+            + " if (cw >= 900 || ch >= 700) continue;"
+            + " var g = screenGeometry(p.screen);"
+            + " w.writeConfig('DialogWidth', Math.min(1180, Math.round(g.width * 0.85)));"
+            + " w.writeConfig('DialogHeight', Math.min(900, Math.round(g.height * 0.85))); }";
+        runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(script));
+    }
     function configurePanel() {
         const modes = ["none", "autohide", "dodgewindows"];
         const mode = modes[Math.max(0, Math.min(2, Plasmoid.configuration.visibilityMode))];
@@ -470,20 +505,6 @@ PlasmoidItem {
         function onConsoleScaleChanged() { root.configurePanel(); }
         function onFloatingChanged() { root.configurePanel(); }
         function onEveryScreenChanged() { root.placeConsoles(); }
-        // The Style page's choice, taken by the settings dialog's Apply/OK.
-        function onStyleRequestChanged() {
-            let request = null;
-            try { request = JSON.parse(Plasmoid.configuration.styleRequest); } catch (e) { return; }
-            if (!request || !request.palette) return;
-            let command = root.toolCommand("palette --notify --palette " + Launch.quote(request.palette));
-            if (request.backdrop) command += " --backdrop " + Launch.quote(request.backdrop) + " --backdrop-scale " + Math.max(1, Math.min(3, request.scale || 1));
-            if (["outlined", "floating", "slim"].indexOf(request.progress) >= 0) command += " --progress " + request.progress;
-            if (/^(copper|palette|white|#[0-9a-fA-F]{6})$/.test(request.cursor || "")) command += " --cursor " + Launch.quote(request.cursor);
-            if (request.lockscreen === "cde" || request.lockscreen === "plasma") command += " --lockscreen " + request.lockscreen;
-            if (typeof request.windowShadow === "boolean") command += " --window-shadow " + (request.windowShadow ? "on" : "off");
-            if (typeof request.patternColour === "boolean") command += " --pattern-colour " + (request.patternColour ? "palette" : "cde");
-            root.run(command);
-        }
     }
 
     // The KDE Store edition has no manage.py: palettes come from System
@@ -508,7 +529,15 @@ PlasmoidItem {
             Plasmoid.configuration.workspaceWindows = legacy;
             Plasmoid.configuration.windowDisplay = "strip";
         }
+        // Up to 0.9.5 the cluster's tile was a switch (llmTile) and stood
+        // after the right launchers; now it is an entry of the list.
+        if (Plasmoid.configuration.llmTile) {
+            const listed = leftSlots.concat(rightSlots).some(s => s.command === "@llm");
+            if (!listed) storeLaunchers({left: leftSlots, right: rightSlots.concat([{label: "LLM", icon: "network-server", command: "@llm", menu: ""}])});
+            Plasmoid.configuration.llmTile = false;
+        }
         installTranslations();
+        sizeSettingsDialog();
         if (Plasmoid.configuration.consoleScale !== 1 || !Plasmoid.configuration.floating || stripHidden) configurePanel();
         workspaceSync.start();
     }
@@ -768,12 +797,11 @@ PlasmoidItem {
                 rowSpacing: 4; columnSpacing: 4
                 Layout.fillWidth: true; Layout.fillHeight: !root.vertical
                 ClockTile { root: root; colors: consoleColors }
-                Repeater { model: root.leftSlots; delegate: Slot { root: root; colors: consoleColors; side: "left" } }
+                Repeater { model: root.leftSlots; delegate: SlotEntry { side: "left" } }
                 WindowTile { root: root; colors: consoleColors; visible: root.windowDisplay === "tileLeft" }
                 Workspaces { root: root; colors: consoleColors }
                 WindowTile { root: root; colors: consoleColors; visible: root.windowDisplay === "tileRight" }
-                Repeater { model: root.rightSlots; delegate: Slot { root: root; colors: consoleColors; side: "right" } }
-                LlmTile { root: root; colors: consoleColors; visible: Plasmoid.configuration.llmTile }
+                Repeater { model: root.rightSlots; delegate: SlotEntry { side: "right" } }
                 SessionButtons { root: root; colors: consoleColors }
             }
             GridLayout {

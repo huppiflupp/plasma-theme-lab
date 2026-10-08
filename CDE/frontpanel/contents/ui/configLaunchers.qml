@@ -3,58 +3,43 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.kcmutils as KCM
 import org.kde.iconthemes as KIconThemes
 import org.kde.plasma.plasma5support as P5Support
 import org.kde.plasma.private.kicker as Kicker
 import "launch.js" as Launch
 
-// Which program each console tile starts, its label and icon, and the
-// subpanel its arrow opens. Tiles left of the workspace switch and right
-// of it are two lists; both can grow, shrink and be reordered.
-KCM.SimpleKCM {
+// Everything the console holds, in its order on the screen: which program
+// each tile starts, its label and icon, and the subpanel its arrow opens
+// (tiles left of the workspace switch and right of it are two lists; both
+// can grow, shrink and be reordered), then the block of small buttons.
+ConfigPage {
     id: page
-    // Plasma hands every settings page every setting's default; declared so
-    // it takes them quietly. (Not the settings themselves: Plasma saves every
-    // cfg_ property a page has, and an unshown one would write back a stale
-    // value over what the console changed meanwhile.)
-    property var cfg_visibilityModeDefault
-    property var cfg_topEdgeDefault
-    property var cfg_edgeDefault
-    property var cfg_windowsOnThisScreenDefault
-    property var cfg_workspaceColoursDefault
-    property var cfg_groupWindowsDefault
-    property var cfg_windowDisplayDefault
-    property var cfg_llmTileDefault
-    property var cfg_llmHostsDefault
-    property var cfg_smallButtonsDefault
-    property var cfg_smallStyleDefault
-    property var cfg_workspaceWindowsDefault
-    property var cfg_consoleLabelDefault
-    property var cfg_consoleScaleDefault
-    property var cfg_hideTrayVolumeDefault
-    property var cfg_hideTrayIconsDefault
-    property var cfg_trayHiddenByConsoleDefault
-    property var cfg_panelFrameDefault
-    property var cfg_hardContrastDefault
-    property var cfg_floatingDefault
-    property var cfg_everyScreenDefault
-    property var cfg_styleRequestDefault
-    property var cfg_leftLaunchersDefault
-    property var cfg_rightLaunchersDefault
-    property var cfg_clockOpensAppDefault
-    property var cfg_clockStyleDefault
-    property var cfg_clockDialDefault
-    property var cfg_clockSecondsDefault
-    property var cfg_clockSegmentEdgeDefault
-    property var cfg_clockSegmentShadowDefault
-    property var cfg_calendarCommandDefault
-    property var cfg_enabledCalendarPluginsDefault
-    property var cfg_showWorkspacesDefault
-    property var cfg_workspaceCountDefault
-    property var cfg_workspaceButtonWidthDefault
-    property var cfg_workspaceLabelsDefault
-    property var cfg_launcherLabelsDefault
+    // The small buttons' block (the session block) and the cluster tile:
+    // the rest of what the console holds, in its order on the screen.
+    property var cfg_smallButtons: []
+    property string cfg_smallStyle: "family"
+    property alias cfg_llmHosts: llmHosts.text
+    property bool cfg_hideTrayIcons: true
+    property alias cfg_hideTrayVolume: hideVolume.checked
+    readonly property var smallStyles: [
+        {value: "family", text: i18nd("cde-copper", "All alike, the meters among the keys")},
+        {value: "instruments", text: i18nd("cde-copper", "Meters sunken, in the clock's colours")},
+        {value: "led", text: i18nd("cde-copper", "Meters as an LED field over the keys")},
+        {value: "panel", text: i18nd("cde-copper", "Meters as a panel of bars beside the keys")}]
+    readonly property var smallChoices: [
+        {kind: "configure", text: i18nd("cde-copper", "Console settings")},
+        {kind: "lock", text: i18nd("cde-copper", "Lock screen")},
+        {kind: "desktop", text: i18nd("cde-copper", "Show desktop")},
+        {kind: "load", text: i18nd("cde-copper", "Load meter"), tip: i18nd("cde-copper", "Processor and memory")},
+        {kind: "llm", text: i18nd("cde-copper", "LLM cluster"), tip: i18nd("cde-copper", "Tokens per second of llama.cpp servers")},
+        {kind: "volume", text: i18nd("cde-copper", "Volume"), tip: i18nd("cde-copper", "Without it the volume sits in the strip's row")},
+        {kind: "network", text: i18nd("cde-copper", "Network"), tip: i18nd("cde-copper", "WLAN or cable")},
+        {kind: "logout", text: i18nd("cde-copper", "Leave session")}]
+    function setSmall(kind, on) {
+        const chosen = smallChoices.map(c => c.kind)
+            .filter(k => k === kind ? on : (cfg_smallButtons || []).indexOf(k) >= 0);
+        cfg_smallButtons = chosen.length ? chosen : ["configure"];
+    }
     property string cfg_leftLaunchers
     property string cfg_rightLaunchers
     property var leftSlots: Launch.parse(cfg_leftLaunchers, Launch.LEFT)
@@ -272,6 +257,66 @@ KCM.SimpleKCM {
             text: i18nd("cde-copper", "Restore default tiles")
             icon.name: "edit-undo"
             onClicked: { page.cfg_leftLaunchers = ""; page.cfg_rightLaunchers = ""; page.leftSlots = Launch.parse("", Launch.LEFT); page.rightSlots = Launch.parse("", Launch.RIGHT); }
+        }
+        Kirigami.Separator { Layout.fillWidth: true }
+        Kirigami.Heading { level: 3; text: i18nd("cde-copper", "Small buttons at the end") }
+        GridLayout {
+            columns: 2
+            columnSpacing: Kirigami.Units.gridUnit * 2
+            Repeater {
+                model: page.smallChoices
+                delegate: CheckBox {
+                    required property var modelData
+                    text: modelData.text
+                    checked: (page.cfg_smallButtons || []).indexOf(modelData.kind) >= 0
+                    onToggled: page.setSmall(modelData.kind, checked)
+                    ToolTip.text: modelData.tip || ""
+                    ToolTip.visible: hovered && ToolTip.text !== ""
+                }
+            }
+        }
+        Kirigami.FormLayout {
+            Layout.fillWidth: true
+            ComboBox {
+                Kirigami.FormData.label: i18nd("cde-copper", "Style:")
+                model: page.smallStyles
+                textRole: "text"
+                currentIndex: Math.max(0, page.smallStyles.findIndex(s => s.value === page.cfg_smallStyle))
+                onActivated: index => page.cfg_smallStyle = page.smallStyles[index].value
+            }
+            ComboBox {
+                Kirigami.FormData.label: i18nd("cde-copper", "Status icons:")
+                model: [i18nd("cde-copper", "Behind the block's arrow button"), i18nd("cde-copper", "Beside the console")]
+                currentIndex: page.cfg_hideTrayIcons ? 0 : 1
+                onActivated: index => page.cfg_hideTrayIcons = index === 0
+            }
+            CheckBox {
+                id: hideVolume
+                text: i18nd("cde-copper", "Volume only in the console")
+            }
+            Label {
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 26
+                wrapMode: Text.WordWrap
+                font: Kirigami.Theme.smallFont
+                opacity: 0.7
+                text: i18nd("cde-copper", "The tray leaves out its own volume icon.")
+            }
+            Item { Kirigami.FormData.isSection: true }
+            Advanced { id: advanced }
+            TextField {
+                id: llmHosts
+                visible: advanced.open
+                Layout.fillWidth: true
+                Kirigami.FormData.label: i18nd("cde-copper", "LLM hosts:")
+            }
+            Label {
+                visible: advanced.open
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 26
+                wrapMode: Text.WordWrap
+                font: Kirigami.Theme.smallFont
+                opacity: 0.7
+                text: i18nd("cde-copper", "For the LLM cluster's small button and its tile (a tile's program \"LLM cluster\"). Comma-separated name=http://host:port or name=ssh:PORT (SSH runs curl on that host). Only llama.cpp server ports; empty shows no cluster.")
+            }
         }
     }
 }

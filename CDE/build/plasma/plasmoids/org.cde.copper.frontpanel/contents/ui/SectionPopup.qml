@@ -46,8 +46,12 @@ PlasmaCore.Dialog {
                     Accessible.name: modelData.tip || modelData.label
                     onClicked: {
                         popup.visible = false;
-                        // The style manager is a page of the console's settings.
-                        if (modelData.command === "@style") Plasmoid.internalAction("configure").trigger();
+                        // The style manager is a window of its own (a plasmoid shown by
+                        // plasmawindowed, opened or brought forward by its open.sh);
+                        // without it (KDE Store edition) System Settings' colours.
+                        if (modelData.command === "@style")
+                            popup.root.run("s=\"${XDG_DATA_HOME:-$HOME/.local/share}/plasma/plasmoids/org.cde.copper.stylemanager/contents/code/open.sh\"; "
+                                           + "if [ -f \"$s\" ] && command -v plasmawindowed >/dev/null; then exec sh \"$s\"; else exec systemsettings kcm_colors; fi");
                         else popup.root.run(Launch.resolve(modelData.command, modelData.args, (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg)));
                     }
                 }
