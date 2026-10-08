@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Window
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtCore
@@ -84,7 +85,7 @@ PlasmoidItem {
         : networkSignal >= 75 ? "network-wireless-signal-excellent" : networkSignal >= 50 ? "network-wireless-signal-good"
         : networkSignal >= 25 ? "network-wireless-signal-ok" : "network-wireless-signal-weak"
     // The session block's small buttons, the known ones in the chosen order.
-    readonly property var smallKinds: ["configure", "lock", "desktop", "load", "volume", "network", "logout"]
+    readonly property var smallKinds: ["configure", "lock", "desktop", "load", "llm", "volume", "network", "logout"]
     readonly property var smallButtons: {
         const chosen = (Plasmoid.configuration.smallButtons || []).filter(k => smallKinds.indexOf(k) >= 0);
         return chosen.length ? chosen : ["configure"];
@@ -1018,11 +1019,12 @@ PlasmoidItem {
                     required property string modelData
                     Layout.fillWidth: true; Layout.fillHeight: true
                     Layout.preferredWidth: 1; Layout.preferredHeight: 1
-                    sourceComponent: modelData === "load" ? loadMeter : quarterButton
+                    sourceComponent: modelData === "load" ? loadMeter : modelData === "llm" ? llmMeterComponent : quarterButton
                     onLoaded: if (item.kind !== undefined) item.kind = modelData
                 }
             }
         }
+        Component { id: llmMeterComponent; LlmMeter {} }
         Component { id: loadMeter; LoadMeter {} }
         Component { id: quarterButton; QuarterButton {} }
     }
@@ -1071,6 +1073,121 @@ PlasmoidItem {
             onWheel: event => root.setVolume(root.volume + (event.angleDelta.y > 0 ? 5 : -5))
         }
     }
+    property var llmNodes: []
+    property real llmTotal: 0
+    property real llmPeak: 1
+    property bool llmFetching: false
+    property bool llmVisible: false
+    readonly property string llmHelper: decodeURIComponent(Qt.resolvedUrl("../code/llmverbund.py").toString().replace(/^file:\/\//, ""))
+    readonly property string llmCommand: "python3 " + Launch.quote(llmHelper) + " " + Launch.quote(Plasmoid.configuration.llmHosts)
+    function fetchLlm() {
+        if (!llmVisible || llmFetching) return;
+        llmFetching = true;
+        llmSource.connectSource(llmCommand);
+    }
+    onLlmVisibleChanged: { if (llmVisible) fetchLlm(); else llmPopup.visible = false; }
+    Connections {
+        target: Plasmoid.configuration
+        function onLlmHostsChanged() { root.llmNodes = []; root.llmTotal = 0; root.fetchLlm(); }
+    }
+    Timer { interval: 3000; repeat: true; running: root.llmVisible; onTriggered: root.fetchLlm() }
+    P5Support.DataSource {
+        id: llmSource
+        engine: "executable"
+        connectedSources: []
+        onNewData: function(sourceName, data) {
+            disconnectSource(sourceName);
+            root.llmFetching = false;
+            if (sourceName !== root.llmCommand) { root.fetchLlm(); return; }
+            try {
+                const result = JSON.parse(data.stdout);
+                root.llmNodes = result.nodes;
+                root.llmTotal = result.total;
+                for (const node of result.nodes) root.llmPeak = Math.max(root.llmPeak, node.tokens_per_second);
+            } catch (e) { root.llmNodes = []; root.llmTotal = 0; }
+        }
+    }
+    function llmState(state) {
+        switch (state) {
+        case "running": return i18nd("cde-copper", "Running");
+        case "busy": return i18nd("cde-copper", "Busy");
+        case "sleeping": return i18nd("cde-copper", "Sleeping");
+        default: return i18nd("cde-copper", "Unreachable");
+        }
+    }
+    component LlmMeter: ConsoleButton {
+        id: llmMeter
+        implicitWidth: 0; implicitHeight: 0
+        padding: 0; text: ""
+        Accessible.name: i18nd("cde-copper", "LLM cluster: %1 t/s", Math.round(root.llmTotal))
+        Binding { target: root; property: "llmVisible"; value: llmMeter.visible && llmMeter.Window.window !== null && llmMeter.Window.window.visible; restoreMode: Binding.RestoreBindingOrValue }
+        onClicked: { llmPopup.visualParent = llmMeter; llmPopup.visible = !llmPopup.visible; }
+        HoverHandler { onHoveredChanged: root.hoverSegment(llmMeter, hovered) }
+        contentItem: Item {
+            readonly property int side: Math.min(width, height)
+            Text {
+                x: 0; y: Math.round(parent.height * 0.12); width: parent.width
+                text: Math.round(root.llmTotal)
+                horizontalAlignment: Text.AlignHCenter
+                color: consoleColors.panelText; font.family: consoleColors.font
+                font.pixelSize: Math.max(7, Math.round(parent.side * 0.36)); font.weight: Font.DemiBold
+                fontSizeMode: Text.Fit; minimumPixelSize: 6
+            }
+            Text {
+                x: 0; y: Math.round(parent.height * 0.59); width: parent.width
+                text: i18nd("cde-copper", "t/s")
+                horizontalAlignment: Text.AlignHCenter
+                color: consoleColors.panelText; font.family: consoleColors.font
+                font.pixelSize: Math.max(6, Math.round(parent.side * 0.2))
+            }
+        }
+    }
+    Keeper { id: llmKeeper; dialog: llmPopup; segment: llmPopup.visualParent; inside: llmHover.hovered }
+    PlasmaCore.Dialog {
+        id: llmPopup
+        visible: false
+        type: PlasmaCore.Dialog.PopupMenu
+        flags: Qt.WindowStaysOnTopHint
+        location: Plasmoid.location
+        hideOnWindowDeactivate: true
+        backgroundHints: PlasmaCore.Types.NoBackground
+        onVisibleChanged: if (visible) { llmKeeper.opened(); llmBody.forceActiveFocus(); }
+        mainItem: Bevel {
+            id: llmBody
+            width: root.u(390); height: root.u(70 + 30 * root.llmNodes.length)
+            surface: consoleColors.window
+            focus: true
+            HoverHandler { id: llmHover }
+            Keys.onPressed: llmKeeper.keyboard = true
+            Keys.onEscapePressed: llmPopup.visible = false
+            Column {
+                x: root.u(8); y: root.u(8); width: parent.width - root.u(16); spacing: root.u(4)
+                Text {
+                    text: i18nd("cde-copper", "LLM cluster")
+                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: root.u(12); font.weight: Font.DemiBold
+                }
+                Repeater {
+                    model: root.llmNodes
+                    delegate: Item {
+                        required property var modelData
+                        width: parent.width; height: root.u(26)
+                        Text { x: 0; width: root.u(85); elide: Text.ElideRight; text: modelData.name; color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: root.u(11) }
+                        Text { x: root.u(88); width: root.u(65); text: i18nd("cde-copper", "%1 t/s", Math.round(modelData.tokens_per_second)); color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: root.u(11) }
+                        Bevel {
+                            x: root.u(155); y: root.u(3); width: root.u(90); height: root.u(12); sunken: true; surface: consoleColors.field
+                            Rectangle { x: 2; y: 2; height: parent.height - 4; width: Math.round((parent.width - 4) * modelData.tokens_per_second / root.llmPeak); color: consoleColors.highlight }
+                        }
+                        Text { x: root.u(253); text: root.llmState(modelData.state); color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: root.u(11) }
+                    }
+                }
+                Text {
+                    text: i18nd("cde-copper", "Total: %1 t/s", Math.round(root.llmTotal))
+                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: root.u(12); font.weight: Font.DemiBold
+                }
+            }
+        }
+    }
+
     // CPU and memory load as two sunken Motif meters (Plasma's own sensors,
     // ksystemstats), a click opens the system monitor.
     component LoadMeter: ConsoleButton {

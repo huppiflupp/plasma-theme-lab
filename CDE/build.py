@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "build"
-VERSION = "0.9.3"
+VERSION = "0.9.4"
 # Qt 6 font strings (16 fields): family, size, pixel, hint, weight, style, ...
 UI_FONT = "IBM Plex Sans Condensed,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 TITLE_FONT = "IBM Plex Sans Condensed,10,-1,5,600,0,0,0,0,0,0,0,0,0,0,1"

@@ -14,6 +14,145 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class LlmVerbund(unittest.TestCase):
+    def setUp(self):
+        import http.server
+        import threading
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.runtime = Path(self.temp.name)
+        self.decoded = 10
+        self.metrics = False
+        self.tokens, self.seconds = 100, 10
+        self.busy = True
+        self.slow = False
+        owner = self
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                if owner.slow:
+                    import time
+                    time.sleep(2)
+                if self.path == "/slots":
+                    body = json.dumps({"error": "disabled"} if owner.metrics else [
+                        {"is_processing": owner.busy, "next_token": [{"n_decoded": owner.decoded}]},
+                        {"is_processing": False, "next_token": {"n_decoded": 5}}])
+                elif self.path == "/metrics":
+                    body = (f"llamacpp:tokens_predicted_total {owner.tokens}\n"
+                            f"llamacpp:tokens_predicted_seconds_total {owner.seconds}\n")
+                else:
+                    self.send_error(404)
+                    return
+                self.send_response(200)
+                self.end_headers()
+                try:
+                    self.wfile.write(body.encode())
+                except BrokenPipeError:
+                    pass
+
+            def log_message(self, *args):
+                pass
+
+        self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        thread.start()
+        self.addCleanup(self.server.server_close)
+        self.addCleanup(self.server.shutdown)
+        self.url = f"http://127.0.0.1:{self.server.server_port}"
+        self.script = ROOT / "frontpanel/contents/code/llmverbund.py"
+        fake = self.runtime / "ssh"
+        fake.write_text('''#!/usr/bin/env python3
+import json, os, sys
+from pathlib import Path
+with (Path(os.environ["XDG_RUNTIME_DIR"]) / "ssh.log").open("a") as f:
+    f.write(json.dumps(sys.argv[1:]) + "\\n")
+host, command = sys.argv[-2:]
+if host == "asleep": sys.exit(7)
+if host == "dead": sys.exit(255)
+print(json.dumps([{"is_processing": False, "next_token": [{"n_decoded": 0}]}]))
+''')
+        fake.chmod(0o700)
+        self.env = dict(os.environ, XDG_RUNTIME_DIR=str(self.runtime),
+                        PATH=str(self.runtime) + os.pathsep + os.environ["PATH"])
+
+    def run_helper(self, hosts):
+        result = subprocess.run([sys.executable, str(self.script), hosts], env=self.env,
+                                capture_output=True, text=True, check=True, timeout=4)
+        self.assertEqual(len(result.stdout.splitlines()), 1)
+        return json.loads(result.stdout)
+
+    def test_slots_history_reset_corruption_and_ssh(self):
+        import time
+        hosts = (f"local={self.url},remote=ssh:18090,asleep=ssh:8090,dead=ssh:8090,"
+                 "missing=http://127.0.0.1:1,ai395=ssh:8090,proxy=http://ai395:8090,"
+                 "-option=ssh:8090,bad=ssh:12;touch,invalid=http://host:99999")
+        start = time.monotonic()
+        first = self.run_helper(hosts)
+        self.assertLess(time.monotonic() - start, 4)
+        self.assertEqual(first["total"], 0)
+        self.assertEqual([n["state"] for n in first["nodes"]],
+                         ["busy", "running", "sleeping", "unreachable", "unreachable"])
+        path = self.runtime / "cde-llmverbund/state.json"
+        previous = json.loads(path.read_text())["local=" + self.url]
+        self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+        self.assertEqual(path.parent.stat().st_mode & 0o777, 0o700)
+        self.decoded += 100
+        second = self.run_helper(hosts)
+        current = json.loads(path.read_text())["local=" + self.url]
+        self.assertAlmostEqual(second["total"], 100 / (current["time"] - previous["time"]))
+        self.decoded = 0
+        self.busy = False
+        self.assertEqual(self.run_helper(hosts)["total"], 0)
+        path.write_text("{broken")
+        self.assertEqual(self.run_helper(hosts)["total"], 0)
+        calls = [json.loads(line) for line in (self.runtime / "ssh.log").read_text().splitlines()]
+        for call in calls:
+            self.assertIn("BatchMode=yes", call)
+            self.assertIn("ConnectTimeout=2", call)
+            self.assertEqual(call[-1], "curl -s -m2 http://127.0.0.1:" +
+                             ("18090" if call[-2] == "remote" else "8090") + "/slots")
+            self.assertNotEqual(call[-2], "ai395")
+        # The source attribution mentions llmtop; executable references must not.
+        source = self.script.read_text().split('"""', 2)[2]
+        self.assertNotIn("llmtop", source)
+
+    def test_metrics_finished_rate_and_reset(self):
+        self.metrics = True
+        hosts = "local=" + self.url
+        self.assertEqual(self.run_helper(hosts)["total"], 0)
+        self.tokens += 60
+        self.seconds += 3
+        second = self.run_helper(hosts)
+        self.assertEqual(second["total"], 20)
+        self.assertEqual(second["nodes"][0]["state"], "running")
+        self.assertEqual(self.run_helper(hosts)["total"], 20)
+        self.tokens, self.seconds = 1, 1
+        self.assertEqual(self.run_helper(hosts)["total"], 0)
+        self.tokens, self.seconds = 11, 2
+        self.assertEqual(self.run_helper(hosts)["total"], 10)
+
+    def test_timeouts_do_not_block_other_nodes(self):
+        import time
+        self.slow = True
+        fake = self.runtime / "ssh"
+        fake.write_text("#!/usr/bin/env python3\nimport time\ntime.sleep(10)\n")
+        start = time.monotonic()
+        result = self.run_helper(f"slow={self.url},dead=ssh:8090")
+        self.assertLess(time.monotonic() - start, 4)
+        self.assertEqual([n["state"] for n in result["nodes"]], ["unreachable", "unreachable"])
+        self.assertEqual(result["total"], 0)
+
+    def test_ssh_metrics_fallback(self):
+        fake = self.runtime / "ssh"
+        fake.write_text('''#!/usr/bin/env python3
+import sys
+print('{"error":"disabled"}' if sys.argv[-1].endswith('/slots') else
+      'llamacpp:tokens_predicted_total 100\\nllamacpp:tokens_predicted_seconds_total 10')
+''')
+        result = self.run_helper("remote=ssh:18090")
+        self.assertEqual(result["nodes"][0]["state"], "running")
+        self.assertEqual(result["total"], 0)
+
 class Assets(unittest.TestCase):
     def test_vector_assets_and_aliases(self):
         files = list((ROOT / "build/icons/CDECopper").rglob("*.svg"))

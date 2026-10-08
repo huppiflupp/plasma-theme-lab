@@ -53,7 +53,22 @@ languages can be added as `po/<language>.po`.
   row), network (WLAN signal, cable or offline; a click opens a list of the WLANs
   around: one click joins a network, Plasma asking for a new one's passphrase,
   a click on the one in use disconnects it; WLAN on/off and the connection
-  settings below) and leave session. The Plasma system tray
+  settings below) and leave session. The optional LLM cluster button shows the
+  combined generation tokens per second; a click lists each host, its state
+  and a bar relative to the session peak. Enable it under Front Console ›
+  Small buttons and set the comma-separated LLM hosts there (default:
+  `245k=http://127.0.0.1:8090,ai395=ssh:18090,x9=http://x9:8090,victus=ssh:8090`).
+  Use `name=http://host:port` for direct HTTP or `name=ssh:PORT` for
+  passwordless SSH with curl on the host. Python 3.11 or newer is required
+  locally; no monitoring tool or remote Python is needed. Every three seconds
+  while visible, it reads `/slots` and calculates tokens per second from
+  decoded-counter deltas, discarding resets; `/metrics` is the fallback using
+  completed-request token/time deltas. The first sample is zero. Counter
+  history is stored atomically in `$XDG_RUNTIME_DIR/cde-llmverbund/state.json`
+  (fallback: `/tmp/cde-llmverbund-$UID/`), with private directory/file modes.
+  Only backend ports belong in the list: socket proxies must never be queried;
+  `ai395:8090` is blocked, and its backend is reached through SSH on 18090.
+  Invalid entries are ignored; unreachable nodes contribute zero. The Plasma system tray
   stays in the console's panel for notifications, but by default it is out of
   sight: its entries open from the console's button; the tray's own volume
   icon is left out, since the console has one. By default the console stands
@@ -513,7 +528,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.9.3. The application style is a Kvantum theme, not a
+This is version 0.9.4. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

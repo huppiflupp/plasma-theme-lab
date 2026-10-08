@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 msgid ""
 msgstr ""
-"Project-Id-Version: cde-copper 0.9.3\n"
+"Project-Id-Version: cde-copper 0.9.4\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-10-07 22:32+0200\n"
 "PO-Revision-Date: 2026-10-03 12:00+0200\n"
@@ -1269,3 +1269,51 @@ msgstr "Kein Passwort nötig: auf „Entsperren“ klicken."
 #~ msgstr ""
 #~ "Muster aus CDE (The Open Group, CC BY-SA 3.0), eingefärbt mit der Palette "
 #~ "%1; danach die Bilder, die zu %1 zuerst."
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "LLM cluster (tokens per second)"
+msgstr "LLM-Verbund (Token pro Sekunde)"
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "LLM hosts (comma-separated):"
+msgstr "LLM-Knoten (durch Kommas getrennt):"
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "LLM cluster: %1 t/s"
+msgstr "LLM-Verbund: %1 t/s"
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "LLM cluster"
+msgstr "LLM-Verbund"
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "Running"
+msgstr "Läuft"
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "Busy"
+msgstr "Beschäftigt"
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "Sleeping"
+msgstr "Schläft"
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "Unreachable"
+msgstr "Nicht erreichbar"
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "t/s"
+msgstr "t/s"
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "%1 t/s"
+msgstr "%1 t/s"
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "Total: %1 t/s"
+msgstr "Summe: %1 t/s"
+
+#: frontpanel/contents/ui/configGeneral.qml
+msgid "Comma-separated name=http://host:port or name=ssh:PORT. SSH uses curl on the host. Never configure socket proxy ports; ai395:8090 is blocked."
+msgstr "Durch Kommas getrennt: name=http://host:port oder name=ssh:PORT. SSH verwendet curl auf dem Knoten. Keine Socket-Proxy-Ports eintragen; ai395:8090 ist gesperrt."

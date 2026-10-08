@@ -6,7 +6,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: cde-copper 0.9.3\n"
+"Project-Id-Version: cde-copper 0.9.4\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-10-07 22:32+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -1199,4 +1199,52 @@ msgstr ""
 
 #: shell/contents/lockscreen/LockScreen.qml:250
 msgid "No password is needed: press Unlock."
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "LLM cluster (tokens per second)"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "LLM hosts (comma-separated):"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "LLM cluster: %1 t/s"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "LLM cluster"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "Running"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "Busy"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "Sleeping"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "Unreachable"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "t/s"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "%1 t/s"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
+msgid "Total: %1 t/s"
+msgstr ""
+
+#: frontpanel/contents/ui/configGeneral.qml
+msgid "Comma-separated name=http://host:port or name=ssh:PORT. SSH uses curl on the host. Never configure socket proxy ports; ai395:8090 is blocked."
 msgstr ""

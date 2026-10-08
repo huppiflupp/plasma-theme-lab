@@ -19,6 +19,7 @@ KCM.SimpleKCM {
     property var cfg_workspaceCountDefault
     property var cfg_groupWindowsDefault
     property var cfg_windowDisplayDefault
+    property var cfg_llmHostsDefault
     property var cfg_smallButtonsDefault
     property var cfg_workspaceWindowsDefault
     property var cfg_consoleLabelDefault
@@ -57,12 +58,14 @@ KCM.SimpleKCM {
     property alias cfg_floating: floating.checked
     property alias cfg_everyScreen: everyScreen.checked
     // The session block's small buttons, kept in this order.
+    property alias cfg_llmHosts: llmHosts.text
     property var cfg_smallButtons: []
     readonly property var smallChoices: [
         {kind: "configure", text: i18nd("cde-copper", "Console settings")},
         {kind: "lock", text: i18nd("cde-copper", "Lock screen")},
         {kind: "desktop", text: i18nd("cde-copper", "Show desktop")},
         {kind: "load", text: i18nd("cde-copper", "Load meter (processor and memory)")},
+        {kind: "llm", text: i18nd("cde-copper", "LLM cluster (tokens per second)")},
         {kind: "volume", text: i18nd("cde-copper", "Volume (otherwise in the strip's row)")},
         {kind: "network", text: i18nd("cde-copper", "Network (WLAN or cable)")},
         {kind: "logout", text: i18nd("cde-copper", "Leave session")}]
@@ -107,6 +110,16 @@ KCM.SimpleKCM {
                 checked: (page.cfg_smallButtons || []).indexOf(modelData.kind) >= 0
                 onToggled: page.setSmall(modelData.kind, checked)
             }
+        }
+        TextField {
+            id: llmHosts
+            Layout.fillWidth: true
+            Kirigami.FormData.label: i18nd("cde-copper", "LLM hosts (comma-separated):")
+        }
+        Label {
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            text: i18nd("cde-copper", "Comma-separated name=http://host:port or name=ssh:PORT. SSH uses curl on the host. Never configure socket proxy ports; ai395:8090 is blocked.")
         }
         CheckBox {
             id: hideVolume
