@@ -54,10 +54,10 @@ GridLayout {
             id: drop
             anchors.fill: parent
             launcherSlot: slot.modelData; side: slot.side; index: slot.index
-            // Rearranging by press-and-hold: off until confirmed on a real
-            // desktop. (A DragHandler took every press from the button, so
-            // launchers no longer started, 09.10.2026.)
-            draggable: false
+            // Rearranging: hold the tile pressed, then drag it onto another
+            // tile. (A DragHandler took every press from the button, so
+            // launchers no longer started, 09.10.2026; a hold does not.)
+            draggable: true
             surface: slot.colors.panel; accent: slot.colors.highlight
             onRunRequested: command => slot.root.run(command)
             onReplaceLauncher: (desktopId, newSlot) => slot.root.replaceLauncher(slot.side, slot.index, newSlot)
