@@ -36,7 +36,7 @@
          field over a row of keys), panel (the meters as bars beside the keys). -->
     <entry name="smallStyle" type="String"><default>family</default></entry>
     <entry name="llmTile" type="Bool"><default>false</default></entry>
-    <entry name="llmHosts" type="String"><default>245k=http://127.0.0.1:8090,ai395=ssh:18090,x9=http://x9:8090,victus=ssh:8090</default></entry>
+    <entry name="llmHosts" type="String"><default></default></entry>
     <!-- The console shows the volume; keep the tray from showing it twice -->
     <entry name="hideTrayVolume" type="Bool"><default>true</default></entry>
     <!-- Tray entries only behind the console's hidden-icons button -->

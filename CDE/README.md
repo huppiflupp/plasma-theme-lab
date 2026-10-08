@@ -61,8 +61,8 @@ languages can be added as `po/<language>.po`.
   arrow and tile open the same popup, also with Tab and Enter or Space from
   the keyboard (Escape closes it). Launcher labels also control its “LLM”
   caption. Polling runs while either display is visible, using one timer.
-  Set the comma-separated LLM hosts on the same settings page (default:
-  `245k=http://127.0.0.1:8090,ai395=ssh:18090,x9=http://x9:8090,victus=ssh:8090`).
+  Set the comma-separated LLM hosts on the same settings page (empty by
+  default; for example `desk=http://127.0.0.1:8080,server=ssh:8080`).
   Use `name=http://host:port` for direct HTTP or `name=ssh:PORT` for
   passwordless SSH with curl on the host. Python 3.11 or newer is required
   locally; no monitoring tool or remote Python is needed. Every three seconds
@@ -71,8 +71,10 @@ languages can be added as `po/<language>.po`.
   completed-request token/time deltas. The first sample is zero. Counter
   history is stored atomically in `$XDG_RUNTIME_DIR/cde-llmverbund/state.json`
   (fallback: `/tmp/cde-llmverbund-$UID/`), with private directory/file modes.
-  Only backend ports belong in the list: socket proxies must never be queried;
-  `ai395:8090` is blocked, and its backend is reached through SSH on 18090.
+  Only backend ports belong in the list. Ports a probe must never touch (a
+  socket-activated proxy that would start the model) go into
+  `~/.config/cde-copper/llm-guarded` as `host:port`, one per line; they are
+  rejected even when configured.
   Invalid entries are ignored; unreachable nodes contribute zero. The Plasma system tray
   stays in the console's panel for notifications, but by default it is out of
   sight: its entries open from the console's button; the tray's own volume
@@ -165,6 +167,10 @@ WirePlumber's `wpctl`. Launchers start `gtk-launch` or `kstart`;
 appointments in the calendar come from KOrganizer/Akonadi when installed.
 Saved layouts use PyGObject (`python3-gobject`), Spectacle for the preview
 and `kdialog` for the name.
+
+To see beforehand which optional parts are missing and what stays empty
+without them, run `python3 manage.py check` (the installer and `--dry-run`
+print the same list).
 
 The release archive contains ready-built assets. From its extracted directory:
 

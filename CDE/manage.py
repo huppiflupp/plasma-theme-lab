@@ -139,6 +139,53 @@ def kvantum_available():
     return any(Path(p).exists() for p in KVANTUM_PLUGINS) or bool(shutil.which("kvantummanager"))
 
 
+QML_DIRS = ("/usr/lib64/qt6/qml", "/usr/lib/x86_64-linux-gnu/qt6/qml", "/usr/lib/qt6/qml")
+
+
+def qml_module(path):
+    return any((Path(d) / path).is_dir() for d in QML_DIRS)
+
+
+def python_module(name):
+    import importlib.util
+    return importlib.util.find_spec(name) is not None
+
+
+# What each optional part needs, and what stays empty without it: shown
+# before installing, so nobody finds out from a blank tile afterwards.
+REQUIREMENTS = (
+    ("Plasma 5 Support (executable engine)", lambda: qml_module("org/kde/plasma/plasma5support"),
+     "every console action that runs a command: launchers, menus, network, volume"),
+    ("Kvantum (kvantum / qt6-style-kvantum)", kvantum_available,
+     "Motif controls in Qt programs (falls back to the Windows style)"),
+    ("nmcli (NetworkManager)", lambda: bool(shutil.which("nmcli")), "network button and WLAN list"),
+    ("wpctl (WirePlumber)", lambda: bool(shutil.which("wpctl")), "volume button and volume slider"),
+    ("gtk-launch or kstart", lambda: bool(shutil.which("gtk-launch") or shutil.which("kstart")), "starting programs from launchers"),
+    ("PyGObject (python3-gobject)", lambda: python_module("gi"), "saved window layouts"),
+    ("Spectacle", lambda: bool(shutil.which("spectacle")), "preview pictures of saved layouts"),
+    ("kdialog", lambda: bool(shutil.which("kdialog")), "naming a saved layout"),
+    ("ksystemstats sensors", lambda: qml_module("org/kde/ksysguard/sensors"), "load meter (processor, memory)"),
+    ("fc-cache (fontconfig)", lambda: bool(shutil.which("fc-cache")), "the bundled fonts take effect at once"),
+)
+
+
+def check_requirements(quiet=False):
+    """Print which optional parts are missing and what that costs; with
+    quiet only the missing ones. Returns the number missing."""
+    missing = 0
+    for name, test, needed_for in REQUIREMENTS:
+        try:
+            ok = bool(test())
+        except Exception:
+            ok = False
+        missing += not ok
+        if not ok or not quiet:
+            print(f"{'ok     ' if ok else 'MISSING'}  {name}: {needed_for}")
+    if quiet and missing:
+        print(f"{missing} optional part(s) missing; the parts named above stay empty or fall back.")
+    return missing
+
+
 def install_tool():
     """Copy the palette tool into the profile; generated backdrops stay."""
     tool = DATA / TOOL / "tool"
@@ -168,6 +215,7 @@ def install_tool():
 
 
 def install():
+    check_requirements(quiet=True)
     for target in TARGETS + CONFIG_TARGETS:
         if target != TOOL and not (ROOT / "build" / target).exists():
             raise RuntimeError("Build first; missing " + target)
@@ -1067,7 +1115,7 @@ def uninstall():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=("install", "apply", "uninstall", "palettes", "palette", "follow-theme"))
+    parser.add_argument("action", choices=("install", "apply", "uninstall", "palettes", "palette", "follow-theme", "check"))
     parser.add_argument("--palette", help="CDE palette to apply (see the 'palettes' action); Copper is the default")
     parser.add_argument("--backdrop", help="CDE backdrop to tile on the desktop (see 'palettes'), or 'none'")
     parser.add_argument("--follow-scheme", action="store_true", help="palette: take the palette from the colour scheme in System Settings")
@@ -1089,10 +1137,14 @@ def main():
     if args.action == "palettes":
         list_palettes()
         return
+    if args.action == "check":
+        check_requirements()
+        return
     if args.palette and args.palette != "Copper":
         if args.palette not in palettes.names():
             raise RuntimeError(f"Unknown palette {args.palette!r}; run: python3 manage.py palettes")
     if args.dry_run:
+        check_requirements()
         print("\n".join([str(DATA / t) for t in TARGETS] + [str(CONFIG / t) for t in CONFIG_TARGETS]))
         return
     if os.geteuid() == 0:

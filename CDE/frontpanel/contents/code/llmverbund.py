@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Standalone reader, logic adapted from /home/seeas/projects/llmtop/llmtop.py:
 _llama_live, RateTracker, FinishedRate and guarded_ports. No import or execution
-of that project. Only explicitly configured backend ports are scraped; the known
-ai395 socket proxy (8090) is rejected before any transport is started.
+of that project. Only explicitly configured backend ports are scraped. Ports
+listed in $XDG_CONFIG_HOME/cde-copper/llm-guarded (host:port, one per line or
+comma-separated; socket-activated proxies that a probe would wake) are rejected
+before any transport is started.
 """
 import concurrent.futures
 import json
@@ -17,13 +19,29 @@ import time
 import urllib.error
 import urllib.request
 
-DEFAULT_HOSTS = "245k=http://127.0.0.1:8090,ai395=ssh:18090,x9=http://x9:8090,victus=ssh:8090"
+DEFAULT_HOSTS = ""
 HOST = r"[A-Za-z0-9][A-Za-z0-9._-]*"
 BUDGET = 3.3
 
 
+def guarded_ports():
+    """host:port pairs that must never be probed, from the user's own file."""
+    base = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    try:
+        text = (base / "cde-copper" / "llm-guarded").read_text()
+    except OSError:
+        return set()
+    pairs = set()
+    for item in re.split(r"[,\s]+", text):
+        host, _, port = item.strip().lower().rpartition(":")
+        if host and port.isdigit():
+            pairs.add((host.split(".")[0], int(port)))
+    return pairs
+
+
 def hosts_from_text(text):
     nodes = {}
+    guarded = guarded_ports()
     for entry in text.split(","):
         match = re.fullmatch(rf"({HOST})=(http://({HOST}):(\d{{1,5}})|ssh:(\d{{1,5}}))", entry.strip())
         if not match:
@@ -32,9 +50,10 @@ def hosts_from_text(text):
         port = int(http_port or ssh_port)
         if not 1 <= port <= 65535:
             continue
-        # Never probe the socket-activated proxy, including HTTP configuration.
-        if port == 8090 and (name.lower() == "ai395" or
-                            (address or "").lower().split(".")[0] == "ai395"):
+        # Never probe a guarded port (a socket-activated proxy), by node name
+        # or by HTTP address.
+        if any((host, port) in guarded for host in
+               (name.lower(), (address or "").lower().split(".")[0])):
             continue
         nodes[name] = {"name": name, "target": target, "ssh": ssh_port is not None}
     return list(nodes.values())
