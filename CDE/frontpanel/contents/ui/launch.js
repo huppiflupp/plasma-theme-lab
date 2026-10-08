@@ -257,6 +257,132 @@ function slotLabel(slot, translate) {
     return preset ? translate(slot.label) : slot.label;
 }
 
+// Dropping onto a tile (DropTarget.qml).
+
+// What a tile does with dropped files: "open" passes them to its program,
+// "folder" opens their folders, "terminal" starts a terminal in the first
+// one's folder, "trash" moves them to the trash; "" takes no files.
+function fileAction(command) {
+    const token = String(command || "").trim().split(/\s+/)[0] || "";
+    if (token === "@trash") return "trash";
+    if (token === "@files" || token === "@pcmanfm" || token === "@xfile") return "folder";
+    if (token === "@terminal") return "terminal";
+    if (token === "@editor" || token === "@browser" || token.indexOf("app:") === 0) return "open";
+    // Other tokens, D-Bus expressions and the console's own menus take none.
+    if (token === "" || token.charAt(0) === "@" || token.indexOf("$(") === 0) return "";
+    return "open";
+}
+
+// A local file's path for file: URLs (percent-decoded), anything else as
+// the URL itself; "" for a file URL on another host.
+function localPath(url) {
+    const s = String(url);
+    const m = /^file:\/\/([^/]*)(\/.*)$/.exec(s);
+    if (!m) return s.indexOf("file:") === 0 ? "" : s;
+    if (m[1] !== "" && m[1] !== "localhost") return "";
+    try { return decodeURIComponent(m[2]); } catch (e) { return ""; }
+}
+
+// The shell for files dropped on a slot, "" when the slot takes none.
+function dropCommand(command, urls, translate) {
+    const action = fileAction(command);
+    const list = (urls || []).map(String).filter(u => u !== "");
+    if (action === "" || list.length === 0) return "";
+    if (action === "trash")
+        return "if command -v kioclient >/dev/null 2>&1; then kioclient move " + list.map(quote).join(" ") + " trash:/; "
+            + "elif command -v gio >/dev/null 2>&1; then gio trash -- " + list.map(quote).join(" ") + "; "
+            + "else " + missing("kioclient", translate) + "; fi";
+    const local = list.map(localPath);
+    if (action === "open") {
+        const args = local.filter(p => p !== "");
+        return args.length ? resolve(command, args, translate) : "";
+    }
+    // Folders and terminals: local paths only, a file stands for its folder.
+    const paths = local.filter(p => p.charAt(0) === "/");
+    if (paths.length === 0) return "";
+    const token = command.trim().split(/\s+/)[0];
+    if (action === "terminal")
+        return "d=" + quote(paths[0]) + "; [ -d \"$d\" ] || d=$(dirname -- \"$d\"); cd -- \"$d\" && { "
+            + chain(token, "", false, translate) + "; }";
+    // Files from one folder come one after the other: open it once.
+    return "set --; last=; for p in " + paths.map(quote).join(" ") + "; do [ -d \"$p\" ] || p=$(dirname -- \"$p\"); "
+        + "[ \"$p\" = \"$last\" ] && continue; last=$p; set -- \"$@\" \"$p\"; done; "
+        + chain(token, "\"$@\"", false, translate);
+}
+
+// The desktop id of an application entry: "applications:<id>.desktop", or
+// a desktop file under an applications directory (subdirectories joined
+// with "-", as the Desktop Entry spec has it). "" for anything else, so a
+// .desktop file elsewhere is treated as a plain file.
+function desktopId(url) {
+    const s = String(url);
+    if (s.indexOf("applications:") === 0)
+        return s.substring(13).replace(/^\/+/, "").replace(/\.desktop$/, "");
+    const path = localPath(s);
+    const m = /\/applications\/(.+)\.desktop$/.exec(path);
+    return path.charAt(0) === "/" && m ? m[1].split("/").join("-") : "";
+}
+
+// Shell printing the [Desktop Entry] lines of an application by id.
+function desktopEntryQuery(id) {
+    const file = quote(id.split("-").join("/") + ".desktop");
+    const flat = quote(id + ".desktop");
+    return "for d in \"${XDG_DATA_HOME:-$HOME/.local/share}\" $(echo \"${XDG_DATA_DIRS:-/usr/local/share:/usr/share}\" | tr : ' ') /var/lib/flatpak/exports/share; do "
+        + "for f in \"$d/applications/\"" + flat + " \"$d/applications/\"" + file + "; do "
+        + "[ -f \"$f\" ] && { sed -n '/^\\[Desktop Entry\\]/,/^\\[/p' \"$f\" | grep -E '^(Name(\\[[^]]*\\])?|Icon)='; exit 0; }; done; done";
+}
+
+// The slot an application dropped on a tile becomes: name (first word, as
+// the settings page does) and icon from its desktop entry, in the user's
+// language (locale as "de_DE"); the old slot's mail menu is kept.
+function desktopSlot(id, entry, locale, old) {
+    const values = {};
+    String(entry || "").split("\n").forEach(line => {
+        const i = line.indexOf("=");
+        if (i > 0 && !(line.substring(0, i) in values)) values[line.substring(0, i)] = line.substring(i + 1).trim();
+    });
+    const lang = String(locale || "").split(".")[0];
+    const name = values["Name[" + lang + "]"] || values["Name[" + lang.split("_")[0] + "]"] || values.Name || id;
+    return {label: name.split(" ")[0], icon: values.Icon || "application-x-executable",
+            command: "app:" + id, menu: old && old.menu === "mail" ? "mail" : "recent"};
+}
+
+// The two launcher lists after a tile moved, possibly to the other side:
+// it takes the place of the tile it was dropped on. Returns {left, right}
+// as new arrays; the inputs are left alone.
+function moved(left, right, fromSide, fromIndex, toSide, toIndex) {
+    const lists = {left: left.slice(), right: right.slice()};
+    const from = lists[fromSide], to = lists[toSide];
+    if (!from || !to || fromIndex < 0 || fromIndex >= from.length) return lists;
+    const item = from.splice(fromIndex, 1)[0];
+    to.splice(Math.max(0, Math.min(toIndex, to.length)), 0, item);
+    return lists;
+}
+
+// One slot replaced; a new array.
+function replaced(list, index, slot) {
+    const result = list.slice();
+    if (index >= 0 && index < result.length) result[index] = Object.assign({}, slot);
+    return result;
+}
+
+// The configuration text for a launcher list (leftLaunchers,
+// rightLaunchers), in the form parse() reads.
+function serialize(list) {
+    return JSON.stringify(list.map(s => ({label: String(s.label || ""), icon: String(s.icon || ""),
+                                          command: String(s.command || ""), menu: String(s.menu || "")})));
+}
+
+// The drag payload of a tile being moved: "left:2".
+const TILE_MIME = "application/x-cde-copper-launcher";
+function tileRef(side, index) {
+    return side + ":" + index;
+}
+function parseTileRef(text) {
+    const m = /^(left|right):(\d+)$/.exec(String(text || ""));
+    return m ? {side: m[1], index: Number(m[2])} : null;
+}
+
 // Extraction-only markers for strings translated by the QML caller.
 function I18N_NOOP(text) { return text; }
 const TRANSLATABLE_STRINGS = [

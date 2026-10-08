@@ -836,3 +836,89 @@ ubuntu-lab from the cloud image, Wayland, German):
   installer said; with `qt6-style-kvantum` and `apply.sh` again, Dolphin had
   the Motif controls and the Motif window frame.
 - Not checked: the login screen and splash on Ubuntu (SDDM), XFile.
+
+Checks of 2026-10-09 (X11 smoke test, version 0.9.4 as committed in d9803fd),
+Ubuntu 26.04 VM `ubuntu-lab` with Kubuntu's Plasma 6.6.6 on an **X11 session**
+(`plasma-session-x11` and `kwin-x11` installed, SDDM autologin `Session=plasmax11`;
+the VM has no internet behind the host's Docker FORWARD policy, so the 33 .deb
+files were fetched on the host and installed from a local directory), 1280×800,
+German. Input through QEMU's QMP `input-send-event` (absolute tablet) and
+`sendkey`; screenshots through the hypervisor.
+
+- `install.sh` upgraded the installed 0.9.3 in place; after a reboot into X11:
+  `kwin_x11` with the QML Aurorae frame (`kwin4_decoration_qml_cdecopper`),
+  CDE's shell (`org.cde.copper.shell`) and the console at the bottom with
+  clock, launchers, workspaces, task strip and small buttons. Kvantum controls
+  in Dolphin. No `org.cde.*`, QML or Aurorae messages in the user journal, no
+  core dumps.
+- Clicked and seen: workspace buttons (2, then back to 1, windows follow),
+  the clock's calendar popup, the Terminal tile's subpanel (New Terminal,
+  Three, Four), a task button (Konsole raised, frame copper), the volume
+  popup (slider, Mute, Settings), the console's right-click menu (CDE Front
+  Console settings), the Apps tile by click with the cascade opening on hover
+  (Internet › Firefox …), and the Apps menu through the Meta-key route
+  (`activate application launcher`), Escape closing each.
+- Lock screen: `loginctl lock-session 1` showed CDE's Motif dialog on the
+  Lattice backdrop; `unlock-session` returned to the desktop.
+- Arrange Around Console (KGlobalAccel) placed Konsole left and Dolphin in
+  the middle above the console; at 1280 px the left column is only ~110 px
+  wide (one line of the prompt), the layout itself is correct.
+- Alt+Tab: `Walk Through Windows` through KGlobalAccel switched the window;
+  the switcher box itself does not show without a held key, so its look on
+  X11 is not verified.
+- Found on the way (not X11-specific): the workspace buttons' tooltip
+  doubles the name ("Arbeitsfläche 1 Arbeitsfläche 1", "Arbeitsfläche 2 2"),
+  since "Workspace %1 %2" gets the number and the name, and the console
+  names KWin's desktops 2, 3, 4 with the first left empty (`kwinrc`
+  `[Desktops] Name_2=2`), which other Plasma parts show as well.
+- Screenshot: `screenshots/x11-ubuntu-1280.png` (Apps cascade on X11).
+
+Not verified on X11: the Alt+Tab switcher's look, auto-hide, drag of the
+console, a second output, 150/200 % scaling.
+
+Checks of 2026-10-09 (window menu and drop sites, after the split of
+main.qml), Fedora VM `plasma-lab`, Plasma 6.7, Wayland, two outputs
+(1920×1080 at 0,0 and 1280×800 at 1920,0). Input through QEMU's QMP
+`input-send-event` on the HID tablet: its x axis spans both outputs
+(3200 px), so `x_abs = x * 32767 / 3200`; screenshots through the hypervisor.
+
+- Right click on a task button in the strip opens TaskMenu (title, Minimize,
+  Maximize, Keep Above Others, the four workspaces with the window's own
+  marked, All Workspaces, New Workspace, Start New Instance, Close); Plasma's
+  applet menu no longer opens with it (a MouseArea for the right button, a
+  TapHandler let the press through). Keep Above Others toggled by a real
+  click, Maximize through the menu's trigger; Escape closes.
+- Left clicks unchanged: a task button minimizes its active window, the
+  Terminal and System tiles start Konsole and System Settings.
+- With DropTarget's drag source on (`draggable`), clicks on the launcher
+  tiles started nothing; reordering by dragging is therefore off
+  (`draggable: false`) until that is solved.
+- Drop logic exercised from test code, not by a real drag: a file to the
+  trash (`kioclient move … trash:/`), Dolphin's desktop entry read as
+  launcher (label Dolphin, icon org.kde.dolphin, `app:org.kde.dolphin`),
+  a launcher moved from the first place to the third and back.
+- No `org.cde.*` or QML messages in the user journal.
+
+Not verified: a real drag of files or applications onto a tile (no drag
+source in the VM), the right click in the window list and the workspace
+icons, the menu on an upright console.
+
+Checks of 2026-10-09 (launcher tiles and rearranging by drag), VM
+`ubuntu-lab` (Plasma 6.6.6, Wayland, 1280×800), the working tree after the
+main.qml split, clicks through QEMU's QMP input events, the result read from
+the guest's journal (the tile's `systemd-run` unit) and `pgrep konsole`:
+
+- Terminal tile, three clicks each: without pointer movement, with 4 px and
+  with 20 px of movement between press and release.
+  - `draggable: false` (DropArea only): 3 of 3 launched.
+  - `draggable: true` with the DragHandler of the first draft: 0 of 3
+    launched, not even the motionless click. The handler in a child of the
+    tile's button takes the press; this is what stopped the launchers on
+    the host.
+  - `draggable: true` with the drag started by the button's press-and-hold
+    (the version now in `DropTarget.qml`): 3 of 3 launched.
+- Rearranging: hold the Terminal tile for 1.3 s, drag it onto the Editor
+  tile, release: the tile's picture followed the pointer, Editor and
+  Terminal changed places (`cdecopperrc` leftLaunchers: Apps, Files,
+  Editor, Terminal), no terminal was started; dragged back the same way.
+- `python3 build.py`, `tests/verify.py`: 38 tests pass.

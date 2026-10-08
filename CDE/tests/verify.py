@@ -31,6 +31,16 @@ class LlmVerbund(unittest.TestCase):
         self.assertNotIn("cfg_leftLaunchers:", general)
         self.assertNotIn("cfg_rightLaunchers:", general)
 
+    def test_no_private_hosts_in_product(self):
+        # The theme is published: no names from the author's home network.
+        config = ET.parse(ROOT / "frontpanel/contents/config/main.xml")
+        self.assertIsNone(config.find(".//{*}entry[@name='llmHosts']/{*}default").text)
+        for path in (ROOT / "frontpanel").rglob("*"):
+            if path.suffix in (".qml", ".js", ".py", ".xml", ".json"):
+                text = path.read_text().lower()
+                for name in ("245k", "ai395", "victus", "x9:"):
+                    self.assertNotIn(name, text, f"{name} in {path.relative_to(ROOT)}")
+
     def setUp(self):
         import http.server
         import threading
@@ -88,7 +98,10 @@ if host == "dead": sys.exit(255)
 print(json.dumps([{"is_processing": False, "next_token": [{"n_decoded": 0}]}]))
 ''')
         fake.chmod(0o700)
-        self.env = dict(os.environ, XDG_RUNTIME_DIR=str(self.runtime),
+        # The user's own guard list: this proxy port must never be probed.
+        (self.runtime / "cde-copper").mkdir()
+        (self.runtime / "cde-copper/llm-guarded").write_text("ai395:8090\n")
+        self.env = dict(os.environ, XDG_RUNTIME_DIR=str(self.runtime), XDG_CONFIG_HOME=str(self.runtime),
                         PATH=str(self.runtime) + os.pathsep + os.environ["PATH"])
 
     def run_helper(self, hosts):
@@ -765,6 +778,113 @@ submit(); assert.strictEqual(root.authSucceeded, true);
             system.plymouth_uninstall({"parts": {}})
             remove.assert_not_called()
             save.assert_not_called()
+
+
+class ConsoleDrops(unittest.TestCase):
+    """Drop sites on the launcher tiles and the task buttons' window menu."""
+    UI = ROOT / "frontpanel/contents/ui"
+
+    def run_launch(self, checks):
+        source = (self.UI / "launch.js").read_text().replace(".pragma library", "", 1)
+        script = source + "\nconst assert = require('assert');\n" \
+            + "const tr = (t, a) => a === undefined ? t : t.replace('%1', a);\n" + checks
+        result = subprocess.run(["node", "-e", script], text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout
+
+    @unittest.skipUnless(shutil.which("node"), "Node.js needed for launcher logic checks")
+    def test_file_actions_per_tile(self):
+        self.run_launch("""
+assert.strictEqual(fileAction('@trash'), 'trash');
+assert.strictEqual(fileAction('@pcmanfm'), 'folder');
+assert.strictEqual(fileAction('@xfile ~/x'), 'folder');
+assert.strictEqual(fileAction('@terminal'), 'terminal');
+assert.strictEqual(fileAction('@editor'), 'open');
+assert.strictEqual(fileAction('app:org.kde.kate'), 'open');
+assert.strictEqual(fileAction('gimp -n'), 'open');
+for (const none of ['', '@applications', '@layouts', '@arrange', '@terminals three', '@settings', '@mail', DBUS + ' x'])
+    assert.strictEqual(fileAction(none), '', none);
+assert.strictEqual(dropCommand('@settings', ['file:///tmp/a'], tr), '');
+assert.strictEqual(dropCommand('@editor', [], tr), '');
+assert.strictEqual(localPath('file:///home/u/a%20b%27c.txt'), "/home/u/a b'c.txt");
+assert.strictEqual(localPath('file://localhost/tmp/x'), '/tmp/x');
+assert.strictEqual(localPath('file://other/tmp/x'), '');
+assert.strictEqual(localPath('https://example.org/x'), 'https://example.org/x');
+""")
+
+    @unittest.skipUnless(shutil.which("node") and shutil.which("sh"), "Node.js and sh needed")
+    def test_dropped_files_reach_the_program_quoted(self):
+        # The generated shell runs with stub programs that print their
+        # arguments; names with spaces, quotes and $ stay single arguments.
+        with tempfile.TemporaryDirectory(prefix="cde-drop-") as temp:
+            temp = Path(temp)
+            bin_dir = temp / "bin"; bin_dir.mkdir()
+            for name in ("kate", "pcmanfm-qt", "kioclient", "xdg-mime", "kreadconfig6", "konsole"):
+                tool = bin_dir / name
+                body = "exit 1" if name in ("xdg-mime", "kreadconfig6") else \
+                    'printf "%s|" "$(basename "$0")" "$@"; [ "$(basename "$0")" = konsole ] && printf "%s" "$(pwd)"; echo'
+                tool.write_text("#!/bin/sh\n" + body + "\n"); tool.chmod(0o755)
+            folder = temp / "a $dir 'x'"; folder.mkdir()
+            file = folder / "my file.txt"; file.write_text("x")
+            other = folder / "second.txt"; other.write_text("y")
+            urls = [file.as_uri(), other.as_uri()]
+            out = self.run_launch("""
+const urls = %s;
+for (const c of ['@editor', '@pcmanfm', '@trash', '@terminal']) console.log(dropCommand(c, urls, tr));
+""" % json.dumps(urls))
+            env = dict(os.environ, PATH=str(bin_dir) + ":/usr/bin:/bin", HOME=str(temp))
+            results = []
+            for shell in out.strip().split("\n"):
+                results.append(subprocess.run(["sh", "-c", shell], text=True, capture_output=True, env=env).stdout)
+            self.assertEqual(results[0], "kate|%s|%s|\n" % (file, other))
+            # Two files of one folder: the folder opens once.
+            self.assertEqual(results[1], "pcmanfm-qt|%s|\n" % folder)
+            self.assertEqual(results[2], "kioclient|move|%s|%s|trash:/|\n" % tuple(urls))
+            self.assertEqual(results[3], "konsole|--profile|CDE Copper|%s\n" % folder)
+
+    @unittest.skipUnless(shutil.which("node"), "Node.js needed for launcher logic checks")
+    def test_applications_and_reordering(self):
+        self.run_launch("""
+assert.strictEqual(desktopId('applications:org.kde.kate.desktop'), 'org.kde.kate');
+assert.strictEqual(desktopId('file:///usr/share/applications/org.kde.dolphin.desktop'), 'org.kde.dolphin');
+assert.strictEqual(desktopId('file:///usr/share/applications/kde4/foo.desktop'), 'kde4-foo');
+assert.strictEqual(desktopId('file:///home/u/Desktop/foo.desktop'), '');
+assert.strictEqual(desktopId('file:///home/u/notes.txt'), '');
+const entry = 'Name=Text Editor\\nName[de]=Texteditor Kate\\nName[de_CH]=Chuchi\\nIcon=kate\\n';
+assert.deepStrictEqual(desktopSlot('org.kde.kate', entry, 'de_DE', {menu: 'mail'}),
+    {label: 'Texteditor', icon: 'kate', command: 'app:org.kde.kate', menu: 'mail'});
+assert.deepStrictEqual(desktopSlot('x', '', 'en_US', {menu: 'places'}),
+    {label: 'x', icon: 'application-x-executable', command: 'app:x', menu: 'recent'});
+assert.ok(desktopEntryQuery("it's").indexOf("'it'\\\\''s.desktop'") >= 0);
+const L = ['a', 'b', 'c', 'd'], R = ['x', 'y'];
+assert.deepStrictEqual(moved(L, R, 'left', 0, 'left', 2), {left: ['b', 'c', 'a', 'd'], right: R});
+assert.deepStrictEqual(moved(L, R, 'left', 3, 'left', 0), {left: ['d', 'a', 'b', 'c'], right: R});
+assert.deepStrictEqual(moved(L, R, 'left', 1, 'right', 1), {left: ['a', 'c', 'd'], right: ['x', 'b', 'y']});
+assert.deepStrictEqual(moved(L, R, 'right', 1, 'left', 9), {left: ['a', 'b', 'c', 'd', 'y'], right: ['x']});
+assert.deepStrictEqual(moved(L, R, 'left', 7, 'right', 0), {left: L, right: R});
+assert.deepStrictEqual(L, ['a', 'b', 'c', 'd']);
+assert.deepStrictEqual(replaced(L, 1, {label: 'n'}), ['a', {label: 'n'}, 'c', 'd']);
+const round = parse(serialize(LEFT), []);
+assert.deepStrictEqual(round, LEFT);
+assert.deepStrictEqual(parseTileRef(tileRef('right', 3)), {side: 'right', index: 3});
+assert.strictEqual(parseTileRef('middle:1'), null);
+""")
+
+    def test_task_menu_uses_the_installed_api(self):
+        types = Path("/usr/lib64/qt6/qml/org/kde/taskmanager/taskmanager.qmltypes")
+        if not types.exists():
+            types = Path("/usr/lib/qt6/qml/org/kde/taskmanager/taskmanager.qmltypes")
+        if not types.exists():
+            self.skipTest("org.kde.taskmanager not installed")
+        import re
+        api = types.read_text()
+        menu = (self.UI / "TaskMenu.qml").read_text()
+        for call in set(re.findall(r"\b(request\w+|make\w*ModelIndex)\(", menu)):
+            self.assertIn('name: "%s"' % call, api, call)
+        for role in set(re.findall(r"atm\.(\w+)", menu)):
+            self.assertIn('"%s"' % role, api, role)
+        for prop in ("desktopIds", "desktopNames", "currentDesktop"):
+            self.assertIn('name: "%s"' % prop, api, prop)
 
 
 if __name__ == "__main__":

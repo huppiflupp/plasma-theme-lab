@@ -1,7 +1,5 @@
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Window
-import QtQuick.Controls
 import QtQuick.Layouts
 import QtCore
 import org.kde.plasma.plasmoid
@@ -10,8 +8,6 @@ import org.kde.plasma.plasma5support as P5Support
 import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager
 import org.kde.plasma.private.kicker as Kicker
-import org.kde.plasma.workspace.calendar as PlasmaCalendar
-import org.kde.ksysguard.sensors as Sensors
 import "launch.js" as Launch
 import "motif.js" as Motif
 
@@ -30,18 +26,6 @@ PlasmoidItem {
     function hoverSegment(segment, hovered) {
         if (hovered) hoveredSegment = segment;
         else if (hoveredSegment === segment) hoveredSegment = null;
-    }
-    component Keeper: Timer {
-        property var dialog
-        property Item segment
-        property bool inside: false
-        property bool keyboard: false
-        readonly property bool keep: inside || keyboard || (segment !== null && root.hoveredSegment === segment)
-        interval: 450
-        running: dialog && dialog.visible && !keep
-        onTriggered: if (dialog) dialog.visible = false
-        // The pointer on the segment when it opens: a click, not a key.
-        function opened() { keyboard = !(segment !== null && root.hoveredSegment === segment); }
     }
     Connections {
         target: Plasmoid
@@ -143,6 +127,23 @@ PlasmoidItem {
 
     function run(command) {
         runner.connectSource(Launch.detached(command));
+    }
+    // Not detached: short commands whose end is of no interest (wpctl).
+    function execute(command) {
+        runner.connectSource(command);
+    }
+    // Launchers changed on the console itself (DropTarget.qml): written
+    // as the settings page writes them; leftSlots and rightSlots follow.
+    function storeLaunchers(lists) {
+        Plasmoid.configuration.leftLaunchers = Launch.serialize(lists.left);
+        Plasmoid.configuration.rightLaunchers = Launch.serialize(lists.right);
+    }
+    function moveLauncher(fromSide, fromIndex, toSide, toIndex) {
+        storeLaunchers(Launch.moved(leftSlots, rightSlots, fromSide, fromIndex, toSide, toIndex));
+    }
+    function replaceLauncher(side, index, slot) {
+        storeLaunchers({left: side === "left" ? Launch.replaced(leftSlots, index, slot) : leftSlots,
+                        right: side === "right" ? Launch.replaced(rightSlots, index, slot) : rightSlots});
     }
     function launch(slot, anchor) {
         if (slot.command === "@applications") openApplications(anchor);
@@ -389,34 +390,6 @@ PlasmoidItem {
         onTriggered: if (root.pendingHiding) runner.connectSource(root.dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(root.pendingHiding))
     }
 
-    // The tray beside the console would show a second volume control; the
-    // console's own one (wheel, click for slider and mute) replaces it.
-    function syncTray() {
-        const hide = Plasmoid.configuration.hideTrayVolume;
-        // With hideTrayIcons every entry the tray knows goes to its hidden
-        // list: the tray beside the console shrinks to its arrow (and what
-        // asks for attention), the entries open from the console's button.
-        const icons = Plasmoid.configuration.hideTrayIcons;
-        // Applications' status icons are not in the tray's list; their ids
-        // come from the helper (statusIds, refreshed by trayIds below).
-        // The entries the console hid itself are recorded in its own
-        // settings (trayHiddenByConsole); switching the option off takes out
-        // only those, so what the user hid in the tray stays hidden.
-        const script = "function list(w, key) { var v = w.readConfig(key, []); return typeof v === 'string' ? (v ? v.split(',') : []) : v; }"
-            + " for (var p of panels()) { var ours = p.widgets().filter(function (w) { return w.type === 'org.cde.copper.frontpanel'; })[0]; if (!ours) continue;"
-            + " ours.currentConfigGroup = ['General']; var mine = list(ours, 'trayHiddenByConsole');"
-            + " for (var w of p.widgets()) { if (w.type !== 'org.kde.plasma.systemtray') continue; w.currentConfigGroup = ['General'];"
-            + " var items = w.readConfig('extraItems', []); if (typeof items === 'string') items = items ? items.split(',') : [];"
-            + " var has = items.indexOf('org.kde.plasma.volume') >= 0;"
-            + (hide ? " if (has) w.writeConfig('extraItems', items.filter(function (i) { return i !== 'org.kde.plasma.volume'; }));"
-                    : " if (!has && items.length) { items.push('org.kde.plasma.volume'); w.writeConfig('extraItems', items); }")
-            + " var now = list(w, 'hiddenItems');"
-            + (icons ? " var add = list(w, 'knownItems').concat(" + JSON.stringify(root.statusIds) + ").filter(function (i, k, all) { return now.indexOf(i) < 0 && all.indexOf(i) === k; });"
-                       + " if (add.length) { w.writeConfig('hiddenItems', now.concat(add)); ours.writeConfig('trayHiddenByConsole', mine.concat(add)); }"
-                     : " if (mine.length) { w.writeConfig('hiddenItems', now.filter(function (i) { return mine.indexOf(i) < 0; })); ours.writeConfig('trayHiddenByConsole', []); }")
-            + " } }";
-        runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(script));
-    }
     function setVolume(percent) {
         const value = Math.max(0, Math.min(150, Math.round(percent)));
         root.volume = value;
@@ -446,6 +419,19 @@ PlasmoidItem {
         root.networkKind = kind; root.networkName = name; root.networkSignal = signal;
         root.networkState = !kind ? i18nd("cde-copper", "Offline")
             : kind === "wifi" ? i18nd("cde-copper", "WLAN %1, %2 %", name, signal) : i18nd("cde-copper", "Cable %1", name);
+    }
+    // nmcli's terse form (":" inside a field escaped) as its fields; here and
+    // in the network popup's list.
+    function terseFields(line) {
+        const out = [];
+        let field = "";
+        for (let i = 0; i < line.length; i++) {
+            if (line[i] === "\\" && i + 1 < line.length) { field += line[++i]; continue; }
+            if (line[i] === ":") { out.push(field); field = ""; continue; }
+            field += line[i];
+        }
+        out.push(field);
+        return out;
     }
     function readVolume(stdout) {
         const match = stdout.match(/Volume: ([0-9.]+)/);
@@ -484,9 +470,6 @@ PlasmoidItem {
         function onConsoleScaleChanged() { root.configurePanel(); }
         function onFloatingChanged() { root.configurePanel(); }
         function onEveryScreenChanged() { root.placeConsoles(); }
-        function onHideTrayVolumeChanged() { root.syncTray(); }
-        function onHideTrayIconsChanged() { root.syncTray(); root.placeTray(); }
-        function onPanelFrameChanged() { root.placePanelFrame(); }
         // The Style page's choice, taken by the settings dialog's Apply/OK.
         function onStyleRequestChanged() {
             let request = null;
@@ -528,86 +511,9 @@ PlasmoidItem {
         installTranslations();
         if (Plasmoid.configuration.consoleScale !== 1 || !Plasmoid.configuration.floating || stripHidden) configurePanel();
         workspaceSync.start();
-        // The tray fills its item list on its first start; look once it has.
-        trayTimer.start();
     }
-    // Plasma's tray has no setting to drop its arrow. With its entries
-    // behind the console's button, its container in the panel's layout is
-    // hidden instead; the tray keeps running for notifications and its popup.
-    // What placeTray() changed, to put back when the option is switched off.
-    property var trayLayoutSpacing: null
-    property var hiddenTray: null
-    function placeTray() {
-        const layout = root.parent ? root.parent.parent : null;
-        if (!layout || !layout.children) return;
-        const hide = Plasmoid.configuration.hideTrayIcons;
-        for (const item of layout.children) {
-            const applet = item.applet ? item.applet.plasmoid : null;
-            if (!applet || applet.pluginName !== "org.kde.plasma.systemtray") continue;
-            if (hide) { item.visible = false; root.hiddenTray = item; }
-            else if (root.hiddenTray === item) { item.visible = true; root.hiddenTray = null; }
-        }
-        // The panel's layout keeps its spacing after the console, before an
-        // invisible end spacer: four pixels more panel on one side.
-        if (hide && root.trayLayoutSpacing === null) {
-            root.trayLayoutSpacing = [layout.columnSpacing, layout.rowSpacing];
-            layout.columnSpacing = 0; layout.rowSpacing = 0;
-        } else if (!hide && root.trayLayoutSpacing !== null) {
-            layout.columnSpacing = root.trayLayoutSpacing[0]; layout.rowSpacing = root.trayLayoutSpacing[1];
-            root.trayLayoutSpacing = null;
-        }
-    }
-    // The panel's own background (the theme's panel-background frame) behind
-    // the console. Without it the console stands on the desktop by itself;
-    // the panel keeps its size, so the margin around stays, transparent.
-    // Hidden by scale, not opacity: Plasma binds the frames' opacity to its
-    // adaptive panel opacity, and an assignment would break that binding.
-    function placePanelFrame() {
-        let item = root.parent;
-        while (item && item.parent) item = item.parent;     // the panel window's root
-        const show = Plasmoid.configuration.panelFrame;
-        function walk(node, depth) {
-            if (!node || depth > 3 || !node.children) return;
-            for (const child of node.children) {
-                if (child.imagePath !== undefined && String(child.imagePath).indexOf("panel-background") >= 0) child.scale = show ? 1 : 0;
-                else walk(child, depth + 1);
-            }
-        }
-        walk(item, 0);
-    }
-    Timer { id: trayTimer; interval: 4000; onTriggered: { root.placeTray(); root.placePanelFrame(); trayIds.connectSource("python3 " + Launch.quote(root.helper) + " tray"); } }
-    // Applications add status icons while the session runs: look again
-    // every half minute while the tray's entries are kept behind the button.
-    property var statusIds: []
-    Timer {
-        interval: 30000; repeat: true
-        running: Plasmoid.configuration.hideTrayIcons
-        onTriggered: trayIds.connectSource("python3 " + Launch.quote(root.helper) + " tray")
-    }
-    P5Support.DataSource {
-        id: trayIds
-        engine: "executable"
-        onNewData: function(sourceName, data) {
-            disconnectSource(sourceName);
-            let ids = [];
-            try { ids = JSON.parse(data.stdout); } catch (e) {}
-            if (!root.traySynced || JSON.stringify(ids) !== JSON.stringify(root.statusIds)) {
-                root.statusIds = ids; root.traySynced = true; root.syncTray();
-            }
-        }
-    }
-    property bool traySynced: false
 
-    Kicker.AppsModel { id: allApps; flat: true; sorted: true; autoPopulate: true; appletInterface: Plasmoid }
     Kicker.AppsModel { id: categoryApps; flat: false; sorted: true; autoPopulate: true; showSeparators: false; appletInterface: Plasmoid }
-    PlasmaCalendar.EventPluginsManager {
-        id: eventPlugins
-        Component.onCompleted: populateEnabledPluginsList(Plasmoid.configuration.enabledCalendarPlugins)
-    }
-    Connections {
-        target: Plasmoid.configuration
-        function onEnabledCalendarPluginsChanged() { eventPlugins.populateEnabledPluginsList(Plasmoid.configuration.enabledCalendarPlugins); }
-    }
 
     P5Support.DataSource {
         id: runner
@@ -683,296 +589,6 @@ PlasmoidItem {
     }
     function u(pixels) { return Math.round(pixels * consoleColors.unit); }
 
-    // A launcher tile with its subpanel arrow: arrow above the tile across,
-    // beside it (towards the screen) upright.
-    component Slot: GridLayout {
-        id: slot
-        required property var modelData
-        rows: root.vertical ? 1 : 2
-        columns: root.vertical ? 2 : 1
-        rowSpacing: 1; columnSpacing: 1
-        Layout.fillWidth: true; Layout.fillHeight: true
-        Layout.preferredWidth: root.vertical ? -1 : root.u(68)
-        Layout.preferredHeight: root.vertical ? root.u(62) : -1
-        ConsoleButton {
-            id: arrow
-            Layout.row: 0
-            Layout.column: root.vertical && !root.atRight ? 1 : 0
-            Layout.fillWidth: !root.vertical; Layout.fillHeight: root.vertical
-            Layout.preferredHeight: root.vertical ? -1 : root.u(13)
-            Layout.preferredWidth: root.vertical ? root.u(13) : -1
-            text: ""
-            enabled: slot.modelData.menu !== ""
-            opacity: enabled ? 1 : 0.35
-            Accessible.name: slot.modelData.menu ? i18nd("cde-copper", "Open %1", i18nd("cde-copper", (Launch.MENUS.find(m => m.value === slot.modelData.menu) || {text: slot.modelData.menu}).text)) : ""
-            selected: popup.visible && popup.visualParent === arrow
-            contentItem: Text {
-                text: root.arrowGlyph
-                color: consoleColors.panelText; font.pixelSize: root.u(12)
-                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-            }
-            onClicked: { root.popupSegment = slot; root.openMenu(slot.modelData, arrow); }
-        }
-        ConsoleButton {
-            id: launcher
-            Layout.row: root.vertical ? 0 : 1
-            Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
-            Layout.fillWidth: true; Layout.fillHeight: true
-            text: Launch.slotLabel(slot.modelData, text => i18nd("cde-copper", text)); iconName: slot.modelData.icon
-            labelled: Plasmoid.configuration.launcherLabels
-            onClicked: root.launch(slot.modelData, launcher)
-            // The Applications tile, where the Meta key opens the menu.
-            Component.onCompleted: if (slot.modelData.command === "@applications") root.appsTile = launcher
-        }
-        HoverHandler { onHoveredChanged: root.hoverSegment(slot, hovered) }
-    }
-
-    component LlmTile: GridLayout {
-        id: tile
-        rows: root.vertical ? 1 : 2
-        columns: root.vertical ? 2 : 1
-        rowSpacing: 1; columnSpacing: 1
-        Layout.fillWidth: true; Layout.fillHeight: true
-        Layout.preferredWidth: root.vertical ? -1 : root.u(68)
-        Layout.preferredHeight: root.vertical ? root.u(62) : -1
-        readonly property bool popupSelected: llmPopup.visible && (llmPopup.visualParent === arrow || llmPopup.visualParent === launcher)
-        Binding { target: root; property: "llmTileVisible"; value: tile.visible && tile.Window.window !== null && tile.Window.window.visible; restoreMode: Binding.RestoreBindingOrValue }
-        ConsoleButton {
-            id: arrow
-            Layout.row: 0
-            Layout.column: root.vertical && !root.atRight ? 1 : 0
-            Layout.fillWidth: !root.vertical; Layout.fillHeight: root.vertical
-            Layout.preferredHeight: root.vertical ? -1 : root.u(13)
-            Layout.preferredWidth: root.vertical ? root.u(13) : -1
-            text: ""
-            Accessible.name: i18nd("cde-copper", "LLM cluster: %1 t/s", Math.round(root.llmTotal))
-            selected: tile.popupSelected
-            contentItem: Text {
-                text: root.arrowGlyph
-                color: consoleColors.panelText; font.pixelSize: root.u(12)
-                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-            }
-            onClicked: root.toggleLlm(arrow, tile)
-        }
-        ConsoleButton {
-            id: launcher
-            Layout.row: root.vertical ? 0 : 1
-            Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
-            Layout.fillWidth: true; Layout.fillHeight: true
-            text: ""
-            labelled: Plasmoid.configuration.launcherLabels
-            Accessible.name: i18nd("cde-copper", "LLM cluster: %1 t/s", Math.round(root.llmTotal))
-            selected: tile.popupSelected
-            onClicked: root.toggleLlm(launcher, tile)
-            contentItem: Item {
-                implicitWidth: root.u(58); implicitHeight: root.u(55)
-                Text {
-                    width: parent.width; height: Math.round(parent.height * (launcher.labelled ? 0.52 : 0.68))
-                    text: Math.round(root.llmTotal)
-                    color: launcher.selected ? launcher.accentText : consoleColors.panelText
-                    font.family: consoleColors.font; font.pixelSize: root.u(24); font.weight: Font.DemiBold
-                    fontSizeMode: Text.Fit; minimumPixelSize: root.u(8)
-                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                }
-                Text {
-                    width: parent.width; y: Math.round(parent.height * (launcher.labelled ? 0.52 : 0.68))
-                    height: Math.round(parent.height * (launcher.labelled ? 0.25 : 0.32))
-                    text: i18nd("cde-copper", "t/s")
-                    color: launcher.selected ? launcher.accentText : consoleColors.panelText
-                    font.family: consoleColors.font; font.pixelSize: root.u(10)
-                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                }
-                Text {
-                    visible: launcher.labelled
-                    width: parent.width; y: Math.round(parent.height * 0.77); height: parent.height - y
-                    text: i18nd("cde-copper", "LLM")
-                    color: launcher.selected ? launcher.accentText : consoleColors.panelText
-                    font.family: consoleColors.font; font.pixelSize: root.u(11); font.weight: consoleColors.weight
-                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                }
-            }
-        }
-        HoverHandler { onHoveredChanged: root.hoverSegment(tile, hovered) }
-    }
-
-    component ClockTile: ConsoleButton {
-        id: clock
-        Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
-        Layout.preferredWidth: root.vertical ? -1 : root.u(92)
-        Layout.preferredHeight: root.vertical ? root.u(72) : -1
-        surface: consoleColors.window
-        selected: calendar.visible
-        Accessible.name: Qt.formatDateTime(root.now, Qt.locale().dateTimeFormat(Locale.LongFormat))
-        onClicked: {
-            if (Plasmoid.configuration.clockOpensApp) root.run(Launch.resolve(Plasmoid.configuration.calendarCommand || "@calendar", [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg)));
-            else { calendar.visualParent = clock; calendar.visible = !calendar.visible; }
-        }
-        HoverHandler { onHoveredChanged: root.hoverSegment(clock, hovered) }
-        contentItem: ClockFace {
-            style: Plasmoid.configuration.clockStyle
-            dial: Plasmoid.configuration.clockDial
-            seconds: Plasmoid.configuration.clockSeconds
-            segmentShadow: Plasmoid.configuration.clockSegmentShadow
-            segmentEdge: Plasmoid.configuration.clockSegmentEdge
-            now: root.now
-            ink: clock.selected ? consoleColors.highlightText : consoleColors.windowText
-            dim: consoleColors.hard ? 1 : 0.8
-            bold: consoleColors.hard
-            // Lit segments and the second hand: the selection (copper) colour,
-            // swapped while the tile itself is highlighted.
-            accent: clock.selected ? consoleColors.highlightText : consoleColors.highlight
-            lamp: consoleColors.highlight
-            dialColor: consoleColors.field
-            tile: clock.selected ? consoleColors.highlight : consoleColors.window
-            font: consoleColors.font
-        }
-    }
-
-    component Workspaces: Bevel {
-        id: workspacesBlock
-        visible: Plasmoid.configuration.showWorkspaces
-        // With the windows each button has a well of window icons below it.
-        readonly property bool withWindows: root.windowDisplay === "workspaces" || root.windowDisplay === "pager"
-        // Two rows across: more workspaces widen the block, upright they
-        // stack. With the windows one row across, for room under the buttons.
-        readonly property int columns: root.vertical ? 2
-                                     : withWindows ? Math.max(1, desktops.desktopIds.length)
-                                     : Math.max(2, Math.ceil(desktops.desktopIds.length / 2))
-        readonly property int rows: Math.max(1, Math.ceil(desktops.desktopIds.length / columns))
-        Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
-        // With the windows each column holds four icons across.
-        readonly property int cellWidth: withWindows ? Math.max(Plasmoid.configuration.workspaceButtonWidth, 4 * 25 + 4) : Plasmoid.configuration.workspaceButtonWidth
-        Layout.preferredWidth: root.vertical ? -1 : root.u((cellWidth + 12) * columns)
-        Layout.preferredHeight: root.vertical ? root.u(withWindows ? 8 + rows * 70 : 72) : -1
-        surface: Motif.shades(consoleColors.panel).bottom; sunken: true
-        ColumnLayout {
-            anchors.fill: parent; anchors.margins: 4; spacing: 3
-            Text {
-                // With the windows the room goes to their icons.
-                visible: !workspacesBlock.withWindows
-                Layout.fillWidth: true; text: i18nd("cde-copper", "WORKSPACES"); color: consoleColors.hard ? Motif.stark(consoleColors.panel) : Motif.shades(consoleColors.panel).top
-                font.pixelSize: root.u(9); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter
-                font.weight: consoleColors.weight
-            }
-            GridLayout {
-                columns: parent.parent.columns; rowSpacing: 3; columnSpacing: 3
-                Layout.fillWidth: true; Layout.fillHeight: true
-                Repeater {
-                    model: desktops.desktopIds
-                    delegate: ColumnLayout {
-                        id: workspaceCell
-                        required property int index
-                        required property var modelData
-                        Layout.fillWidth: true; Layout.fillHeight: true
-                        spacing: 2
-                    ConsoleButton {
-                        readonly property int index: workspaceCell.index
-                        readonly property var modelData: workspaceCell.modelData
-                        Layout.fillWidth: true; Layout.fillHeight: !workspacesBlock.withWindows
-                        // With the windows a low button, the icons below it larger.
-                        Layout.preferredHeight: workspacesBlock.withWindows ? root.u(17) : -1
-                        topPadding: workspacesBlock.withWindows ? 0 : 5; bottomPadding: topPadding
-                        implicitWidth: root.u(root.vertical ? 40 : workspacesBlock.cellWidth); implicitHeight: root.u(23)
-                        text: root.workspaceLabel(index)
-                        Accessible.name: i18nd("cde-copper", "Workspace %1 %2", index + 1, desktops.desktopNames[index] || "")
-                        selected: desktops.currentDesktop === modelData
-                        // As in CDE, each workspace in a colour of its own.
-                        readonly property var own: Plasmoid.configuration.workspaceColours && root.workspaceColours.length
-                                                   ? root.workspaceColours[index % root.workspaceColours.length] : null
-                        surface: own ? own.bg : consoleColors.panel
-                        foreground: own ? (consoleColors.hard ? Motif.stark(own.bg) : own.fg) : consoleColors.panelText
-                        accent: own ? own.sel : consoleColors.highlight
-                        accentText: own ? (consoleColors.hard ? Motif.stark(own.bg) : own.fg) : consoleColors.highlightText
-                        onClicked: root.run(root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
-                    }
-                    WindowWell {
-                        visible: root.windowDisplay === "workspaces"
-                        desktop: workspaceCell.modelData
-                        Layout.fillWidth: true; Layout.fillHeight: true
-                    }
-                    WindowMap {
-                        visible: root.windowDisplay === "pager"
-                        desktop: workspaceCell.modelData
-                        desktopNumber: workspaceCell.index + 1
-                        Layout.fillWidth: true; Layout.fillHeight: true
-                    }
-                    }
-                }
-            }
-        }
-    }
-
-    // A workspace in miniature, as the pagers of the 1990s drew it: each
-    // window a raised rectangle where it lies on the screens, its icon in
-    // it, the active one in the selection colour, minimized ones left out.
-    // A click brings a window forward; one beside the windows switches to
-    // the workspace.
-    component WindowMap: Bevel {
-        id: map
-        property string desktop: ""
-        property int desktopNumber: 1
-        sunken: true
-        surface: Motif.shades(consoleColors.panel).bottom
-        readonly property var rows: root.windowRows(desktop, root.windowRevision)
-        readonly property rect area: root.desktopArea
-        readonly property real scale: Math.min((width - 4) / Math.max(1, area.width), (height - 4) / Math.max(1, area.height))
-        MouseArea {
-            anchors.fill: parent
-            onClicked: root.run(root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + map.desktopNumber)
-        }
-        Item {
-            id: screens
-            width: Math.round(map.area.width * map.scale); height: Math.round(map.area.height * map.scale)
-            x: Math.round((map.width - width) / 2); y: Math.round((map.height - height) / 2)
-            clip: true
-            // The screens' outlines, for orientation with more than one.
-            Repeater {
-                model: Qt.application.screens.length > 1 ? Qt.application.screens : []
-                delegate: Rectangle {
-                    required property var modelData
-                    x: Math.round((modelData.virtualX - map.area.x) * map.scale)
-                    y: Math.round((modelData.virtualY - map.area.y) * map.scale)
-                    width: Math.round(modelData.width * map.scale); height: Math.round(modelData.height * map.scale)
-                    color: "transparent"
-                    border.width: 1; border.color: Motif.shades(consoleColors.panel).top
-                    opacity: 0.35
-                }
-            }
-            Repeater {
-                model: map.rows
-                delegate: ConsoleButton {
-                    id: windowRect
-                    required property int modelData
-                    readonly property var idx: tasks.makeModelIndex(modelData)
-                    readonly property int revision: root.windowRevision
-                    readonly property rect frame: (revision, tasks.data(idx, TaskManager.AbstractTasksModel.Geometry)) || Qt.rect(0, 0, 0, 0)
-                    visible: !(revision, tasks.data(idx, TaskManager.AbstractTasksModel.IsMinimized)) && frame.width > 0
-                    x: Math.round((frame.x - map.area.x) * map.scale)
-                    y: Math.round((frame.y - map.area.y) * map.scale)
-                    width: Math.max(6, Math.round(frame.width * map.scale))
-                    height: Math.max(6, Math.round(frame.height * map.scale))
-                    // Top windows over lower ones.
-                    z: (revision, tasks.data(idx, TaskManager.AbstractTasksModel.StackingOrder)) || 0
-                    padding: 0; text: ""
-                    Accessible.name: (revision, tasks.data(idx, Qt.DisplayRole) || i18nd("cde-copper", "Window"))
-                    selected: (revision, Boolean(tasks.data(idx, TaskManager.AbstractTasksModel.IsActive)))
-                    contentItem: Item {
-                        Kirigami.Icon {
-                            readonly property int side: Math.min(root.u(20), Math.min(windowRect.width, windowRect.height) - 4)
-                            visible: side >= 8
-                            anchors.centerIn: parent
-                            width: side; height: side
-                            source: (windowRect.revision, tasks.data(windowRect.idx, Qt.DecorationRole))
-                            active: false; roundToIconSize: false
-                        }
-                    }
-                    onClicked: {
-                        if (selected) tasks.requestToggleMinimized(idx); else tasks.requestActivate(idx);
-                    }
-                }
-            }
-        }
-    }
     // All screens together, as one workspace spans them; with one console
     // per screen listing only its own windows, that screen.
     readonly property rect desktopArea: {
@@ -987,320 +603,19 @@ PlasmoidItem {
         return Qt.rect(left, top, right - left, bottom - top);
     }
 
-    // A workspace's windows as small icon buttons in a sunken well: a click
-    // brings a window forward (and its workspace), on the active one it
-    // minimizes. What does not fit is counted in the last place, "+3".
-    component WindowWell: Bevel {
-        id: well
-        property string desktop: ""
-        sunken: true
-        surface: Motif.shades(consoleColors.panel).bottom
-        readonly property var rows: root.windowRows(desktop, root.windowRevision)
-        // Two rows of icons in the well's height, no larger than 24.
-        readonly property int side: Math.max(10, Math.min(root.u(24), Math.floor((height - 4 - 1) / 2)))
-        readonly property int perRow: Math.max(1, Math.floor((width - 4 + 1) / (side + 1)))
-        readonly property int capacity: perRow * Math.max(1, Math.floor((height - 4 + 1) / (side + 1)))
-        readonly property bool overflow: rows.length > capacity
-        Flow {
-            anchors.fill: parent; anchors.margins: 2
-            spacing: 1
-            clip: true
-            Repeater {
-                model: well.overflow ? well.rows.slice(0, well.capacity - 1) : well.rows
-                delegate: ConsoleButton {
-                    id: windowIcon
-                    required property int modelData
-                    readonly property var idx: tasks.makeModelIndex(modelData)
-                    readonly property int revision: root.windowRevision
-                    width: well.side; height: well.side
-                    padding: 0; text: ""
-                    Accessible.name: (revision, tasks.data(idx, Qt.DisplayRole) || i18nd("cde-copper", "Window"))
-                    selected: (revision, Boolean(tasks.data(idx, TaskManager.AbstractTasksModel.IsActive)))
-                    opacity: (revision, tasks.data(idx, TaskManager.AbstractTasksModel.IsMinimized)) ? 0.5 : 1
-                    contentItem: Item {
-                        Kirigami.Icon {
-                            anchors.centerIn: parent
-                            width: Math.round(well.side * 0.75); height: width
-                            source: (windowIcon.revision, tasks.data(windowIcon.idx, Qt.DecorationRole))
-                            active: false; roundToIconSize: false
-                        }
-                    }
-                    onClicked: {
-                        if (selected) tasks.requestToggleMinimized(idx); else tasks.requestActivate(idx);
-                    }
-                }
-            }
-            Text {
-                visible: well.overflow
-                width: well.side; height: well.side
-                text: "+" + (well.rows.length - well.capacity + 1)
-                color: consoleColors.panelText
-                font.family: consoleColors.font; font.pixelSize: root.u(9)
-                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-            }
-        }
-    }
+    // The console's parts and popups live in files of their own beside this
+    // one. Each is given this root (and consoleColors) as a property and
+    // reaches the shared models and popups through these, never by id.
+    readonly property TaskManager.TasksModel taskModel: tasks
+    readonly property TaskManager.VirtualDesktopInfo desktopInfo: desktops
+    readonly property Item taskMenu: windowMenu
+    readonly property PlasmaCore.Dialog sectionDialog: popup
+    readonly property PlasmaCore.Dialog windowsDialog: windowsPopup
+    readonly property PlasmaCore.Dialog llmDialog: llmPopup
+    readonly property PlasmaCore.Dialog volumeDialog: volumePopup
+    readonly property PlasmaCore.Dialog networkDialog: networkPopup
+    readonly property PlasmaCore.Dialog calendarDialog: calendar
 
-    // The session block: an arrow strip like the launchers' over square
-    // quarter buttons, two to a column. The arrow opens the tray's hidden
-    // icons; which quarters there are is a setting (smallButtons), and how
-    // they look another (smallStyle):
-    //   family       all quarters alike, the meters among the keys
-    //   instruments  the same, the meters sunken in the clock's colours
-    //   led          the meters as one LED field over a row of keys
-    //   panel        the meters as one panel of bars beside the keys
-    // Upright the LED field and the panel have no room: instruments then.
-    component SessionButtons: GridLayout {
-        id: session
-        rows: root.vertical ? 1 : 2
-        columns: root.vertical ? 2 : 1
-        rowSpacing: 1; columnSpacing: 1
-        Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
-        // The side of one square, from the space beside the arrow strip.
-        readonly property int quarter: Math.max(10, Math.floor(((root.vertical ? width : height) - root.u(13) - 2) / 2))
-        readonly property string style: {
-            const wanted = Plasmoid.configuration.smallStyle;
-            if (["instruments", "led", "panel"].indexOf(wanted) < 0) return "family";
-            return root.vertical && wanted !== "instruments" ? "instruments" : wanted;
-        }
-        readonly property var meters: root.smallButtons.filter(k => k === "load" || k === "llm")
-        readonly property var keys: root.smallButtons.filter(k => k !== "load" && k !== "llm")
-        // The LED field and the panel gather the meters; without any, keys only.
-        readonly property bool grouped: (style === "led" || style === "panel") && meters.length > 0
-        readonly property bool ledRow: grouped && style === "led"
-        readonly property var gridKinds: grouped ? keys : root.smallButtons
-        readonly property int pairs: Math.max(1, Math.ceil(gridKinds.length / 2))
-        // The LED field: about two quarters for each meter's digits.
-        readonly property int ledColumns: Math.max(gridKinds.length, 2 * meters.length)
-        // The panel: a bar per reading (the cluster's, the processor's, the memory's).
-        readonly property int barCount: (meters.indexOf("llm") >= 0 ? 1 : 0) + (meters.indexOf("load") >= 0 ? 2 : 0)
-        readonly property int panelWidth: grouped && style === "panel" ? Math.round(quarter * (0.35 + 0.45 * barCount)) : 0
-        readonly property int blockWidth: ledRow ? ledColumns * quarter + ledColumns - 1
-            : (panelWidth > 0 ? panelWidth + (gridKinds.length > 0 ? 1 : 0) : 0)
-              + (gridKinds.length > 0 ? pairs * quarter + pairs - 1 : 0)
-        Layout.preferredWidth: root.vertical ? -1 : blockWidth
-        Layout.preferredHeight: root.vertical ? pairs * quarter + pairs - 1 : -1
-        ConsoleButton {
-            Layout.row: 0
-            Layout.column: root.vertical && !root.atRight ? 1 : 0
-            Layout.fillWidth: !root.vertical; Layout.fillHeight: root.vertical
-            Layout.preferredHeight: root.vertical ? -1 : root.u(13)
-            Layout.preferredWidth: root.vertical ? root.u(13) : -1
-            text: ""
-            Accessible.name: i18nd("cde-copper", "Hidden Icons")
-            contentItem: Text {
-                text: root.arrowGlyph
-                color: consoleColors.panelText; font.pixelSize: root.u(12)
-                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-            }
-            onClicked: root.showHiddenIcons()
-        }
-        RowLayout {
-            Layout.row: root.vertical ? 0 : 1
-            Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
-            Layout.alignment: Qt.AlignCenter
-            Layout.preferredWidth: root.vertical ? 2 * session.quarter + 1 : session.blockWidth
-            Layout.preferredHeight: root.vertical ? session.pairs * session.quarter + session.pairs - 1 : 2 * session.quarter + 1
-            spacing: 1
-            Loader {
-                active: session.grouped && session.style === "panel"
-                visible: active
-                Layout.fillHeight: true
-                Layout.preferredWidth: session.panelWidth
-                sourceComponent: Instruments { bars: true; kinds: session.meters }
-            }
-            ColumnLayout {
-                Layout.fillWidth: true; Layout.fillHeight: true
-                spacing: 1
-                Loader {
-                    active: session.ledRow
-                    visible: active
-                    Layout.fillWidth: true
-                    // Without keys below the field takes the whole height.
-                    Layout.fillHeight: session.gridKinds.length === 0
-                    Layout.preferredHeight: session.quarter
-                    sourceComponent: Instruments { bars: false; kinds: session.meters }
-                }
-                GridLayout {
-                    visible: session.gridKinds.length > 0
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    // Across: columns of two, filled top to bottom; upright:
-                    // rows of two. Under the LED field the keys stand in one row.
-                    flow: root.vertical ? GridLayout.LeftToRight : GridLayout.TopToBottom
-                    rows: root.vertical ? session.pairs : session.ledRow ? 1 : 2
-                    columns: root.vertical ? 2 : session.ledRow ? session.gridKinds.length : session.pairs
-                    rowSpacing: 1; columnSpacing: 1
-                    Repeater {
-                        model: session.gridKinds
-                        delegate: Loader {
-                            required property string modelData
-                            required property int index
-                            // An odd last quarter takes both places of its pair: no gap.
-                            readonly property bool stretched: !session.ledRow && index === session.gridKinds.length - 1 && index % 2 === 0
-                            Layout.rowSpan: stretched && !root.vertical ? 2 : 1
-                            Layout.columnSpan: stretched && root.vertical ? 2 : 1
-                            Layout.fillWidth: true; Layout.fillHeight: true
-                            Layout.preferredWidth: 1; Layout.preferredHeight: 1
-                            sourceComponent: modelData === "load" ? loadMeter : modelData === "llm" ? llmMeterComponent : quarterButton
-                            onLoaded: {
-                                if (item.kind !== undefined) item.kind = modelData;
-                                else item.well = Qt.binding(() => session.style === "instruments");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        Component { id: llmMeterComponent; LlmMeter {} }
-        Component { id: loadMeter; LoadMeter {} }
-        Component { id: quarterButton; QuarterButton {} }
-    }
-    // The meters gathered in one sunken field in the clock's colours: as LED
-    // digits (the cluster's tokens per second, processor and memory load in
-    // per cent) or as a panel of bars. Each reading is its own button.
-    component Instruments: Bevel {
-        id: field
-        property bool bars: false
-        property var kinds: []
-        readonly property bool hasLlm: kinds.indexOf("llm") >= 0
-        readonly property var readings: (hasLlm ? ["llm"] : []).concat(kinds.indexOf("load") >= 0 ? ["cpu", "mem"] : [])
-        readonly property int cpuLoad: Math.round(Math.max(0, Math.min(100, Number(cpuSensor.value) || 0)))
-        readonly property int memLoad: Math.round(Math.max(0, Math.min(100, Number(memSensor.value) || 0)))
-        sunken: true
-        surface: consoleColors.window
-        Sensors.Sensor { id: cpuSensor; sensorId: "cpu/all/usage"; updateRateLimit: 2000 }
-        Sensors.Sensor { id: memSensor; sensorId: "memory/physical/usedPercent"; updateRateLimit: 2000 }
-        Binding { when: field.hasLlm; target: root; property: "llmSmallVisible"; value: field.visible && field.Window.window !== null && field.Window.window.visible; restoreMode: Binding.RestoreBindingOrValue }
-        RowLayout {
-            anchors.fill: parent; anchors.margins: 2
-            spacing: 0
-            Repeater {
-                model: field.readings
-                delegate: ConsoleButton {
-                    id: reading
-                    required property string modelData
-                    readonly property bool llm: modelData === "llm"
-                    readonly property int value: llm ? Math.round(root.llmTotal) : modelData === "cpu" ? field.cpuLoad : field.memLoad
-                    // Bars: the cluster against its best so far, load in per cent.
-                    readonly property real share: llm ? Math.min(1, root.llmTotal / Math.max(1, root.llmPeak)) : value / 100
-                    readonly property string unit: llm ? i18nd("cde-copper", "t/s") : modelData === "cpu" ? "C" : "M"
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    // The cluster's three digits want more room than two.
-                    Layout.preferredWidth: field.bars ? 1 : llm ? 5 : 3
-                    implicitWidth: 0; implicitHeight: 0
-                    padding: 0; text: ""
-                    Accessible.name: llm ? i18nd("cde-copper", "LLM cluster: %1 t/s", value)
-                                   : modelData === "cpu" ? i18nd("cde-copper", "Processor %1 %", value) : i18nd("cde-copper", "Memory %1 %", value)
-                    selected: llm && llmPopup.visible && llmPopup.visualParent === reading
-                    onClicked: llm ? root.toggleLlm(reading, reading) : root.run("plasma-systemmonitor || ksysguard")
-                    HoverHandler { onHoveredChanged: if (reading.llm) root.hoverSegment(reading, hovered) }
-                    background: Rectangle {
-                        color: reading.selected ? consoleColors.highlight
-                             : reading.hovered ? Motif.mix(consoleColors.window, Motif.shades(consoleColors.window).top, 0.25) : "transparent"
-                    }
-                    readonly property color lit: selected ? consoleColors.highlightText : consoleColors.highlight
-                    contentItem: Item {
-                        id: face
-                        readonly property int labelSize: Math.max(6, Math.round(Math.min(height * 0.3, root.u(9))))
-                        // LED: digits beside their unit, as large as the field allows.
-                        Row {
-                            visible: !field.bars
-                            anchors.centerIn: parent
-                            spacing: Math.max(1, Math.round(face.height * 0.08))
-                            SegmentDigits {
-                                anchors.bottom: parent.bottom
-                                digitHeight: Math.max(9, Math.round(face.height * 0.62))
-                                text: {
-                                    const places = reading.llm ? 3 : 2;
-                                    const shown = String(Math.min(reading.value, Math.pow(10, places) - 1));
-                                    return " ".repeat(Math.max(0, places - shown.length)) + shown;
-                                }
-                                accent: reading.lit
-                                ink: consoleColors.windowText
-                            }
-                            Text {
-                                anchors.bottom: parent.bottom
-                                text: reading.unit
-                                color: reading.lit
-                                font.family: consoleColors.font; font.pixelSize: face.labelSize; font.weight: Font.DemiBold
-                            }
-                        }
-                        // Panel: an upright bar over its letter.
-                        Column {
-                            visible: field.bars
-                            anchors.centerIn: parent
-                            spacing: 1
-                            Bevel {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                sunken: true
-                                surface: Motif.shades(consoleColors.window).bottom
-                                width: Math.max(5, Math.round(face.width * 0.55))
-                                height: Math.max(8, face.height - face.labelSize - 3)
-                                Rectangle {
-                                    x: 2; width: parent.width - 4
-                                    readonly property int room: parent.height - 4
-                                    height: Math.round(room * reading.share)
-                                    y: 2 + room - height
-                                    color: reading.lit
-                                }
-                            }
-                            Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: reading.llm ? "L" : reading.unit
-                                color: reading.lit
-                                font.family: consoleColors.font; font.pixelSize: face.labelSize; font.weight: Font.DemiBold
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    // One of the session block's quarters, by kind.
-    component QuarterButton: SmallButton {
-        id: quarter
-        property string kind: ""
-        iconName: {
-            switch (kind) {
-            case "configure": return "cde-console-configure";
-            case "lock": return "system-lock-screen";
-            case "desktop": return "user-desktop";
-            case "volume": return root.muted ? "audio-volume-muted" : "audio-volume-high";
-            case "network": return root.networkIcon;
-            case "logout": return "system-log-out";
-            }
-            return "";
-        }
-        Accessible.name: {
-            switch (kind) {
-            case "configure": return i18nd("cde-copper", "Configure Front Console");
-            case "lock": return i18nd("cde-copper", "Lock Screen");
-            case "desktop": return i18nd("cde-copper", "Show Desktop");
-            case "volume": return i18nd("cde-copper", "Volume %1", root.volumeState);
-            case "network": return root.networkState;
-            case "logout": return i18nd("cde-copper", "Leave Session...");
-            }
-            return "";
-        }
-        onClicked: {
-            switch (kind) {
-            case "configure": Plasmoid.internalAction("configure").trigger(); break;
-            case "lock": root.run(root.dbus + " org.freedesktop.ScreenSaver /ScreenSaver Lock"); break;
-            // KWin's D-Bus showDesktop(bool) is accepted but does nothing in
-            // Plasma 6.7; its own "Show Desktop" shortcut toggles reliably.
-            case "desktop": root.run(root.dbus + " org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop'"); break;
-            case "volume": volumePopup.visualParent = quarter; volumePopup.visible = !volumePopup.visible; break;
-            case "network": networkPopup.visualParent = quarter; networkPopup.visible = !networkPopup.visible; break;
-            case "logout": root.run(root.dbus + " org.kde.LogoutPrompt /LogoutPrompt promptAll"); break;
-            }
-        }
-        HoverHandler { onHoveredChanged: if (quarter.kind === "volume" || quarter.kind === "network") root.hoverSegment(quarter, hovered) }
-        WheelHandler {
-            enabled: quarter.kind === "volume"
-            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-            onWheel: event => root.setVolume(root.volume + (event.angleDelta.y > 0 ? 5 : -5))
-        }
-    }
     property var llmNodes: []
     property real llmTotal: 0
     property real llmPeak: 1
@@ -1344,200 +659,10 @@ PlasmoidItem {
             } catch (e) { root.llmNodes = []; root.llmTotal = 0; }
         }
     }
-    function llmState(state) {
-        switch (state) {
-        case "running": return i18nd("cde-copper", "Running");
-        case "busy": return i18nd("cde-copper", "Busy");
-        case "sleeping": return i18nd("cde-copper", "Sleeping");
-        default: return i18nd("cde-copper", "Unreachable");
-        }
-    }
-    component LlmMeter: ConsoleButton {
-        id: llmMeter
-        implicitWidth: 0; implicitHeight: 0
-        padding: 0; text: ""
-        Accessible.name: i18nd("cde-copper", "LLM cluster: %1 t/s", Math.round(root.llmTotal))
-        Binding { target: root; property: "llmSmallVisible"; value: llmMeter.visible && llmMeter.Window.window !== null && llmMeter.Window.window.visible; restoreMode: Binding.RestoreBindingOrValue }
-        // As an instrument (smallStyle): sunken, the clock's colours.
-        surface: llmMeter.well ? consoleColors.window : consoleColors.panel
-        readonly property color ink: selected ? consoleColors.highlightText : llmMeter.well ? consoleColors.highlight : consoleColors.panelText
-        selected: llmPopup.visible && llmPopup.visualParent === llmMeter
-        onClicked: root.toggleLlm(llmMeter, llmMeter)
-        HoverHandler { onHoveredChanged: root.hoverSegment(llmMeter, hovered) }
-        contentItem: Item {
-            readonly property int side: Math.min(width, height)
-            Text {
-                x: 0; y: Math.round(parent.height * 0.12); width: parent.width
-                text: Math.round(root.llmTotal)
-                horizontalAlignment: Text.AlignHCenter
-                color: llmMeter.ink; font.family: consoleColors.font
-                font.pixelSize: Math.max(7, Math.round(parent.side * 0.36)); font.weight: Font.DemiBold
-                fontSizeMode: Text.Fit; minimumPixelSize: 6
-            }
-            Text {
-                x: 0; y: Math.round(parent.height * 0.59); width: parent.width
-                text: i18nd("cde-copper", "t/s")
-                horizontalAlignment: Text.AlignHCenter
-                color: llmMeter.ink; font.family: consoleColors.font
-                font.pixelSize: Math.max(6, Math.round(parent.side * 0.2))
-            }
-        }
-    }
-    Keeper { id: llmKeeper; dialog: llmPopup; segment: root.llmPopupSegment; inside: llmHover.hovered }
-    PlasmaCore.Dialog {
-        id: llmPopup
-        visible: false
-        type: PlasmaCore.Dialog.PopupMenu
-        flags: Qt.WindowStaysOnTopHint
-        location: Plasmoid.location
-        hideOnWindowDeactivate: true
-        backgroundHints: PlasmaCore.Types.NoBackground
-        onVisibleChanged: if (visible) { llmKeeper.opened(); llmBody.forceActiveFocus(); }
-        mainItem: Bevel {
-            id: llmBody
-            width: root.u(390); height: root.u(70 + 30 * root.llmNodes.length)
-            surface: consoleColors.window
-            focus: true
-            HoverHandler { id: llmHover }
-            Keys.onPressed: llmKeeper.keyboard = true
-            Keys.onEscapePressed: llmPopup.visible = false
-            Column {
-                x: root.u(8); y: root.u(8); width: parent.width - root.u(16); spacing: root.u(4)
-                Text {
-                    text: i18nd("cde-copper", "LLM cluster")
-                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: root.u(12); font.weight: Font.DemiBold
-                }
-                Repeater {
-                    model: root.llmNodes
-                    delegate: Item {
-                        required property var modelData
-                        width: parent.width; height: root.u(26)
-                        Text { x: 0; width: root.u(85); elide: Text.ElideRight; text: modelData.name; color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: root.u(11) }
-                        Text { x: root.u(88); width: root.u(65); text: i18nd("cde-copper", "%1 t/s", Math.round(modelData.tokens_per_second)); color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: root.u(11) }
-                        Bevel {
-                            x: root.u(155); y: root.u(3); width: root.u(90); height: root.u(12); sunken: true; surface: consoleColors.field
-                            Rectangle { x: 2; y: 2; height: parent.height - 4; width: Math.round((parent.width - 4) * modelData.tokens_per_second / root.llmPeak); color: consoleColors.highlight }
-                        }
-                        Text { x: root.u(253); text: root.llmState(modelData.state); color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: root.u(11) }
-                    }
-                }
-                Text {
-                    text: i18nd("cde-copper", "Total: %1 t/s", Math.round(root.llmTotal))
-                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: root.u(12); font.weight: Font.DemiBold
-                }
-            }
-        }
-    }
-
-    // CPU and memory load as two sunken Motif meters (Plasma's own sensors,
-    // ksystemstats), a click opens the system monitor.
-    component LoadMeter: ConsoleButton {
-        id: meter
-        Layout.fillWidth: true; Layout.fillHeight: true
-        Layout.preferredWidth: 1; Layout.preferredHeight: 1
-        implicitWidth: 0; implicitHeight: 0
-        padding: 0; text: ""
-        readonly property int cpuLoad: Math.round(Math.max(0, Math.min(100, Number(cpuSensor.value) || 0)))
-        readonly property int memLoad: Math.round(Math.max(0, Math.min(100, Number(memSensor.value) || 0)))
-        Accessible.name: i18nd("cde-copper", "Processor %1 %, memory %2 %", cpuLoad, memLoad)
-        onClicked: root.run("plasma-systemmonitor || ksysguard")
-        // As an instrument (smallStyle): sunken, the clock's colours.
-        surface: meter.well ? consoleColors.window : consoleColors.panel
-        Sensors.Sensor { id: cpuSensor; sensorId: "cpu/all/usage"; updateRateLimit: 2000 }
-        Sensors.Sensor { id: memSensor; sensorId: "memory/physical/usedPercent"; updateRateLimit: 2000 }
-        contentItem: Item {
-            id: gauges
-            // Whole pixels at every console size.
-            readonly property int side: Math.min(width, height)
-            readonly property int barWidth: Math.max(4, Math.round(side * 0.2))
-            readonly property int barHeight: Math.max(8, Math.round(side * 0.56))
-            readonly property int labelSize: Math.max(6, Math.round(side * 0.2))
-            Row {
-                anchors.centerIn: parent
-                spacing: Math.max(2, Math.round(gauges.side * 0.12))
-                Repeater {
-                    model: [{label: "C", load: meter.cpuLoad}, {label: "M", load: meter.memLoad}]
-                    delegate: Column {
-                        required property var modelData
-                        spacing: 1
-                        Bevel {
-                            sunken: true
-                            surface: meter.well ? Motif.shades(consoleColors.window).bottom : consoleColors.field
-                            width: gauges.barWidth; height: gauges.barHeight
-                            Rectangle {
-                                x: 2; width: parent.width - 4
-                                readonly property int room: parent.height - 4
-                                height: Math.round(room * modelData.load / 100)
-                                y: 2 + room - height
-                                color: consoleColors.highlight
-                            }
-                        }
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: modelData.label
-                            font.family: consoleColors.font; font.pixelSize: gauges.labelSize; font.weight: Font.DemiBold
-                            color: meter.well ? consoleColors.highlight : consoleColors.panelText
-                        }
-                    }
-                }
-            }
-        }
-    }
-    // A quarter launcher: the icon follows the button, whole pixels.
-    component SmallButton: ConsoleButton {
-        id: small
-        // For CDE Copper's own icons under another icon theme.
-        property string fallbackName: iconName === "cde-console-configure" ? "configure" : ""
-        Layout.fillWidth: true; Layout.fillHeight: true
-        Layout.preferredWidth: 1; Layout.preferredHeight: 1
-        implicitWidth: 0; implicitHeight: 0
-        padding: 0; text: ""
-        contentItem: Item {
-            Kirigami.Icon {
-                readonly property int side: Math.max(8, Math.floor(Math.min(small.width, small.height) * 0.6))
-                width: side; height: side
-                x: Math.round((parent.width - side) / 2); y: Math.round((parent.height - side) / 2)
-                source: small.iconName
-                fallback: small.fallbackName
-                active: false
-                // Not snapped down to 16/22/32: the icon grows with the console.
-                roundToIconSize: false
-            }
-        }
-    }
     // Opens the system tray's popup (hidden icons) the way a click on it does.
     function showHiddenIcons() {
         for (const applet of Plasmoid.containment.applets) {
             if (applet && applet.pluginName === "org.kde.plasma.systemtray") { applet.activated(); return; }
-        }
-    }
-
-    component TaskStrip: ListView {
-        id: taskList
-        Layout.fillWidth: true; Layout.fillHeight: true
-        Layout.minimumHeight: root.vertical ? root.u(80) : 0
-        orientation: root.vertical ? ListView.Vertical : ListView.Horizontal
-        spacing: 3; clip: true
-        model: tasks
-        delegate: ConsoleButton {
-            required property int index
-            required property var model
-            width: root.vertical ? taskList.width
-                 : Math.min(root.u(220), Math.max(root.u(120), (taskList.width - (taskList.count - 1) * 3) / Math.max(1, taskList.count)))
-            height: root.vertical ? root.u(24) : taskList.height
-            horizontal: true; iconSize: root.u(18)
-            readonly property int windows: model.IsGroupParent ? model.ChildCount : 1
-            text: windows > 1 ? i18nd("cde-copper", "%1× %2", windows, model.AppName || model.display) : (model.display || i18nd("cde-copper", "Window"))
-            Accessible.name: windows > 1 ? root.groupTitles(index).join("\n") : text
-            iconName: ""
-            Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: root.u(18); height: width; source: parent.model.decoration; active: false }
-            leftPadding: root.u(30)
-            selected: Boolean(model.IsActive)
-            onClicked: {
-                if (windows > 1) { root.cycleGroup(index, windows); return; }
-                const idx = tasks.makeModelIndex(index);
-                if (model.IsActive) tasks.requestToggleMinimized(idx); else tasks.requestActivate(idx);
-            }
         }
     }
 
@@ -1556,91 +681,6 @@ PlasmoidItem {
         return titles;
     }
 
-    // The window tile: an arrow strip like a launcher's over a tile with the
-    // active window's icon and the number of windows. Tile and arrow open
-    // the list; the wheel brings the next or previous window forward.
-    component WindowTile: GridLayout {
-        id: windowSlot
-        rows: root.vertical ? 1 : 2
-        columns: root.vertical ? 2 : 1
-        rowSpacing: 1; columnSpacing: 1
-        Layout.fillWidth: true; Layout.fillHeight: true
-        Layout.preferredWidth: root.vertical ? -1 : root.u(68)
-        Layout.preferredHeight: root.vertical ? root.u(62) : -1
-        function toggle(anchor) {
-            root.popupSegment = windowSlot;
-            if (windowsPopup.visible) { windowsPopup.visible = false; return; }
-            popup.visible = false;
-            windowsPopup.visualParent = anchor;
-            windowsPopup.visible = true;
-        }
-        ConsoleButton {
-            id: windowArrow
-            Layout.row: 0
-            Layout.column: root.vertical && !root.atRight ? 1 : 0
-            Layout.fillWidth: !root.vertical; Layout.fillHeight: root.vertical
-            Layout.preferredHeight: root.vertical ? -1 : root.u(13)
-            Layout.preferredWidth: root.vertical ? root.u(13) : -1
-            text: ""
-            Accessible.name: i18nd("cde-copper", "Open Windows")
-            selected: windowsPopup.visible
-            contentItem: Text {
-                text: root.arrowGlyph
-                color: consoleColors.panelText; font.pixelSize: root.u(12)
-                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-            }
-            onClicked: windowSlot.toggle(windowButton)
-        }
-        ConsoleButton {
-            id: windowButton
-            Layout.row: root.vertical ? 0 : 1
-            Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
-            Layout.fillWidth: true; Layout.fillHeight: true
-            labelled: Plasmoid.configuration.launcherLabels
-            text: i18ndp("cde-copper", "%1 window", "%1 windows", tasks.count)
-            Accessible.name: root.activeWindowTitle ? text + "\n" + root.activeWindowTitle : text
-            selected: windowsPopup.visible
-            // The list itself shows what the tooltip would.
-            ToolTip.visible: hovered && !windowsPopup.visible
-            onClicked: windowSlot.toggle(windowButton)
-            WheelHandler {
-                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-                onWheel: event => root.stepWindow(event.angleDelta.y > 0 ? -1 : 1)
-            }
-            // The active window's own icon (a QIcon, which iconName cannot carry).
-            contentItem: Item {
-                implicitWidth: root.u(58); implicitHeight: root.u(55)
-                Kirigami.Icon {
-                    id: windowIcon
-                    source: root.activeWindowIcon || "preferences-system-windows"
-                    width: windowButton.iconSize; height: width
-                    x: (parent.width - width) / 2
-                    y: windowButton.labelled ? 0 : (parent.height - height) / 2
-                    active: false
-                }
-                Text {
-                    visible: windowButton.labelled
-                    text: windowButton.text
-                    color: windowButton.selected ? windowButton.accentText : windowButton.foreground
-                    font.family: consoleColors.font; font.pixelSize: root.u(11)
-                    font.weight: windowButton.selected ? Font.DemiBold : consoleColors.weight
-                    elide: Text.ElideRight
-                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                    y: windowIcon.height + 1
-                    width: parent.width; height: parent.height - y
-                }
-                // Without labels the number sits in the corner.
-                Text {
-                    visible: !windowButton.labelled && tasks.count > 0
-                    anchors { right: parent.right; bottom: parent.bottom }
-                    text: tasks.count
-                    color: windowButton.selected ? windowButton.accentText : windowButton.foreground
-                    font.family: consoleColors.font; font.pixelSize: root.u(11); font.weight: Font.DemiBold
-                }
-            }
-        }
-        HoverHandler { onHoveredChanged: root.hoverSegment(windowSlot, hovered) }
-    }
     // The window active last: the open list takes the focus, and tile and
     // list should still show the window the user came from.
     property var activeWindowIcon: null
@@ -1704,26 +744,6 @@ PlasmoidItem {
         return index >= 0 ? root.workspaceLabel(index) : "";
     }
 
-    // The volume in the strip's row, when it is not one of the small buttons.
-    component VolumeButton: ConsoleButton {
-        id: status
-        Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
-        // As wide as a launcher, so it lines up with the tiles above it.
-        Layout.preferredWidth: root.vertical ? -1 : root.u(68)
-        Layout.preferredHeight: root.vertical ? root.u(26) : -1
-        text: root.volumeState
-        iconSize: root.u(18)
-        horizontal: true
-        iconName: root.muted ? "audio-volume-muted" : "audio-volume-high"
-        Accessible.name: i18nd("cde-copper", "Volume %1, %2", root.volumeState, root.networkState)
-        onClicked: { volumePopup.visualParent = status; volumePopup.visible = !volumePopup.visible; }
-        HoverHandler { onHoveredChanged: root.hoverSegment(status, hovered) }
-        WheelHandler {
-            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
-            onWheel: event => root.setVolume(root.volume + (event.angleDelta.y > 0 ? 5 : -5))
-        }
-    }
-
     fullRepresentation: Bevel {
         id: frontConsole
         // Across: as wide as its tiles, 116 high. Upright: 116 wide, and as
@@ -1747,14 +767,14 @@ PlasmoidItem {
                 flow: root.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
                 rowSpacing: 4; columnSpacing: 4
                 Layout.fillWidth: true; Layout.fillHeight: !root.vertical
-                ClockTile {}
-                Repeater { model: root.leftSlots; delegate: Slot {} }
-                WindowTile { visible: root.windowDisplay === "tileLeft" }
-                Workspaces {}
-                WindowTile { visible: root.windowDisplay === "tileRight" }
-                Repeater { model: root.rightSlots; delegate: Slot {} }
-                LlmTile { visible: Plasmoid.configuration.llmTile }
-                SessionButtons {}
+                ClockTile { root: root; colors: consoleColors }
+                Repeater { model: root.leftSlots; delegate: Slot { root: root; colors: consoleColors; side: "left" } }
+                WindowTile { root: root; colors: consoleColors; visible: root.windowDisplay === "tileLeft" }
+                Workspaces { root: root; colors: consoleColors }
+                WindowTile { root: root; colors: consoleColors; visible: root.windowDisplay === "tileRight" }
+                Repeater { model: root.rightSlots; delegate: Slot { root: root; colors: consoleColors; side: "right" } }
+                LlmTile { root: root; colors: consoleColors; visible: Plasmoid.configuration.llmTile }
+                SessionButtons { root: root; colors: consoleColors }
             }
             GridLayout {
                 visible: !root.stripHidden
@@ -1771,8 +791,8 @@ PlasmoidItem {
                     font.pixelSize: root.u(9); font.family: consoleColors.font; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
                     font.weight: consoleColors.weight
                 }
-                TaskStrip {}
-                VolumeButton { visible: root.smallButtons.indexOf("volume") < 0 }
+                TaskStrip { root: root }
+                VolumeButton { root: root; visible: root.smallButtons.indexOf("volume") < 0 }
             }
         }
     }
@@ -1783,518 +803,17 @@ PlasmoidItem {
         onFindRequested: { applications.visualParent = root.fullRepresentationItem; applications.visible = true; }
         onRunRequested: root.run(root.dbus + " org.kde.krunner /App org.kde.krunner.App.display")
     }
-
-    Keeper { id: calendarKeeper; dialog: calendar; segment: calendar.visualParent; inside: calendarHover.hovered }
-    Keeper { id: volumeKeeper; dialog: volumePopup; segment: volumePopup.visualParent; inside: volumeHover.hovered }
-    Keeper { id: networkKeeper; dialog: networkPopup; segment: networkPopup.visualParent; inside: networkHover.hovered }
-    // The WLANs around, for the network popup: in use, SSID, signal, security
-    // (nmcli's terse form, ":" inside a field escaped), then the radio, then
-    // the saved connections. Read when the popup opens and every 10 s while
-    // it is open; the first read asks for a fresh scan if the list is old.
-    property var networks: []
-    // Right after opening the scan it starts is still running and the list
-    // comes back empty: ask again shortly, a few times, before "none".
-    property int networkTries: 0
-    readonly property bool networkSearching: networks.length === 0 && networkTries > 0 && networkTries < 4
-    Timer { id: networkRetry; interval: 1500; onTriggered: networkScan.connectSource(networkScan.command) }
-    property bool wifiRadio: true
-    property var savedConnections: []
-    P5Support.DataSource {
-        id: networkScan
-        engine: "executable"
-        readonly property string command: "sh -c 'export LC_ALL=C; timeout 8s nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY,DEVICE device wifi list --rescan auto; echo ---; timeout 3s nmcli -t -f WIFI radio; echo ---; timeout 3s nmcli -t -f NAME connection show'"
-        onNewData: function(sourceName, data) {
-            disconnectSource(sourceName);
-            root.readNetworks(data.stdout);
-            if (root.networks.length === 0 && root.networkTries > 0 && root.networkTries < 4 && networkPopup.visible) {
-                root.networkTries++;
-                networkRetry.restart();
-            }
-        }
-    }
-    Timer { interval: 10000; repeat: true; running: networkPopup.visible; onTriggered: networkScan.connectSource(networkScan.command) }
-    function terseFields(line) {
-        const out = [];
-        let field = "";
-        for (let i = 0; i < line.length; i++) {
-            if (line[i] === "\\" && i + 1 < line.length) { field += line[++i]; continue; }
-            if (line[i] === ":") { out.push(field); field = ""; continue; }
-            field += line[i];
-        }
-        out.push(field);
-        return out;
-    }
-    function readNetworks(stdout) {
-        const parts = stdout.split("---\n");
-        const seen = {};
-        for (const line of (parts[0] || "").split("\n")) {
-            const f = terseFields(line);
-            if (f.length < 5 || !f[1]) continue;
-            // A device sending the network itself (a hotspot) lists it in use
-            // at 0 %: in use counts only with a signal.
-            const signal = Number(f[2]) || 0;
-            const active = f[0] === "*" && signal > 0;
-            const entry = {ssid: f[1], signal: signal, secure: f[3] !== "" && f[3] !== "--", active: active, device: active ? f[4] : ""};
-            const known = seen[entry.ssid];
-            if (!known) seen[entry.ssid] = entry;
-            else seen[entry.ssid] = {ssid: entry.ssid, signal: Math.max(known.signal, entry.signal), secure: known.secure || entry.secure,
-                                     active: known.active || entry.active, device: known.device || entry.device};
-        }
-        root.networks = Object.values(seen).sort((a, b) => (b.active - a.active) || (b.signal - a.signal));
-        root.wifiRadio = (parts[1] || "").trim() !== "disabled";
-        root.savedConnections = (parts[2] || "").split("\n").filter(n => n).map(n => terseFields(n)[0]);
-    }
-    function signalIcon(signal) {
-        return signal >= 75 ? "network-wireless-signal-excellent" : signal >= 50 ? "network-wireless-signal-good"
-             : signal >= 25 ? "network-wireless-signal-ok" : "network-wireless-signal-weak";
-    }
-    // A saved network comes up by its connection; a new one is joined, and
-    // Plasma's own agent asks for the passphrase if it needs one.
-    function joinNetwork(ssid) {
-        const device = root.wifiDevice ? " ifname " + Launch.quote(root.wifiDevice) : "";
-        const command = root.savedConnections.indexOf(ssid) >= 0 ? "nmcli connection up id " + Launch.quote(ssid) + device
-                                                                  : "nmcli device wifi connect " + Launch.quote(ssid) + device;
-        root.run(command);
-    }
-    PlasmaCore.Dialog {
-        id: networkPopup
-        visible: false
-        type: PlasmaCore.Dialog.PopupMenu
-        flags: Qt.WindowStaysOnTopHint
-        location: Plasmoid.location
-        hideOnWindowDeactivate: true
-        backgroundHints: PlasmaCore.Types.NoBackground
-        onVisibleChanged: if (visible) { networkKeeper.opened(); networkBody.forceActiveFocus(); root.networkTries = 1; networkScan.connectSource(networkScan.command); }
-        mainItem: Bevel {
-            id: networkBody
-            HoverHandler { id: networkHover }
-            Keys.onPressed: networkKeeper.keyboard = true
-            readonly property int rows: Math.max(1, Math.min(8, root.networks.length))
-            width: 320; height: 41 + 4 + rows * 36 + 44
-            surface: consoleColors.window
-            focus: true
-            Keys.onEscapePressed: networkPopup.visible = false
-            ColumnLayout {
-                anchors.fill: parent; anchors.margins: 5; spacing: 4
-                Bevel {
-                    Layout.fillWidth: true; Layout.preferredHeight: 27; surface: consoleColors.highlight
-                    Text { anchors.centerIn: parent; text: root.networkState; color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
-                }
-                Text {
-                    visible: root.networks.length === 0
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    text: !root.wifiRadio ? i18nd("cde-copper", "WLAN is switched off")
-                        : root.networkSearching ? i18nd("cde-copper", "Searching for WLANs…") : i18nd("cde-copper", "No WLAN found")
-                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 12
-                }
-                ListView {
-                    id: networkList
-                    visible: root.networks.length > 0
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    clip: true; spacing: 2
-                    model: root.networks
-                    ScrollBar.vertical: ScrollBar { policy: networkList.contentHeight > networkList.height ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded }
-                    delegate: ConsoleButton {
-                        id: networkEntry
-                        required property var modelData
-                        width: networkList.width - (networkList.contentHeight > networkList.height ? 12 : 0)
-                        height: 34
-                        horizontal: true; surface: consoleColors.window; foreground: consoleColors.windowText
-                        text: modelData.ssid
-                        Accessible.name: i18nd("cde-copper", "%1, signal %2 %", modelData.ssid, modelData.signal)
-                        iconName: ""
-                        leftPadding: 36; rightPadding: 56
-                        selected: modelData.active
-                        Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: 22; height: 22; source: root.signalIcon(networkEntry.modelData.signal); active: false }
-                        Row {
-                            anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
-                            spacing: 4
-                            Kirigami.Icon { visible: networkEntry.modelData.secure; width: 14; height: 14; source: "system-lock-screen"; active: false; anchors.verticalCenter: parent.verticalCenter }
-                            Text {
-                                text: networkEntry.modelData.signal + "%"
-                                color: networkEntry.selected ? consoleColors.highlightText : consoleColors.windowText
-                                font.family: consoleColors.font; font.pixelSize: 11
-                            }
-                        }
-                        // The one in use: a click disconnects it.
-                        onClicked: {
-                            networkPopup.visible = false;
-                            if (modelData.active) root.run("nmcli device disconnect " + Launch.quote(modelData.device));
-                            else root.joinNetwork(modelData.ssid);
-                        }
-                    }
-                }
-                RowLayout {
-                    Layout.fillWidth: true
-                    ConsoleButton {
-                        Layout.fillWidth: true; implicitHeight: 36; horizontal: true; iconSize: 20
-                        text: root.wifiRadio ? i18nd("cde-copper", "WLAN off") : i18nd("cde-copper", "WLAN on")
-                        iconName: root.wifiRadio ? "network-wireless-disconnected" : "network-wireless"
-                        surface: consoleColors.window; foreground: consoleColors.windowText
-                        onClicked: {
-                            root.wifiRadio = !root.wifiRadio;
-                            root.run("nmcli radio wifi " + (root.wifiRadio ? "on" : "off"));
-                            networkScan.connectSource(networkScan.command);
-                        }
-                    }
-                    ConsoleButton {
-                        Layout.fillWidth: true; implicitHeight: 36; horizontal: true; iconSize: 20
-                        text: i18nd("cde-copper", "Settings…"); iconName: "preferences-system-network"
-                        surface: consoleColors.window; foreground: consoleColors.windowText
-                        onClicked: { networkPopup.visible = false; root.run(Launch.resolve("@settings kcm_networkmanagement", [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg))); }
-                    }
-                }
-            }
-        }
-    }
-    Keeper { id: popupKeeper; dialog: popup; segment: root.popupSegment; inside: popupHover.hovered }
-    Keeper { id: windowsKeeper; dialog: windowsPopup; segment: root.popupSegment; inside: windowsHover.hovered }
-    Keeper { id: layoutsKeeper; dialog: layoutsPopup; segment: layoutsPopup.visualParent ? layoutsPopup.visualParent.parent : null; inside: layoutsHover.hovered }
-
-    PlasmaCore.Dialog {
-        id: calendar
-        visible: false
-        type: PlasmaCore.Dialog.PopupMenu
-        flags: Qt.WindowStaysOnTopHint
-        location: Plasmoid.location
-        hideOnWindowDeactivate: true
-        backgroundHints: PlasmaCore.Types.NoBackground
-        mainItem: CalendarPanel {
-            HoverHandler { id: calendarHover }
-            Keys.onPressed: calendarKeeper.keyboard = true
-            pluginsManager: eventPlugins
-            onCloseRequested: calendar.visible = false
-            onOpenCalendar: { calendar.visible = false; root.run(Launch.resolve(Plasmoid.configuration.calendarCommand || "@calendar", [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg))); }
-        }
-        onVisibleChanged: if (visible) { calendarKeeper.opened(); mainItem.forceActiveFocus(); }
-    }
-
-    PlasmaCore.Dialog {
-        id: volumePopup
-        visible: false
-        type: PlasmaCore.Dialog.PopupMenu
-        flags: Qt.WindowStaysOnTopHint
-        location: Plasmoid.location
-        hideOnWindowDeactivate: true
-        backgroundHints: PlasmaCore.Types.NoBackground
-        onVisibleChanged: if (visible) { volumeKeeper.opened(); volumeBody.forceActiveFocus(); }
-        mainItem: Bevel {
-            id: volumeBody
-            HoverHandler { id: volumeHover }
-            Keys.onPressed: volumeKeeper.keyboard = true
-            width: 276; height: 168
-            surface: consoleColors.window
-            focus: true
-            Keys.onEscapePressed: volumePopup.visible = false
-            Keys.onUpPressed: root.setVolume(root.volume + 5)
-            Keys.onDownPressed: root.setVolume(root.volume - 5)
-            ColumnLayout {
-                anchors.fill: parent; anchors.margins: 5; spacing: 4
-                Bevel {
-                    Layout.fillWidth: true; Layout.preferredHeight: 27; surface: consoleColors.highlight
-                    Text { anchors.centerIn: parent; text: i18nd("cde-copper", "Audio  %1", root.volumeState); color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
-                }
-                Slider {
-                    Layout.fillWidth: true
-                    from: 0; to: 100; stepSize: 1
-                    value: Math.min(100, root.volume)
-                    enabled: !root.muted
-                    onMoved: root.setVolume(value)
-                    Accessible.name: i18nd("cde-copper", "Volume")
-                }
-                RowLayout {
-                    Layout.fillWidth: true
-                    ConsoleButton {
-                        Layout.fillWidth: true; implicitHeight: 38; horizontal: true; iconSize: 22
-                        text: root.muted ? i18nd("cde-copper", "Unmute") : i18nd("cde-copper", "Mute"); iconName: root.muted ? "audio-volume-high" : "audio-volume-muted"
-                        surface: consoleColors.window; foreground: consoleColors.windowText
-                        selected: root.muted
-                        onClicked: { root.muted = !root.muted; runner.connectSource("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"); }
-                    }
-                    ConsoleButton {
-                        Layout.fillWidth: true; implicitHeight: 38; horizontal: true; iconSize: 22
-                        text: i18nd("cde-copper", "Settings…"); iconName: "preferences-system"
-                        surface: consoleColors.window; foreground: consoleColors.windowText
-                        onClicked: { volumePopup.visible = false; root.run(Launch.resolve("@settings kcm_pulseaudio", [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg))); }
-                    }
-                }
-            }
-        }
-    }
-
-    PlasmaCore.Dialog {
-        id: popup
-        visible: false
-        type: PlasmaCore.Dialog.PopupMenu
-        flags: Qt.WindowStaysOnTopHint
-        location: Plasmoid.location
-        hideOnWindowDeactivate: true
-        backgroundHints: PlasmaCore.Types.NoBackground
-        onVisibleChanged: if (visible) { popupKeeper.opened(); popupBody.forceActiveFocus(); }
-        mainItem: Bevel {
-            id: popupBody
-            HoverHandler { id: popupHover }
-            Keys.onPressed: popupKeeper.keyboard = true
-            width: 320; height: 41 + root.entries.length * 38
-            surface: consoleColors.window
-            focus: true
-            Keys.onEscapePressed: popup.visible = false
-            ColumnLayout {
-                anchors.fill: parent; anchors.margins: 5; spacing: 2
-                Bevel {
-                    Layout.fillWidth: true; Layout.preferredHeight: 27; surface: consoleColors.highlight
-                    Text { anchors.centerIn: parent; text: root.popupTitle; color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
-                }
-                Repeater {
-                    model: root.entries
-                    delegate: ConsoleButton {
-                        required property var modelData
-                        Layout.fillWidth: true; Layout.fillHeight: true
-                        text: modelData.label; iconName: modelData.icon
-                        horizontal: true; iconSize: 28; surface: consoleColors.window; foreground: consoleColors.windowText
-                        enabled: modelData.command !== ""
-                        Accessible.name: modelData.tip || modelData.label
-                        onClicked: {
-                            popup.visible = false;
-                            // The style manager is a page of the console's settings.
-                            if (modelData.command === "@style") Plasmoid.internalAction("configure").trigger();
-                            else root.run(Launch.resolve(modelData.command, modelData.args, (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg)));
-                        }
-                    }
-                }
-            }
-        }
-    }
-    // The window tile's list: every window with its icon, title and
-    // workspace; the active one pressed in, minimized ones faint.
-    PlasmaCore.Dialog {
-        id: windowsPopup
-        visible: false
-        type: PlasmaCore.Dialog.PopupMenu
-        flags: Qt.WindowStaysOnTopHint
-        location: Plasmoid.location
-        hideOnWindowDeactivate: true
-        backgroundHints: PlasmaCore.Types.NoBackground
-        onVisibleChanged: if (visible) { windowsKeeper.opened(); windowsBody.forceActiveFocus(); }
-        mainItem: Bevel {
-            id: windowsBody
-            HoverHandler { id: windowsHover }
-            Keys.onPressed: windowsKeeper.keyboard = true
-            Keys.onEscapePressed: windowsPopup.visible = false
-            focus: true
-            width: 380
-            // Up to twelve rows; more scroll.
-            height: 41 + (tasks.count ? Math.min(tasks.count, 12) * 36 : 50)
-            surface: consoleColors.window
-            ColumnLayout {
-                anchors.fill: parent; anchors.margins: 5; spacing: 2
-                Bevel {
-                    Layout.fillWidth: true; Layout.preferredHeight: 27; surface: consoleColors.highlight
-                    Text { anchors.centerIn: parent; text: i18nd("cde-copper", "Open Windows"); color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
-                }
-                Text {
-                    visible: tasks.count === 0
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    text: i18nd("cde-copper", "No open windows")
-                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 12
-                }
-                ListView {
-                    id: windowList
-                    visible: tasks.count > 0
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    clip: true; spacing: 2
-                    model: tasks
-                    ScrollBar.vertical: ScrollBar { policy: windowList.contentHeight > windowList.height ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded }
-                    delegate: ConsoleButton {
-                        id: windowEntry
-                        required property int index
-                        required property var model
-                        width: windowList.width - (windowList.contentHeight > windowList.height ? 12 : 0)
-                        height: 34
-                        horizontal: true; surface: consoleColors.window; foreground: consoleColors.windowText
-                        text: model.display || i18nd("cde-copper", "Window")
-                        iconName: ""
-                        leftPadding: 36; rightPadding: 34
-                        selected: Boolean(model.IsActive) || String(model.WinIdList) === root.activeWindowId
-                        opacity: model.IsMinimized ? 0.6 : 1
-                        Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: 22; height: 22; source: windowEntry.model.decoration; active: false }
-                        Text {
-                            anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
-                            text: root.windowWorkspace(windowEntry.model.IsOnAllVirtualDesktops, windowEntry.model.VirtualDesktops)
-                            color: windowEntry.selected ? consoleColors.highlightText : consoleColors.windowText
-                            font.family: consoleColors.font; font.pixelSize: 11
-                        }
-                        onClicked: {
-                            windowsPopup.visible = false;
-                            const idx = tasks.makeModelIndex(index);
-                            if (model.IsActive) tasks.requestToggleMinimized(idx); else tasks.requestActivate(idx);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    PlasmaCore.Dialog {
-        id: layoutsPopup
-        visible: false
-        type: PlasmaCore.Dialog.PopupMenu
-        flags: Qt.WindowStaysOnTopHint
-        location: Plasmoid.location
-        hideOnWindowDeactivate: true
-        backgroundHints: PlasmaCore.Types.NoBackground
-        onVisibleChanged: if (visible) { layoutsKeeper.opened(); layoutsBody.forceActiveFocus(); }
-        mainItem: Bevel {
-            id: layoutsBody
-            HoverHandler { id: layoutsHover }
-            Keys.onPressed: layoutsKeeper.keyboard = true
-            Keys.onEscapePressed: layoutsPopup.visible = false
-            focus: true
-            width: 380
-            // Up to about three cards; more scroll.
-            height: 41 + 40 + (root.layoutList.length ? Math.min(layoutView.contentHeight, 560) : 70)
-            surface: consoleColors.window
-            ColumnLayout {
-                anchors.fill: parent; anchors.margins: 5; spacing: 2
-                Bevel {
-                    Layout.fillWidth: true; Layout.preferredHeight: 27; surface: consoleColors.highlight
-                    Text { anchors.centerIn: parent; text: i18nd("cde-copper", "Saved layouts"); color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold }
-                }
-                ConsoleButton {
-                    Layout.fillWidth: true; Layout.preferredHeight: 38
-                    text: i18nd("cde-copper", "Save Current Layout…"); iconName: "document-save"
-                    horizontal: true; iconSize: 28; surface: consoleColors.window; foreground: consoleColors.windowText
-                    onClicked: root.saveLayout()
-                }
-                Text {
-                    visible: root.layoutList.length === 0
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    text: i18nd("cde-copper", "No saved layouts yet. Arrange your windows, then save them here.")
-                    wrapMode: Text.Wrap; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 12
-                }
-                ListView {
-                    id: layoutView
-                    visible: root.layoutList.length > 0
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    clip: true; spacing: 2
-                    model: root.layoutList
-                    ScrollBar.vertical: ScrollBar { policy: layoutView.contentHeight > layoutView.height ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded }
-                    delegate: ConsoleButton {
-                        id: card
-                        required property var modelData
-                        property bool confirming: false
-                        // The screens side by side as wide as the card, the
-                        // text below. Sizes are computed here, not taken from
-                        // layouts inside the button (that loops in Qt).
-                        readonly property real ratio: preview.status === Image.Ready && preview.implicitWidth > 0
-                            ? preview.implicitHeight / preview.implicitWidth : 0.25
-                        width: layoutView.width - (layoutView.contentHeight > layoutView.height ? 12 : 0)
-                        height: Math.round((width - 14) * ratio) + 4 + 62
-                        surface: consoleColors.window; foreground: consoleColors.windowText
-                        Accessible.name: modelData.name
-                        onClicked: root.restoreLayout(modelData.id)
-                        contentItem: Item {
-                            Bevel {
-                                id: previewBox
-                                sunken: true; surface: consoleColors.window
-                                anchors { left: parent.left; right: parent.right; top: parent.top }
-                                height: Math.round((card.width - 14) * card.ratio) + 4
-                                Image {
-                                    id: preview
-                                    anchors.fill: parent; anchors.margins: 2
-                                    source: card.modelData.image ? "file://" + card.modelData.image : ""
-                                    sourceSize.width: 720
-                                    fillMode: Image.PreserveAspectFit
-                                    asynchronous: true
-                                }
-                            }
-                            Column {
-                                anchors { left: parent.left; right: deleteButton.left; rightMargin: 6; top: previewBox.bottom; topMargin: 4 }
-                                spacing: 1
-                                Text {
-                                    width: parent.width; text: card.modelData.name; elide: Text.ElideRight
-                                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 12; font.weight: Font.DemiBold
-                                }
-                                Text {
-                                    width: parent.width; text: card.modelData.apps; elide: Text.ElideRight
-                                    color: consoleColors.windowText; font.family: consoleColors.font; font.pixelSize: 11
-                                }
-                                Text {
-                                    width: parent.width; elide: Text.ElideRight
-                                    text: i18ndp("cde-copper", "%1 window", "%1 windows", card.modelData.windows) + " · "
-                                          + Qt.formatDateTime(new Date(card.modelData.created * 1000), Qt.locale(), Locale.ShortFormat)
-                                    color: consoleColors.windowText; opacity: 0.75; font.family: consoleColors.font; font.pixelSize: 11
-                                }
-                            }
-                            // A second click deletes.
-                            ConsoleButton {
-                                id: deleteButton
-                                anchors { right: parent.right; top: previewBox.bottom; topMargin: 8 }
-                                width: card.confirming ? 76 : 30; height: 30
-                                text: card.confirming ? i18nd("cde-copper", "Delete?") : ""
-                                iconName: card.confirming ? "" : "edit-delete"
-                                horizontal: true; iconSize: 16; surface: consoleColors.window; foreground: consoleColors.windowText
-                                Accessible.name: i18nd("cde-copper", "Delete layout")
-                                onClicked: { if (card.confirming) root.deleteLayout(card.modelData.id); else card.confirming = true; }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    PlasmaCore.Dialog {
-        id: applications
-        visible: false
-        type: PlasmaCore.Dialog.PopupMenu
-        location: Plasmoid.location
-        hideOnWindowDeactivate: true
-        backgroundHints: PlasmaCore.Types.NoBackground
-        onVisibleChanged: if (visible) { appSearch.text = ""; appSearch.forceActiveFocus(); }
-        mainItem: Bevel {
-            width: 340; height: 480; surface: consoleColors.window
-            Keys.onEscapePressed: applications.visible = false
-            ColumnLayout {
-                anchors.fill: parent; anchors.margins: 6; spacing: 5
-                Bevel {
-                    surface: consoleColors.highlight; Layout.fillWidth: true; Layout.preferredHeight: 29
-                    Text { anchors.centerIn: parent; text: i18nd("cde-copper", "Find Application"); color: consoleColors.highlightText; font.family: consoleColors.font; font.pixelSize: 13 }
-                }
-                TextField {
-                    id: appSearch
-                    Layout.fillWidth: true; placeholderText: i18nd("cde-copper", "Search")
-                    color: consoleColors.fieldText; font.pixelSize: 13
-                    background: Bevel { sunken: true; surface: consoleColors.field }
-                    Keys.onEscapePressed: applications.visible = false
-                    onAccepted: {
-                        for (let i = 0; i < appList.count; i++) {
-                            const item = appList.itemAtIndex(i);
-                            if (item && item.visible) { allApps.trigger(i, "", null); applications.visible = false; break; }
-                        }
-                    }
-                }
-                ListView {
-                    id: appList
-                    Layout.fillWidth: true; Layout.fillHeight: true
-                    clip: true; model: allApps; spacing: 2
-                    ScrollBar.vertical: ScrollBar {}
-                    delegate: ConsoleButton {
-                        required property int index
-                        required property var model
-                        width: appList.width - 14
-                        visible: appSearch.text.length === 0 || text.toLowerCase().indexOf(appSearch.text.toLowerCase()) >= 0
-                        height: visible ? 37 : 0
-                        text: model.display || i18nd("cde-copper", "Application")
-                        iconName: ""
-                        Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: 26; height: 26; source: parent.model.decoration; active: false }
-                        leftPadding: 40
-                        horizontal: true; surface: consoleColors.window; foreground: consoleColors.windowText
-                        onClicked: { allApps.trigger(index, "", null); applications.visible = false; }
-                    }
-                }
-            }
-        }
-    }
+    FindPopup { id: applications; colors: consoleColors }
+    // The subpanels; each keeps itself open while the pointer is on it or on
+    // the segment that opened it (Keeper.qml).
+    SectionPopup { id: popup; root: root; colors: consoleColors }
+    WindowsPopup { id: windowsPopup; root: root; colors: consoleColors }
+    // A task button's window menu (right click).
+    TaskMenu { id: windowMenu; tasksModel: tasks; desktopInfo: desktops; workspaceLabel: i => root.workspaceLabel(i) }
+    LayoutsPopup { id: layoutsPopup; root: root; colors: consoleColors }
+    CalendarPopup { id: calendar; root: root }
+    VolumePopup { id: volumePopup; root: root; colors: consoleColors }
+    NetworkPopup { id: networkPopup; root: root; colors: consoleColors }
+    LlmPopup { id: llmPopup; root: root; colors: consoleColors }
+    TrayControl { root: root }
 }

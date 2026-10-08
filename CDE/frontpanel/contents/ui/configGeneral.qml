@@ -50,18 +50,18 @@ KCM.SimpleKCM {
     property alias cfg_visibilityMode: visibility.currentIndex
     property bool cfg_topEdge
     property int cfg_edge: -1
-    property alias cfg_launcherLabels: launcherLabels.checked
+    property bool cfg_launcherLabels: true
     property alias cfg_consoleLabel: label.text
     property real cfg_consoleScale: 1.0
     property alias cfg_hideTrayVolume: hideVolume.checked
     property alias cfg_hideTrayIcons: hideIcons.checked
     property alias cfg_panelFrame: panelFrame.checked
-    property alias cfg_hardContrast: hardContrast.checked
-    property alias cfg_floating: floating.checked
-    property alias cfg_everyScreen: everyScreen.checked
-    // The session block's small buttons, kept in this order.
+    property bool cfg_hardContrast: false
+    property bool cfg_floating: true
+    property bool cfg_everyScreen: false
     property alias cfg_llmTile: llmTile.checked
     property alias cfg_llmHosts: llmHosts.text
+    // The session block's small buttons, kept in this order.
     property var cfg_smallButtons: []
     property string cfg_smallStyle: "family"
     readonly property var smallStyles: [
@@ -83,32 +83,36 @@ KCM.SimpleKCM {
             .filter(k => k === kind ? on : (cfg_smallButtons || []).indexOf(k) >= 0);
         cfg_smallButtons = chosen.length ? chosen : ["configure"];
     }
+    // Ordered by the questions one comes with: where the console stands,
+    // what it shows, how it looks. Two-way choices are lists naming both
+    // ways, not checkboxes explaining the unchecked state.
     Kirigami.FormLayout {
-        ComboBox {
-            id: visibility
-            Kirigami.FormData.label: i18nd("cde-copper", "Visibility:")
-            model: [i18nd("cde-copper", "Always visible"), i18nd("cde-copper", "Auto-hide / edge reveal"), i18nd("cde-copper", "Dodge windows")]
-        }
+        Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18nd("cde-copper", "Where the console stands") }
         ComboBox {
             Kirigami.FormData.label: i18nd("cde-copper", "Screen edge:")
             model: [i18nd("cde-copper", "Bottom"), i18nd("cde-copper", "Top"), i18nd("cde-copper", "Left"), i18nd("cde-copper", "Right")]
             currentIndex: cfg_edge >= 0 ? cfg_edge : (cfg_topEdge ? 1 : 0)
             onActivated: index => { cfg_edge = index; cfg_topEdge = index === 1; }
         }
-        CheckBox {
-            id: floating
-            text: i18nd("cde-copper", "Floating, a gap from the screen edge (off: on the edge)")
+        ComboBox {
+            Kirigami.FormData.label: i18nd("cde-copper", "Placement:")
+            model: [i18nd("cde-copper", "On the screen edge"), i18nd("cde-copper", "Floating, with a gap")]
+            currentIndex: cfg_floating ? 1 : 0
+            onActivated: index => cfg_floating = index === 1
         }
-        CheckBox {
-            id: everyScreen
+        ComboBox {
+            id: visibility
+            Kirigami.FormData.label: i18nd("cde-copper", "Visibility:")
+            model: [i18nd("cde-copper", "Always visible"), i18nd("cde-copper", "Auto-hide / edge reveal"), i18nd("cde-copper", "Dodge windows")]
+        }
+        ComboBox {
             Kirigami.FormData.label: i18nd("cde-copper", "Screens:")
-            text: i18nd("cde-copper", "A console on every screen (off: one console for all)")
+            model: [i18nd("cde-copper", "One console for all screens"), i18nd("cde-copper", "A console on every screen")]
+            currentIndex: cfg_everyScreen ? 1 : 0
+            onActivated: index => cfg_everyScreen = index === 1
         }
-        CheckBox {
-            id: launcherLabels
-            Kirigami.FormData.label: i18nd("cde-copper", "Launchers:")
-            text: i18nd("cde-copper", "Labels under the icons (off: larger icons, names as tooltips)")
-        }
+
+        Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18nd("cde-copper", "What it shows") }
         Repeater {
             model: page.smallChoices
             delegate: CheckBox {
@@ -120,47 +124,35 @@ KCM.SimpleKCM {
                 onToggled: page.setSmall(modelData.kind, checked)
             }
         }
-        ComboBox {
-            Kirigami.FormData.label: i18nd("cde-copper", "Small buttons style:")
-            model: page.smallStyles
-            textRole: "text"
-            currentIndex: Math.max(0, page.smallStyles.findIndex(s => s.value === page.cfg_smallStyle))
-            onActivated: index => page.cfg_smallStyle = page.smallStyles[index].value
-        }
         CheckBox {
             id: llmTile
-            text: i18nd("cde-copper", "LLM cluster as a large tile")
+            Kirigami.FormData.label: i18nd("cde-copper", "LLM cluster:")
+            text: i18nd("cde-copper", "As a large tile beside the launchers")
         }
         TextField {
             id: llmHosts
             Layout.fillWidth: true
-            Kirigami.FormData.label: i18nd("cde-copper", "LLM hosts (comma-separated):")
+            Kirigami.FormData.label: i18nd("cde-copper", "LLM hosts:")
+            enabled: llmTile.checked || (page.cfg_smallButtons || []).indexOf("llm") >= 0
         }
         Label {
             Layout.fillWidth: true
+            visible: llmHosts.enabled
             wrapMode: Text.WordWrap
-            text: i18nd("cde-copper", "Comma-separated name=http://host:port or name=ssh:PORT. SSH uses curl on the host. Never configure socket proxy ports; ai395:8090 is blocked.")
-        }
-        CheckBox {
-            id: hideVolume
-            Kirigami.FormData.label: i18nd("cde-copper", "System tray:")
-            text: i18nd("cde-copper", "Leave the volume to the console")
+            font: Kirigami.Theme.smallFont
+            text: i18nd("cde-copper", "Comma-separated name=http://host:port or name=ssh:PORT (SSH runs curl on that host). Only llama.cpp server ports; empty shows no cluster.")
         }
         CheckBox {
             id: hideIcons
-            text: i18nd("cde-copper", "Status icons only behind the console's button")
+            Kirigami.FormData.label: i18nd("cde-copper", "System tray:")
+            text: i18nd("cde-copper", "Status icons only behind the console's arrow button")
         }
         CheckBox {
-            id: panelFrame
-            Kirigami.FormData.label: i18nd("cde-copper", "Panel:")
-            text: i18nd("cde-copper", "Frame behind the console")
+            id: hideVolume
+            text: i18nd("cde-copper", "Leave the volume to the console")
         }
-        CheckBox {
-            id: hardContrast
-            Kirigami.FormData.label: i18nd("cde-copper", "Text:")
-            text: i18nd("cde-copper", "Hard contrast: black (white on dark surfaces) instead of the palette's colours")
-        }
-        TextField { id: label; Kirigami.FormData.label: i18nd("cde-copper", "Console label:") }
+
+        Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18nd("cde-copper", "How it looks") }
         SpinBox {
             Kirigami.FormData.label: i18nd("cde-copper", "Size:")
             Layout.minimumWidth: Kirigami.Units.gridUnit * 7
@@ -170,5 +162,30 @@ KCM.SimpleKCM {
             valueFromText: text => parseInt(text)
             onValueModified: cfg_consoleScale = value / 100
         }
+        ComboBox {
+            Kirigami.FormData.label: i18nd("cde-copper", "Launchers:")
+            model: [i18nd("cde-copper", "Icon with its name below"), i18nd("cde-copper", "Larger icon, the name as a tooltip")]
+            currentIndex: cfg_launcherLabels ? 0 : 1
+            onActivated: index => cfg_launcherLabels = index === 0
+        }
+        ComboBox {
+            Kirigami.FormData.label: i18nd("cde-copper", "Small buttons style:")
+            model: page.smallStyles
+            textRole: "text"
+            currentIndex: Math.max(0, page.smallStyles.findIndex(s => s.value === page.cfg_smallStyle))
+            onActivated: index => page.cfg_smallStyle = page.smallStyles[index].value
+        }
+        ComboBox {
+            Kirigami.FormData.label: i18nd("cde-copper", "Text:")
+            model: [i18nd("cde-copper", "In the palette's colours"), i18nd("cde-copper", "Hard contrast, black or white")]
+            currentIndex: cfg_hardContrast ? 1 : 0
+            onActivated: index => cfg_hardContrast = index === 1
+        }
+        CheckBox {
+            id: panelFrame
+            Kirigami.FormData.label: i18nd("cde-copper", "Panel:")
+            text: i18nd("cde-copper", "Frame behind the console")
+        }
+        TextField { id: label; Kirigami.FormData.label: i18nd("cde-copper", "Console label:") }
     }
 }

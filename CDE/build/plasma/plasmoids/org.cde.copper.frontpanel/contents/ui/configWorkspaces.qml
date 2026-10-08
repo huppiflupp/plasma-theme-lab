@@ -105,6 +105,15 @@ KCM.SimpleKCM {
                 if (cfg_workspaceWindows === "pager") return 4;
                 return Math.max(0, ["strip", "tileLeft", "tileRight"].indexOf(cfg_windowDisplay));
             }
+            // The switcher's own views need the switcher: offered only with it.
+            delegate: ItemDelegate {
+                required property int index
+                required property string modelData
+                width: windowView.width
+                text: modelData
+                enabled: index < 3 || showWorkspaces.checked
+                highlighted: windowView.highlightedIndex === index
+            }
             onActivated: index => {
                 // A workspace view keeps the strip or tile chosen before, for
                 // when the switcher is hidden.
@@ -117,7 +126,7 @@ KCM.SimpleKCM {
             Layout.maximumWidth: Kirigami.Units.gridUnit * 22
             wrapMode: Text.WordWrap
             font: Kirigami.Theme.smallFont
-            text: i18nd("cde-copper", "Needs the workspace switcher; while it is hidden the console shows the strip (or the tile chosen before).")
+            text: i18nd("cde-copper", "Shown with the workspace switcher only; while it is hidden the console shows the strip or tile chosen before.")
         }
         CheckBox {
             id: groupWindows
@@ -127,7 +136,7 @@ KCM.SimpleKCM {
         }
         CheckBox {
             id: thisScreen
-            text: i18nd("cde-copper", "Only windows on this console's screen (with a console on every screen)")
+            text: i18nd("cde-copper", "Only windows on this console's screen")
         }
         Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18nd("cde-copper", "Labels (empty: the number)") }
         Repeater {
