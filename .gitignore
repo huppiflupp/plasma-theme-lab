@@ -10,6 +10,7 @@ niceos9/
 vm/id_lab
 vm/id_lab.pub
 vm/.plasma-lab.rendered.ks
+vm/.ubuntu-lab.rendered.user-data
 vm/*.log
 vm/console.log
 

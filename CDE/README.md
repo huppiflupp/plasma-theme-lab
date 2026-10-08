@@ -56,7 +56,12 @@ languages can be added as `po/<language>.po`.
   settings below) and leave session. The optional LLM cluster button shows the
   combined generation tokens per second; a click lists each host, its state
   and a bar relative to the session peak. Enable it under Front Console ›
-  Small buttons and set the comma-separated LLM hosts there (default:
+  Small buttons. Independently, “LLM cluster as a large tile” adds a full-size
+  tile after the right launchers; both displays can be enabled together. Its
+  arrow and tile open the same popup, also with Tab and Enter or Space from
+  the keyboard (Escape closes it). Launcher labels also control its “LLM”
+  caption. Polling runs while either display is visible, using one timer.
+  Set the comma-separated LLM hosts on the same settings page (default:
   `245k=http://127.0.0.1:8090,ai395=ssh:18090,x9=http://x9:8090,victus=ssh:8090`).
   Use `name=http://host:port` for direct HTTP or `name=ssh:PORT` for
   passwordless SSH with curl on the host. Python 3.11 or newer is required
@@ -528,7 +533,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.9.4. The application style is a Kvantum theme, not a
+This is version 0.9.5. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,

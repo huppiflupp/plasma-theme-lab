@@ -8,6 +8,8 @@ Button {
     id: control
     property string iconName: ""
     property bool selected: false
+    // Sunken at rest: a readout (meter) rather than a key to press.
+    property bool well: false
     property bool horizontal: false
     // Without a label the icon takes the room the text had.
     property bool labelled: true
@@ -28,7 +30,7 @@ Button {
     ToolTip.text: Accessible.name
     ToolTip.delay: 750
     background: Bevel {
-        sunken: control.down || control.selected
+        sunken: control.well || control.down || control.selected
         surface: control.selected ? control.accent
                : control.hovered ? Motif.mix(control.surface, Motif.shades(control.surface).top, 0.2)
                : control.surface

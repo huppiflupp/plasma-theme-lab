@@ -31,6 +31,11 @@
          configure, lock, desktop, load, llm, volume, network, logout. Two to a
          column; the block widens with them. -->
     <entry name="smallButtons" type="StringList"><default>configure,lock,desktop,load,volume,network</default></entry>
+    <!-- How the small buttons look: family (all alike), instruments (the
+         meters sunken in the clock's colours), led (the meters as one LED
+         field over a row of keys), panel (the meters as bars beside the keys). -->
+    <entry name="smallStyle" type="String"><default>family</default></entry>
+    <entry name="llmTile" type="Bool"><default>false</default></entry>
     <entry name="llmHosts" type="String"><default>245k=http://127.0.0.1:8090,ai395=ssh:18090,x9=http://x9:8090,victus=ssh:8090</default></entry>
     <!-- The console shows the volume; keep the tray from showing it twice -->
     <entry name="hideTrayVolume" type="Bool"><default>true</default></entry>

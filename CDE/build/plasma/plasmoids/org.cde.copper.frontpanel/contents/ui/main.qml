@@ -727,6 +727,74 @@ PlasmoidItem {
         HoverHandler { onHoveredChanged: root.hoverSegment(slot, hovered) }
     }
 
+    component LlmTile: GridLayout {
+        id: tile
+        rows: root.vertical ? 1 : 2
+        columns: root.vertical ? 2 : 1
+        rowSpacing: 1; columnSpacing: 1
+        Layout.fillWidth: true; Layout.fillHeight: true
+        Layout.preferredWidth: root.vertical ? -1 : root.u(68)
+        Layout.preferredHeight: root.vertical ? root.u(62) : -1
+        readonly property bool popupSelected: llmPopup.visible && (llmPopup.visualParent === arrow || llmPopup.visualParent === launcher)
+        Binding { target: root; property: "llmTileVisible"; value: tile.visible && tile.Window.window !== null && tile.Window.window.visible; restoreMode: Binding.RestoreBindingOrValue }
+        ConsoleButton {
+            id: arrow
+            Layout.row: 0
+            Layout.column: root.vertical && !root.atRight ? 1 : 0
+            Layout.fillWidth: !root.vertical; Layout.fillHeight: root.vertical
+            Layout.preferredHeight: root.vertical ? -1 : root.u(13)
+            Layout.preferredWidth: root.vertical ? root.u(13) : -1
+            text: ""
+            Accessible.name: i18nd("cde-copper", "LLM cluster: %1 t/s", Math.round(root.llmTotal))
+            selected: tile.popupSelected
+            contentItem: Text {
+                text: root.arrowGlyph
+                color: consoleColors.panelText; font.pixelSize: root.u(12)
+                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+            }
+            onClicked: root.toggleLlm(arrow, tile)
+        }
+        ConsoleButton {
+            id: launcher
+            Layout.row: root.vertical ? 0 : 1
+            Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
+            Layout.fillWidth: true; Layout.fillHeight: true
+            text: ""
+            labelled: Plasmoid.configuration.launcherLabels
+            Accessible.name: i18nd("cde-copper", "LLM cluster: %1 t/s", Math.round(root.llmTotal))
+            selected: tile.popupSelected
+            onClicked: root.toggleLlm(launcher, tile)
+            contentItem: Item {
+                implicitWidth: root.u(58); implicitHeight: root.u(55)
+                Text {
+                    width: parent.width; height: Math.round(parent.height * (launcher.labelled ? 0.52 : 0.68))
+                    text: Math.round(root.llmTotal)
+                    color: launcher.selected ? launcher.accentText : consoleColors.panelText
+                    font.family: consoleColors.font; font.pixelSize: root.u(24); font.weight: Font.DemiBold
+                    fontSizeMode: Text.Fit; minimumPixelSize: root.u(8)
+                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                }
+                Text {
+                    width: parent.width; y: Math.round(parent.height * (launcher.labelled ? 0.52 : 0.68))
+                    height: Math.round(parent.height * (launcher.labelled ? 0.25 : 0.32))
+                    text: i18nd("cde-copper", "t/s")
+                    color: launcher.selected ? launcher.accentText : consoleColors.panelText
+                    font.family: consoleColors.font; font.pixelSize: root.u(10)
+                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                }
+                Text {
+                    visible: launcher.labelled
+                    width: parent.width; y: Math.round(parent.height * 0.77); height: parent.height - y
+                    text: i18nd("cde-copper", "LLM")
+                    color: launcher.selected ? launcher.accentText : consoleColors.panelText
+                    font.family: consoleColors.font; font.pixelSize: root.u(11); font.weight: consoleColors.weight
+                    horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+                }
+            }
+        }
+        HoverHandler { onHoveredChanged: root.hoverSegment(tile, hovered) }
+    }
+
     component ClockTile: ConsoleButton {
         id: clock
         Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
@@ -975,7 +1043,13 @@ PlasmoidItem {
 
     // The session block: an arrow strip like the launchers' over square
     // quarter buttons, two to a column. The arrow opens the tray's hidden
-    // icons; which quarters there are is a setting (smallButtons).
+    // icons; which quarters there are is a setting (smallButtons), and how
+    // they look another (smallStyle):
+    //   family       all quarters alike, the meters among the keys
+    //   instruments  the same, the meters sunken in the clock's colours
+    //   led          the meters as one LED field over a row of keys
+    //   panel        the meters as one panel of bars beside the keys
+    // Upright the LED field and the panel have no room: instruments then.
     component SessionButtons: GridLayout {
         id: session
         rows: root.vertical ? 1 : 2
@@ -984,8 +1058,27 @@ PlasmoidItem {
         Layout.fillWidth: root.vertical; Layout.fillHeight: !root.vertical
         // The side of one square, from the space beside the arrow strip.
         readonly property int quarter: Math.max(10, Math.floor(((root.vertical ? width : height) - root.u(13) - 2) / 2))
-        readonly property int pairs: Math.max(1, Math.ceil(root.smallButtons.length / 2))
-        Layout.preferredWidth: root.vertical ? -1 : pairs * quarter + pairs - 1
+        readonly property string style: {
+            const wanted = Plasmoid.configuration.smallStyle;
+            if (["instruments", "led", "panel"].indexOf(wanted) < 0) return "family";
+            return root.vertical && wanted !== "instruments" ? "instruments" : wanted;
+        }
+        readonly property var meters: root.smallButtons.filter(k => k === "load" || k === "llm")
+        readonly property var keys: root.smallButtons.filter(k => k !== "load" && k !== "llm")
+        // The LED field and the panel gather the meters; without any, keys only.
+        readonly property bool grouped: (style === "led" || style === "panel") && meters.length > 0
+        readonly property bool ledRow: grouped && style === "led"
+        readonly property var gridKinds: grouped ? keys : root.smallButtons
+        readonly property int pairs: Math.max(1, Math.ceil(gridKinds.length / 2))
+        // The LED field: about two quarters for each meter's digits.
+        readonly property int ledColumns: Math.max(gridKinds.length, 2 * meters.length)
+        // The panel: a bar per reading (the cluster's, the processor's, the memory's).
+        readonly property int barCount: (meters.indexOf("llm") >= 0 ? 1 : 0) + (meters.indexOf("load") >= 0 ? 2 : 0)
+        readonly property int panelWidth: grouped && style === "panel" ? Math.round(quarter * (0.35 + 0.45 * barCount)) : 0
+        readonly property int blockWidth: ledRow ? ledColumns * quarter + ledColumns - 1
+            : (panelWidth > 0 ? panelWidth + (gridKinds.length > 0 ? 1 : 0) : 0)
+              + (gridKinds.length > 0 ? pairs * quarter + pairs - 1 : 0)
+        Layout.preferredWidth: root.vertical ? -1 : blockWidth
         Layout.preferredHeight: root.vertical ? pairs * quarter + pairs - 1 : -1
         ConsoleButton {
             Layout.row: 0
@@ -1002,31 +1095,166 @@ PlasmoidItem {
             }
             onClicked: root.showHiddenIcons()
         }
-        GridLayout {
+        RowLayout {
             Layout.row: root.vertical ? 0 : 1
             Layout.column: root.vertical && !root.atRight ? 0 : (root.vertical ? 1 : 0)
             Layout.alignment: Qt.AlignCenter
-            Layout.preferredWidth: root.vertical ? 2 * session.quarter + 1 : session.pairs * session.quarter + session.pairs - 1
+            Layout.preferredWidth: root.vertical ? 2 * session.quarter + 1 : session.blockWidth
             Layout.preferredHeight: root.vertical ? session.pairs * session.quarter + session.pairs - 1 : 2 * session.quarter + 1
-            // Across: columns of two, filled top to bottom; upright: rows of two.
-            flow: root.vertical ? GridLayout.LeftToRight : GridLayout.TopToBottom
-            rows: root.vertical ? session.pairs : 2
-            columns: root.vertical ? 2 : session.pairs
-            rowSpacing: 1; columnSpacing: 1
-            Repeater {
-                model: root.smallButtons
-                delegate: Loader {
-                    required property string modelData
+            spacing: 1
+            Loader {
+                active: session.grouped && session.style === "panel"
+                visible: active
+                Layout.fillHeight: true
+                Layout.preferredWidth: session.panelWidth
+                sourceComponent: Instruments { bars: true; kinds: session.meters }
+            }
+            ColumnLayout {
+                Layout.fillWidth: true; Layout.fillHeight: true
+                spacing: 1
+                Loader {
+                    active: session.ledRow
+                    visible: active
+                    Layout.fillWidth: true
+                    // Without keys below the field takes the whole height.
+                    Layout.fillHeight: session.gridKinds.length === 0
+                    Layout.preferredHeight: session.quarter
+                    sourceComponent: Instruments { bars: false; kinds: session.meters }
+                }
+                GridLayout {
+                    visible: session.gridKinds.length > 0
                     Layout.fillWidth: true; Layout.fillHeight: true
-                    Layout.preferredWidth: 1; Layout.preferredHeight: 1
-                    sourceComponent: modelData === "load" ? loadMeter : modelData === "llm" ? llmMeterComponent : quarterButton
-                    onLoaded: if (item.kind !== undefined) item.kind = modelData
+                    // Across: columns of two, filled top to bottom; upright:
+                    // rows of two. Under the LED field the keys stand in one row.
+                    flow: root.vertical ? GridLayout.LeftToRight : GridLayout.TopToBottom
+                    rows: root.vertical ? session.pairs : session.ledRow ? 1 : 2
+                    columns: root.vertical ? 2 : session.ledRow ? session.gridKinds.length : session.pairs
+                    rowSpacing: 1; columnSpacing: 1
+                    Repeater {
+                        model: session.gridKinds
+                        delegate: Loader {
+                            required property string modelData
+                            required property int index
+                            // An odd last quarter takes both places of its pair: no gap.
+                            readonly property bool stretched: !session.ledRow && index === session.gridKinds.length - 1 && index % 2 === 0
+                            Layout.rowSpan: stretched && !root.vertical ? 2 : 1
+                            Layout.columnSpan: stretched && root.vertical ? 2 : 1
+                            Layout.fillWidth: true; Layout.fillHeight: true
+                            Layout.preferredWidth: 1; Layout.preferredHeight: 1
+                            sourceComponent: modelData === "load" ? loadMeter : modelData === "llm" ? llmMeterComponent : quarterButton
+                            onLoaded: {
+                                if (item.kind !== undefined) item.kind = modelData;
+                                else item.well = Qt.binding(() => session.style === "instruments");
+                            }
+                        }
+                    }
                 }
             }
         }
         Component { id: llmMeterComponent; LlmMeter {} }
         Component { id: loadMeter; LoadMeter {} }
         Component { id: quarterButton; QuarterButton {} }
+    }
+    // The meters gathered in one sunken field in the clock's colours: as LED
+    // digits (the cluster's tokens per second, processor and memory load in
+    // per cent) or as a panel of bars. Each reading is its own button.
+    component Instruments: Bevel {
+        id: field
+        property bool bars: false
+        property var kinds: []
+        readonly property bool hasLlm: kinds.indexOf("llm") >= 0
+        readonly property var readings: (hasLlm ? ["llm"] : []).concat(kinds.indexOf("load") >= 0 ? ["cpu", "mem"] : [])
+        readonly property int cpuLoad: Math.round(Math.max(0, Math.min(100, Number(cpuSensor.value) || 0)))
+        readonly property int memLoad: Math.round(Math.max(0, Math.min(100, Number(memSensor.value) || 0)))
+        sunken: true
+        surface: consoleColors.window
+        Sensors.Sensor { id: cpuSensor; sensorId: "cpu/all/usage"; updateRateLimit: 2000 }
+        Sensors.Sensor { id: memSensor; sensorId: "memory/physical/usedPercent"; updateRateLimit: 2000 }
+        Binding { when: field.hasLlm; target: root; property: "llmSmallVisible"; value: field.visible && field.Window.window !== null && field.Window.window.visible; restoreMode: Binding.RestoreBindingOrValue }
+        RowLayout {
+            anchors.fill: parent; anchors.margins: 2
+            spacing: 0
+            Repeater {
+                model: field.readings
+                delegate: ConsoleButton {
+                    id: reading
+                    required property string modelData
+                    readonly property bool llm: modelData === "llm"
+                    readonly property int value: llm ? Math.round(root.llmTotal) : modelData === "cpu" ? field.cpuLoad : field.memLoad
+                    // Bars: the cluster against its best so far, load in per cent.
+                    readonly property real share: llm ? Math.min(1, root.llmTotal / Math.max(1, root.llmPeak)) : value / 100
+                    readonly property string unit: llm ? i18nd("cde-copper", "t/s") : modelData === "cpu" ? "C" : "M"
+                    Layout.fillWidth: true; Layout.fillHeight: true
+                    // The cluster's three digits want more room than two.
+                    Layout.preferredWidth: field.bars ? 1 : llm ? 5 : 3
+                    implicitWidth: 0; implicitHeight: 0
+                    padding: 0; text: ""
+                    Accessible.name: llm ? i18nd("cde-copper", "LLM cluster: %1 t/s", value)
+                                   : modelData === "cpu" ? i18nd("cde-copper", "Processor %1 %", value) : i18nd("cde-copper", "Memory %1 %", value)
+                    selected: llm && llmPopup.visible && llmPopup.visualParent === reading
+                    onClicked: llm ? root.toggleLlm(reading, reading) : root.run("plasma-systemmonitor || ksysguard")
+                    HoverHandler { onHoveredChanged: if (reading.llm) root.hoverSegment(reading, hovered) }
+                    background: Rectangle {
+                        color: reading.selected ? consoleColors.highlight
+                             : reading.hovered ? Motif.mix(consoleColors.window, Motif.shades(consoleColors.window).top, 0.25) : "transparent"
+                    }
+                    readonly property color lit: selected ? consoleColors.highlightText : consoleColors.highlight
+                    contentItem: Item {
+                        id: face
+                        readonly property int labelSize: Math.max(6, Math.round(Math.min(height * 0.3, root.u(9))))
+                        // LED: digits beside their unit, as large as the field allows.
+                        Row {
+                            visible: !field.bars
+                            anchors.centerIn: parent
+                            spacing: Math.max(1, Math.round(face.height * 0.08))
+                            SegmentDigits {
+                                anchors.bottom: parent.bottom
+                                digitHeight: Math.max(9, Math.round(face.height * 0.62))
+                                text: {
+                                    const places = reading.llm ? 3 : 2;
+                                    const shown = String(Math.min(reading.value, Math.pow(10, places) - 1));
+                                    return " ".repeat(Math.max(0, places - shown.length)) + shown;
+                                }
+                                accent: reading.lit
+                                ink: consoleColors.windowText
+                            }
+                            Text {
+                                anchors.bottom: parent.bottom
+                                text: reading.unit
+                                color: reading.lit
+                                font.family: consoleColors.font; font.pixelSize: face.labelSize; font.weight: Font.DemiBold
+                            }
+                        }
+                        // Panel: an upright bar over its letter.
+                        Column {
+                            visible: field.bars
+                            anchors.centerIn: parent
+                            spacing: 1
+                            Bevel {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                sunken: true
+                                surface: Motif.shades(consoleColors.window).bottom
+                                width: Math.max(5, Math.round(face.width * 0.55))
+                                height: Math.max(8, face.height - face.labelSize - 3)
+                                Rectangle {
+                                    x: 2; width: parent.width - 4
+                                    readonly property int room: parent.height - 4
+                                    height: Math.round(room * reading.share)
+                                    y: 2 + room - height
+                                    color: reading.lit
+                                }
+                            }
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: reading.llm ? "L" : reading.unit
+                                color: reading.lit
+                                font.family: consoleColors.font; font.pixelSize: face.labelSize; font.weight: Font.DemiBold
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     // One of the session block's quarters, by kind.
     component QuarterButton: SmallButton {
@@ -1077,7 +1305,16 @@ PlasmoidItem {
     property real llmTotal: 0
     property real llmPeak: 1
     property bool llmFetching: false
-    property bool llmVisible: false
+    property bool llmSmallVisible: false
+    property bool llmTileVisible: false
+    readonly property bool llmVisible: llmSmallVisible || llmTileVisible
+    property Item llmPopupSegment: null
+    function toggleLlm(anchor, segment) {
+        const close = llmPopup.visible && llmPopup.visualParent === anchor;
+        llmPopupSegment = segment;
+        llmPopup.visualParent = anchor;
+        llmPopup.visible = !close;
+    }
     readonly property string llmHelper: decodeURIComponent(Qt.resolvedUrl("../code/llmverbund.py").toString().replace(/^file:\/\//, ""))
     readonly property string llmCommand: "python3 " + Launch.quote(llmHelper) + " " + Launch.quote(Plasmoid.configuration.llmHosts)
     function fetchLlm() {
@@ -1120,8 +1357,12 @@ PlasmoidItem {
         implicitWidth: 0; implicitHeight: 0
         padding: 0; text: ""
         Accessible.name: i18nd("cde-copper", "LLM cluster: %1 t/s", Math.round(root.llmTotal))
-        Binding { target: root; property: "llmVisible"; value: llmMeter.visible && llmMeter.Window.window !== null && llmMeter.Window.window.visible; restoreMode: Binding.RestoreBindingOrValue }
-        onClicked: { llmPopup.visualParent = llmMeter; llmPopup.visible = !llmPopup.visible; }
+        Binding { target: root; property: "llmSmallVisible"; value: llmMeter.visible && llmMeter.Window.window !== null && llmMeter.Window.window.visible; restoreMode: Binding.RestoreBindingOrValue }
+        // As an instrument (smallStyle): sunken, the clock's colours.
+        surface: llmMeter.well ? consoleColors.window : consoleColors.panel
+        readonly property color ink: selected ? consoleColors.highlightText : llmMeter.well ? consoleColors.highlight : consoleColors.panelText
+        selected: llmPopup.visible && llmPopup.visualParent === llmMeter
+        onClicked: root.toggleLlm(llmMeter, llmMeter)
         HoverHandler { onHoveredChanged: root.hoverSegment(llmMeter, hovered) }
         contentItem: Item {
             readonly property int side: Math.min(width, height)
@@ -1129,7 +1370,7 @@ PlasmoidItem {
                 x: 0; y: Math.round(parent.height * 0.12); width: parent.width
                 text: Math.round(root.llmTotal)
                 horizontalAlignment: Text.AlignHCenter
-                color: consoleColors.panelText; font.family: consoleColors.font
+                color: llmMeter.ink; font.family: consoleColors.font
                 font.pixelSize: Math.max(7, Math.round(parent.side * 0.36)); font.weight: Font.DemiBold
                 fontSizeMode: Text.Fit; minimumPixelSize: 6
             }
@@ -1137,12 +1378,12 @@ PlasmoidItem {
                 x: 0; y: Math.round(parent.height * 0.59); width: parent.width
                 text: i18nd("cde-copper", "t/s")
                 horizontalAlignment: Text.AlignHCenter
-                color: consoleColors.panelText; font.family: consoleColors.font
+                color: llmMeter.ink; font.family: consoleColors.font
                 font.pixelSize: Math.max(6, Math.round(parent.side * 0.2))
             }
         }
     }
-    Keeper { id: llmKeeper; dialog: llmPopup; segment: llmPopup.visualParent; inside: llmHover.hovered }
+    Keeper { id: llmKeeper; dialog: llmPopup; segment: root.llmPopupSegment; inside: llmHover.hovered }
     PlasmaCore.Dialog {
         id: llmPopup
         visible: false
@@ -1200,6 +1441,8 @@ PlasmoidItem {
         readonly property int memLoad: Math.round(Math.max(0, Math.min(100, Number(memSensor.value) || 0)))
         Accessible.name: i18nd("cde-copper", "Processor %1 %, memory %2 %", cpuLoad, memLoad)
         onClicked: root.run("plasma-systemmonitor || ksysguard")
+        // As an instrument (smallStyle): sunken, the clock's colours.
+        surface: meter.well ? consoleColors.window : consoleColors.panel
         Sensors.Sensor { id: cpuSensor; sensorId: "cpu/all/usage"; updateRateLimit: 2000 }
         Sensors.Sensor { id: memSensor; sensorId: "memory/physical/usedPercent"; updateRateLimit: 2000 }
         contentItem: Item {
@@ -1219,7 +1462,7 @@ PlasmoidItem {
                         spacing: 1
                         Bevel {
                             sunken: true
-                            surface: consoleColors.field
+                            surface: meter.well ? Motif.shades(consoleColors.window).bottom : consoleColors.field
                             width: gauges.barWidth; height: gauges.barHeight
                             Rectangle {
                                 x: 2; width: parent.width - 4
@@ -1233,7 +1476,7 @@ PlasmoidItem {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: modelData.label
                             font.family: consoleColors.font; font.pixelSize: gauges.labelSize; font.weight: Font.DemiBold
-                            color: consoleColors.panelText
+                            color: meter.well ? consoleColors.highlight : consoleColors.panelText
                         }
                     }
                 }
@@ -1510,6 +1753,7 @@ PlasmoidItem {
                 Workspaces {}
                 WindowTile { visible: root.windowDisplay === "tileRight" }
                 Repeater { model: root.rightSlots; delegate: Slot {} }
+                LlmTile { visible: Plasmoid.configuration.llmTile }
                 SessionButtons {}
             }
             GridLayout {

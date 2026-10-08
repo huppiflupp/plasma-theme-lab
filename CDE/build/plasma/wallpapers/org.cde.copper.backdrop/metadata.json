@@ -3,7 +3,7 @@
     "Id": "org.cde.copper.backdrop",
     "Name": "CDE Backdrop",
     "Description": "CDE's backdrop patterns, tiled pixel for pixel in the palette's colours",
-    "Version": "0.9.4",
+    "Version": "0.9.5",
     "License": "GPL-2.0-or-later",
     "Authors": [
       {

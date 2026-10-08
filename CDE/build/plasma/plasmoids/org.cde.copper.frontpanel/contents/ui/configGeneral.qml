@@ -19,8 +19,10 @@ KCM.SimpleKCM {
     property var cfg_workspaceCountDefault
     property var cfg_groupWindowsDefault
     property var cfg_windowDisplayDefault
+    property var cfg_llmTileDefault
     property var cfg_llmHostsDefault
     property var cfg_smallButtonsDefault
+    property var cfg_smallStyleDefault
     property var cfg_workspaceWindowsDefault
     property var cfg_consoleLabelDefault
     property var cfg_consoleScaleDefault
@@ -58,8 +60,15 @@ KCM.SimpleKCM {
     property alias cfg_floating: floating.checked
     property alias cfg_everyScreen: everyScreen.checked
     // The session block's small buttons, kept in this order.
+    property alias cfg_llmTile: llmTile.checked
     property alias cfg_llmHosts: llmHosts.text
     property var cfg_smallButtons: []
+    property string cfg_smallStyle: "family"
+    readonly property var smallStyles: [
+        {value: "family", text: i18nd("cde-copper", "All alike, the meters among the keys")},
+        {value: "instruments", text: i18nd("cde-copper", "Meters sunken, in the clock's colours")},
+        {value: "led", text: i18nd("cde-copper", "Meters as an LED field over the keys")},
+        {value: "panel", text: i18nd("cde-copper", "Meters as a panel of bars beside the keys")}]
     readonly property var smallChoices: [
         {kind: "configure", text: i18nd("cde-copper", "Console settings")},
         {kind: "lock", text: i18nd("cde-copper", "Lock screen")},
@@ -110,6 +119,17 @@ KCM.SimpleKCM {
                 checked: (page.cfg_smallButtons || []).indexOf(modelData.kind) >= 0
                 onToggled: page.setSmall(modelData.kind, checked)
             }
+        }
+        ComboBox {
+            Kirigami.FormData.label: i18nd("cde-copper", "Small buttons style:")
+            model: page.smallStyles
+            textRole: "text"
+            currentIndex: Math.max(0, page.smallStyles.findIndex(s => s.value === page.cfg_smallStyle))
+            onActivated: index => page.cfg_smallStyle = page.smallStyles[index].value
+        }
+        CheckBox {
+            id: llmTile
+            text: i18nd("cde-copper", "LLM cluster as a large tile")
         }
         TextField {
             id: llmHosts

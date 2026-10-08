@@ -15,6 +15,22 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class LlmVerbund(unittest.TestCase):
+    def test_large_tile_configuration(self):
+        config = ET.parse(ROOT / "frontpanel/contents/config/main.xml")
+        entry = config.find(".//{*}entry[@name='llmTile']")
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry.get("type"), "Bool")
+        self.assertEqual(entry.find("{*}default").text, "false")
+        for page in (ROOT / "frontpanel/contents/ui").glob("config*.qml"):
+            text = page.read_text()
+            self.assertIn("property var cfg_llmTileDefault", text, page.name)
+            if page.name != "configGeneral.qml":
+                self.assertNotIn("property alias cfg_llmTile:", text)
+        general = (ROOT / "frontpanel/contents/ui/configGeneral.qml").read_text()
+        self.assertIn("property alias cfg_llmTile: llmTile.checked", general)
+        self.assertNotIn("cfg_leftLaunchers:", general)
+        self.assertNotIn("cfg_rightLaunchers:", general)
+
     def setUp(self):
         import http.server
         import threading

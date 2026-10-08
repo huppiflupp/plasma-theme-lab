@@ -105,9 +105,11 @@ def build_icons(out: Path):
     home = path("M6 29L31 7L58 29H51V57H13V29Z", "#afc2c2") + path("M5 29L31 7L58 29", "none", COPPER, 5) + rect(27, 36, 11, 21, TEAL) + rect(27, 21, 10, 9, TEAL) + path("M16 31V54", "none", LIGHT)
     globe = circle(32, 32, 25, TEAL) + path("M10 22L20 11L29 12L26 23L18 30L21 38L16 42L9 32Z M36 9L47 14L49 23L42 29L47 39L38 53L32 49L33 34L27 29L33 21Z", COPPER, INK, 1.5) + path("M10 20Q30 5 50 19", "none", LIGHT)
     mail = rect(6, 15, 52, 37, "#afc2c2") + path("M7 16L32 35L57 16", COPPER) + path("M7 51L24 33M57 51L40 33")
-    # A wire wastepaper basket: open mesh under a copper rim.
-    trash = (path("M10 12H54L47 58H17Z", "none") + path("M14 22H50M15 32H49M16 42H48M17 52H47", "none", INK, 1.5)
-             + path("M21 12L24 58M32 12V58M43 12L40 58", "none", INK, 1.5) + rect(8, 9, 48, 5, COPPER))
+    # A wire wastepaper basket: open mesh under a copper rim. Every wire is
+    # drawn twice, a dark core under a light skin, so it shows on a dark
+    # console face as well as on a light one (ink alone vanished on Graphite).
+    wires = "M10 12H54L47 58H17Z M14 22H50M15 32H49M16 42H48M17 52H47 M21 12L24 58M32 12V58M43 12L40 58"
+    trash = path(wires, "none", INK, 4) + path(wires, "none", LIGHT, 1.6) + rect(8, 9, 48, 5, COPPER)
     # The front console's own settings, not System Settings' gear: faders.
     faders = (rect(6, 6, 52, 52, "#86a4aa") + path("M8 56V8H56", "none", LIGHT)
               + "".join(rect(x, 13, 4, 38, "#061c22", INK, 1) for x in (16, 30, 44))
@@ -939,15 +941,19 @@ def px_home(p):
 
 
 def px_trash(p):
-    # The wire basket: an outline with a mesh, a copper rim.
+    # The wire basket: light wires on a dark ground inside a dark outline,
+    # as the scalable one draws a light skin over a dark core; a copper rim.
     body = p.poly([(2, 4), (14, 4), (11.5, 16), (4.5, 16)])
     border = {(i, j) for i, j in body if any(q not in body for q in ((i + 1, j), (i - 1, j), (i, j + 1), (i, j - 1)))}
-    p.fill(border, INK)
+    outside = {(i + di, j + dj) for i, j in body for di, dj in ((1, 0), (-1, 0), (0, 1))} - body
+    p.fill({(i, j) for i, j in outside if 0 <= i < p.n and 0 <= j < p.n}, INK)
+    p.fill(body - border, INK)
+    p.fill(border, LIGHT)
     # A coarser mesh at 16 px, where every line is a whole pixel.
     for y in ((10,) if p.n < 20 else (8.5, 12)):
-        p.fill(p.hline(2, y, 12) & body, INK)
+        p.fill(p.hline(2, y, 12) & body, LIGHT)
     for x in ((8,) if p.n < 20 else (6.4, 9.6)):
-        p.fill(p.vline(x, 4, 12) & body, INK)
+        p.fill(p.vline(x, 4, 12) & body, LIGHT)
     p.shape(p.rect(1.5, 2, 13, 3), COPPER)
 
 

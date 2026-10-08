@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: cde-copper 0.9.4\n"
+"Project-Id-Version: cde-copper 0.9.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-07 22:32+0200\n"
+"POT-Creation-Date: 2026-10-08 23:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -50,362 +50,400 @@ msgstr ""
 msgid "Open Calendar"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:57
+#: frontpanel/contents/ui/configCalendar.qml:60
 msgid "Digital"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:57
+#: frontpanel/contents/ui/configCalendar.qml:60
 msgid "Seven-segment"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:58
+#: frontpanel/contents/ui/configCalendar.qml:61
 msgid "Analog"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:59
+#: frontpanel/contents/ui/configCalendar.qml:62
 msgid "LED matrix (red)"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:59
+#: frontpanel/contents/ui/configCalendar.qml:62
 msgid "Flip clock"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:60
+#: frontpanel/contents/ui/configCalendar.qml:63
 msgid "VFD (blue-green)"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:60
+#: frontpanel/contents/ui/configCalendar.qml:63
 msgid "VFD behind blue glass"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:61
+#: frontpanel/contents/ui/configCalendar.qml:64
 msgid "VFD aqua, wide halo"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:61
+#: frontpanel/contents/ui/configCalendar.qml:64
 msgid "Flip-disc (yellow)"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:62
+#: frontpanel/contents/ui/configCalendar.qml:65
 msgid "Panaplex (gas discharge)"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:62
+#: frontpanel/contents/ui/configCalendar.qml:65
 msgid "Panaplex in the palette's colour"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:62
+#: frontpanel/contents/ui/configCalendar.qml:65
 msgid "Odometer drums"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:63
+#: frontpanel/contents/ui/configCalendar.qml:66
 msgid "Pixel type (palette)"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:63
+#: frontpanel/contents/ui/configCalendar.qml:66
 msgid "Plasma screen"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:64
+#: frontpanel/contents/ui/configCalendar.qml:67
 msgid "CDE (round, as dtclock)"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:64
+#: frontpanel/contents/ui/configCalendar.qml:67
 msgid "Motif (square well)"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:65
+#: frontpanel/contents/ui/configCalendar.qml:68
 msgid "Roman numerals"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:65
+#: frontpanel/contents/ui/configCalendar.qml:68
 msgid "Plain (no dial)"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:74
+#: frontpanel/contents/ui/configCalendar.qml:77
 msgid "Clock display:"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:81
+#: frontpanel/contents/ui/configCalendar.qml:84
 msgid "Dial:"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:88
+#: frontpanel/contents/ui/configCalendar.qml:91
 msgid "Show seconds"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:91
+#: frontpanel/contents/ui/configCalendar.qml:94
 msgid "Unlit segments faintly visible"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:96
+#: frontpanel/contents/ui/configCalendar.qml:99
 msgid "Black edge around lit segments"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:100
+#: frontpanel/contents/ui/configCalendar.qml:103
 msgid ""
 "Colours follow the palette: dial in the text-field colour, hands in the text "
 "colour,\n"
 "second hand and lit segments in the selection colour."
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:106
+#: frontpanel/contents/ui/configCalendar.qml:109
 msgid "Clicking the clock:"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:107
+#: frontpanel/contents/ui/configCalendar.qml:110
 msgid "Shows the month and the day's events"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:110
+#: frontpanel/contents/ui/configCalendar.qml:113
 msgid "Opens the calendar application"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:113
+#: frontpanel/contents/ui/configCalendar.qml:116
 msgid "Calendar application:"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:118
+#: frontpanel/contents/ui/configCalendar.qml:121
 msgid ""
 "@calendar starts Merkuro or KOrganizer, whichever is installed.\n"
 "Any command or app:<desktop id> works too."
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:122
+#: frontpanel/contents/ui/configCalendar.qml:125
 msgid "Events from"
 msgstr ""
 
-#: frontpanel/contents/ui/configCalendar.qml:142
+#: frontpanel/contents/ui/configCalendar.qml:145
 msgid "Appointments come from KOrganizer/Akonadi (\"PIM Events\")."
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:62
+#: frontpanel/contents/ui/configGeneral.qml:68
+msgid "All alike, the meters among the keys"
+msgstr ""
+
+#: frontpanel/contents/ui/configGeneral.qml:69
+msgid "Meters sunken, in the clock's colours"
+msgstr ""
+
+#: frontpanel/contents/ui/configGeneral.qml:70
+msgid "Meters as an LED field over the keys"
+msgstr ""
+
+#: frontpanel/contents/ui/configGeneral.qml:71
+msgid "Meters as a panel of bars beside the keys"
+msgstr ""
+
+#: frontpanel/contents/ui/configGeneral.qml:73
 msgid "Console settings"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:63
-#: frontpanel/contents/ui/configStyle.qml:242
+#: frontpanel/contents/ui/configGeneral.qml:74
+#: frontpanel/contents/ui/configStyle.qml:245
 msgid "Lock screen"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:64
+#: frontpanel/contents/ui/configGeneral.qml:75
 msgid "Show desktop"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:65
+#: frontpanel/contents/ui/configGeneral.qml:76
 msgid "Load meter (processor and memory)"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:66
+#: frontpanel/contents/ui/configGeneral.qml:77
+msgid "LLM cluster (tokens per second)"
+msgstr ""
+
+#: frontpanel/contents/ui/configGeneral.qml:78
 msgid "Volume (otherwise in the strip's row)"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:67
+#: frontpanel/contents/ui/configGeneral.qml:79
 msgid "Network (WLAN or cable)"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:68
+#: frontpanel/contents/ui/configGeneral.qml:80
 msgid "Leave session"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:77
+#: frontpanel/contents/ui/configGeneral.qml:89
 msgid "Visibility:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:78
+#: frontpanel/contents/ui/configGeneral.qml:90
 msgid "Always visible"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:78
+#: frontpanel/contents/ui/configGeneral.qml:90
 msgid "Auto-hide / edge reveal"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:78
+#: frontpanel/contents/ui/configGeneral.qml:90
 msgid "Dodge windows"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:81
+#: frontpanel/contents/ui/configGeneral.qml:93
 msgid "Screen edge:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:82
+#: frontpanel/contents/ui/configGeneral.qml:94
 msgid "Bottom"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:82
+#: frontpanel/contents/ui/configGeneral.qml:94
 msgid "Top"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:82
+#: frontpanel/contents/ui/configGeneral.qml:94
 msgid "Left"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:82
+#: frontpanel/contents/ui/configGeneral.qml:94
 msgid "Right"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:88
+#: frontpanel/contents/ui/configGeneral.qml:100
 msgid "Floating, a gap from the screen edge (off: on the edge)"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:92
+#: frontpanel/contents/ui/configGeneral.qml:104
 msgid "Screens:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:93
+#: frontpanel/contents/ui/configGeneral.qml:105
 msgid "A console on every screen (off: one console for all)"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:97
+#: frontpanel/contents/ui/configGeneral.qml:109
 msgid "Launchers:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:98
+#: frontpanel/contents/ui/configGeneral.qml:110
 msgid "Labels under the icons (off: larger icons, names as tooltips)"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:105
+#: frontpanel/contents/ui/configGeneral.qml:117
 msgid "Small buttons:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:113
+#: frontpanel/contents/ui/configGeneral.qml:124
+msgid "Small buttons style:"
+msgstr ""
+
+#: frontpanel/contents/ui/configGeneral.qml:132
+msgid "LLM cluster as a large tile"
+msgstr ""
+
+#: frontpanel/contents/ui/configGeneral.qml:137
+msgid "LLM hosts (comma-separated):"
+msgstr ""
+
+#: frontpanel/contents/ui/configGeneral.qml:142
+msgid ""
+"Comma-separated name=http://host:port or name=ssh:PORT. SSH uses curl on the "
+"host. Never configure socket proxy ports; ai395:8090 is blocked."
+msgstr ""
+
+#: frontpanel/contents/ui/configGeneral.qml:146
 msgid "System tray:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:114
+#: frontpanel/contents/ui/configGeneral.qml:147
 msgid "Leave the volume to the console"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:118
+#: frontpanel/contents/ui/configGeneral.qml:151
 msgid "Status icons only behind the console's button"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:122
+#: frontpanel/contents/ui/configGeneral.qml:155
 msgid "Panel:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:123
+#: frontpanel/contents/ui/configGeneral.qml:156
 msgid "Frame behind the console"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:127
+#: frontpanel/contents/ui/configGeneral.qml:160
 msgid "Text:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:128
+#: frontpanel/contents/ui/configGeneral.qml:161
 msgid ""
 "Hard contrast: black (white on dark surfaces) instead of the palette's "
 "colours"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:130
+#: frontpanel/contents/ui/configGeneral.qml:163
 msgid "Console label:"
 msgstr ""
 
-#: frontpanel/contents/ui/configGeneral.qml:132
+#: frontpanel/contents/ui/configGeneral.qml:165
 msgid "Size:"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:144
+#: frontpanel/contents/ui/configLaunchers.qml:147
 msgid "Choose an application"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:153
-#: frontpanel/contents/ui/main.qml:1900
+#: frontpanel/contents/ui/configLaunchers.qml:156
+#: frontpanel/contents/ui/main.qml:2267
 msgid "Search"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:200
+#: frontpanel/contents/ui/configLaunchers.qml:203
 msgid "Choose icon"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:206
+#: frontpanel/contents/ui/configLaunchers.qml:209
 msgid "Label"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:228
+#: frontpanel/contents/ui/configLaunchers.qml:231
 msgid "Command, e.g. firefox --private-window"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:238
+#: frontpanel/contents/ui/configLaunchers.qml:241
 msgid "Subpanel opened by the arrow above the tile"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:245
+#: frontpanel/contents/ui/configLaunchers.qml:248
 msgid ""
 "Not installed: this tile would only show a notification. Choose another "
 "program."
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:245
+#: frontpanel/contents/ui/configLaunchers.qml:248
 msgid "Installed"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:247
+#: frontpanel/contents/ui/configLaunchers.qml:250
 msgid "Move left"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:248
+#: frontpanel/contents/ui/configLaunchers.qml:251
 msgid "Move right"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:249
+#: frontpanel/contents/ui/configLaunchers.qml:252
 msgid "Remove"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:254
+#: frontpanel/contents/ui/configLaunchers.qml:257
 msgid "Left of the workspace switch"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:256
-#: frontpanel/contents/ui/configLaunchers.qml:260
+#: frontpanel/contents/ui/configLaunchers.qml:259
+#: frontpanel/contents/ui/configLaunchers.qml:263
 msgid "Add tile"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:258
+#: frontpanel/contents/ui/configLaunchers.qml:261
 msgid "Right of the workspace switch"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:266
+#: frontpanel/contents/ui/configLaunchers.qml:269
 msgid ""
 "\"Default …\" entries follow the applications chosen in System Settings › "
 "Default Applications. A custom command runs through the shell; app:<desktop "
 "id> starts an installed application."
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:269
+#: frontpanel/contents/ui/configLaunchers.qml:272
 msgid "Restore default tiles"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:71
+#: frontpanel/contents/ui/configStyle.qml:74
 msgid "Outlined: dark edge, one-pixel bevel"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:72
+#: frontpanel/contents/ui/configStyle.qml:75
 msgid "Floating: a pixel inside the groove, two-pixel bevel"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:73
+#: frontpanel/contents/ui/configStyle.qml:76
 msgid "Slim: 8 pixels high"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:75
+#: frontpanel/contents/ui/configStyle.qml:78
 msgid "Copper rim"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:76
+#: frontpanel/contents/ui/configStyle.qml:79
 msgid "Rim in the palette's accent colour"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:77
+#: frontpanel/contents/ui/configStyle.qml:80
 msgid "White rim, as in X11"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:78
+#: frontpanel/contents/ui/configStyle.qml:81
 msgid "Rim in a colour of my own"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:139
+#: frontpanel/contents/ui/configStyle.qml:142
 msgid ""
 "This edition of CDE Copper comes from the KDE Store and cannot recolour the "
 "theme: choose a colour scheme in System Settings › Colours. The style "
@@ -413,98 +451,98 @@ msgid ""
 "the full installation from the project page."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:145
+#: frontpanel/contents/ui/configStyle.qml:148
 msgid "Palette"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:148
+#: frontpanel/contents/ui/configStyle.qml:151
 msgid ""
 "CDE's 37 palettes and CDE Copper. The stripes: console, windows, text "
 "fields, active and inactive title, desktop. Choose one (and a backdrop "
 "below), then Apply or OK. ● marks the palette in use."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:166
+#: frontpanel/contents/ui/configStyle.qml:169
 msgid "%1 (in use)"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:193
+#: frontpanel/contents/ui/configStyle.qml:196
 msgid "Progress bars"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:206
+#: frontpanel/contents/ui/configStyle.qml:209
 msgid ""
 "In the programs' controls (Kvantum); the bar beside shows the style in use. "
 "Programs already open take it when restarted."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:210
+#: frontpanel/contents/ui/configStyle.qml:213
 msgid "Mouse cursors"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:223
+#: frontpanel/contents/ui/configStyle.qml:226
 msgid "Cursor rim"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:229
+#: frontpanel/contents/ui/configStyle.qml:232
 msgid ""
 "The cursors after the X11 cursor font: black shapes on a coloured rim, with "
 "a soft shadow."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:233
+#: frontpanel/contents/ui/configStyle.qml:236
 msgid "Windows"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:237
+#: frontpanel/contents/ui/configStyle.qml:240
 msgid "Short hard shadow at the right and bottom of each window"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:246
+#: frontpanel/contents/ui/configStyle.qml:249
 msgid "CDE's: a Motif dialog on the backdrop"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:246
+#: frontpanel/contents/ui/configStyle.qml:249
 msgid "Plasma's own"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:251
+#: frontpanel/contents/ui/configStyle.qml:254
 msgid ""
 "Plasma takes the lock screen from its shell package; CDE's comes in a shell "
 "package of its own that takes everything else from Plasma's. Switching "
 "restarts the desktop shell once."
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:255
+#: frontpanel/contents/ui/configStyle.qml:258
 msgid "Backdrop"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:262
+#: frontpanel/contents/ui/configStyle.qml:265
 msgid "Keep the desktop as it is"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:263
+#: frontpanel/contents/ui/configStyle.qml:266
 msgid "Plain palette colour"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:266
+#: frontpanel/contents/ui/configStyle.qml:269
 msgid "Picture: %1 (for this palette)"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:268
+#: frontpanel/contents/ui/configStyle.qml:271
 msgid "Picture: %1"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:274
+#: frontpanel/contents/ui/configStyle.qml:277
 #: backdrop/contents/ui/config.qml:76
 msgid "Pixel size:"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:285
+#: frontpanel/contents/ui/configStyle.qml:288
 msgid "On dark palettes, patterns in a colour of the palette instead of white"
 msgstr ""
 
-#: frontpanel/contents/ui/configStyle.qml:323
+#: frontpanel/contents/ui/configStyle.qml:326
 msgid ""
 "Backdrops are CDE's patterns (The Open Group, CC BY-SA 3.0), coloured with "
 "the palette, or CDE Copper's pictures, each painted for one palette and "
@@ -512,383 +550,433 @@ msgid ""
 "wallpaper settings as \"CDE Backdrop\", one per workspace too."
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:65
+#: frontpanel/contents/ui/configWorkspaces.qml:68
 msgid "Switcher:"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:66
+#: frontpanel/contents/ui/configWorkspaces.qml:69
 msgid "Show the workspace switcher"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:70
+#: frontpanel/contents/ui/configWorkspaces.qml:73
 msgid "Number of workspaces:"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:76
+#: frontpanel/contents/ui/configWorkspaces.qml:79
 msgid "Button width:"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:82
+#: frontpanel/contents/ui/configWorkspaces.qml:85
 msgid "Each button in a colour of its own, as in CDE"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:88
+#: frontpanel/contents/ui/configWorkspaces.qml:91
 msgid "Open windows"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:91
+#: frontpanel/contents/ui/configWorkspaces.qml:94
 msgid "Shown as:"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:95
+#: frontpanel/contents/ui/configWorkspaces.qml:98
 msgid "Strip under the tiles"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:96
+#: frontpanel/contents/ui/configWorkspaces.qml:99
 msgid "Window tile left, beside the launchers"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:97
+#: frontpanel/contents/ui/configWorkspaces.qml:100
 msgid "Window tile right, beside the launchers"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:98
+#: frontpanel/contents/ui/configWorkspaces.qml:101
 msgid "Icons under each workspace button"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:99
+#: frontpanel/contents/ui/configWorkspaces.qml:102
 msgid "Each workspace in miniature, with its windows"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:117
+#: frontpanel/contents/ui/configWorkspaces.qml:120
 msgid ""
 "Needs the workspace switcher; while it is hidden the console shows the strip "
 "(or the tile chosen before)."
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:123
+#: frontpanel/contents/ui/configWorkspaces.qml:126
 msgid "Group windows of one application (\"3× Konsole\")"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:127
+#: frontpanel/contents/ui/configWorkspaces.qml:130
 msgid "Only windows on this console's screen (with a console on every screen)"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:129
+#: frontpanel/contents/ui/configWorkspaces.qml:132
 msgid "Labels (empty: the number)"
 msgstr ""
 
-#: frontpanel/contents/ui/configWorkspaces.qml:134
+#: frontpanel/contents/ui/configWorkspaces.qml:137
 msgid "Workspace %1:"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:74 frontpanel/contents/ui/main.qml:225
+#: frontpanel/contents/ui/main.qml:75 frontpanel/contents/ui/main.qml:226
 msgid "Network"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:92 frontpanel/contents/ui/main.qml:224
-#: frontpanel/contents/ui/main.qml:447
+#: frontpanel/contents/ui/main.qml:93 frontpanel/contents/ui/main.qml:225
+#: frontpanel/contents/ui/main.qml:454
 msgid "Audio"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:160 frontpanel/contents/ui/launch.js:287
+#: frontpanel/contents/ui/main.qml:161 frontpanel/contents/ui/launch.js:287
 msgid "Places"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:161 frontpanel/contents/ui/launch.js:269
+#: frontpanel/contents/ui/main.qml:162 frontpanel/contents/ui/launch.js:269
 msgid "System"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:162 frontpanel/contents/ui/launch.js:270
+#: frontpanel/contents/ui/main.qml:163 frontpanel/contents/ui/launch.js:270
 msgid "Help"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:163 frontpanel/contents/ui/launch.js:268
+#: frontpanel/contents/ui/main.qml:164 frontpanel/contents/ui/launch.js:268
 msgid "Mail"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:165 frontpanel/contents/ui/launch.js:289
+#: frontpanel/contents/ui/main.qml:166 frontpanel/contents/ui/launch.js:289
 msgid "Terminals"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:166 frontpanel/contents/ui/launch.js:288
+#: frontpanel/contents/ui/main.qml:167 frontpanel/contents/ui/launch.js:288
 msgid "Bookmarks"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:167
+#: frontpanel/contents/ui/main.qml:168
 msgid "Recent Files"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:188
+#: frontpanel/contents/ui/main.qml:189
 msgid "No bookmarks found"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:188
+#: frontpanel/contents/ui/main.qml:189
 msgid "No recent files"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:213
+#: frontpanel/contents/ui/main.qml:214
 msgid "Home"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:214
+#: frontpanel/contents/ui/main.qml:215
 msgid "Documents"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:215
+#: frontpanel/contents/ui/main.qml:216
 msgid "Downloads"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:216
+#: frontpanel/contents/ui/main.qml:217
 msgid "Pictures"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:217
+#: frontpanel/contents/ui/main.qml:218
 msgid "File System"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:218 frontpanel/contents/ui/launch.js:271
+#: frontpanel/contents/ui/main.qml:219 frontpanel/contents/ui/launch.js:271
 msgid "Trash"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:221 frontpanel/contents/ui/launch.js:279
+#: frontpanel/contents/ui/main.qml:222 frontpanel/contents/ui/launch.js:279
 msgid "System Settings"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:222
+#: frontpanel/contents/ui/main.qml:223
 msgid "Style Manager…"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:223
+#: frontpanel/contents/ui/main.qml:224
 msgid "Arrange Windows"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:226
+#: frontpanel/contents/ui/main.qml:227
 #: lookandfeel/contents/splash/Splash.qml:24
 msgid "Display"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:227 frontpanel/contents/ui/main.qml:293
+#: frontpanel/contents/ui/main.qml:228 frontpanel/contents/ui/main.qml:294
 #: frontpanel/contents/ui/launch.js:280
 msgid "Help Center"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:228 frontpanel/contents/ui/main.qml:1041
+#: frontpanel/contents/ui/main.qml:229 frontpanel/contents/ui/main.qml:1277
 msgid "Lock Screen"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:229 frontpanel/contents/ui/main.qml:1045
+#: frontpanel/contents/ui/main.qml:230 frontpanel/contents/ui/main.qml:1281
 msgid "Leave Session..."
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:230
+#: frontpanel/contents/ui/main.qml:231
 msgid "Restart..."
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:231
+#: frontpanel/contents/ui/main.qml:232
 msgid "Shut Down..."
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:237
+#: frontpanel/contents/ui/main.qml:238
 msgid "New Message"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:238
+#: frontpanel/contents/ui/main.qml:239
 msgid "Open Mail"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:239
+#: frontpanel/contents/ui/main.qml:240
 msgid "Appointments"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:240
+#: frontpanel/contents/ui/main.qml:241
 msgid "Address Book"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:245
+#: frontpanel/contents/ui/main.qml:246
 msgid "New Terminal"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:246
+#: frontpanel/contents/ui/main.qml:247
 msgid "Three Terminals Around the Console"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:248
+#: frontpanel/contents/ui/main.qml:249
 msgid "Four Terminals on the Other Screen"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:249
+#: frontpanel/contents/ui/main.qml:250
 msgid "Seven Terminals on Both Screens"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:251
+#: frontpanel/contents/ui/main.qml:252
 msgid "Four Terminals"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:269
+#: frontpanel/contents/ui/main.qml:270
 msgid "Save Layout"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:270
+#: frontpanel/contents/ui/main.qml:271
 msgid "Name of the layout:"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:294
+#: frontpanel/contents/ui/main.qml:295
 msgid "Keyboard Shortcuts"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:295
+#: frontpanel/contents/ui/main.qml:296
 msgid "System Information"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:296
+#: frontpanel/contents/ui/main.qml:297
 msgid "About CDE Copper"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:422 frontpanel/contents/ui/main.qml:447
+#: frontpanel/contents/ui/main.qml:423 frontpanel/contents/ui/main.qml:454
 msgid "Muted"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:440
+#: frontpanel/contents/ui/main.qml:447
 msgid "Offline"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:441
+#: frontpanel/contents/ui/main.qml:448
 msgid "WLAN %1, %2 %"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:441
+#: frontpanel/contents/ui/main.qml:448
 msgid "Cable %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:700
+#: frontpanel/contents/ui/main.qml:707
 msgid "Open %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:778
+#: frontpanel/contents/ui/main.qml:748 frontpanel/contents/ui/main.qml:764
+#: frontpanel/contents/ui/main.qml:1192 frontpanel/contents/ui/main.qml:1359
+msgid "LLM cluster: %1 t/s"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:780 frontpanel/contents/ui/main.qml:1186
+#: frontpanel/contents/ui/main.qml:1379
+msgid "t/s"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:788
+msgid "LLM"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:853
 msgid "WORKSPACES"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:802
+#: frontpanel/contents/ui/main.qml:877
 msgid "Workspace %1 %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:882 frontpanel/contents/ui/main.qml:942
-#: frontpanel/contents/ui/main.qml:1164 frontpanel/contents/ui/main.qml:1750
+#: frontpanel/contents/ui/main.qml:957 frontpanel/contents/ui/main.qml:1017
+#: frontpanel/contents/ui/main.qml:1530 frontpanel/contents/ui/main.qml:2117
 msgid "Window"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:990
+#: frontpanel/contents/ui/main.qml:1090
 msgid "Hidden Icons"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1040
+#: frontpanel/contents/ui/main.qml:1193
+msgid "Processor %1 %"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1193
+msgid "Memory %1 %"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1276
 msgid "Configure Front Console"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1042
+#: frontpanel/contents/ui/main.qml:1278
 msgid "Show Desktop"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1043
+#: frontpanel/contents/ui/main.qml:1279
 msgid "Volume %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1078
+#: frontpanel/contents/ui/main.qml:1349
+msgid "Running"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1350
+msgid "Busy"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1351
+msgid "Sleeping"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1352
+msgid "Unreachable"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1407
+msgid "LLM cluster"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1416
+msgid "%1 t/s"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1425
+msgid "Total: %1 t/s"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:1442
 msgid "Processor %1 %, memory %2 %"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1164
+#: frontpanel/contents/ui/main.qml:1530
 msgid "%1× %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1219 frontpanel/contents/ui/main.qml:1727
+#: frontpanel/contents/ui/main.qml:1585 frontpanel/contents/ui/main.qml:2094
 msgid "Open Windows"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1234 frontpanel/contents/ui/main.qml:1859
+#: frontpanel/contents/ui/main.qml:1600 frontpanel/contents/ui/main.qml:2226
 msgid "%1 window"
 msgid_plural "%1 windows"
 msgstr[0] ""
 msgstr[1] ""
 
-#: frontpanel/contents/ui/main.qml:1352
+#: frontpanel/contents/ui/main.qml:1718
 msgid "Volume %1, %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1519
+#: frontpanel/contents/ui/main.qml:1886
 msgid "WLAN is switched off"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1520
+#: frontpanel/contents/ui/main.qml:1887
 msgid "Searching for WLANs…"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1520
+#: frontpanel/contents/ui/main.qml:1887
 msgid "No WLAN found"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1538
+#: frontpanel/contents/ui/main.qml:1905
 msgid "%1, signal %2 %"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1565
+#: frontpanel/contents/ui/main.qml:1932
 msgid "WLAN off"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1565
+#: frontpanel/contents/ui/main.qml:1932
 msgid "WLAN on"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1576 frontpanel/contents/ui/main.qml:1650
+#: frontpanel/contents/ui/main.qml:1943 frontpanel/contents/ui/main.qml:2017
 msgid "Settings…"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1629
+#: frontpanel/contents/ui/main.qml:1996
 msgid "Audio  %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1637
+#: frontpanel/contents/ui/main.qml:2004
 msgid "Volume"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1643
+#: frontpanel/contents/ui/main.qml:2010
 msgid "Unmute"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1643
+#: frontpanel/contents/ui/main.qml:2010
 msgid "Mute"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1732
+#: frontpanel/contents/ui/main.qml:2099
 msgid "No open windows"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1795 frontpanel/contents/ui/launch.js:291
+#: frontpanel/contents/ui/main.qml:2162 frontpanel/contents/ui/launch.js:291
 msgid "Saved layouts"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1799
+#: frontpanel/contents/ui/main.qml:2166
 msgid "Save Current Layout…"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1806
+#: frontpanel/contents/ui/main.qml:2173
 msgid "No saved layouts yet. Arrange your windows, then save them here."
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1869
+#: frontpanel/contents/ui/main.qml:2236
 msgid "Delete?"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1872
+#: frontpanel/contents/ui/main.qml:2239
 msgid "Delete layout"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1896
+#: frontpanel/contents/ui/main.qml:2263
 msgid "Find Application"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:1922
+#: frontpanel/contents/ui/main.qml:2289
 msgid "Application"
 msgstr ""
 
@@ -1199,52 +1287,4 @@ msgstr ""
 
 #: shell/contents/lockscreen/LockScreen.qml:250
 msgid "No password is needed: press Unlock."
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
-msgid "LLM cluster (tokens per second)"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
-msgid "LLM hosts (comma-separated):"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
-msgid "LLM cluster: %1 t/s"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
-msgid "LLM cluster"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
-msgid "Running"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
-msgid "Busy"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
-msgid "Sleeping"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
-msgid "Unreachable"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
-msgid "t/s"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
-msgid "%1 t/s"
-msgstr ""
-
-#: frontpanel/contents/ui/main.qml frontpanel/contents/ui/configGeneral.qml
-msgid "Total: %1 t/s"
-msgstr ""
-
-#: frontpanel/contents/ui/configGeneral.qml
-msgid "Comma-separated name=http://host:port or name=ssh:PORT. SSH uses curl on the host. Never configure socket proxy ports; ai395:8090 is blocked."
 msgstr ""
