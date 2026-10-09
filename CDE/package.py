@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
-"""Package the built theme and its reproducible vector sources.
+"""Package the built theme and its reproducible vector sources, and the
+pictures as an archive of their own.
 
-The pictures under wallpapers/ (92 MB of JPEG sources) stay out: build/
-holds them as the installed wallpaper packages, and the sources are in
-the repository for anyone rebuilding."""
+    cde-copper-<version>.tar.xz            the theme, installed with install.sh
+    cde-copper-wallpapers-<version>.tar.gz the 40 picture packages and the teal desktop, unpacked
+                                           into ~/.local/share/wallpapers
+
+The pictures under wallpapers/ (92 MB of JPEG sources) stay out of the
+theme archive: build/ holds them as the installed wallpaper packages, and
+the sources are in the repository for anyone rebuilding. The picture
+archive holds the packages at its top level, as the store unpacks
+wallpaper archives: each picture light and dark at 3840x2160."""
 import hashlib
 from pathlib import Path
 import sys
@@ -24,6 +31,15 @@ with tarfile.open(archive, "w:xz") as tar:
         tar.add(ROOT / item, arcname="cde-copper/" + item,
                 filter=lambda info: None if "__pycache__" in info.name else info)
     tar.add(ROOT / "screenshots/desktop-arranged-1920.png", arcname="cde-copper/preview.png")
-digest = hashlib.sha256(archive.read_bytes()).hexdigest()
-(DIST / "SHA256SUMS").write_text(f"{digest}  {archive.name}\n")
-print(f"{archive}: {archive.stat().st_size:,} bytes")
+pictures = DIST / f"cde-copper-wallpapers-{VERSION}.tar.gz"
+with tarfile.open(pictures, "w:gz", compresslevel=6) as tar:
+    for package in sorted((ROOT / "build/wallpapers").iterdir()):
+        tar.add(package, arcname=package.name)
+    tar.add(ROOT / "LICENSE", arcname="LICENSE")
+    tar.add(ROOT / "wallpapers/README.md", arcname="README.md")
+lines = []
+for made in (archive, pictures):
+    digest = hashlib.sha256(made.read_bytes()).hexdigest()
+    lines.append(f"{digest}  {made.name}\n")
+    print(f"{made}: {made.stat().st_size:,} bytes")
+(DIST / "SHA256SUMS").write_text("".join(lines))

@@ -55,6 +55,35 @@ Source, issues and the full documentation (README, TESTING):
 https://github.com/huppiflupp/plasma-theme-lab/tree/main/CDE
 ```
 
+## Second entry: the pictures
+
+The 40 pictures are a store entry of their own, so that "Get New
+Wallpapers" can fetch them (the store unpacks a wallpaper archive into
+~/.local/share/wallpapers, and the packages sit at the archive's top
+level). The theme archive carries the same packages; this entry is for
+people who want the pictures alone.
+
+| Field | Value |
+|---|---|
+| Category | Wallpapers (Plasma 6) |
+| Title | CDE Copper Pictures |
+| License | GPLv2+ like the theme (AI-generated decoration, no photographs; `wallpapers/README.md`) |
+| Download file | `cde-copper-wallpapers-<version>.tar.gz` from `dist/` |
+| Logo | `screenshots/kde-look/logo-512.png` |
+| Pictures | `screenshots/kde-look/1-palettes-and-pictures.gif`, `2-light-and-dark.gif` |
+
+```
+The 40 pictures of CDE Copper as Plasma wallpaper packages, each in a
+light and a dark version at 3840x2160 (Plasma picks the dark one with a
+dark colour scheme): low-poly landscapes in Copper's colours, and
+pictures made for CDE's palettes, from Polarlicht (Northern Sky) and Mesa
+(Arizona) to Weinberg (Cabernet) and Orbit (Neptune).
+
+Install with "Get New Wallpapers" or unpack the archive into
+~/.local/share/wallpapers. The CDE Copper theme (see its own entry)
+brings the same pictures along and switches them with its palettes.
+```
+
 ## Before uploading
 
 - Version in `build.py` and `po/README.md` raised, `python3 build.py`,
