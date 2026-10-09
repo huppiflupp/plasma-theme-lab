@@ -25,7 +25,31 @@ Bevel {
     readonly property int rows: Math.max(1, Math.ceil(workspacesBlock.root.desktopInfo.desktopIds.length / columns))
     Layout.fillWidth: workspacesBlock.root.vertical; Layout.fillHeight: !workspacesBlock.root.vertical
     // With the windows each column holds four icons across.
-    readonly property int cellWidth: withWindows ? Math.max(Plasmoid.configuration.workspaceButtonWidth, 4 * 25 + 4) : Plasmoid.configuration.workspaceButtonWidth
+    readonly property int fullCellWidth: withWindows ? Math.max(Plasmoid.configuration.workspaceButtonWidth, 4 * 25 + 4) : Plasmoid.configuration.workspaceButtonWidth
+    // The screen is the limit across: with the windows the cells give way
+    // so that the console still fits (a laptop at 1280 px with four
+    // workspaces in miniature ran off the right edge).
+    readonly property int cellWidth: {
+        if (workspacesBlock.root.vertical || !withWindows) return fullCellWidth;
+        const room = Plasmoid.containment.screenGeometry.width - 24 - othersWidth;
+        const fit = Math.floor(room / workspacesBlock.colors.unit / columns) - 12;
+        return Math.max(40, Math.min(fullCellWidth, fit));
+    }
+    // What the tiles beside this block take across: their set widths,
+    // which do not depend on this block (so no binding loop).
+    readonly property real othersWidth: {
+        const row = parent;
+        if (!row) return 0;
+        let width = 0, count = 0;
+        for (let i = 0; i < row.children.length; i++) {
+            const tile = row.children[i];
+            if (tile === workspacesBlock || !tile.visible) continue;
+            const preferred = tile.Layout ? tile.Layout.preferredWidth : -1;
+            const across = preferred > 0 ? preferred : tile.implicitWidth;
+            if (across > 0) { width += across; count++; }
+        }
+        return width + count * (row.columnSpacing || 0);
+    }
     Layout.preferredWidth: workspacesBlock.root.vertical ? -1 : workspacesBlock.root.u((cellWidth + 12) * columns)
     Layout.preferredHeight: workspacesBlock.root.vertical ? workspacesBlock.root.u(withWindows ? 8 + rows * 70 : 72) : -1
     surface: Motif.shades(workspacesBlock.colors.panel).bottom; sunken: true

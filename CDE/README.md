@@ -439,7 +439,9 @@ over the others. Minimized windows lie as small icons along the lower edge of
 the map, where dtwm put its icons; what does not fit is counted, "+3". It
 follows moves and resizes as they happen. A click on a window (or an icon)
 brings it forward, a click beside the windows
-switches to that workspace. With one console per screen, each listing only its
+switches to that workspace. On a narrow screen the cells give way so that the
+console still fits across (a 1280 px laptop with four workspaces). With one
+console per screen, each listing only its
 own screen's windows, the map shows that screen.
 
 ### Arrange windows around the console
