@@ -276,7 +276,11 @@ def build_icons(out: Path):
     for name, original in symbolic_aliases.items():
         (symbolic_dest / f"{name}-symbolic.svg").symlink_to(original + "-symbolic.svg")
     (theme / "index.theme").write_text("[Icon Theme]\nName=CDE Copper\nComment=Original workstation pictograms, pixel versions at 16 and 22 px\n"
-                                       "Inherits=breeze,hicolor\nDirectories=16/all,22/all,symbolic/all,scalable/all\n\n"
+                                       "Inherits=breeze,hicolor\n"
+                                       # The symbolic icons carry .ColorScheme-Text; only with this does
+                                       # KIconLoader swap it for the colour scheme's text colour (the
+                                       # tray's icons stayed ink-dark on dark palettes without it).
+                                       "FollowsColorScheme=true\nDirectories=16/all,22/all,symbolic/all,scalable/all\n\n"
                                        "[16/all]\nSize=16\nType=Fixed\nContext=Applications\n\n"
                                        "[22/all]\nSize=22\nType=Fixed\nContext=Applications\n\n"
                                        "[symbolic/all]\nSize=16\nType=Scalable\nMinSize=8\nMaxSize=256\nContext=Applications\n\n"
@@ -1319,6 +1323,9 @@ def symbolic_icons():
         "application-exit": "system-log-out", "view-restore": "window-restore", "favorite": "starred",
         "edit-clear-all": "edit-clear", "edit-clear-history": "edit-clear", "configure-toolbars": "configure",
         "network-disconnected": "network-offline", "battery-missing": "battery-000",
+        # Bluedevil asks for these names in the system tray.
+        "network-bluetooth": "bluetooth-active", "network-bluetooth-activated": "bluetooth-active",
+        "network-bluetooth-inactive": "bluetooth-disabled",
     }
     for strength, label in ((0, "none"), (20, "weak"), (40, "ok"), (60, "good"), (80, "good"), (100, "excellent")):
         aliases[f"network-wireless-{strength}"] = "network-wireless-signal-" + label
