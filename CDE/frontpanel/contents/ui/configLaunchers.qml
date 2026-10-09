@@ -21,6 +21,7 @@ ConfigPage {
     property alias cfg_llmHosts: llmHosts.text
     property bool cfg_hideTrayIcons: true
     property alias cfg_hideTrayVolume: hideVolume.checked
+    property alias cfg_trayIconsOnly: trayIconsOnly.checked
     readonly property var smallStyles: [
         {value: "family", short: i18nd("cde-copper", "All alike"), text: i18nd("cde-copper", "All alike, the meters among the keys")},
         {value: "instruments", short: i18nd("cde-copper", "Sunken meters"), text: i18nd("cde-copper", "Meters sunken, in the clock's colours")},
@@ -334,6 +335,10 @@ ConfigPage {
                 model: [i18nd("cde-copper", "Behind the block's arrow button"), i18nd("cde-copper", "Beside the console")]
                 currentIndex: page.cfg_hideTrayIcons ? 0 : 1
                 onActivated: index => page.cfg_hideTrayIcons = index === 0
+            }
+            CheckBox {
+                id: trayIconsOnly
+                text: i18nd("cde-copper", "Icons only in the status popup, names as tooltips")
             }
             CheckBox {
                 id: hideVolume

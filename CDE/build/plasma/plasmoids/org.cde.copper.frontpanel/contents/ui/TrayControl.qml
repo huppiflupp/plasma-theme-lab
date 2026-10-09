@@ -18,6 +18,7 @@ Item {
         function onHideTrayIconsChanged() { tray.syncTray(); tray.placeTray(); }
         // The network button chosen or dropped: the tray's network entry follows.
         function onSmallButtonsChanged() { tray.syncTray(); }
+        function onTrayIconsOnlyChanged() { tray.fitPopupLater(); }
         function onPanelFrameChanged() { tray.placePanelFrame(); }
     }
     // The tray beside the console would show a second volume control; the
@@ -124,6 +125,8 @@ Item {
     readonly property var popupGrid: trayItem && trayItem.hiddenLayout ? trayItem.hiddenLayout : null
     property real popupFullWidth: 0                         // Plasma's minimum, kept for entries' views
     property real popupFullHeight: 0
+    property real gridCellHeight: 0                         // Plasma's row height, kept for the labelled grid
+    property bool gridStyled: false                         // the grid's cells set by the console
     Connections {
         target: tray.trayState
         ignoreUnknownSignals: true
@@ -157,13 +160,58 @@ Item {
         const padW = Math.max(0, win.width - full.width), padH = Math.max(0, win.height - full.height);
         let w = tray.popupFullWidth, h = tray.popupFullHeight;
         if (!full.plasmoidContainer.visible) {
-            const rows = Math.max(1, Math.ceil(grid.count / Math.max(1, grid.columns || 2)));
+            w = Math.round(tray.popupFullWidth * 5 / 6);
+            const cols = tray.styleGrid(grid, w - Math.max(0, full.width - grid.width));
+            const rows = Math.max(1, Math.ceil(grid.count / cols));
             const top = grid.mapToItem(full, 0, 0).y;
             h = Math.ceil(top + rows * grid.cellHeight + tray.root.u(8));
-            w = Math.round(tray.popupFullWidth * 5 / 6);
         }
         full.Layout.minimumWidth = w; full.Layout.minimumHeight = h;
         win.width = w + padW; win.height = h + padH;
+    }
+    // The grid's cells for the width it will have; returns its columns.
+    // Plasma lays the entries out in two columns, icon and name side by
+    // side. With "Icons only" the cells shrink to the icon, the grid
+    // takes as many columns as fit, and every entry's name goes to its
+    // tooltip (Plasma shows one only where it adds to the name). Switched
+    // off again, the cells and names come back; a tooltip title Plasma
+    // had left empty stays empty until the shell restarts.
+    function styleGrid(grid, width) {
+        const iconsOnly = Plasmoid.configuration.trayIconsOnly;
+        if (!tray.gridCellHeight) tray.gridCellHeight = grid.cellHeight;
+        let cols = 2, cell = 0;
+        if (iconsOnly) {
+            cell = Math.round(tray.root.u(32 + 2 * 4 + 8));
+            cols = Math.max(1, Math.floor(width / cell));
+        }
+        for (const loader of grid.contentItem.children) {
+            const entry = loader.item;
+            if (!entry || entry.iconContainer === undefined) continue;
+            let label = null;
+            for (const child of entry.children) {
+                if (child.spacing !== undefined && child.children.length === 2) label = child.children[1];
+            }
+            if (!label) continue;
+            if (iconsOnly) {
+                cell = Math.max(cell, Math.round(entry.iconContainer.height + 2 * entry.margins + tray.root.u(8)));
+                if (label.visible) {
+                    label.visible = false;
+                    entry.mainText = Qt.binding(function() { return entry.text; });
+                    entry.active = true;
+                }
+            } else if (!label.visible) {
+                label.visible = Qt.binding(function() { return entry.inHiddenLayout; });
+                entry.mainText = "";
+                entry.active = Qt.binding(function() { return entry.text != entry.mainText || entry.subText.length > 0; });
+            }
+        }
+        if (iconsOnly) {
+            cols = Math.max(1, Math.floor(width / cell));
+            grid.cellWidth = cell; grid.cellHeight = cell; tray.gridStyled = true;
+        } else if (tray.gridStyled) {
+            grid.cellWidth = Math.floor(width / cols); grid.cellHeight = tray.gridCellHeight; tray.gridStyled = false;
+        }
+        return cols;
     }
     // The tray fills its item list on its first start; look once it has.
     Timer { id: trayTimer; interval: 4000; running: true; onTriggered: { tray.placeTray(); tray.placePanelFrame(); trayIds.connectSource("python3 " + Launch.quote(tray.root.helper) + " tray"); } }

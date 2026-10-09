@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cde-copper 0.9.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 07:08+0200\n"
+"POT-Creation-Date: 2026-10-09 07:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -292,197 +292,201 @@ msgstr ""
 msgid "The small caption under the clock."
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:25
+#: frontpanel/contents/ui/configLaunchers.qml:26
 msgid "All alike"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:25
+#: frontpanel/contents/ui/configLaunchers.qml:26
 msgid "All alike, the meters among the keys"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:26
+#: frontpanel/contents/ui/configLaunchers.qml:27
 msgid "Sunken meters"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:26
+#: frontpanel/contents/ui/configLaunchers.qml:27
 msgid "Meters sunken, in the clock's colours"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:27
+#: frontpanel/contents/ui/configLaunchers.qml:28
 msgid "LED field"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:27
+#: frontpanel/contents/ui/configLaunchers.qml:28
 msgid "Meters as an LED field over the keys"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:28
+#: frontpanel/contents/ui/configLaunchers.qml:29
 msgid "Bar panel"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:28
+#: frontpanel/contents/ui/configLaunchers.qml:29
 msgid "Meters as a panel of bars beside the keys"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:30
+#: frontpanel/contents/ui/configLaunchers.qml:31
 msgid "Console settings"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:31
+#: frontpanel/contents/ui/configLaunchers.qml:32
 msgid "Lock screen"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:32
+#: frontpanel/contents/ui/configLaunchers.qml:33
 msgid "Show desktop"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:33
+#: frontpanel/contents/ui/configLaunchers.qml:34
 msgid "Load meter"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:33
+#: frontpanel/contents/ui/configLaunchers.qml:34
 msgid "Processor and memory"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:34
+#: frontpanel/contents/ui/configLaunchers.qml:35
 #: frontpanel/contents/ui/LlmPopup.qml:41
 msgid "LLM cluster"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:34
+#: frontpanel/contents/ui/configLaunchers.qml:35
 msgid "Tokens per second of llama.cpp servers"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:35
+#: frontpanel/contents/ui/configLaunchers.qml:36
 #: frontpanel/contents/ui/VolumePopup.qml:46
 msgid "Volume"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:35
+#: frontpanel/contents/ui/configLaunchers.qml:36
 msgid "Without it the volume sits in the strip's row"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:36
+#: frontpanel/contents/ui/configLaunchers.qml:37
 #: frontpanel/contents/ui/main.qml:59 frontpanel/contents/ui/main.qml:227
 msgid "Network"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:36
+#: frontpanel/contents/ui/configLaunchers.qml:37
 msgid "WLAN or cable"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:37
+#: frontpanel/contents/ui/configLaunchers.qml:38
 msgid "Leave session"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:132
+#: frontpanel/contents/ui/configLaunchers.qml:133
 msgid "Choose an application"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:141
+#: frontpanel/contents/ui/configLaunchers.qml:142
 #: frontpanel/contents/ui/FindPopup.qml:35
 msgid "Search"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:209
+#: frontpanel/contents/ui/configLaunchers.qml:212
 msgid "Drag to reorder"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:215
+#: frontpanel/contents/ui/configLaunchers.qml:218
 msgid "Choose icon"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:221
+#: frontpanel/contents/ui/configLaunchers.qml:224
 msgid "Label"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:243
+#: frontpanel/contents/ui/configLaunchers.qml:246
 msgid "Command, e.g. firefox --private-window"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:253
+#: frontpanel/contents/ui/configLaunchers.qml:256
 msgid "Subpanel opened by the arrow above the tile"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:260
+#: frontpanel/contents/ui/configLaunchers.qml:263
 msgid ""
 "Not installed: this tile would only show a notification. Choose another "
 "program."
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:260
+#: frontpanel/contents/ui/configLaunchers.qml:263
 msgid "Installed"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:262
+#: frontpanel/contents/ui/configLaunchers.qml:265
 msgid "Move left"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:263
+#: frontpanel/contents/ui/configLaunchers.qml:266
 msgid "Move right"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:264
+#: frontpanel/contents/ui/configLaunchers.qml:267
 msgid "Remove"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:269
+#: frontpanel/contents/ui/configLaunchers.qml:272
 msgid "Left of the workspace switch"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:271
-#: frontpanel/contents/ui/configLaunchers.qml:275
+#: frontpanel/contents/ui/configLaunchers.qml:274
+#: frontpanel/contents/ui/configLaunchers.qml:278
 msgid "Add tile"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:273
+#: frontpanel/contents/ui/configLaunchers.qml:276
 msgid "Right of the workspace switch"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:281
+#: frontpanel/contents/ui/configLaunchers.qml:284
 msgid ""
 "\"Default …\" entries follow the applications chosen in System Settings › "
 "Default Applications. A custom command runs through the shell; app:<desktop "
 "id> starts an installed application."
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:284
+#: frontpanel/contents/ui/configLaunchers.qml:287
 msgid "Restore default tiles"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:289
+#: frontpanel/contents/ui/configLaunchers.qml:292
 msgid "Small buttons at the end"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:308
+#: frontpanel/contents/ui/configLaunchers.qml:311
 msgid "Style:"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:331
+#: frontpanel/contents/ui/configLaunchers.qml:334
 msgid "Status icons:"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:332
+#: frontpanel/contents/ui/configLaunchers.qml:335
 msgid "Behind the block's arrow button"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:332
+#: frontpanel/contents/ui/configLaunchers.qml:335
 msgid "Beside the console"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:338
-msgid "Volume only in the console"
+#: frontpanel/contents/ui/configLaunchers.qml:341
+msgid "Icons only in the status popup, names as tooltips"
 msgstr ""
 
 #: frontpanel/contents/ui/configLaunchers.qml:345
+msgid "Volume only in the console"
+msgstr ""
+
+#: frontpanel/contents/ui/configLaunchers.qml:352
 msgid "The tray leaves out its own volume icon."
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:353
+#: frontpanel/contents/ui/configLaunchers.qml:360
 msgid "LLM hosts:"
 msgstr ""
 
-#: frontpanel/contents/ui/configLaunchers.qml:361
+#: frontpanel/contents/ui/configLaunchers.qml:368
 msgid ""
 "For the LLM cluster's small button and its tile (a tile's program \"LLM "
 "cluster\"). Comma-separated name=http://host:port or name=ssh:PORT (SSH runs "

@@ -27,6 +27,7 @@ KCM.SimpleKCM {
     property var cfg_llmHostsDefault
     property var cfg_hideTrayVolumeDefault
     property var cfg_hideTrayIconsDefault
+    property var cfg_trayIconsOnlyDefault
     property var cfg_trayHiddenByConsoleDefault
     property var cfg_panelFrameDefault
     property var cfg_hardContrastDefault

@@ -184,6 +184,15 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   the back arrow shrinks it again, closing with Esc and reopening gives the
   small size at once (Plasma stores the last size in popupWidth/popupHeight).
   Checked with QMP clicks and hypervisor screenshots; no QML warnings.
+- "Icons only in the status popup, names as tooltips" (Tiles page, off by
+  default; 2026-10-09, ubuntu-lab): switched on by Plasma script while the
+  shell ran, the next opening shows the seven entries as one row of icons,
+  the popup about 360 by 100 pixels; hovering Clipboard shows its name
+  and the clipboard's text as tooltip; a click opens the entry's view at
+  Plasma's full size, the back arrow returns to the icon row. Switched
+  off again, the two-column grid with names comes back at once (its row
+  height and cell width restored); the tooltip of an entry whose name
+  Plasma had left out of it stays off, as before.
 - Volume button as wide as a launcher, lined up under the small buttons.
 - Mail subpanel: New Message (the mail client with a bare mailto:),
   Open Mail, Appointments (the calendar application), Address Book. The
