@@ -131,7 +131,7 @@ Item {
     Connections {
         target: tray.trayState
         ignoreUnknownSignals: true
-        function onExpandedChanged() { if (tray.trayState.expanded) tray.fitPopupLater(); }
+        function onExpandedChanged() { if (tray.trayState.expanded) { tray.fitPasses = 0; tray.fitPopupLater(); } }
         function onActiveAppletChanged() { tray.fitPopupLater(); }
     }
     Connections {
@@ -140,8 +140,14 @@ Item {
         function onCountChanged() { tray.fitPopupLater(); }
     }
     // After the popup's layout has settled: the grid's position needs it.
+    // The first pass measures the heading with its former text and the
+    // items without a size; it runs again until nothing changes (at most
+    // three times per opening).
     Timer { id: fitTimer; interval: 80; onTriggered: tray.fitPopup() }
     function fitPopupLater() { fitTimer.restart(); }
+    property int fitPasses: 0
+    property real lastFitWidth: 0
+    property real lastFitHeight: 0
     // The popup (the dialog's main item) above the grid: the one with the
     // entries' container.
     function popupOf(grid) {
@@ -160,20 +166,30 @@ Item {
         // The window's padding around the popup (the dialog's frame).
         const padW = Math.max(0, win.width - full.width), padH = Math.max(0, win.height - full.height);
         let w = tray.popupFullWidth, h = tray.popupFullHeight;
+        const heading = tray.styleHeading(full);
         if (!full.plasmoidContainer.visible) {
-            w = Math.round(tray.popupFullWidth * 5 / 6);
-            const cols = tray.styleGrid(grid, w - Math.max(0, full.width - grid.width));
-            const rows = Math.max(1, Math.ceil(grid.count / cols));
+            // Measured from what is laid out at once (implicit widths): on
+            // the first opening the popup's items have no size yet, and a
+            // scrollbar the view shows while the popup is still too small
+            // would narrow the grid by a column.
+            const fit = tray.styleGrid(grid, Math.round(tray.popupFullWidth * 5 / 6));
+            const headW = heading ? Math.ceil(heading.implicitWidth + tray.root.u(12)) : 0;
+            w = Math.max(fit.width, headW, tray.root.u(120));
+            const rows = Math.max(1, Math.ceil(grid.count / fit.cols));
             const top = grid.mapToItem(full, 0, 0).y;
             h = Math.ceil(top + rows * grid.cellHeight + tray.root.u(8));
         }
-        tray.styleHeading(full);
         full.Layout.minimumWidth = w; full.Layout.minimumHeight = h;
         win.width = w + padW; win.height = h + padH;
+        if ((w !== tray.lastFitWidth || h !== tray.lastFitHeight) && tray.fitPasses < 3) { tray.fitPasses++; tray.fitPopupLater(); }
+        tray.lastFitWidth = w; tray.lastFitHeight = h;
     }
     // The popup's heading in the console's type: the title as on the
     // console's subpanels (its font, 12 units, semibold), its buttons
-    // the height of a subpanel's title bar.
+    // the height of a subpanel's title bar. Plasma's title, "Status and
+    // Notifications", would hold the popup wider than its grid; over
+    // the grid it reads "Status", an entry's view keeps the entry's
+    // name. Returns the heading's row, for its width.
     function styleHeading(full) {
         for (const column of full.children) {
             if (column.spacing === undefined || !column.children.length) continue;
@@ -183,22 +199,39 @@ Item {
                 if (item.level !== undefined && item.text !== undefined) {
                     item.font.family = Kirigami.Theme.defaultFont.family;
                     item.font.pixelSize = tray.root.u(12); item.font.weight = Font.DemiBold;
+                    item.text = Qt.binding(function() {
+                        const state = tray.trayState;
+                        return state && state.activeApplet ? state.activeApplet.plasmoid.title : i18nd("cde-copper", "Status");
+                    });
                 } else if (item.icon !== undefined && item.display !== undefined) {
                     item.implicitWidth = tray.root.u(26); item.implicitHeight = tray.root.u(26);
                     item.icon.width = tray.root.u(16); item.icon.height = tray.root.u(16);
                 }
             }
-            return;
+            return row;
         }
+        return null;
     }
-    // The grid's cells for the width it will have; returns its columns.
+    // Columns for a count of icons: around the square root, the one
+    // leaving the fewest empty cells (13 icons: five columns, three rows).
+    function bestColumns(count) {
+        const base = Math.max(1, Math.ceil(Math.sqrt(count)));
+        let best = base, empty = Infinity;
+        for (let cols = base; cols <= base + 2; cols++) {
+            const left = cols * Math.ceil(count / cols) - count;
+            if (left < empty) { empty = left; best = cols; }
+        }
+        return Math.max(1, Math.min(count, best));
+    }
+    // The grid's cells; returns its columns and the width they take.
     // Plasma lays the entries out in two columns, icon and name side by
     // side, the icons at Kirigami's medium size, the names in the
     // system font. Here the entries take the console's measures: icons
     // as on a subpanel's entries (28 units), names in the console's
-    // type. With "Icons only" the icons shrink to 22 units in cells the
-    // height of a subpanel's row, the grid takes as many columns as fit,
-    // and every entry's name goes to its tooltip (Plasma shows one only
+    // type, two columns across the width given. With "Icons only" the
+    // icons shrink to 22 units in cells of 36, the grid takes the
+    // columns bestColumns() gives and no more width than they need, and
+    // every entry's name goes to its tooltip (Plasma shows one only
     // where it adds to the name). Switched off again, the cells and
     // names come back; a tooltip title Plasma had left empty stays empty
     // until the shell restarts.
@@ -208,8 +241,8 @@ Item {
         const icon = tray.root.u(iconsOnly ? 22 : 28);
         let cols = 2, cell = 0;
         if (iconsOnly) {
-            cell = Math.round(icon + 2 * 4 + tray.root.u(8));
-            cols = Math.max(1, Math.floor(width / cell));
+            cell = Math.round(icon + 2 * 4 + tray.root.u(6));
+            cols = tray.bestColumns(grid.count);
         }
         for (const loader of grid.contentItem.children) {
             const entry = loader.item;
@@ -223,7 +256,7 @@ Item {
             label.font.family = Kirigami.Theme.defaultFont.family; label.font.pixelSize = tray.root.u(11);
             label.font.weight = Plasmoid.configuration.hardContrast ? Font.DemiBold : Font.Normal;
             if (iconsOnly) {
-                cell = Math.max(cell, Math.round(icon + 2 * entry.margins + tray.root.u(8)));
+                cell = Math.max(cell, Math.round(icon + 2 * entry.margins + tray.root.u(6)));
                 if (label.visible) {
                     label.visible = false;
                     entry.mainText = Qt.binding(function() { return entry.text; });
@@ -236,12 +269,14 @@ Item {
             }
         }
         if (iconsOnly) {
-            cols = Math.max(1, Math.floor(width / cell));
             grid.cellWidth = cell; grid.cellHeight = cell; tray.gridStyled = true;
-        } else if (tray.gridStyled) {
+            // A little over the cells: the view takes floor(width / cell) columns.
+            return { cols: cols, width: cols * cell + 4 };
+        }
+        if (tray.gridStyled) {
             grid.cellWidth = Math.floor(width / cols); grid.cellHeight = tray.gridCellHeight; tray.gridStyled = false;
         }
-        return cols;
+        return { cols: cols, width: width };
     }
     // The tray fills its item list on its first start; look once it has.
     Timer { id: trayTimer; interval: 4000; running: true; onTriggered: { tray.placeTray(); tray.placePanelFrame(); trayIds.connectSource("python3 " + Launch.quote(tray.root.helper) + " tray"); } }

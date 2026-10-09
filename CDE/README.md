@@ -93,8 +93,10 @@ languages can be added as `po/<language>.po`.
   type as on a subpanel, icons and names as on a subpanel's entries. With
   "Icons only in the status popup" (Tiles page) the entries lose their
   names, the icons shrink to small-button size in cells the height of a
-  subpanel's row, the grid takes as many per row as fit and each name goes
-  to its tooltip: a popup of a row or two. By default the console stands by
+  subpanel's row, the grid takes the columns that leave the fewest empty
+  cells (thirteen entries: five by three) and the popup no more width
+  than they need, under the short title "Status"; each name goes to its
+  tooltip. By default the console stands by
   itself; the panel's own frame around it can be switched on.
 - CDE's 37 colour palettes and ten dark ones of our own (`palettes/copper/`,
   among them Graphite in greys and Darkroom with red text), shaded with

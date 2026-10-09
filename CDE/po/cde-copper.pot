@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cde-copper 0.9.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 07:31+0200\n"
+"POT-Creation-Date: 2026-10-09 08:56+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
-#: frontpanel/contents/ui/AppMenu.qml:128 frontpanel/contents/ui/launch.js:416
+#: frontpanel/contents/ui/AppMenu.qml:128 frontpanel/contents/ui/launch.js:423
 msgid "Applications"
 msgstr ""
 
@@ -590,7 +590,7 @@ msgid "Memory %1 %"
 msgstr ""
 
 #: frontpanel/contents/ui/LayoutsPopup.qml:38
-#: frontpanel/contents/ui/launch.js:421
+#: frontpanel/contents/ui/launch.js:428
 msgid "Saved layouts"
 msgstr ""
 
@@ -650,27 +650,27 @@ msgstr ""
 msgid "Audio"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:162 frontpanel/contents/ui/launch.js:417
+#: frontpanel/contents/ui/main.qml:162 frontpanel/contents/ui/launch.js:424
 msgid "Places"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:163 frontpanel/contents/ui/launch.js:399
+#: frontpanel/contents/ui/main.qml:163 frontpanel/contents/ui/launch.js:406
 msgid "System"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:164 frontpanel/contents/ui/launch.js:400
+#: frontpanel/contents/ui/main.qml:164 frontpanel/contents/ui/launch.js:407
 msgid "Help"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:165 frontpanel/contents/ui/launch.js:398
+#: frontpanel/contents/ui/main.qml:165 frontpanel/contents/ui/launch.js:405
 msgid "Mail"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:167 frontpanel/contents/ui/launch.js:419
+#: frontpanel/contents/ui/main.qml:167 frontpanel/contents/ui/launch.js:426
 msgid "Terminals"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:168 frontpanel/contents/ui/launch.js:418
+#: frontpanel/contents/ui/main.qml:168 frontpanel/contents/ui/launch.js:425
 msgid "Bookmarks"
 msgstr ""
 
@@ -706,11 +706,11 @@ msgstr ""
 msgid "File System"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:220 frontpanel/contents/ui/launch.js:401
+#: frontpanel/contents/ui/main.qml:220 frontpanel/contents/ui/launch.js:408
 msgid "Trash"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:223 frontpanel/contents/ui/launch.js:409
+#: frontpanel/contents/ui/main.qml:223 frontpanel/contents/ui/launch.js:416
 msgid "System Settings"
 msgstr ""
 
@@ -728,7 +728,7 @@ msgid "Display"
 msgstr ""
 
 #: frontpanel/contents/ui/main.qml:229 frontpanel/contents/ui/main.qml:295
-#: frontpanel/contents/ui/launch.js:410
+#: frontpanel/contents/ui/launch.js:417
 msgid "Help Center"
 msgstr ""
 
@@ -820,6 +820,14 @@ msgstr ""
 
 #: frontpanel/contents/ui/main.qml:456
 msgid "Cable %1"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:493
+msgid "Workspace %1"
+msgstr ""
+
+#: frontpanel/contents/ui/main.qml:493
+msgid "Workspace %1: %2"
 msgstr ""
 
 #: frontpanel/contents/ui/NetworkPopup.qml:103
@@ -938,6 +946,10 @@ msgstr ""
 msgid "%1× %2"
 msgstr ""
 
+#: frontpanel/contents/ui/TrayControl.qml:194
+msgid "Status"
+msgstr ""
+
 #: frontpanel/contents/ui/VolumeButton.qml:18
 msgid "Volume %1, %2"
 msgstr ""
@@ -967,128 +979,124 @@ msgstr ""
 msgid "WORKSPACES"
 msgstr ""
 
-#: frontpanel/contents/ui/Workspaces.qml:61
-msgid "Workspace %1 %2"
-msgstr ""
-
-#: frontpanel/contents/ui/launch.js:393
+#: frontpanel/contents/ui/launch.js:400
 msgid "Apps"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:394
+#: frontpanel/contents/ui/launch.js:401
 msgid "Files"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:395
+#: frontpanel/contents/ui/launch.js:402
 msgid "Terminal"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:396
+#: frontpanel/contents/ui/launch.js:403
 msgid "Editor"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:397
+#: frontpanel/contents/ui/launch.js:404
 msgid "Web"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:402
+#: frontpanel/contents/ui/launch.js:409
 msgid "Default web browser"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:403
+#: frontpanel/contents/ui/launch.js:410
 msgid "Default mail client"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:404
+#: frontpanel/contents/ui/launch.js:411
 msgid "Default file manager"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:405
+#: frontpanel/contents/ui/launch.js:412
 msgid "PCManFM (follows the Motif style best)"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:406
+#: frontpanel/contents/ui/launch.js:413
 msgid "XFile (Motif, as CDE's dtfile)"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:407
+#: frontpanel/contents/ui/launch.js:414
 msgid "Default text editor"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:408
+#: frontpanel/contents/ui/launch.js:415
 msgid "Calendar"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:411
+#: frontpanel/contents/ui/launch.js:418
 msgid "Applications menu"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:412
+#: frontpanel/contents/ui/launch.js:419
 msgid "Arrange windows around the console"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:413
+#: frontpanel/contents/ui/launch.js:420
 msgid "Installed application…"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:414
+#: frontpanel/contents/ui/launch.js:421
 msgid "Custom command…"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:415
+#: frontpanel/contents/ui/launch.js:422
 msgid "None"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:420
+#: frontpanel/contents/ui/launch.js:427
 msgid "Layouts"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:422
+#: frontpanel/contents/ui/launch.js:429
 msgid "Recent files"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:423
+#: frontpanel/contents/ui/launch.js:430
 msgid "A web browser"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:424
+#: frontpanel/contents/ui/launch.js:431
 msgid "A mail client"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:425
+#: frontpanel/contents/ui/launch.js:432
 msgid "A file manager"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:426
+#: frontpanel/contents/ui/launch.js:433
 msgid "A text editor"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:427
+#: frontpanel/contents/ui/launch.js:434
 msgid "A terminal"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:428
+#: frontpanel/contents/ui/launch.js:435
 msgid "A calendar application"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:429
+#: frontpanel/contents/ui/launch.js:436
 msgid "An address book"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:430
+#: frontpanel/contents/ui/launch.js:437
 msgid "%1 is not installed"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:431
+#: frontpanel/contents/ui/launch.js:438
 msgid ""
 "Choose another program in the console settings (right-click › Configure)."
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:432
+#: frontpanel/contents/ui/launch.js:439
 msgid "CDE Front Console"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:433
+#: frontpanel/contents/ui/launch.js:440
 msgid "The application %1"
 msgstr ""
 

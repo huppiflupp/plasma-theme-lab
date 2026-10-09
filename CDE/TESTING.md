@@ -198,6 +198,12 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   28 units with names in 11 units, 22 units without names in cells of 38;
   with names the popup is 360 by 190 for seven entries, without 360 by 75.
   No QML warnings in the journal.
+- Compact icon grid (2026-10-09, ubuntu-lab, Slate): without names the
+  seven entries sit in four columns and two rows under the title "Status",
+  the popup about 150 by 110 pixels, on the first opening too (the fit
+  runs again after the heading's text and the items' sizes have settled);
+  Notifications opens at full size with its own title, the back arrow
+  returns to the compact grid. No QML warnings.
 - Symbolic icons follow the colour scheme (2026-10-09, ubuntu-lab, palette
   Slate): Plasma's tray prefers an entry's "-symbolic" icon where the theme
   has one (Solaar's battery-010, onedrive's folder, the brightness applet),
