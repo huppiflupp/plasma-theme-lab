@@ -6,6 +6,32 @@ Plasma-SVGs, ein Leitfaden — und die Referenzquellen von KDE zum Nachschlagen.
 Entstanden aus der Arbeit an [NiceOS9](https://github.com/huppiflupp/NiceOS9-theme),
 aber nicht darauf beschränkt.
 
+## CDE Copper
+
+Das erste fertige Theme aus dieser Werkstatt: das Common Desktop Environment
+für Plasma 6 — Frontkonsole, Motif-Fenster, CDEs 37 Paletten mit Symbolen
+und Hintergründen, Uhren, Arbeitsflächen, Stilverwaltung. Installation und
+Doku in [`CDE/`](CDE/README.md).
+
+<table>
+<tr>
+<td width="50%"><img src="CDE/screenshots/kde-look/1-palettes-and-pictures.gif" alt="Paletten mit ihren Bildern" width="100%"><br><sub>Paletten mit ihren Bildern</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/2-light-and-dark.gif" alt="Bilder hell und dunkel" width="100%"><br><sub>Bilder hell und dunkel</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="CDE/screenshots/kde-look/3-cde-backdrops.gif" alt="CDEs Hintergrundmuster" width="100%"><br><sub>CDEs Hintergrundmuster</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/4-front-console.gif" alt="Die Konsole, verschieden eingerichtet" width="100%"><br><sub>Die Konsole, verschieden eingerichtet</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="CDE/screenshots/kde-look/5-clocks.gif" alt="14 Uhren, 4 Zifferblätter" width="100%"><br><sub>14 Uhren, 4 Zifferblätter</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/6-workspaces.gif" alt="Arbeitsflächen-Umschalter" width="100%"><br><sub>Arbeitsflächen-Umschalter</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="CDE/screenshots/kde-look/7-style-manager.gif" alt="Stilverwaltung nach CDEs dtstyle" width="100%"><br><sub>Stilverwaltung nach CDEs dtstyle</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/8-session-and-boot.gif" alt="Start, Sperre, Abmelden, Bootmenü" width="100%"><br><sub>Start, Sperre, Abmelden, Bootmenü</sub></td>
+</tr>
+</table>
+
 ---
 
 ## Was hier liegt
