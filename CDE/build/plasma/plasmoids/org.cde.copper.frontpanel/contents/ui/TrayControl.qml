@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import org.kde.plasma.plasmoid
 import org.kde.plasma.plasma5support as P5Support
 import "launch.js" as Launch
@@ -77,6 +78,7 @@ Item {
         for (const item of layout.children) {
             const applet = item.applet ? item.applet.plasmoid : null;
             if (!applet || applet.pluginName !== "org.kde.plasma.systemtray") continue;
+            tray.trayItem = item.applet;
             if (hide) { item.visible = false; tray.hiddenTray = item; }
             else if (tray.hiddenTray === item) { item.visible = true; tray.hiddenTray = null; }
         }
@@ -107,6 +109,61 @@ Item {
             }
         }
         walk(item, 0);
+    }
+    // Plasma's tray popup is never smaller than 24 by 24 grid units: room
+    // for an entry's own view (notifications, KDE Connect). With the grid
+    // of entries alone its lower half stays empty. While the grid shows,
+    // the console lowers the popup's minimum to the grid's rows and
+    // resizes the window to it; with an entry's view open, Plasma's size
+    // comes back. The minimum is the popup's Layout attached property,
+    // the one Plasma's dialog reads (libplasma AppletPopup). The tray
+    // builds its dialog itself (no fullRepresentationItem); its root item
+    // in the panel exposes the grid (hiddenLayout) and its state.
+    property var trayItem: null                             // the tray's root item in the panel
+    readonly property var trayState: trayItem && trayItem.systemTrayState ? trayItem.systemTrayState : null
+    readonly property var popupGrid: trayItem && trayItem.hiddenLayout ? trayItem.hiddenLayout : null
+    property real popupFullWidth: 0                         // Plasma's minimum, kept for entries' views
+    property real popupFullHeight: 0
+    Connections {
+        target: tray.trayState
+        ignoreUnknownSignals: true
+        function onExpandedChanged() { if (tray.trayState.expanded) tray.fitPopupLater(); }
+        function onActiveAppletChanged() { tray.fitPopupLater(); }
+    }
+    Connections {
+        target: tray.popupGrid
+        ignoreUnknownSignals: true
+        function onCountChanged() { tray.fitPopupLater(); }
+    }
+    // After the popup's layout has settled: the grid's position needs it.
+    Timer { id: fitTimer; interval: 80; onTriggered: tray.fitPopup() }
+    function fitPopupLater() { fitTimer.restart(); }
+    // The popup (the dialog's main item) above the grid: the one with the
+    // entries' container.
+    function popupOf(grid) {
+        let item = grid;
+        while (item && item.plasmoidContainer === undefined) item = item.parent;
+        return item;
+    }
+    function fitPopup() {
+        const grid = tray.popupGrid;
+        const full = grid ? tray.popupOf(grid) : null;
+        if (!full || !full.plasmoidContainer || !full.visible) return;
+        const win = full.Window.window;
+        if (!win || !win.visible) return;
+        if (!tray.popupFullHeight) { tray.popupFullWidth = full.Layout.minimumWidth; tray.popupFullHeight = full.Layout.minimumHeight; }
+        if (!tray.popupFullHeight) return;
+        // The window's padding around the popup (the dialog's frame).
+        const padW = Math.max(0, win.width - full.width), padH = Math.max(0, win.height - full.height);
+        let w = tray.popupFullWidth, h = tray.popupFullHeight;
+        if (!full.plasmoidContainer.visible) {
+            const rows = Math.max(1, Math.ceil(grid.count / Math.max(1, grid.columns || 2)));
+            const top = grid.mapToItem(full, 0, 0).y;
+            h = Math.ceil(top + rows * grid.cellHeight + tray.root.u(8));
+            w = Math.round(tray.popupFullWidth * 5 / 6);
+        }
+        full.Layout.minimumWidth = w; full.Layout.minimumHeight = h;
+        win.width = w + padW; win.height = h + padH;
     }
     // The tray fills its item list on its first start; look once it has.
     Timer { id: trayTimer; interval: 4000; running: true; onTriggered: { tray.placeTray(); tray.placePanelFrame(); trayIds.connectSource("python3 " + Launch.quote(tray.root.helper) + " tray"); } }

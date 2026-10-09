@@ -86,8 +86,11 @@ languages can be added as `po/<language>.po`.
   come back when "Status icons only behind the console's button" is switched
   off; one you switch on again there stays on. The popup's heading is a
   title bar in the palette's selection colour, as on the console's own
-  subpanels. By default the console stands
-  by itself; the panel's own frame around it can be switched on.
+  subpanels, and the popup is only as tall as its grid of entries (Plasma
+  keeps it at 24 by 24 grid units, half of it empty); an entry's own view
+  (notifications, KDE Connect) opens at Plasma's size again. By default
+  the console stands by itself; the panel's own frame around it can be
+  switched on.
 - CDE's 37 colour palettes and ten dark ones of our own (`palettes/copper/`,
   among them Graphite in greys and Darkroom with red text), shaded with
   Motif's algorithm, and CDE's 25 desktop

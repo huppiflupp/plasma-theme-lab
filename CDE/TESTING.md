@@ -178,6 +178,12 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   arrow; the tray itself stays, for notifications). Nothing is left beside the
   console; its button opens the tray's popup with every entry, Discover's
   update icon included.
+- Popup size (2026-10-09, ubuntu-lab, Plasma 6.6): with seven entries the
+  popup opens 360 by 210 pixels instead of Plasma's 432 by 432 (the grid's
+  four rows plus heading); opening Notifications brings 432 by 432 back,
+  the back arrow shrinks it again, closing with Esc and reopening gives the
+  small size at once (Plasma stores the last size in popupWidth/popupHeight).
+  Checked with QMP clicks and hypervisor screenshots; no QML warnings.
 - Volume button as wide as a launcher, lined up under the small buttons.
 - Mail subpanel: New Message (the mail client with a bare mailto:),
   Open Mail, Appointments (the calendar application), Address Book. The
