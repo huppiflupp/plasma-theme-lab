@@ -127,7 +127,7 @@ PlasmoidItem {
     }
     readonly property bool stripHidden: windowDisplay !== "strip"
     // Whichever setting hides or brings back the strip: the panel's height.
-    onStripHiddenChanged: configurePanel()
+    onStripHiddenChanged: { configurePanel(); refitTimer.restart(); }
 
     // Every colour comes from the active colour scheme: the console is the
     // Complementary set (CDE colour set 8 with a CDE palette), popups use
@@ -153,7 +153,9 @@ PlasmoidItem {
         readonly property string font: Kirigami.Theme.defaultFont.family
         readonly property date now: root.now
         // Console scale (settings): every size below is a multiple of it.
-        readonly property real unit: Math.max(0.5, Math.min(3, Plasmoid.configuration.consoleScale || 1))
+        // Upright, root.fit shrinks it further where the tiles would not fit
+        // the screen's height.
+        readonly property real unit: Math.max(0.4, Math.min(3, Plasmoid.configuration.consoleScale || 1) * root.fit)
     }
 
     function run(command) {
@@ -669,6 +671,28 @@ PlasmoidItem {
 
     // Upright at the left or right screen edge, across at the top or bottom.
     readonly property bool vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
+    // Upright the tiles stand one under another: nine launchers, the clock,
+    // the workspaces and the session block need about 1000 px at size 1.0,
+    // more than a 1280×800 screen has. The console then shrinks until they
+    // fit, with room left for the window list. Measured, not computed: the
+    // tiles' height follows the unit, so a step or two settles it.
+    property real fit: 1
+    function refit() {
+        if (!vertical || !fullRepresentationItem) { fit = 1; return; }
+        const tiles = fullRepresentationItem.tilesHeight;
+        if (tiles <= 0) return;
+        const need = tiles + 10 + (stripHidden ? 0 : u(90));
+        const room = Plasmoid.containment.screenGeometry.height - 24;
+        const wanted = Math.min(1, fit * room / need);
+        if (Math.abs(wanted - fit) > 0.01) fit = wanted;
+    }
+    Timer { id: refitTimer; interval: 150; onTriggered: root.refit() }
+    onVerticalChanged: refitTimer.restart()
+    onFitChanged: { refitTimer.restart(); configurePanel(); }
+    Connections {
+        target: Plasmoid.containment
+        function onScreenGeometryChanged() { refitTimer.restart(); }
+    }
     readonly property bool atRight: Plasmoid.location === PlasmaCore.Types.RightEdge
     // The subpanel arrows point to where the subpanels open.
     readonly property string arrowGlyph: {
@@ -838,6 +862,8 @@ PlasmoidItem {
 
     fullRepresentation: Bevel {
         id: frontConsole
+        readonly property real tilesHeight: tiles.implicitHeight
+        onTilesHeightChanged: refitTimer.restart()
         // Across: as wide as its tiles, 116 high. Upright: 116 wide, and as
         // tall as the screen allows, the window list taking the rest.
         implicitWidth: root.vertical ? root.u(116) : content.implicitWidth + 10
@@ -855,6 +881,7 @@ PlasmoidItem {
             id: content
             anchors.fill: parent; anchors.margins: 5; spacing: 4
             GridLayout {
+                id: tiles
                 // One row of tiles across, one column upright.
                 flow: root.vertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
                 rowSpacing: 4; columnSpacing: 4

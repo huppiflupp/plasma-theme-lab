@@ -1161,3 +1161,19 @@ the `clean` snapshot.
   Found on the way: a plasmashell restarted from SSH needs
   `XDG_MENU_PREFIX=plasma-`, or the Applications menu lists no categories;
   `loginctl lock-session` from SSH does nothing, `lock-sessions` does.
+
+## Upright console fits the screen's height (2026-10-09)
+
+Ubuntu VM `ubuntu-lab` (Plasma 6.6, Wayland, 1280×800), the compact console
+of the store pictures (nine launchers, pager, bar meters). At the left edge
+with size 1.0 the tiles needed more than 800 px; Trash and the small
+buttons were cut off. Now the console measures its tiles upright and
+shrinks its unit until they fit (`root.fit`, at most the chosen size,
+re-measured when the screen, the edge or the window display changes). At
+the left edge with size 1.0 everything was on screen down to the logout
+key; with the window list under the tiles it shrank a little further to
+leave the list room. Back at the bottom edge it had its full size again
+(88 px). No errors or binding loops in the journal. A first attempt
+declared `onStripHiddenChanged` twice: Plasma refused the whole widget
+("Property value set multiple times"), which `tests/verify.py` does not
+catch.
