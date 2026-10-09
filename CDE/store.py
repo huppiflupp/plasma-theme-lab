@@ -26,6 +26,7 @@ Aurorae frame drawn by tools/gen-motif-aurorae.py stands in for it).
 import argparse
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -87,12 +88,22 @@ def frames(stage):
 
 
 def console(stage):
-    """The console with its translations inside (it copies them to where
-    KDE looks for them)."""
-    target = stage / "plasmoids" / "org.cde.copper.frontpanel"
-    shutil.copytree(BUILD / "plasma/plasmoids/org.cde.copper.frontpanel", target,
+    """The console with its translations inside. Plasma registers the
+    package's contents/locale for the catalogue plasma_applet_<id> when it
+    loads the widget, so the console asks that catalogue instead of
+    cde-copper, which KDE would only find in the user's locale folder and
+    the console copies there for the next start (too late for the first)."""
+    package = "org.cde.copper.frontpanel"
+    domain = "plasma_applet_" + package
+    target = stage / "plasmoids" / package
+    shutil.copytree(BUILD / "plasma/plasmoids" / package, target,
                     ignore=shutil.ignore_patterns("__pycache__"))
+    for qml in target.rglob("*.qml"):
+        text = qml.read_text(encoding="utf-8")
+        qml.write_text(re.sub(r'\b(i18ndp?)\("cde-copper"', r'\1("%s"' % domain, text), encoding="utf-8")
     shutil.copytree(BUILD / "locale", target / "contents/locale")
+    for mo in (target / "contents/locale").glob("*/LC_MESSAGES/cde-copper.mo"):
+        shutil.copy(mo, mo.with_name(domain + ".mo"))
     return target
 
 

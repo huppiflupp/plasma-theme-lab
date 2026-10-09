@@ -1065,3 +1065,15 @@ Fedora VM `plasma-lab`, Plasma 6.7.5, Wayland, two outputs (1920×1080 at
   went from one strip to the other. The Applications menu of the second
   console opens on its screen. Switched off, the second console goes away.
 - `tests/verify.py`: 44 pass.
+
+## Store console in German on first start (2026-10-09)
+
+Fedora VM `plasma-lab`, Plasma 6.7.5, the session switched to German
+(`LANGUAGE=de`) for the test. With the user's copy of `cde-copper.mo`
+removed, the console from the full build stayed English ("WORKSPACES",
+"Files"): the store edition only copies that file on its first load, too
+late for the strings already shown. The console from `store.py`, put in
+place of the installed widget, came up in German right away
+("ARBEITSFLÄCHEN", "Dateien", "Papierkorb"), also with only
+`plasma_applet_org.cde.copper.frontpanel.mo` in its package and no copy in
+the user's locale folder: Plasma reads that catalogue from the package.

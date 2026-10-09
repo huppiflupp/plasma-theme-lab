@@ -538,9 +538,11 @@ PlasmoidItem {
     function toolCommand(args) {
         return "[ -f " + Launch.quote(tool) + " ] && python3 " + Launch.quote(tool) + " " + args;
     }
-    // The store edition brings its translations in the package; KDE looks
-    // for the cde-copper catalogue in the user's locale folder, so they are
-    // copied there (taking effect from the next start of the shell).
+    // The store edition brings its translations in the package. Its console
+    // reads them from there (store.py points it at the package's own
+    // catalogue); the global theme's splash and logout screen look for the
+    // cde-copper catalogue in the user's locale folder, so it is copied there
+    // (taking effect from the next start of the shell).
     readonly property string packageLocale: decodeURIComponent(Qt.resolvedUrl("../locale").toString().replace(/^file:\/\//, ""))
     function installTranslations() {
         run("p=" + Launch.quote(packageLocale) + "; d=\"${XDG_DATA_HOME:-$HOME/.local/share}/locale\"; "
