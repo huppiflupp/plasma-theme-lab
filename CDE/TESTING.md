@@ -1146,9 +1146,17 @@ the `clean` snapshot.
   `manage.py palette --palette X --backdrop Y` (pictures as
   `picture:<key>`), the console's clock through `writeConfig` in a panel
   script, a screenshot, the top 80 px cut for 1280×720. Then
-  `tools/store-pictures.py gif` (labels, 2.5 s a frame), `zoom` (the clock
-  tile enlarged three times for the clock GIF), `overview` (three frames
-  in perspective) and `logo`. The GRUB and Plymouth frames stay from the
+  `tools/store-pictures.py gif` (labels, 2.5 s a frame), `zoom` (a part
+  of the frame enlarged in an inset: the clock tile, the meters, the
+  workspace block), `overview` (three frames in perspective) and `logo`.
+  The console GIF keeps the full 1280×800: the console as on the
+  author's screen (window tile, pager with 40 px cells and labels, bar
+  meters, Panaplex clock, 88 px high), the Layouts popup with a saved
+  layout, the Open Windows list, the workspace icons, the three meter
+  styles under load (`yes` twice and 900 MB allocated), then upright at
+  the left edge with `consoleScale` 0.8 (at 1.0 the nine tiles plus clock
+  and session block need more than 800 px; the lower rows were cut off)
+  and six clock faces. The GRUB and Plymouth frames stay from the
   Fedora VM of 2026-10-03 (the system parts are not installed here).
   Found on the way: a plasmashell restarted from SSH needs
   `XDG_MENU_PREFIX=plasma-`, or the Applications menu lists no categories;
