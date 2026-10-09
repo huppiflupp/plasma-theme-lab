@@ -11,7 +11,7 @@
         bevelled inset at the top right, for the clock's styles
     store-pictures.py logo OUT.png [SIZE]
         the small picture of the entry: a launcher tile with the console's
-        menu icon and the theme's name (needs PySide6 for the SVG)
+        menu icon filling it, no text, legible at 70 px (needs PySide6)
 """
 import sys
 from pathlib import Path
@@ -119,29 +119,21 @@ def bevel(draw, box, width=6):
         draw.line((x1 - i, y0 + i, x1 - i, y1 - i), fill=DARK)
 
 def logo(out, size=512):
+    """The store shows the logo at about 70 px: the menu icon's drawing on
+    a bevelled teal tile, nothing else."""
     im = Image.new("RGB", (size, size), TEAL)
     d = ImageDraw.Draw(im)
-    m = size // 16
-    bevel(d, (m, m, size - m, size - m), width=size // 80)
-    inner = size // 10
-    # The sunken well of the launcher tile, the icon in it
-    well = (inner + m, inner + m - size // 20, size - inner - m, size - inner - m - size // 6)
-    d.rectangle(well, fill=PANEL, outline=DARK, width=2)
-    ic = icon(int((well[3] - well[1]) * 0.98))
-    im.paste(ic, ((well[0] + well[2]) // 2 - ic.width // 2, (well[1] + well[3]) // 2 - ic.height // 2), ic)
-    # The arrow strip above, as on a launcher with a subpanel
-    strip = (well[0], well[1] - size // 22, well[2], well[1] - 4)
-    d.rectangle(strip, fill=PANEL, outline=DARK, width=1)
-    cx, cy = (strip[0] + strip[2]) // 2, (strip[1] + strip[3]) // 2
-    d.polygon([(cx - 7, cy + 4), (cx + 7, cy + 4), (cx, cy - 4)], fill=COPPER, outline=INK)
-    # The name, as the console's label
-    font = ImageFont.truetype(FONT, size // 10)
-    text = "CDE / COPPER"
-    w = d.textlength(text, font=font)
-    d.text(((size - w) / 2, well[3] + size // 26), text, font=font, fill=INK)
+    width = max(3, size // 48)
+    for i in range(width):
+        d.line((i, i, size - 1 - i, i), fill=LIGHT); d.line((i, i, i, size - 1 - i), fill=LIGHT)
+        d.line((i, size - 1 - i, size - 1 - i, size - 1 - i), fill=DARK); d.line((size - 1 - i, i, size - 1 - i, size - 1 - i), fill=DARK)
+    # The drawing without the icon's own padding, four fifths of the tile.
+    ic = icon(size * 2); ic = ic.crop(ic.getbbox())
+    side = int(size * 0.8)
+    ic = ic.resize((side, int(side * ic.height / ic.width)), Image.Resampling.LANCZOS)
+    im.paste(ic, (size // 2 - ic.width // 2, size // 2 - ic.height // 2), ic)
     im.save(out)
     print(out, im.size)
-
 
 
 # --- zoom ------------------------------------------------------------------
