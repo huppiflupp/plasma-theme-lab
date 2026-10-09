@@ -507,6 +507,23 @@ class Installer(unittest.TestCase):
         self.assertEqual(self.command("uninstall").returncode, 0)
         self.assertFalse((self.data / "kwin/decorations/kwin4_decoration_qml_cdecopper").exists())
 
+    def test_kconfig_files_are_edited_by_lines(self):
+        # KConfig syntax that configparser refused (a key with flags and no
+        # "=", the stop that broke apply.sh --palette) or would have rewritten.
+        rc = self.config / "konsolerc"
+        rc.write_text("# kept comment\n[$Version]\nupdate_info=konsole.upd:x\n\n[Desktop Entry]\nDefaultProfile=Old.profile\n\n"
+                      "[MainWindow]\nState[$d]\nToolBarsMovable=Disabled\n\n[MainWindow][Toolbar mainToolBar]\nIconSize=16\n")
+        code = ("import manage; manage.write_config('konsolerc', 'Desktop Entry', {'DefaultProfile': 'CDE Copper.profile', 'ShowMenuBarByDefault': 'false'}); "
+                "manage.write_config('konsolerc', 'Favorites', {'x': 1}); "
+                "print(manage.read_config('konsolerc', 'MainWindow][Toolbar mainToolBar', 'IconSize'))")
+        result = subprocess.run([sys.executable, "-c", code], cwd=ROOT, env=self.env, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "16")
+        self.assertEqual(rc.read_text(),
+                         "# kept comment\n[$Version]\nupdate_info=konsole.upd:x\n\n[Desktop Entry]\nDefaultProfile=CDE Copper.profile\n"
+                         "ShowMenuBarByDefault=false\n\n[MainWindow]\nState[$d]\nToolBarsMovable=Disabled\n\n"
+                         "[MainWindow][Toolbar mainToolBar]\nIconSize=16\n\n[Favorites]\nx=1\n")
+
     def test_palette_targets_are_owned_and_removed(self):
         self.assertEqual(self.command("install").returncode, 0)
         code = ("import json, manage; m = json.loads(manage.MANIFEST.read_text()); "

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """User-profile installation with an explicit ownership and rollback manifest."""
 import argparse
-import configparser
 import fcntl
 import json
 import re
@@ -121,18 +120,68 @@ def remove(path):
         shutil.rmtree(path)
 
 
+# KDE's config files are KConfig, not INI: keys with flags (State[$d]),
+# lines without "=", nested groups ([A][B]) and immutable markers ([$i])
+# are legal there. configparser stopped on such a line and, where it got
+# through, rewrote the whole file in its own form. These edit the file by
+# lines instead: only the keys set are touched, everything else stays.
+def read_kconfig(path):
+    """{group: {key: value}} of a KConfig file; unreadable lines are skipped."""
+    groups, group = {}, None
+    try:
+        lines = Path(path).read_text(errors="replace").splitlines()
+    except OSError:
+        return groups
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            group = stripped[1:-1]
+            groups.setdefault(group, {})
+        elif group is not None and "=" in stripped and not stripped.startswith("#"):
+            key, value = stripped.split("=", 1)
+            groups[group][key.strip()] = value.strip()
+    return groups
+
+
 def write_config(file, section, values):
     path = CONFIG / file
     path.parent.mkdir(parents=True, exist_ok=True)
-    config = configparser.ConfigParser(interpolation=None, strict=False)
-    config.optionxform = str
-    config.read(path)
-    if not config.has_section(section):
-        config.add_section(section)
-    for key, value in values.items():
-        config.set(section, key, str(value))
-    with path.open("w") as out:
-        config.write(out, space_around_delimiters=False)
+    try:
+        lines = path.read_text(errors="replace").splitlines()
+    except OSError:
+        lines = []
+    values = {key: str(value) for key, value in values.items()}
+    header = f"[{section}]"
+    start = next((i for i, line in enumerate(lines) if line.strip() == header), None)
+    if start is None:
+        if lines and lines[-1].strip():
+            lines.append("")
+        lines.append(header)
+        lines.extend(f"{key}={value}" for key, value in values.items())
+    else:
+        end = next((i for i in range(start + 1, len(lines)) if lines[i].strip().startswith("[")), len(lines))
+        pending = dict(values)
+        for i in range(start + 1, end):
+            key = lines[i].split("=", 1)[0].strip() if "=" in lines[i] else None
+            if key in pending:
+                lines[i] = f"{key}={pending.pop(key)}"
+        # New keys after the group's last entry, before its trailing blank lines.
+        insert = end
+        while insert > start + 1 and not lines[insert - 1].strip():
+            insert -= 1
+        lines[insert:insert] = [f"{key}={value}" for key, value in pending.items()]
+    path.write_text("\n".join(lines) + "\n")
+
+
+def remove_config_group(path, group):
+    """Drop one group of a KConfig file, leaving every other line as it was."""
+    lines = path.read_text(errors="replace").splitlines()
+    start = next((i for i, line in enumerate(lines) if line.strip() == f"[{group}]"), None)
+    if start is None:
+        return
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].strip().startswith("[")), len(lines))
+    del lines[start:end]
+    path.write_text("\n".join(lines) + ("\n" if lines else ""))
 
 
 def kvantum_available():
@@ -413,10 +462,7 @@ def current_scheme():
     defaults layer (kdedefaults/kdeglobals) and removes them from kdeglobals,
     so a scheme set by switching the global theme is only found there."""
     for path in (CONFIG / "kdeglobals", CONFIG / "kdedefaults/kdeglobals"):
-        config = configparser.ConfigParser(interpolation=None, strict=False)
-        config.optionxform = str
-        config.read(path)
-        scheme = config.get("General", "ColorScheme", fallback="")
+        scheme = read_kconfig(path).get("General", {}).get("ColorScheme", "")
         if scheme:
             return scheme
     return ""
@@ -430,10 +476,7 @@ def workspace_set(name):
 def read_config(file, section, key):
     """A value in effect: the user's file, else the defaults layer."""
     for path in (CONFIG / file, CONFIG / "kdedefaults" / file):
-        config = configparser.ConfigParser(interpolation=None, strict=False)
-        config.optionxform = str
-        config.read(path)
-        value = config.get(section, key, fallback="")
+        value = read_kconfig(path).get(section, {}).get(key, "")
         if value:
             return value
     return ""
@@ -1018,11 +1061,9 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
         # them itself once it runs.
         exe = shutil.which("qdbus6") or shutil.which("qdbus-qt6")
         count = int(subprocess.check_output([exe, "org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager.count"], text=True).strip())
-        saved = configparser.ConfigParser(interpolation=None, strict=False)
-        saved.optionxform = str
-        saved.read(CONFIG / "cdecopperrc")
-        shown = saved.get("Console", "showWorkspaces", fallback="true") != "false"
-        wanted = max(1, min(8, int(saved.get("Console", "workspaceCount", fallback="4")))) if shown else count
+        saved = read_kconfig(CONFIG / "cdecopperrc").get("Console", {})
+        shown = saved.get("showWorkspaces", "true") != "false"
+        wanted = max(1, min(8, int(saved.get("workspaceCount", "4")))) if shown else count
         for i in range(count, wanted):
             dbus("org.kde.KWin", "/VirtualDesktopManager", "createDesktop", str(i), str(i + 1))
         # KWin keeps its workspaces in memory and writes kwinrc only when they
@@ -1103,12 +1144,7 @@ def uninstall():
     # New installs restored this file whole, including any pre-existing CDE
     # options. Only older installs without a backup need group cleanup.
     if manifest["applied"] and "auroraerc" not in config_files and (CONFIG / "auroraerc").exists():
-        aurorae = configparser.ConfigParser(interpolation=None, strict=False)
-        aurorae.optionxform = str
-        aurorae.read(CONFIG / "auroraerc")
-        if aurorae.remove_section(DECORATION):
-            with (CONFIG / "auroraerc").open("w") as out:
-                aurorae.write(out, space_around_delimiters=False)
+        remove_config_group(CONFIG / "auroraerc", DECORATION)
     MANIFEST.rename(STATE / "uninstalled-manifest.json")
     # Keep the lock inode: a waiting process may already have it open.
     print("Removed only manifest-owned files and restored pre-install configuration. Backup retained at " + str(STATE)
