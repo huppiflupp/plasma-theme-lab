@@ -1033,3 +1033,31 @@ opened by a QMP click on the console's arrow button:
   `battery-caution`, `battery-missing` and `battery-empty` are now aliases
   of the drawn battery levels (the tray's power entry asked for the plain
   name and fell back to Breeze). OneDrive and Solaar keep their own icons.
+
+## Battery, Applications menu, two screens (2026-10-09)
+
+Fedora VM `plasma-lab`, Plasma 6.7.5, Wayland, two outputs (1920×1080 at
+0,0 and 1280×800 at 1920,0), real clicks through QMP.
+
+- Battery in the load meter: the VM has no battery, so the installed
+  `main.qml` was patched for the test to report 57 % and not plugged in.
+  The reading "B" appears in all four small-button styles (LED digits,
+  bars in "family", "instruments" and "panel"). Patched to plugged in:
+  "auto" hides it, "always" shows it. Without the patch (no battery)
+  nothing shows, and the journal has no errors. The settings page shows
+  the default "In the load meter while on battery". Note: the mouse wheel
+  over any combo box on the settings pages changes its value (Qt's
+  default), so scroll beside the controls.
+- Applications menu: a click into the transparent rest of the dialog
+  (Wayland keeps both levels' size) was swallowed and the menu stayed
+  open. It now closes the menu; clicks on the heading and the categories
+  work as before.
+- "A console on every screen": the second console was added on screen 2,
+  but the layout script stopped at `saved.keys` (Plasma's ConfigFile calls
+  it `keyList`). The new console then had none of the settings: another
+  clock, no LED field, and the windows of all screens. Fixed: the second
+  console is now set up like the first, and its strip shows only the
+  windows on its screen. A Konsole window moved there with Meta+Shift+Right
+  went from one strip to the other. The Applications menu of the second
+  console opens on its screen. Switched off, the second console goes away.
+- `tests/verify.py`: 44 pass.

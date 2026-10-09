@@ -586,8 +586,9 @@ the full size of both of its levels and leaves the unused part transparent.
 That part still belongs to the menu's window: a click there closes the menu
 but does not reach the window below.
 
-One console per screen is set up by `--panel`, but multiple physical monitors
-have not been validated (the test VM shows only one output). Very narrow
+One console per screen is set up by `--panel` or the setting "A console on
+every screen"; it was checked in the test VM with two outputs (each console
+lists the windows on its own screen), not on physical monitors. Very narrow
 logical screens below 800 px have not been validated either.
 
 ## Where it falls short of the specification

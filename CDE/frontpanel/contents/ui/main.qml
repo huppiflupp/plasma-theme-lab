@@ -326,7 +326,7 @@ PlasmoidItem {
             + " var n = new Panel; n.screen = s; n.location = proto.location; n.height = proto.height;"
             + " n.lengthMode = proto.lengthMode; n.floating = proto.floating; n.hiding = proto.hiding; n.alignment = 'center';"
             + " var c = n.addWidget('org.cde.copper.frontpanel'); c.currentConfigGroup = ['General'];"
-            + " var saved = ConfigFile('cdecopperrc', 'Console'); for (var k of saved.keys) if (k !== 'AllScreens') c.writeConfig(k, saved.readEntry(k));"
+            + " var saved = ConfigFile('cdecopperrc', 'Console'); for (var k of (saved.keyList || saved.keys || [])) if (k !== 'AllScreens') c.writeConfig(k, saved.readEntry(k));"
             + " c.writeConfig('everyScreen', true);"
             + " if (n.screen !== s) n.remove(); } }"
             + " if (proto && !every) { for (var q of panels()) { var mine = false;"
