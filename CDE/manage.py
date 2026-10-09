@@ -1087,13 +1087,17 @@ def uninstall():
     manifest = json.loads(MANIFEST.read_text())
     if manifest["data"] != str(DATA) or manifest["config"] != str(CONFIG):
         raise RuntimeError("Installation paths differ from the manifest")
-    if any(target not in TARGETS + LEGACY_TARGETS for target in manifest["targets"]):
-        raise RuntimeError("Unexpected target in ownership manifest")
+    # A newer installation than this manage.py may own targets it does not
+    # know; they are left in place and named, the rest is removed as usual.
+    unknown = [t for t in manifest["targets"] if t not in TARGETS + LEGACY_TARGETS] + \
+              [t for t in manifest.get("config_targets", []) if t not in CONFIG_TARGETS]
+    for target in unknown:
+        print(f"Skipping {target}: not known to this manage.py (installed by a newer version?); remove it by hand if wanted", file=sys.stderr)
+    manifest["targets"] = [t for t in manifest["targets"] if t in TARGETS + LEGACY_TARGETS]
+    manifest["config_targets"] = [t for t in manifest.get("config_targets", []) if t in CONFIG_TARGETS]
     if any(not palette_owned(t, PALETTE_PATTERNS) for t in manifest.get("palette_targets", [])) or \
        any(not palette_owned(t, PALETTE_CONFIG_PATTERNS) for t in manifest.get("palette_config_targets", [])):
         raise RuntimeError("Unexpected palette target in ownership manifest")
-    if any(target not in CONFIG_TARGETS for target in manifest.get("config_targets", [])):
-        raise RuntimeError("Unexpected config target in ownership manifest")
     config_files = manifest.get("config_files", [f for f in CONFIG_FILES if f != "auroraerc"])
     if any(file not in CONFIG_FILES for file in config_files):
         raise RuntimeError("Unexpected config backup in ownership manifest")

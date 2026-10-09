@@ -576,15 +576,21 @@ class Installer(unittest.TestCase):
         self.assertEqual((existing / "sentinel").read_text(), "keep")
         self.assertFalse((self.data / "cde-copper-install").exists())
 
-    def test_unexpected_manifest_target_is_rejected(self):
+    def test_unexpected_manifest_target_is_skipped(self):
+        # A newer installation's targets: named, left alone, the rest removed.
         self.assertEqual(self.command("install").returncode, 0)
         manifest = self.data / "cde-copper-install/manifest.json"
         value = json.loads(manifest.read_text())
         value["targets"].append("../unrelated")
         manifest.write_text(json.dumps(value))
+        unrelated = self.data.parent / "unrelated"
+        unrelated.mkdir()
+        (unrelated / "sentinel").write_text("keep")
         result = self.command("uninstall")
-        self.assertNotEqual(result.returncode, 0)
-        self.assertTrue((self.data / "icons/CDECopper").exists())
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Skipping ../unrelated", result.stderr)
+        self.assertEqual((unrelated / "sentinel").read_text(), "keep")
+        self.assertFalse((self.data / "icons/CDECopper").exists())
 
 
 class IconPalettes(unittest.TestCase):
