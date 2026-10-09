@@ -17,6 +17,7 @@ Bevel {
     property var kinds: []
     readonly property bool hasLlm: kinds.indexOf("llm") >= 0
     readonly property var readings: (hasLlm ? ["llm"] : []).concat(kinds.indexOf("load") >= 0 ? ["cpu", "mem"] : [])
+        .concat(kinds.indexOf("load") >= 0 && field.root.batteryShown ? ["bat"] : [])
     readonly property int cpuLoad: Math.round(Math.max(0, Math.min(100, Number(cpuSensor.value) || 0)))
     readonly property int memLoad: Math.round(Math.max(0, Math.min(100, Number(memSensor.value) || 0)))
     sunken: true
@@ -33,19 +34,24 @@ Bevel {
                 id: reading
                 required property string modelData
                 readonly property bool llm: modelData === "llm"
-                readonly property int value: llm ? Math.round(field.root.llmTotal) : modelData === "cpu" ? field.cpuLoad : field.memLoad
+                readonly property bool bat: modelData === "bat"
+                readonly property int value: llm ? Math.round(field.root.llmTotal) : modelData === "cpu" ? field.cpuLoad
+                                           : bat ? field.root.batteryPercent : field.memLoad
                 // Bars: the cluster against its best so far, load in per cent.
                 readonly property real share: llm ? Math.min(1, field.root.llmTotal / Math.max(1, field.root.llmPeak)) : value / 100
-                readonly property string unit: llm ? i18nd("cde-copper", "t/s") : modelData === "cpu" ? "C" : "M"
+                readonly property string unit: llm ? i18nd("cde-copper", "t/s") : modelData === "cpu" ? "C" : bat ? "B" : "M"
                 Layout.fillWidth: true; Layout.fillHeight: true
                 // The cluster's three digits want more room than two.
                 Layout.preferredWidth: field.bars ? 1 : llm ? 5 : 3
                 implicitWidth: 0; implicitHeight: 0
                 padding: 0; text: ""
                 Accessible.name: llm ? i18nd("cde-copper", "LLM cluster: %1 t/s", value)
-                               : modelData === "cpu" ? i18nd("cde-copper", "Processor %1 %", value) : i18nd("cde-copper", "Memory %1 %", value)
+                               : modelData === "cpu" ? i18nd("cde-copper", "Processor %1 %", value)
+                               : bat ? field.root.batteryText : i18nd("cde-copper", "Memory %1 %", value)
                 selected: llm && field.root.llmDialog.visible && field.root.llmDialog.visualParent === reading
-                onClicked: llm ? field.root.toggleLlm(reading, reading) : field.root.run("plasma-systemmonitor || ksysguard")
+                onClicked: llm ? field.root.toggleLlm(reading, reading)
+                         : bat ? field.root.run("systemsettings kcm_powerdevilprofilesconfig")
+                         : field.root.run("plasma-systemmonitor || ksysguard")
                 HoverHandler { onHoveredChanged: if (reading.llm) field.root.hoverSegment(reading, hovered) }
                 background: Rectangle {
                     color: reading.selected ? field.colors.highlight

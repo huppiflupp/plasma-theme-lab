@@ -35,6 +35,10 @@
          meters sunken in the clock's colours), led (the meters as one LED
          field over a row of keys), panel (the meters as bars beside the keys). -->
     <entry name="smallStyle" type="String"><default>family</default></entry>
+    <!-- The battery beside the load meter's processor and memory: "auto"
+         only while running on the battery, "always" while there is one,
+         "never". Without a battery it never shows. -->
+    <entry name="batteryMeter" type="String"><default>auto</default></entry>
     <entry name="llmTile" type="Bool"><default>false</default></entry>
     <entry name="llmHosts" type="String"><default></default></entry>
     <!-- The console shows the volume; keep the tray from showing it twice -->

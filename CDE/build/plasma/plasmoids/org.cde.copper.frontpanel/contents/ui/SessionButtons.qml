@@ -40,9 +40,10 @@ GridLayout {
     readonly property var gridKinds: grouped ? keys : session.root.smallButtons
     readonly property int pairs: Math.max(1, Math.ceil(gridKinds.length / 2))
     // The LED field: about two quarters for each meter's digits.
-    readonly property int ledColumns: Math.max(gridKinds.length, 2 * meters.length)
+    readonly property int ledColumns: Math.max(gridKinds.length, 2 * meters.length + (battery ? 1 : 0))
     // The panel: a bar per reading (the cluster's, the processor's, the memory's).
-    readonly property int barCount: (meters.indexOf("llm") >= 0 ? 1 : 0) + (meters.indexOf("load") >= 0 ? 2 : 0)
+    readonly property bool battery: meters.indexOf("load") >= 0 && session.root.batteryShown
+    readonly property int barCount: (meters.indexOf("llm") >= 0 ? 1 : 0) + (meters.indexOf("load") >= 0 ? 2 : 0) + (battery ? 1 : 0)
     readonly property int panelWidth: grouped && style === "panel" ? Math.round(quarter * (0.35 + 0.45 * barCount)) : 0
     readonly property int blockWidth: ledRow ? ledColumns * quarter + ledColumns - 1
         : (panelWidth > 0 ? panelWidth + (gridKinds.length > 0 ? 1 : 0) : 0)
@@ -220,7 +221,11 @@ GridLayout {
         padding: 0; text: ""
         readonly property int cpuLoad: Math.round(Math.max(0, Math.min(100, Number(cpuSensor.value) || 0)))
         readonly property int memLoad: Math.round(Math.max(0, Math.min(100, Number(memSensor.value) || 0)))
+        // The battery as a third bar, while the console shows it.
+        readonly property var gauges: [{label: "C", load: cpuLoad}, {label: "M", load: memLoad}]
+            .concat(meter.root.batteryShown ? [{label: "B", load: meter.root.batteryPercent}] : [])
         Accessible.name: i18nd("cde-copper", "Processor %1 %, memory %2 %", cpuLoad, memLoad)
+                         + (meter.root.batteryShown ? ", " + meter.root.batteryText : "")
         onClicked: meter.root.run("plasma-systemmonitor || ksysguard")
         // As an instrument (smallStyle): sunken, the clock's colours.
         surface: meter.well ? meter.colors.window : meter.colors.panel
@@ -230,14 +235,14 @@ GridLayout {
             id: gauges
             // Whole pixels at every console size.
             readonly property int side: Math.min(width, height)
-            readonly property int barWidth: Math.max(4, Math.round(side * 0.2))
+            readonly property int barWidth: Math.max(4, Math.round(side * (meter.gauges.length > 2 ? 0.16 : 0.2)))
             readonly property int barHeight: Math.max(8, Math.round(side * 0.56))
             readonly property int labelSize: Math.max(6, Math.round(side * 0.2))
             Row {
                 anchors.centerIn: parent
-                spacing: Math.max(2, Math.round(gauges.side * 0.12))
+                spacing: Math.max(2, Math.round(gauges.side * (meter.gauges.length > 2 ? 0.08 : 0.12)))
                 Repeater {
-                    model: [{label: "C", load: meter.cpuLoad}, {label: "M", load: meter.memLoad}]
+                    model: meter.gauges
                     delegate: Column {
                         required property var modelData
                         spacing: 1

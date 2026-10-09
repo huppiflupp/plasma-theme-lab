@@ -18,6 +18,7 @@ ConfigPage {
     // the rest of what the console holds, in its order on the screen.
     property var cfg_smallButtons: []
     property string cfg_smallStyle: "family"
+    property string cfg_batteryMeter: "auto"
     property alias cfg_llmHosts: llmHosts.text
     property bool cfg_hideTrayIcons: true
     property alias cfg_hideTrayVolume: hideVolume.checked
@@ -307,6 +308,20 @@ ConfigPage {
         }
         Kirigami.FormLayout {
             Layout.fillWidth: true
+            // The battery joins the load meter as a third reading.
+            ComboBox {
+                id: batteryMeter
+                Kirigami.FormData.label: i18nd("cde-copper", "Battery:")
+                enabled: (page.cfg_smallButtons || []).indexOf("load") >= 0
+                readonly property var values: ["auto", "always", "never"]
+                model: [i18nd("cde-copper", "In the load meter while on battery"),
+                        i18nd("cde-copper", "Always in the load meter"),
+                        i18nd("cde-copper", "Not shown")]
+                currentIndex: Math.max(0, values.indexOf(page.cfg_batteryMeter))
+                onActivated: index => page.cfg_batteryMeter = values[index]
+                ToolTip.text: i18nd("cde-copper", "Only on computers with a battery; needs the load meter")
+                ToolTip.visible: hovered
+            }
             RowLayout {
                 Kirigami.FormData.label: i18nd("cde-copper", "Style:")
                 spacing: Kirigami.Units.smallSpacing

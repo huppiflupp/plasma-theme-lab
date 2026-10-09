@@ -48,7 +48,9 @@ languages can be added as `po/<language>.po`.
   icons, below it small square buttons, two to a column, chosen under Front
   Console › Small buttons: console settings (faders, apart from System
   Settings' gear), lock screen, show desktop, a load meter (processor and
-  memory from Plasma's own sensors; a click opens the system monitor), volume
+  memory from Plasma's own sensors; a click opens the system monitor; on a
+  laptop the battery joins it as a third reading, by default only while
+  running on the battery, or always, or never, under Tiles › Battery), volume
   (click for the slider, wheel to change it; unchosen it sits in the strip's
   row), network (WLAN signal, cable or offline; a click opens a list of the WLANs
   around: one click joins a network, Plasma asking for a new one's passphrase,

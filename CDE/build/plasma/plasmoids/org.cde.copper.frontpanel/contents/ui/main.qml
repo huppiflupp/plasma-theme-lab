@@ -74,6 +74,21 @@ PlasmoidItem {
         const chosen = (Plasmoid.configuration.smallButtons || []).filter(k => smallKinds.indexOf(k) >= 0);
         return chosen.length ? chosen : ["configure"];
     }
+    // The battery (powermanagement engine): shown in the load meter by the
+    // setting batteryMeter, "auto" only while it is not plugged in.
+    property bool batteryPresent: false
+    property int batteryPercent: 0
+    property bool pluggedIn: true
+    property string batteryState: ""
+    readonly property bool batteryShown: {
+        const mode = Plasmoid.configuration.batteryMeter;
+        if (!batteryPresent || mode === "never") return false;
+        return mode === "always" || !pluggedIn;
+    }
+    readonly property string batteryText: batteryState === "Charging" ? i18nd("cde-copper", "Battery %1 %, charging", batteryPercent)
+        : batteryState === "FullyCharged" ? i18nd("cde-copper", "Battery %1 %, full", batteryPercent)
+        : pluggedIn ? i18nd("cde-copper", "Battery %1 %", batteryPercent)
+        : i18nd("cde-copper", "Battery %1 %, discharging", batteryPercent)
     property string volumeState: i18nd("cde-copper", "Audio")
     property int volume: 0
     property bool muted: false
@@ -574,6 +589,19 @@ PlasmoidItem {
         onNewData: function(sourceName, data) {
             if (sourceName.indexOf("nmcli") >= 0) root.readNetwork(data.stdout);
             else root.readVolume(data.stdout);
+        }
+    }
+    P5Support.DataSource {
+        engine: "powermanagement"
+        connectedSources: ["Battery", "AC Adapter"]
+        onNewData: function(sourceName, data) {
+            if (sourceName === "AC Adapter") {
+                root.pluggedIn = data["Plugged in"] !== false;
+            } else {
+                root.batteryPresent = data["Has Battery"] === true;
+                root.batteryPercent = Math.max(0, Math.min(100, Math.round(Number(data["Percent"]) || 0)));
+                root.batteryState = String(data["State"] || "");
+            }
         }
     }
     // Changes from elsewhere (keys, the tray, other programs) at once: the
