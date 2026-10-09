@@ -377,7 +377,7 @@ PlasmoidItem {
     // was never chosen: no size stored, or Plasma's small default (about
     // 810 x 630) that it stores when the dialog closes.
     function sizeSettingsDialog() {
-        const script = "for (var p of panels()) for (var w of p.widgets()) if (w.type === 'org.cde.copper.frontpanel') {"
+        const script = "for (var p of panels()) for (var w of p.widgets()) if (w.id === " + Plasmoid.id + ") {"
             + " w.currentConfigGroup = ['ConfigDialog'];"
             + " var cw = Number(w.readConfig('DialogWidth', 0)), ch = Number(w.readConfig('DialogHeight', 0));"
             + " if (cw >= 900 || ch >= 700) continue;"
@@ -407,7 +407,9 @@ PlasmoidItem {
         // hiding mode is set, and does not move it with the panel: moved
         // afterwards (or in the same breath), the console could not be brought
         // back. So: place it while it stays visible, then hide it.
-        const ours = "for (var p of panels()) { for (var w of p.widgets()) { if (w.type === 'org.cde.copper.frontpanel') { ";
+        // This console's panel only: with one on every screen, each has its
+        // own height (strip or not) and its own edge and hiding.
+        const ours = "for (var p of panels()) { for (var w of p.widgets()) { if (w.id === " + Plasmoid.id + ") { ";
         const place = ours + "p.hiding = 'none'; p.location = '" + edge + "'; p.height = " + height + "; p.lengthMode = '" + length + "'; p.alignment = 'center'; p.offset = 0; p.floating = " + (Plasmoid.configuration.floating ? "true" : "false") + "; } } }";
         runner.connectSource(dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(place));
         pendingHiding = mode === "none" ? "" : ours + "p.hiding = '" + mode + "'; } } }";
@@ -584,7 +586,9 @@ PlasmoidItem {
         installTranslations();
         Qt.callLater(mirrorAll);
         sizeSettingsDialog();
-        if (Plasmoid.configuration.consoleScale !== 1 || !Plasmoid.configuration.floating || stripHidden) configurePanel();
+        // Always: a console added to another screen starts in a panel as
+        // high as the first one's, whatever its own strip needs.
+        configurePanel();
         workspaceSync.start();
     }
 

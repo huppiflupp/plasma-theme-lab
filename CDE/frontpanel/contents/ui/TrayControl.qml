@@ -48,7 +48,7 @@ Item {
         // settings (trayHiddenByConsole); switching the option off takes out
         // only those, so what the user hid in the tray stays hidden.
         const script = "function list(w, key) { var v = w.readConfig(key, []); return typeof v === 'string' ? (v ? v.split(',') : []) : v; }"
-            + " for (var p of panels()) { var ours = p.widgets().filter(function (w) { return w.type === 'org.cde.copper.frontpanel'; })[0]; if (!ours) continue;"
+            + " for (var p of panels()) { var ours = p.widgets().filter(function (w) { return w.id === " + Plasmoid.id + "; })[0]; if (!ours) continue;"
             + " ours.currentConfigGroup = ['General']; var mine = list(ours, 'trayHiddenByConsole');"
             + " for (var w of p.widgets()) { if (w.type !== 'org.kde.plasma.systemtray') continue; w.currentConfigGroup = ['General'];"
             + " var items = w.readConfig('extraItems', []); if (typeof items === 'string') items = items ? items.split(',') : [];"
