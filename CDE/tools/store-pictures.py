@@ -119,17 +119,12 @@ def bevel(draw, box, width=6):
         draw.line((x1 - i, y0 + i, x1 - i, y1 - i), fill=DARK)
 
 def logo(out, size=512):
-    """The store shows the logo at about 70 px: the menu icon's drawing on
-    a bevelled teal tile, nothing else."""
+    """The store's product logo: it is shown at about 70 px and cropped to
+    whatever box the page has, so the menu icon's drawing sits in the
+    middle half of a plain teal square, with room on every side."""
     im = Image.new("RGB", (size, size), TEAL)
-    d = ImageDraw.Draw(im)
-    width = max(3, size // 48)
-    for i in range(width):
-        d.line((i, i, size - 1 - i, i), fill=LIGHT); d.line((i, i, i, size - 1 - i), fill=LIGHT)
-        d.line((i, size - 1 - i, size - 1 - i, size - 1 - i), fill=DARK); d.line((size - 1 - i, i, size - 1 - i, size - 1 - i), fill=DARK)
-    # The drawing without the icon's own padding, four fifths of the tile.
     ic = icon(size * 2); ic = ic.crop(ic.getbbox())
-    side = int(size * 0.8)
+    side = int(size * 0.5)
     ic = ic.resize((side, int(side * ic.height / ic.width)), Image.Resampling.LANCZOS)
     im.paste(ic, (size // 2 - ic.width // 2, size // 2 - ic.height // 2), ic)
     im.save(out)
