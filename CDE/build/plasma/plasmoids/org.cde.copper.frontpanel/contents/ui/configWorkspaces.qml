@@ -29,13 +29,16 @@ ConfigPage {
             text: i18nd("cde-copper", "Show the workspace switcher")
         }
         SpinBox {
+            // The wheel scrolls the page; it must not change a value in passing.
             id: workspaceCount
+            wheelEnabled: false
             Kirigami.FormData.label: i18nd("cde-copper", "Number of workspaces:")
             from: 1; to: 8
             enabled: showWorkspaces.checked
         }
         SpinBox {
             id: buttonWidth
+            wheelEnabled: false
             Kirigami.FormData.label: i18nd("cde-copper", "Button width:")
             from: 40; to: 200; stepSize: 5
             enabled: showWorkspaces.checked
@@ -51,6 +54,7 @@ ConfigPage {
         Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18nd("cde-copper", "Open windows") }
         ComboBox {
             id: windowView
+            wheelEnabled: false
             Kirigami.FormData.label: i18nd("cde-copper", "Shown as:")
             Layout.preferredWidth: Kirigami.Units.gridUnit * 20
             // The list wider than the field: a greyed entry carries its reason.

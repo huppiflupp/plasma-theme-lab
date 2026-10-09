@@ -1045,9 +1045,13 @@ Fedora VM `plasma-lab`, Plasma 6.7.5, Wayland, two outputs (1920×1080 at
   bars in "family", "instruments" and "panel"). Patched to plugged in:
   "auto" hides it, "always" shows it. Without the patch (no battery)
   nothing shows, and the journal has no errors. The settings page shows
-  the default "In the load meter while on battery". Note: the mouse wheel
-  over any combo box on the settings pages changes its value (Qt's
-  default), so scroll beside the controls.
+  the default "In the load meter while on battery".
+- Mouse wheel on the settings pages: it used to change any combo box or
+  spin box it passed over while scrolling the page (Qt's default), and
+  "Apply" then saved the change. Now `wheelEnabled: false` on all of them:
+  twelve wheel steps over the Tiles page scroll it past the launcher lists
+  and the Battery box, nothing changes, "Apply" stays disabled. A click
+  still opens the Battery box with its three choices.
 - Applications menu: a click into the transparent rest of the dialog
   (Wayland keeps both levels' size) was swallowed and the menu stayed
   open. It now closes the menu; clicks on the heading and the categories

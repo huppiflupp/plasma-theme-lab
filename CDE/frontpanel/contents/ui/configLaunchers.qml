@@ -226,7 +226,9 @@ ConfigPage {
             onEditingFinished: if (text !== Launch.slotLabel(editor.modelData, value => i18nd("cde-copper", value))) page.edit(editor.side, editor.index, {label: text})
         }
         ComboBox {
+            // The wheel scrolls the page; it must not change a value in passing.
             id: program
+            wheelEnabled: false
             Layout.preferredWidth: Kirigami.Units.gridUnit * 11
             model: Launch.PRESETS.map(p => Object.assign({}, p, {text: i18nd("cde-copper", p.text)}))
             textRole: "text"
@@ -249,6 +251,7 @@ ConfigPage {
         }
         Item { Layout.fillWidth: true; visible: !(editor.preset === "" || editor.preset === "app:") }
         ComboBox {
+            wheelEnabled: false
             Layout.preferredWidth: Kirigami.Units.gridUnit * 7
             model: Launch.MENUS.map(m => Object.assign({}, m, {text: i18nd("cde-copper", m.text)}))
             textRole: "text"
@@ -311,6 +314,7 @@ ConfigPage {
             // The battery joins the load meter as a third reading.
             ComboBox {
                 id: batteryMeter
+                wheelEnabled: false
                 Kirigami.FormData.label: i18nd("cde-copper", "Battery:")
                 enabled: (page.cfg_smallButtons || []).indexOf("load") >= 0
                 readonly property var values: ["auto", "always", "never"]
@@ -346,6 +350,7 @@ ConfigPage {
                 }
             }
             ComboBox {
+                wheelEnabled: false
                 Kirigami.FormData.label: i18nd("cde-copper", "Status icons:")
                 model: [i18nd("cde-copper", "Behind the block's arrow button"), i18nd("cde-copper", "Beside the console")]
                 currentIndex: page.cfg_hideTrayIcons ? 0 : 1

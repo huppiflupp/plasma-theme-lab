@@ -30,6 +30,8 @@ ConfigPage {
     Kirigami.FormLayout {
         Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18nd("cde-copper", "Placement") }
         ComboBox {
+            // The wheel scrolls the page; it must not change a value in passing.
+            wheelEnabled: false
             Kirigami.FormData.label: i18nd("cde-copper", "Screen edge:")
             model: [i18nd("cde-copper", "Bottom"), i18nd("cde-copper", "Top"), i18nd("cde-copper", "Left"), i18nd("cde-copper", "Right")]
             currentIndex: page.cfg_edge >= 0 ? page.cfg_edge : (page.cfg_topEdge ? 1 : 0)
@@ -42,6 +44,7 @@ ConfigPage {
         Hint { text: i18nd("cde-copper", "With a gap from the screen edge.") }
         ComboBox {
             id: visibility
+            wheelEnabled: false
             Kirigami.FormData.label: i18nd("cde-copper", "Visibility:")
             model: [i18nd("cde-copper", "Always visible"), i18nd("cde-copper", "Auto-hide / edge reveal"), i18nd("cde-copper", "Dodge windows")]
         }
@@ -54,6 +57,7 @@ ConfigPage {
 
         Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18nd("cde-copper", "Appearance") }
         SpinBox {
+            wheelEnabled: false
             Kirigami.FormData.label: i18nd("cde-copper", "Size:")
             Layout.minimumWidth: Kirigami.Units.gridUnit * 7
             from: 75; to: 200; stepSize: 25
