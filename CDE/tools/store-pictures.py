@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """The pictures of the KDE Store entry, from frames taken in the lab VM
-(see TESTING.md, "Store pictures"): every frame a 1280x720 screenshot.
+(see TESTING.md, "Store pictures"): every frame a screenshot (1920x1080).
 
-    store-pictures.py gif OUT.gif FRAME "Label" FRAME "Label" ...
-        the frames with a label in the top-right corner, 2.5 s each
+    store-pictures.py gif OUT.gif [--ms N] [--shared] FRAME "Label" FRAME "Label" ...
+        the frames with a label in the top-right corner ("<Label" top left,
+        "_Label" bottom right), N ms each (2500);
+        FRAME@X0,Y0,X1,Y1[,SCALE] adds that part enlarged in an inset, as
+        `zoom` does (SCALE default 3); --shared gives all frames one palette and
+        leaves the pixels unchanged from the frame before transparent, so that
+        a series on the same desktop stores only what changes
     store-pictures.py overview OUT.png BACK.png MID.png FRONT.png
         three desktops in perspective on a backdrop, the store's hero picture
     store-pictures.py zoom OUT.png IN.png X0 Y0 X1 Y1 [SCALE]
@@ -26,23 +31,68 @@ LIGHT, DARK = (232, 241, 240), (118, 142, 140)
 # --- gif -------------------------------------------------------------------
 
 def label(im, text):
+    """The label in the top-right corner; "<" before the text puts it top
+    left, "_" bottom right (where the console does not sit)."""
+    k = im.width / 1280   # the label grows with the frame
+    corner, text = (text[0], text[1:]) if text[:1] in ("<", "_") else ("", text)
     draw = ImageDraw.Draw(im)
-    font = ImageFont.truetype(FONT, 22)
-    w = draw.textlength(text, font=font); h = 30
-    x1, y1 = im.width - 16, 16; x0, y0 = x1 - w - 24, y1
-    draw.rectangle((x0, y0, x1, y0 + h + 12), fill=PANEL, outline=INK, width=2)
-    draw.rectangle((x0 + 2, y0 + 2, x1 - 2, y0 + 7), fill=COPPER)
-    draw.text((x0 + 12, y0 + 12), text, font=font, fill=INK)
+    font = ImageFont.truetype(FONT, round(22 * k))
+    w = draw.textlength(text, font=font); h = round(30 * k); pad = round(12 * k)
+    x1, y0 = im.width - round(16 * k), round(16 * k)
+    if corner == "<":
+        x1 = round(16 * k) + w + 2 * pad
+    elif corner == "_":
+        y0 = im.height - round(16 * k) - h - pad
+    x0 = x1 - w - 2 * pad
+    draw.rectangle((x0, y0, x1, y0 + h + pad), fill=PANEL, outline=INK, width=2)
+    draw.rectangle((x0 + 2, y0 + 2, x1 - 2, y0 + round(7 * k)), fill=COPPER)
+    draw.text((x0 + pad, y0 + pad), text, font=font, fill=INK)
     return im
 
 
-def gif(out, args):
+def shared(out, images, ms):
+    """Frames on the same desktop: each frame after the first leaves the
+    pixels unchanged from the frame before transparent (index 255), which
+    LZW stores almost for free, and draws its palette of 254 colours from
+    the part that changed, so a small inset keeps its own colours."""
+    import numpy as np
+    rgbs = [np.asarray(im) for im in images]
     frames = []
+    for i, im in enumerate(images):
+        same = (rgbs[i] == rgbs[i - 1]).all(axis=2) if i else np.zeros(rgbs[i].shape[:2], bool)
+        ys, xs = np.nonzero(~same)
+        box = (xs.min(), ys.min(), xs.max() + 1, ys.max() + 1) if len(xs) else (0, 0, 1, 1)
+        pal = im.crop(box).quantize(colors=254, method=Image.Quantize.MEDIANCUT)
+        idx = np.asarray(im.quantize(palette=pal, dither=Image.Dither.FLOYDSTEINBERG)).copy()
+        idx[same] = 255
+        q = Image.fromarray(idx, "P")
+        q.putpalette(pal.getpalette()[:254 * 3] + [0, 0, 0] * 2)
+        q.info["transparency"] = 255
+        frames.append(q)
+    frames[0].save(out, save_all=True, append_images=frames[1:], duration=ms, loop=0,
+                   optimize=False, transparency=255, disposal=1)
+
+
+def gif(out, args):
+    ms, one = 2500, False
+    while args[:1] in (["--ms"], ["--shared"]):
+        if args[0] == "--ms":
+            ms, args = int(args[1]), args[2:]
+        else:
+            one, args = True, args[1:]
+    images = []
     for path, text in zip(args[::2], args[1::2]):
+        path, _, part = path.partition("@")
         im = Image.open(path).convert("RGB")
-        frames.append(label(im, text).quantize(colors=255, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.FLOYDSTEINBERG))
-    frames[0].save(out, save_all=True, append_images=frames[1:], duration=2500, loop=0, optimize=False)
-    print(out, len(frames), "frames")
+        if part:
+            im = inset(im, *[int(v) for v in part.split(",")])
+        images.append(label(im, text))
+    if one:
+        shared(out, images, ms)
+    else:
+        frames = [im.quantize(colors=255, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.FLOYDSTEINBERG) for im in images]
+        frames[0].save(out, save_all=True, append_images=frames[1:], duration=ms, loop=0, optimize=False)
+    print(out, len(images), "frames")
 
 
 # --- overview --------------------------------------------------------------
@@ -124,11 +174,10 @@ def logo(out, size=512):
 
 # --- zoom ------------------------------------------------------------------
 
-def zoom(out, src, x0, y0, x1, y1, scale=3):
-    im = Image.open(src).convert("RGB")
+def inset(im, x0, y0, x1, y1, scale=3):
     part = im.crop((x0, y0, x1, y1)).resize(((x1 - x0) * scale, (y1 - y0) * scale), Image.Resampling.LANCZOS)
     border = 6
-    px, py = im.width - part.width - 2 * border - 40, 80
+    px, py = im.width - part.width - 2 * border - 40, round(80 * im.width / 1280)
     d = ImageDraw.Draw(im)
     d.rectangle((px - border, py - border, px + part.width + border - 1, py + part.height + border - 1), fill=PANEL)
     for i in range(3):
@@ -137,8 +186,12 @@ def zoom(out, src, x0, y0, x1, y1, scale=3):
         d.line((px - border + i, py + part.height + border - 1 - i, px + part.width + border - 1 - i, py + part.height + border - 1 - i), fill=DARK)
         d.line((px + part.width + border - 1 - i, py - border + i, px + part.width + border - 1 - i, py + part.height + border - 1 - i), fill=DARK)
     im.paste(part, (px, py))
+    return im
+
+def zoom(out, src, x0, y0, x1, y1, scale=3):
+    im = inset(Image.open(src).convert("RGB"), x0, y0, x1, y1, scale)
     im.save(out)
-    print(out, "inset", part.size)
+    print(out, "inset", (x1 - x0) * scale, (y1 - y0) * scale)
 
 
 def main():

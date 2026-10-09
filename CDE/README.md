@@ -244,16 +244,16 @@ The store edition is a subset of the theme:
 `UPLOAD.md`: the category and title of each entry, and how the store ids go
 into `store-ids.json` so that a second run writes the dependencies.
 
-The entry's pictures are in `screenshots/kde-look/`: five GIFs of labelled
-1280×720 frames (palettes with pictures, light and dark pictures, CDE's
-backdrops, the session from start-up screen to boot menu) and one of
-1280×800 (the console's options: compact with window tile, pager and bar
-meters, layouts, the window list, the meter styles, upright at the left
-edge with the clock's faces), `overview.png` (three desktops in perspective, the store's usual
-hero picture) and `logo-512.png` (the small picture of the entry). The frames
-come from the Ubuntu lab VM; `tools/store-pictures.py` labels them, joins
-them into the GIFs and draws the overview and the logo (TESTING.md, "Store
-pictures").
+The entry's pictures are in `screenshots/kde-look/`: seven GIFs of labelled
+1920×1080 frames (palettes with their pictures, light and dark pictures,
+CDE's backdrops, the front console set up in eight different ways, the
+clock's fourteen faces with each one enlarged, the workspace switch in its
+four forms, the Style Manager from palette to backdrop) and one of 1280×720
+(the session from start-up screen to boot menu), `overview.png` (three
+desktops in perspective, the store's usual hero picture) and `logo-512.png`
+(the small picture of the entry). The frames come from the Ubuntu lab VM;
+`tools/store-pictures.py` labels them, joins them into the GIFs and draws
+the overview and the logo (TESTING.md, "Store pictures").
 
 ### CDE palettes and backdrops
 

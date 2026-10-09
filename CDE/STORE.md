@@ -18,7 +18,7 @@ archives, one per store category, should that ever be wanted.)
 | Homepage | the same |
 | Download file | `cde-copper-<version>.tar.xz` from `dist/`; if the store refuses the size, a GitHub release and the store's external link instead |
 | Logo | `screenshots/kde-look/logo-512.png` |
-| Pictures | `screenshots/kde-look/overview.png` first, then the five GIFs in the order of their names |
+| Pictures | `screenshots/kde-look/overview.png` first, then the eight GIFs in the order of their names |
 | Tags | cde, motif, retro, unix, workstation, plasma6 |
 
 ## Description

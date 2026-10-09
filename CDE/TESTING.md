@@ -1177,3 +1177,51 @@ leave the list room. Back at the bottom edge it had its full size again
 declared `onStripHiddenChanged` twice: Plasma refused the whole widget
 ("Property value set multiple times"), which `tests/verify.py` does not
 catch.
+
+## Store pictures at 1920×1080 (2026-10-09)
+
+Ubuntu VM `ubuntu-lab` (Plasma 6.6, Wayland), the output switched to
+1920×1080 with `kscreen-doctor` (the 1280×720 frames left the pictures and
+the console's tiles too small to recognise). Demo windows as before
+(Dolphin, Konsole), plus Kate and KCalc on workspace 2, Gwenview and htop
+on Lab, System Settings and Okular on Mail, so that the miniatures show
+something. Settings through `manage.py palette` and the console's
+`writeConfig`, the pointer parked on the desktop before each frame (it
+left tooltips on the console otherwise), workspaces switched over KWin's
+D-Bus `current`. The frames of pictures and patterns with every window
+minimised, so that the backdrop fills the screen.
+
+- `1-palettes-and-pictures` (nine palettes, each with its picture),
+  `2-light-and-dark` (three pictures on a light and a dark palette),
+  `3-cde-backdrops` (ten CDE patterns on ten palettes, tiled pixel for pixel).
+- `4-front-console`: ten frames, the console set up differently in each:
+  bottom with miniatures and bar meters, the Applications menu, the System
+  subpanel, saved layouts; at the top with the window strip, LED meters and
+  the blue VFD; window tile with instrument meters and the flip clock; icon
+  tiles with window icons per workspace and the Roman dial; upright left
+  (odometer) and right (LED matrix); window tile right with the pixel type.
+- `5-clocks`: all fourteen faces and four dials side by side, then each in
+  the console with the clock tile enlarged four times, then the calendar.
+- `6-workspaces`: the miniatures on each of the four workspaces, the icons
+  under the buttons, the buttons with the window strip, without colours,
+  beside the window tile; the switch enlarged in each frame.
+- `7-style-manager`: the main window, the palette dialog, Northern Sky
+  applied with the dialog still open, the backdrop dialog with the picture
+  made for the palette and its dark version applied, the progress bars, the
+  pointer's rim.
+- `8-session-and-boot` is the former `5-`, unchanged (1280×720).
+
+`tools/store-pictures.py gif` now scales its label with the frame, takes
+`FRAME@x0,y0,x1,y1,scale` for an enlarged inset, `--ms` for the time per
+frame, `"<Label"`/`"_Label"` for the top-left/bottom-right corner (when the
+console sits at the top or right) and `--shared`: each frame after the
+first leaves unchanged pixels transparent and takes its 254 colours from
+the changed part, so a series on one desktop stores only the changes (the
+clocks 8.6 → 1.7 MB) and small insets keep their colours. Not used for the
+picture GIFs, where every pixel changes. The store did not take GIFs of
+6 MB: frames left out until each GIF is at most 4.2 MB.
+
+Found on the way: the Style Manager's windows open where KWin places
+them, not where the last one was; clicks by position need the window
+placed first (a KWin script setting `frameGeometry`) or a look at the
+screen.
