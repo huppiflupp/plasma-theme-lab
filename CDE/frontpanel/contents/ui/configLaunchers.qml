@@ -22,10 +22,10 @@ ConfigPage {
     property bool cfg_hideTrayIcons: true
     property alias cfg_hideTrayVolume: hideVolume.checked
     readonly property var smallStyles: [
-        {value: "family", text: i18nd("cde-copper", "All alike, the meters among the keys")},
-        {value: "instruments", text: i18nd("cde-copper", "Meters sunken, in the clock's colours")},
-        {value: "led", text: i18nd("cde-copper", "Meters as an LED field over the keys")},
-        {value: "panel", text: i18nd("cde-copper", "Meters as a panel of bars beside the keys")}]
+        {value: "family", short: i18nd("cde-copper", "All alike"), text: i18nd("cde-copper", "All alike, the meters among the keys")},
+        {value: "instruments", short: i18nd("cde-copper", "Sunken meters"), text: i18nd("cde-copper", "Meters sunken, in the clock's colours")},
+        {value: "led", short: i18nd("cde-copper", "LED field"), text: i18nd("cde-copper", "Meters as an LED field over the keys")},
+        {value: "panel", short: i18nd("cde-copper", "Bar panel"), text: i18nd("cde-copper", "Meters as a panel of bars beside the keys")}]
     readonly property var smallChoices: [
         {kind: "configure", text: i18nd("cde-copper", "Console settings")},
         {kind: "lock", text: i18nd("cde-copper", "Lock screen")},
@@ -56,8 +56,8 @@ ConfigPage {
     }
     function move(side, index, delta) {
         const list = (side === "left" ? leftSlots : rightSlots).slice();
-        const target = index + delta;
-        if (target < 0 || target >= list.length) return;
+        const target = Math.max(0, Math.min(list.length - 1, index + delta));
+        if (target === index) return;
         const item = list.splice(index, 1)[0];
         list.splice(target, 0, item);
         store(side, list);
@@ -182,6 +182,35 @@ ConfigPage {
         spacing: Kirigami.Units.smallSpacing
         Component.onCompleted: page.probe(modelData.command)
         onModelDataChanged: page.probe(modelData.command)
+        // Dragged by its grip the row follows the pointer; let go, it takes
+        // the place it was dropped on. The arrows stay for the keyboard.
+        property real shift: 0
+        transform: Translate { y: editor.shift }
+        z: grip.pressed ? 10 : 0
+        opacity: grip.pressed ? 0.8 : 1
+        Kirigami.Icon {
+            source: "handle-sort"
+            isMask: true
+            color: Kirigami.Theme.textColor
+            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium; Layout.preferredHeight: width
+            MouseArea {
+                id: grip
+                anchors.fill: parent
+                cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor
+                preventStealing: true
+                hoverEnabled: true
+                property real startY
+                onPressed: mouse => startY = mapToItem(editor.parent, 0, mouse.y).y
+                onPositionChanged: mouse => { if (pressed) editor.shift = mapToItem(editor.parent, 0, mouse.y).y - startY; }
+                onReleased: {
+                    const delta = Math.round(editor.shift / (editor.height + Kirigami.Units.largeSpacing));
+                    editor.shift = 0;
+                    if (delta !== 0) page.move(editor.side, editor.index, delta);
+                }
+                onCanceled: editor.shift = 0
+                ToolTip.text: i18nd("cde-copper", "Drag to reorder"); ToolTip.visible: containsMouse && !pressed
+            }
+        }
         Button {
             icon.name: editor.modelData.icon
             icon.width: Kirigami.Units.iconSizes.medium; icon.height: Kirigami.Units.iconSizes.medium
@@ -277,12 +306,28 @@ ConfigPage {
         }
         Kirigami.FormLayout {
             Layout.fillWidth: true
-            ComboBox {
+            RowLayout {
                 Kirigami.FormData.label: i18nd("cde-copper", "Style:")
-                model: page.smallStyles
-                textRole: "text"
-                currentIndex: Math.max(0, page.smallStyles.findIndex(s => s.value === page.cfg_smallStyle))
-                onActivated: index => page.cfg_smallStyle = page.smallStyles[index].value
+                spacing: Kirigami.Units.smallSpacing
+                Repeater {
+                    model: page.smallStyles
+                    delegate: ChoiceCard {
+                        id: styleCard
+                        required property var modelData
+                        implicitWidth: Kirigami.Units.gridUnit * 9
+                        caption: modelData.short
+                        checked: page.cfg_smallStyle === modelData.value
+                        onClicked: page.cfg_smallStyle = modelData.value
+                        ToolTip.text: modelData.text; ToolTip.visible: hovered
+                        StyleSketch {
+                            anchors.fill: parent; anchors.margins: 4
+                            style: styleCard.modelData.value
+                            face: Qt.tint(Kirigami.Theme.backgroundColor, Qt.alpha(Kirigami.Theme.textColor, 0.3))
+                            ink: Kirigami.Theme.textColor
+                            lamp: Kirigami.Theme.highlightColor
+                        }
+                    }
+                }
             }
             ComboBox {
                 Kirigami.FormData.label: i18nd("cde-copper", "Status icons:")

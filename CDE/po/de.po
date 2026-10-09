@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cde-copper 0.9.5\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-09 01:19+0200\n"
+"POT-Creation-Date: 2026-10-09 07:08+0200\n"
 "PO-Revision-Date: 2026-10-03 12:00+0200\n"
 "Last-Translator: CDE Copper contributors\n"
 "Language-Team: German\n"
@@ -122,27 +122,27 @@ msgstr "Römische Ziffern"
 msgid "Plain (no dial)"
 msgstr "Schlicht (ohne Zifferblatt)"
 
-#: frontpanel/contents/ui/configCalendar.qml:35
+#: frontpanel/contents/ui/configCalendar.qml:60
 msgid "Clock display:"
 msgstr "Uhrenanzeige:"
 
-#: frontpanel/contents/ui/configCalendar.qml:42
+#: frontpanel/contents/ui/configCalendar.qml:74
 msgid "Dial:"
 msgstr "Zifferblatt:"
 
-#: frontpanel/contents/ui/configCalendar.qml:49
+#: frontpanel/contents/ui/configCalendar.qml:87
 msgid "Show seconds"
 msgstr "Sekunden anzeigen"
 
-#: frontpanel/contents/ui/configCalendar.qml:52
+#: frontpanel/contents/ui/configCalendar.qml:90
 msgid "Unlit segments faintly visible"
 msgstr "Unbeleuchtete Segmente schwach anzeigen"
 
-#: frontpanel/contents/ui/configCalendar.qml:57
+#: frontpanel/contents/ui/configCalendar.qml:95
 msgid "Black edge around lit segments"
 msgstr "Schwarzer Rand um beleuchtete Segmente"
 
-#: frontpanel/contents/ui/configCalendar.qml:61
+#: frontpanel/contents/ui/configCalendar.qml:99
 msgid ""
 "Colours follow the palette: dial in the text-field colour, hands in the text "
 "colour,\n"
@@ -152,31 +152,31 @@ msgstr ""
 "Textfarbe,\n"
 "Sekundenzeiger und beleuchtete Segmente in der Auswahlfarbe."
 
-#: frontpanel/contents/ui/configCalendar.qml:67
+#: frontpanel/contents/ui/configCalendar.qml:105
 msgid "Clicking the clock:"
 msgstr "Klick auf die Uhr:"
 
-#: frontpanel/contents/ui/configCalendar.qml:68
+#: frontpanel/contents/ui/configCalendar.qml:106
 msgid "Shows the month and the day's events"
 msgstr "Zeigt den Monat und die Termine des Tages"
 
-#: frontpanel/contents/ui/configCalendar.qml:71
+#: frontpanel/contents/ui/configCalendar.qml:109
 msgid "Opens the calendar application"
 msgstr "Öffnet die Kalenderanwendung"
 
-#: frontpanel/contents/ui/configCalendar.qml:72
+#: frontpanel/contents/ui/configCalendar.qml:110
 msgid "Events from"
 msgstr "Termine aus"
 
-#: frontpanel/contents/ui/configCalendar.qml:92
+#: frontpanel/contents/ui/configCalendar.qml:130
 msgid "Appointments come from KOrganizer/Akonadi (\"PIM Events\")."
 msgstr "Termine stammen aus KOrganizer/Akonadi („PIM-Termine“)."
 
-#: frontpanel/contents/ui/configCalendar.qml:101
+#: frontpanel/contents/ui/configCalendar.qml:139
 msgid "Calendar application:"
 msgstr "Kalenderanwendung:"
 
-#: frontpanel/contents/ui/configCalendar.qml:107
+#: frontpanel/contents/ui/configCalendar.qml:145
 msgid ""
 "@calendar starts Merkuro or KOrganizer, whichever is installed.\n"
 "Any command or app:<desktop id> works too."
@@ -294,16 +294,32 @@ msgid "The small caption under the clock."
 msgstr "Die kleine Beschriftung unter der Uhr."
 
 #: frontpanel/contents/ui/configLaunchers.qml:25
+msgid "All alike"
+msgstr "Alle gleich"
+
+#: frontpanel/contents/ui/configLaunchers.qml:25
 msgid "All alike, the meters among the keys"
 msgstr "Alle gleich, Anzeigen zwischen den Tasten"
+
+#: frontpanel/contents/ui/configLaunchers.qml:26
+msgid "Sunken meters"
+msgstr "Versenkte Anzeigen"
 
 #: frontpanel/contents/ui/configLaunchers.qml:26
 msgid "Meters sunken, in the clock's colours"
 msgstr "Anzeigen eingelassen, in den Farben der Uhr"
 
 #: frontpanel/contents/ui/configLaunchers.qml:27
+msgid "LED field"
+msgstr "LED-Feld"
+
+#: frontpanel/contents/ui/configLaunchers.qml:27
 msgid "Meters as an LED field over the keys"
 msgstr "Anzeigen als LED-Feld über den Tasten"
+
+#: frontpanel/contents/ui/configLaunchers.qml:28
+msgid "Bar panel"
+msgstr "Balkenfeld"
 
 #: frontpanel/contents/ui/configLaunchers.qml:28
 msgid "Meters as a panel of bars beside the keys"
@@ -369,23 +385,27 @@ msgstr "Anwendung auswählen"
 msgid "Search"
 msgstr "Suchen"
 
-#: frontpanel/contents/ui/configLaunchers.qml:188
+#: frontpanel/contents/ui/configLaunchers.qml:209
+msgid "Drag to reorder"
+msgstr "Zum Umsortieren ziehen"
+
+#: frontpanel/contents/ui/configLaunchers.qml:215
 msgid "Choose icon"
 msgstr "Symbol auswählen"
 
-#: frontpanel/contents/ui/configLaunchers.qml:194
+#: frontpanel/contents/ui/configLaunchers.qml:221
 msgid "Label"
 msgstr "Beschriftung"
 
-#: frontpanel/contents/ui/configLaunchers.qml:216
+#: frontpanel/contents/ui/configLaunchers.qml:243
 msgid "Command, e.g. firefox --private-window"
 msgstr "Befehl, z. B. firefox --private-window"
 
-#: frontpanel/contents/ui/configLaunchers.qml:226
+#: frontpanel/contents/ui/configLaunchers.qml:253
 msgid "Subpanel opened by the arrow above the tile"
 msgstr "Unterpanel, das der Pfeil über dem Starter öffnet"
 
-#: frontpanel/contents/ui/configLaunchers.qml:233
+#: frontpanel/contents/ui/configLaunchers.qml:260
 msgid ""
 "Not installed: this tile would only show a notification. Choose another "
 "program."
@@ -393,36 +413,36 @@ msgstr ""
 "Nicht installiert: Dieser Starter würde nur eine Benachrichtigung anzeigen. "
 "Wählen Sie ein anderes Programm."
 
-#: frontpanel/contents/ui/configLaunchers.qml:233
+#: frontpanel/contents/ui/configLaunchers.qml:260
 msgid "Installed"
 msgstr "Installiert"
 
-#: frontpanel/contents/ui/configLaunchers.qml:235
+#: frontpanel/contents/ui/configLaunchers.qml:262
 msgid "Move left"
 msgstr "Nach links verschieben"
 
-#: frontpanel/contents/ui/configLaunchers.qml:236
+#: frontpanel/contents/ui/configLaunchers.qml:263
 msgid "Move right"
 msgstr "Nach rechts verschieben"
 
-#: frontpanel/contents/ui/configLaunchers.qml:237
+#: frontpanel/contents/ui/configLaunchers.qml:264
 msgid "Remove"
 msgstr "Entfernen"
 
-#: frontpanel/contents/ui/configLaunchers.qml:242
+#: frontpanel/contents/ui/configLaunchers.qml:269
 msgid "Left of the workspace switch"
 msgstr "Links vom Arbeitsflächenumschalter"
 
-#: frontpanel/contents/ui/configLaunchers.qml:244
-#: frontpanel/contents/ui/configLaunchers.qml:248
+#: frontpanel/contents/ui/configLaunchers.qml:271
+#: frontpanel/contents/ui/configLaunchers.qml:275
 msgid "Add tile"
 msgstr "Starter hinzufügen"
 
-#: frontpanel/contents/ui/configLaunchers.qml:246
+#: frontpanel/contents/ui/configLaunchers.qml:273
 msgid "Right of the workspace switch"
 msgstr "Rechts vom Arbeitsflächenumschalter"
 
-#: frontpanel/contents/ui/configLaunchers.qml:254
+#: frontpanel/contents/ui/configLaunchers.qml:281
 msgid ""
 "\"Default …\" entries follow the applications chosen in System Settings › "
 "Default Applications. A custom command runs through the shell; app:<desktop "
@@ -432,43 +452,43 @@ msgstr ""
 "Standard-Anwendungen. Ein eigener Befehl wird über die Shell ausgeführt; app:"
 "<desktop id> startet eine installierte Anwendung."
 
-#: frontpanel/contents/ui/configLaunchers.qml:257
+#: frontpanel/contents/ui/configLaunchers.qml:284
 msgid "Restore default tiles"
 msgstr "Standardstarter wiederherstellen"
 
-#: frontpanel/contents/ui/configLaunchers.qml:262
+#: frontpanel/contents/ui/configLaunchers.qml:289
 msgid "Small buttons at the end"
 msgstr "Kleine Knöpfe am Ende"
 
-#: frontpanel/contents/ui/configLaunchers.qml:281
+#: frontpanel/contents/ui/configLaunchers.qml:308
 msgid "Style:"
 msgstr "Stil:"
 
-#: frontpanel/contents/ui/configLaunchers.qml:288
+#: frontpanel/contents/ui/configLaunchers.qml:331
 msgid "Status icons:"
 msgstr "Statussymbole:"
 
-#: frontpanel/contents/ui/configLaunchers.qml:289
+#: frontpanel/contents/ui/configLaunchers.qml:332
 msgid "Behind the block's arrow button"
 msgstr "Hinter dem Pfeilknopf des Blocks"
 
-#: frontpanel/contents/ui/configLaunchers.qml:289
+#: frontpanel/contents/ui/configLaunchers.qml:332
 msgid "Beside the console"
 msgstr "Neben der Konsole"
 
-#: frontpanel/contents/ui/configLaunchers.qml:295
+#: frontpanel/contents/ui/configLaunchers.qml:338
 msgid "Volume only in the console"
 msgstr "Lautstärke nur in der Konsole"
 
-#: frontpanel/contents/ui/configLaunchers.qml:302
+#: frontpanel/contents/ui/configLaunchers.qml:345
 msgid "The tray leaves out its own volume icon."
 msgstr "Die Systemleiste lässt ihr eigenes Lautstärkesymbol weg."
 
-#: frontpanel/contents/ui/configLaunchers.qml:310
+#: frontpanel/contents/ui/configLaunchers.qml:353
 msgid "LLM hosts:"
 msgstr "LLM-Hosts:"
 
-#: frontpanel/contents/ui/configLaunchers.qml:318
+#: frontpanel/contents/ui/configLaunchers.qml:361
 msgid ""
 "For the LLM cluster's small button and its tile (a tile's program \"LLM "
 "cluster\"). Comma-separated name=http://host:port or name=ssh:PORT (SSH runs "

@@ -25,26 +25,64 @@ ConfigPage {
     readonly property var dials: [{text: i18nd("cde-copper", "CDE (round, as dtclock)"), value: "cde"}, {text: i18nd("cde-copper", "Motif (square well)"), value: "motif"},
                                   {text: i18nd("cde-copper", "Roman numerals"), value: "roman"}, {text: i18nd("cde-copper", "Plain (no dial)"), value: "plain"}]
 
+    // Each style as a small running clock, in the system colours (the
+    // console's palette is not known here). The name stays as a caption.
+    property date now: new Date()
+    Timer { interval: 1000; running: true; repeat: true; onTriggered: page.now = new Date() }
+    component FaceChoice: ChoiceCard {
+        id: choice
+        required property var modelData
+        property string style
+        property string dial
+        caption: modelData.text
+        ClockFace {
+            anchors.fill: parent; anchors.margins: 2
+            style: choice.style; dial: choice.dial
+            now: page.now
+            seconds: page.cfg_clockSeconds
+            segmentShadow: page.cfg_clockSegmentShadow
+            segmentEdge: page.cfg_clockSegmentEdge
+            ink: Kirigami.Theme.textColor
+            accent: Kirigami.Theme.highlightColor
+            lamp: Kirigami.Theme.highlightColor
+            dialColor: Kirigami.Theme.backgroundColor
+            tile: Kirigami.Theme.alternateBackgroundColor
+        }
+    }
+
     PlasmaCalendar.EventPluginsManager {
         id: manager
         Component.onCompleted: populateEnabledPluginsList(page.cfg_enabledCalendarPlugins)
     }
 
     Kirigami.FormLayout {
-        ComboBox {
+        GridLayout {
             Kirigami.FormData.label: i18nd("cde-copper", "Clock display:")
-            model: page.styles
-            textRole: "text"
-            currentIndex: Math.max(0, page.styles.findIndex(s => s.value === page.cfg_clockStyle))
-            onActivated: index => page.cfg_clockStyle = page.styles[index].value
+            columns: 5
+            columnSpacing: Kirigami.Units.smallSpacing; rowSpacing: Kirigami.Units.smallSpacing
+            Repeater {
+                model: page.styles
+                delegate: FaceChoice {
+                    style: modelData.value
+                    dial: page.cfg_clockDial
+                    checked: page.cfg_clockStyle === modelData.value
+                    onClicked: page.cfg_clockStyle = modelData.value
+                }
+            }
         }
-        ComboBox {
+        RowLayout {
             Kirigami.FormData.label: i18nd("cde-copper", "Dial:")
             visible: page.cfg_clockStyle === "analog"
-            model: page.dials
-            textRole: "text"
-            currentIndex: Math.max(0, page.dials.findIndex(d => d.value === page.cfg_clockDial))
-            onActivated: index => page.cfg_clockDial = page.dials[index].value
+            spacing: Kirigami.Units.smallSpacing
+            Repeater {
+                model: page.dials
+                delegate: FaceChoice {
+                    style: "analog"
+                    dial: modelData.value
+                    checked: page.cfg_clockDial === modelData.value
+                    onClicked: page.cfg_clockDial = modelData.value
+                }
+            }
         }
         CheckBox { id: seconds; text: i18nd("cde-copper", "Show seconds") }
         CheckBox {
