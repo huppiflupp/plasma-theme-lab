@@ -16,11 +16,13 @@ import org.kde.plasma.plasmoid
 // 0,0 with its first size and never moved it. The dialog itself also keeps
 // the size it was first shown with, so it opens at the full size of both
 // levels; the part not in use is transparent. Keyboard: Up/Down,
-// Right/Enter opens or launches, Left goes back, Escape closes.
+// Right/Enter opens or launches, Left goes back, Escape closes; typing a
+// letter goes to Find Application with it, so Meta, then "kon", Return
+// starts Konsole.
 Item {
     id: menu
     property var appsModel
-    signal findRequested()
+    signal findRequested(string text)
     signal runRequested()
     readonly property bool opened: categories.visible
     property int current: -1
@@ -64,7 +66,7 @@ Item {
         }
     }
     function activate(index) {
-        if (index === 0) { close(); findRequested(); }
+        if (index === 0) { close(); findRequested(""); }
         else if (index === 1) { close(); runRequested(); }
         else select(index);
     }
@@ -118,6 +120,13 @@ Item {
                 surface: consoleColors.window
                 focus: true
                 Keys.onEscapePressed: menu.close()
+                Keys.onPressed: event => {
+                    if (/^[^\x00-\x20\x7f]$/.test(event.text) && !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier))) {
+                        menu.close();
+                        menu.findRequested(event.text);
+                        event.accepted = true;
+                    }
+                }
                 Keys.onUpPressed: {
                     if (menu.cascaded && menu.subCurrent >= 0) menu.subCurrent = Math.max(0, menu.subCurrent - 1);
                     else menu.select(Math.max(0, menu.current - 1));

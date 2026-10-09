@@ -35,7 +35,8 @@ languages can be added as `po/<language>.po`.
 - The front console (one per screen, at any screen edge): clock with a month
   calendar and the day's appointments, configurable launcher tiles with
   subpanels, an Applications menu with cascading categories (also on the
-  Meta key), the browser's
+  Meta key; typing there searches the applications, so Meta, "kons",
+  Return starts Konsole), the browser's
   bookmarks, the editor's (or LibreOffice's) recently opened files, a Mail
   subpanel (new message, appointments, address book), Places and System
   subpanels, saved window layouts with previews, workspace switcher (its own settings page: one to eight

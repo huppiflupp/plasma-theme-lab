@@ -1098,3 +1098,16 @@ came back unchanged ("CDE / COPPER", LED field, names), the second with
 its own settings. The rebuilt consoles also get `everyScreen` from
 `AllScreens` again; before, they offered the choice switched off while
 two consoles stood.
+
+## Meta, type, Return (2026-10-09)
+
+Fedora VM `plasma-lab`, Wayland, keys through `virsh send-key`. Meta opens
+the Applications menu (Plasma's launcher-menu shortcut, the console
+provides `org.kde.plasma.launchermenu`). Typing "k" there closed the menu
+and opened Find Application with "k" in the search field, keyboard focus
+in it; "on" followed. Find Application showed nothing for "kon": its
+Kicker `AppsModel { flat: true }` lists only the categories in Plasma 6
+(with an empty field: Development, Games, … Utilities). It now uses
+Kicker's `RunnerModel` with the `krunner_services` runner: "kon" lists
+Konqueror, Kontact, Konsole, …; "kons" puts Konsole first, and Return
+started it (`pgrep konsole`: none before, one after).

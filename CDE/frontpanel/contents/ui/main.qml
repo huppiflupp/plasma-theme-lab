@@ -887,7 +887,7 @@ PlasmoidItem {
     AppMenu {
         id: appMenu
         appsModel: categoryApps
-        onFindRequested: { applications.visualParent = root.fullRepresentationItem; applications.visible = true; }
+        onFindRequested: text => { applications.visualParent = root.fullRepresentationItem; applications.open(text); }
         onRunRequested: root.run(root.dbus + " org.kde.krunner /App org.kde.krunner.App.display")
     }
     FindPopup { id: applications; colors: consoleColors }
