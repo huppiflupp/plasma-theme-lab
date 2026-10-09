@@ -109,15 +109,6 @@ def icon(size):
     im.save(str(tmp))
     return Image.open(str(tmp))
 
-def bevel(draw, box, width=6):
-    x0, y0, x1, y1 = box
-    draw.rectangle(box, fill=PANEL)
-    for i in range(width):
-        draw.line((x0 + i, y0 + i, x1 - i, y0 + i), fill=LIGHT)
-        draw.line((x0 + i, y0 + i, x0 + i, y1 - i), fill=LIGHT)
-        draw.line((x0 + i, y1 - i, x1 - i, y1 - i), fill=DARK)
-        draw.line((x1 - i, y0 + i, x1 - i, y1 - i), fill=DARK)
-
 def logo(out, size=512):
     """The store's product logo: it is shown at about 70 px and cropped to
     whatever box the page has, so the menu icon's drawing sits in the
