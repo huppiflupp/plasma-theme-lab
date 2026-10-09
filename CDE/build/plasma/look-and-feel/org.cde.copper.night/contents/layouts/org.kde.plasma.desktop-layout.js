@@ -30,12 +30,20 @@ for (var s = 0; s < screens; ++s) {
     var console = panel.addWidget('org.cde.copper.frontpanel');
     // The console's settings survive the rebuild: it mirrors every change
     // into cdecopperrc [Console] (see main.qml), the new console gets them back.
+    // A further screen's console has its own changes in [Console-<screen>],
+    // over the first one's.
     console.currentConfigGroup = ['General'];
-    var saved = ConfigFile('cdecopperrc', 'Console');
-    // keyList in Plasma 6.6 (Kubuntu 26.04); without any, or with no file
-    // yet, there is nothing to hand back.
-    var keys = saved.keyList || saved.keys || [];
-    for (var k of keys) if (k !== 'AllScreens') console.writeConfig(k, saved.readEntry(k));
+    var groups = s > 0 ? ['Console', 'Console-' + s] : ['Console'];
+    for (var g of groups) {
+        var saved = ConfigFile('cdecopperrc', g);
+        // keyList in Plasma 6.6 (Kubuntu 26.04); without any, or with no file
+        // yet, there is nothing to hand back.
+        var keys = saved.keyList || saved.keys || [];
+        for (var k of keys) if (k !== 'AllScreens') console.writeConfig(k, saved.readEntry(k));
+    }
+    // The setting the consoles were placed by, or the console would offer
+    // the choice the other way round.
+    console.writeConfig('everyScreen', everyScreen);
     // The system tray beside the console: status icons (and the hidden
     // ones behind its arrow), and Plasma's notifications, which are only
     // shown at all while a tray exists in some panel.

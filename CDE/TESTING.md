@@ -1077,3 +1077,24 @@ place of the installed widget, came up in German right away
 ("ARBEITSFLÄCHEN", "Dateien", "Papierkorb"), also with only
 `plasma_applet_org.cde.copper.frontpanel.mo` in its package and no copy in
 the user's locale folder: Plasma reads that catalogue from the package.
+
+## Second console keeps its own settings (2026-10-09)
+
+Fedora VM `plasma-lab`, two outputs. Both consoles mirrored every change
+into the same `cdecopperrc [Console]`, so a second console set up
+differently overwrote the first one's settings there, and the next
+rebuild of the panels (applying the global theme, `apply.sh --panel`)
+handed them to the first console. The host showed it: the second
+console, created by the version before `keyList`, had no settings at all,
+and its dialog had written its defaults into `[Console]`.
+
+Now the console on screen 0 writes `[Console]`, the others
+`[Console-<screen>]`, read over `[Console]`, and each console writes its
+whole configuration at start, which mended the polluted `[Console]` in the
+VM on the first restart. Test: the second console set to the label
+"ZWEITE", "instruments" and no names under the tiles. Then the panels
+were rebuilt with `layout.js` (without its wallpaper part). The first console
+came back unchanged ("CDE / COPPER", LED field, names), the second with
+its own settings. The rebuilt consoles also get `everyScreen` from
+`AllScreens` again; before, they offered the choice switched off while
+two consoles stood.

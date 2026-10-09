@@ -36,14 +36,30 @@ PlasmoidItem {
     // moment a global theme (or apply.sh --panel) rebuilds the panels; the
     // layout script reads this file and hands the values to the new console.
     // Lists are written in KConfig's comma form, so writeConfig in the
-    // layout script can pass them through unchanged.
+    // layout script can pass them through unchanged. With a console on every
+    // screen, the first screen's console writes [Console] and the others
+    // [Console-<screen>], read over [Console]: a second console set up
+    // differently must not hand its settings to the first.
+    readonly property string mirrorGroup: Plasmoid.containment.screen > 0 ? "Console-" + Plasmoid.containment.screen : "Console"
     Connections {
         target: Plasmoid.configuration
         function onValueChanged(key, value) {
-            if (key === "everyScreen") return;   // kept as [Console] AllScreens by placeConsoles
+            if (key === "everyScreen" || Plasmoid.containment.screen < 0) return;   // AllScreens: placeConsoles; no screen yet: no group
             const text = Array.isArray(value) ? value.join(",") : String(value);
-            root.run("kwriteconfig6 --file cdecopperrc --group Console --key " + key + " " + Launch.quote(text));
+            root.run("kwriteconfig6 --file cdecopperrc --group " + root.mirrorGroup + " --key " + key + " " + Launch.quote(text));
         }
+    }
+    // At start the whole configuration, defaults included: it mends a
+    // [Console] that an older version let another screen's console write.
+    function mirrorAll() {
+        if (Plasmoid.containment.screen < 0) return;
+        const config = Plasmoid.configuration;
+        const writes = config.keys().filter(key => key !== "everyScreen" && !key.endsWith("Default")).map(key => {
+            const value = config[key];
+            const text = Array.isArray(value) ? value.join(",") : String(value);
+            return "kwriteconfig6 --file cdecopperrc --group " + root.mirrorGroup + " --key " + key + " " + Launch.quote(text);
+        });
+        root.run(writes.join("; "));
     }
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
     // On the screen edge (not floating) the panel containment gives the
@@ -326,7 +342,8 @@ PlasmoidItem {
             + " var n = new Panel; n.screen = s; n.location = proto.location; n.height = proto.height;"
             + " n.lengthMode = proto.lengthMode; n.floating = proto.floating; n.hiding = proto.hiding; n.alignment = 'center';"
             + " var c = n.addWidget('org.cde.copper.frontpanel'); c.currentConfigGroup = ['General'];"
-            + " var saved = ConfigFile('cdecopperrc', 'Console'); for (var k of (saved.keyList || saved.keys || [])) if (k !== 'AllScreens') c.writeConfig(k, saved.readEntry(k));"
+            + " for (var g of ['Console', 'Console-' + s]) { var saved = ConfigFile('cdecopperrc', g);"
+            + " for (var k of (saved.keyList || saved.keys || [])) if (k !== 'AllScreens') c.writeConfig(k, saved.readEntry(k)); }"
             + " c.writeConfig('everyScreen', true);"
             + " if (n.screen !== s) n.remove(); } }"
             + " if (proto && !every) { for (var q of panels()) { var mine = false;"
@@ -565,6 +582,7 @@ PlasmoidItem {
             Plasmoid.configuration.llmTile = false;
         }
         installTranslations();
+        Qt.callLater(mirrorAll);
         sizeSettingsDialog();
         if (Plasmoid.configuration.consoleScale !== 1 || !Plasmoid.configuration.floating || stripHidden) configurePanel();
         workspaceSync.start();
