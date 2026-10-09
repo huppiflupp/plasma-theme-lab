@@ -58,7 +58,7 @@ Bevel {
                         topPadding: workspacesBlock.withWindows ? 0 : 5; bottomPadding: topPadding
                         implicitWidth: workspacesBlock.root.u(workspacesBlock.root.vertical ? 40 : workspacesBlock.cellWidth); implicitHeight: workspacesBlock.root.u(23)
                         text: workspacesBlock.root.workspaceLabel(index)
-                        Accessible.name: i18nd("cde-copper", "Workspace %1 %2", index + 1, workspacesBlock.root.desktopInfo.desktopNames[index] || "")
+                        Accessible.name: workspacesBlock.root.workspaceTitle(index)
                         selected: workspacesBlock.root.desktopInfo.currentDesktop === modelData
                         // As in CDE, each workspace in a colour of its own.
                         readonly property var own: Plasmoid.configuration.workspaceColours && workspacesBlock.root.workspaceColours.length

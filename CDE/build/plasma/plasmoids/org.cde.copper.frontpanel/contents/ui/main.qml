@@ -481,6 +481,17 @@ PlasmoidItem {
         const own = ((Plasmoid.configuration.workspaceLabels || [])[index] || "").trim();
         return own !== "" ? own : String(index + 1);
     }
+    // The button's tooltip: "Workspace 2", and the name only when it says
+    // more than the number. KWin's own names repeat it ("Arbeitsfläche 2",
+    // "Desktop 2", or "2" as the switcher names new ones), which read as
+    // "Workspace 2 Arbeitsfläche 2" before.
+    function workspaceTitle(index) {
+        const number = String(index + 1);
+        const own = ((Plasmoid.configuration.workspaceLabels || [])[index] || "").trim();
+        const name = own !== "" ? own : String((desktopInfo.desktopNames || [])[index] || "").trim();
+        const plain = name === "" || name === number || new RegExp("^\\D*\\b" + number + "$").test(name);
+        return plain ? i18nd("cde-copper", "Workspace %1", number) : i18nd("cde-copper", "Workspace %1: %2", number, name);
+    }
     // The switcher owns the workspace count: KWin gets as many workspaces as
     // configured (1-8). The buttons show numbers only, so the names KWin
     // keeps ("Arbeitsfläche 1", "Two", whatever the user chose) never mix
