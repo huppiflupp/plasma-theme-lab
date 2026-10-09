@@ -2,12 +2,16 @@
 """Package the built theme and its reproducible vector sources."""
 import hashlib
 from pathlib import Path
+import sys
 import tarfile
 
 ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+from build import VERSION  # noqa: E402
+
 DIST = ROOT / "dist"
 DIST.mkdir(exist_ok=True)
-archive = DIST / "cde-copper-0.9.5.tar.xz"
+archive = DIST / f"cde-copper-{VERSION}.tar.xz"
 items = ["build", "frontpanel", "stylemanager", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "wallpapers", "tools", "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "systemparts.py", "system.py",
          "kvantum.py", "palettes.py", "backdrops.py", "configpage.py", "manage.py", "install.sh",
          "apply.sh", "uninstall.sh", "layout.js", "README.md", "LICENSE", "TESTING.md", "tests"]

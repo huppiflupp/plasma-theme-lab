@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Standalone reader, logic adapted from /home/seeas/projects/llmtop/llmtop.py:
+"""Standalone reader, logic adapted from llmtop (llmtop.py):
 _llama_live, RateTracker, FinishedRate and guarded_ports. No import or execution
 of that project. Only explicitly configured backend ports are scraped. Ports
 listed in $XDG_CONFIG_HOME/cde-copper/llm-guarded (host:port, one per line or
