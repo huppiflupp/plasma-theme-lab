@@ -211,6 +211,13 @@ through Plasma's normal widget picker.
 
 ### KDE Store edition
 
+On the store CDE Copper is one entry carrying the release archive of
+`package.py` (everything, installed with `install.sh`; the picture sources
+under `wallpapers/` stay out, `build/` has them as packages): fields, text
+and steps are in `STORE.md`. The split edition below, one KPackage archive
+per store category, is kept for the day the store should install the parts
+itself.
+
 System Settings › Global Theme › "Get New…" installs a single global theme
 package and runs nothing, so the store carries CDE Copper as several entries:
 the global themes (day and night) name the others as dependencies (console,
