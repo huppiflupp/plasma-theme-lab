@@ -142,6 +142,13 @@ def build_icons(out: Path):
         "internet-mail": mail, "accessories-text-editor": edit, "user-trash": trash,
         "network-workgroup": network, "audio-volume-high": audio, "preferences-system": gear,
         "cde-console-configure": faders,
+        # Saved window layouts: a screen with its windows in place and a
+        # copper bookmark, the arrangement kept to come back to.
+        "cde-layouts": (rect(4, 9, 56, 38, "#86a4aa") + rect(8, 13, 48, 30, "#061c22")
+                        + "".join(rect(x, y, w, h, "#c4d2d0" if x == 10 else TEAL) + rect(x, y, w, 5, COPPER if x == 10 else LIGHT)
+                                  for x, y, w, h in ((10, 15, 21, 26), (33, 15, 21, 12), (33, 29, 21, 12)))
+                        + path("M6 45V11H58", "none", LIGHT) + rect(27, 48, 10, 5, COPPER)
+                        + path("M17 58L21 53H43L47 58Z", "#86a4aa") + path("M44 3H55V24L49.5 19L44 24Z", COPPER)),
         "preferences-desktop-virtual": workspaces, "text-x-generic": document(text),
         "application-x-executable": cabinet, "drive-harddisk": cabinet, "chronometer": clock,
         "system-lock-screen": lock, "system-shutdown": power,
@@ -864,6 +871,14 @@ def px_monitor(p, screen=TEAL):
     p.shape(p.rect(3.5, 13.5, 9, 2.5), GREY)
 
 
+def px_layouts(p):
+    px_monitor(p, DARK)
+    p.fill(p.rect(3, 4, 5, 5.5), PAPER)
+    p.fill(p.rect(3, 4, 5, 1), COPPER)
+    p.fill(p.rect(9, 4, 4, 2.5) | p.rect(9, 7, 4, 2.5), TEAL)
+    p.shape(p.poly([(10, 0), (14.5, 0), (14.5, 6), (12.25, 4.2), (10, 6)]), COPPER)
+
+
 def px_window(p, mark=None):
     p.shape(p.rect(0, 1, 16, 14.5), PAPER, light=WHITE)
     p.shape(p.rect(0, 1, 16, 4.5), COPPER)
@@ -1126,6 +1141,7 @@ PIXEL = {
     "user-home": px_home,
     "user-trash": px_trash,
     "cde-console-configure": px_faders,
+    "cde-layouts": px_layouts,
     "computer": px_monitor,
     "utilities-terminal": lambda p: (px_monitor(p, DARK), p.fill(p.line(4, 4.5, 6, 6) | p.line(6, 6, 4, 7.5), COPPER), p.fill(p.hline(7, 7.5, 3), COPPER)),
     "network-workgroup": px_network,

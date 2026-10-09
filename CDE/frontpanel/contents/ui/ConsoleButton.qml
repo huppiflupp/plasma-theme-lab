@@ -47,6 +47,8 @@ Button {
             id: symbol
             visible: control.iconName !== ""
             source: control.iconName
+            // CDE Copper's own drawings under another icon theme.
+            fallback: control.iconName === "cde-layouts" ? "preferences-system-windows" : ""
             width: control.iconSize; height: width
             x: control.horizontal ? 2 : (parent.width - width) / 2
             y: control.horizontal || !control.labelled ? (parent.height - height) / 2 : 0

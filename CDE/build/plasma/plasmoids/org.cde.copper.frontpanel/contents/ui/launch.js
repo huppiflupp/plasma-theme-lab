@@ -19,7 +19,7 @@ const RIGHT = [
     {label: "Web", icon: "internet-web-browser", command: "@browser", menu: "bookmarks"},
     {label: "Mail", icon: "internet-mail", command: "@mail", menu: "mail"},
     {label: "System", icon: "preferences-system", command: "@settings", menu: "system"},
-    {label: "Layouts", icon: "preferences-system-windows", command: "@layouts", menu: "layouts"},
+    {label: "Layouts", icon: "cde-layouts", command: "@layouts", menu: "layouts"},
     {label: "Trash", icon: "user-trash", command: "@trash", menu: ""}
 ];
 
@@ -36,7 +36,7 @@ const PRESETS = [
     {text: "System Settings", value: "@settings", icon: "preferences-system"},
     {text: "Trash", value: "@trash", icon: "user-trash"},
     {text: "Help Center", value: "@help", icon: "help-browser"},
-    {text: "Saved layouts", value: "@layouts", icon: "preferences-system-windows"},
+    {text: "Saved layouts", value: "@layouts", icon: "cde-layouts"},
     {text: "Applications menu", value: "@applications", icon: "cde-menu"},
     {text: "Arrange windows around the console", value: "@arrange", icon: "view-split-left-right"},
     {text: "LLM cluster (tokens per second)", value: "@llm", icon: "network-server"},
@@ -72,6 +72,13 @@ function menuFor(command) {
     return "";
 }
 
+// Icons stored with a tile that CDE Copper has since drawn anew: the saved
+// layouts tile had the general window icon until it got its own.
+function renamedIcon(s) {
+    const icon = String(s.icon || "application-x-executable");
+    return icon === "preferences-system-windows" && s.command === "@layouts" ? "cde-layouts" : icon;
+}
+
 function parse(json, fallback) {
     if (!json)
         return fallback.map(slot => Object.assign({}, slot));
@@ -79,7 +86,7 @@ function parse(json, fallback) {
         const list = JSON.parse(json);
         if (Array.isArray(list))
             return list.filter(s => s && typeof s === "object").map(s => ({
-                label: String(s.label || ""), icon: String(s.icon || "application-x-executable"),
+                label: String(s.label || ""), icon: renamedIcon(s),
                 command: String(s.command || ""), menu: String(s.menu || "")}));
     } catch (e) {
         console.warn("CDE console: unreadable launcher list, using defaults:", e);
