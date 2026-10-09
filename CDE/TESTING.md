@@ -193,6 +193,21 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   off again, the two-column grid with names comes back at once (its row
   height and cell width restored); the tooltip of an entry whose name
   Plasma had left out of it stays off, as before.
+- Popup in the console's measures (2026-10-09, ubuntu-lab): title 12 units
+  semibold in the console's font, its buttons 26 units high, entry icons
+  28 units with names in 11 units, 22 units without names in cells of 38;
+  with names the popup is 360 by 190 for seven entries, without 360 by 75.
+  No QML warnings in the journal.
+- Symbolic icons follow the colour scheme (2026-10-09, ubuntu-lab, palette
+  Slate): Plasma's tray prefers an entry's "-symbolic" icon where the theme
+  has one (Solaar's battery-010, onedrive's folder, the brightness applet),
+  and before 6816acc those kept the ink colour baked into their stylesheet,
+  dark on a dark palette. With FollowsColorScheme=true the brightness and
+  power entries show in the scheme's text colour on Slate; the coloured
+  entries (bell, clipboard, KDE Connect) and the console's launcher icons
+  keep the palette's colours. apply.sh --palette Slate in the VM set the
+  scheme, then stopped at konsolerc ("State[$d]" line, configparser);
+  the shell was restarted by hand.
 - Volume button as wide as a launcher, lined up under the small buttons.
 - Mail subpanel: New Message (the mail client with a bare mailto:),
   Open Mail, Appointments (the calendar application), Address Book. The

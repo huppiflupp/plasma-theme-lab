@@ -88,10 +88,13 @@ languages can be added as `po/<language>.po`.
   title bar in the palette's selection colour, as on the console's own
   subpanels, and the popup is only as tall as its grid of entries (Plasma
   keeps it at 24 by 24 grid units, half of it empty); an entry's own view
-  (notifications, KDE Connect) opens at Plasma's size again. With "Icons
-  only in the status popup" (Tiles page) the entries lose their names,
-  the grid takes as many icons per row as fit and each name goes to its
-  tooltip: a popup of a row or two. By default the console stands by
+  (notifications, KDE Connect) opens at Plasma's size again. Its title
+  and the entries take the console's measures: the title in the console's
+  type as on a subpanel, icons and names as on a subpanel's entries. With
+  "Icons only in the status popup" (Tiles page) the entries lose their
+  names, the icons shrink to small-button size in cells the height of a
+  subpanel's row, the grid takes as many per row as fit and each name goes
+  to its tooltip: a popup of a row or two. By default the console stands by
   itself; the panel's own frame around it can be switched on.
 - CDE's 37 colour palettes and ten dark ones of our own (`palettes/copper/`,
   among them Graphite in greys and Darkroom with red text), shaded with

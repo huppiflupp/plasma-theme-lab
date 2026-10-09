@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import org.kde.plasma.plasma5support as P5Support
 import "launch.js" as Launch
@@ -166,22 +167,48 @@ Item {
             const top = grid.mapToItem(full, 0, 0).y;
             h = Math.ceil(top + rows * grid.cellHeight + tray.root.u(8));
         }
+        tray.styleHeading(full);
         full.Layout.minimumWidth = w; full.Layout.minimumHeight = h;
         win.width = w + padW; win.height = h + padH;
     }
+    // The popup's heading in the console's type: the title as on the
+    // console's subpanels (its font, 12 units, semibold), its buttons
+    // the height of a subpanel's title bar.
+    function styleHeading(full) {
+        for (const column of full.children) {
+            if (column.spacing === undefined || !column.children.length) continue;
+            const row = column.children[0];
+            if (!row || row.spacing === undefined) continue;
+            for (const item of row.children) {
+                if (item.level !== undefined && item.text !== undefined) {
+                    item.font.family = Kirigami.Theme.defaultFont.family;
+                    item.font.pixelSize = tray.root.u(12); item.font.weight = Font.DemiBold;
+                } else if (item.icon !== undefined && item.display !== undefined) {
+                    item.implicitWidth = tray.root.u(26); item.implicitHeight = tray.root.u(26);
+                    item.icon.width = tray.root.u(16); item.icon.height = tray.root.u(16);
+                }
+            }
+            return;
+        }
+    }
     // The grid's cells for the width it will have; returns its columns.
     // Plasma lays the entries out in two columns, icon and name side by
-    // side. With "Icons only" the cells shrink to the icon, the grid
-    // takes as many columns as fit, and every entry's name goes to its
-    // tooltip (Plasma shows one only where it adds to the name). Switched
-    // off again, the cells and names come back; a tooltip title Plasma
-    // had left empty stays empty until the shell restarts.
+    // side, the icons at Kirigami's medium size, the names in the
+    // system font. Here the entries take the console's measures: icons
+    // as on a subpanel's entries (28 units), names in the console's
+    // type. With "Icons only" the icons shrink to 22 units in cells the
+    // height of a subpanel's row, the grid takes as many columns as fit,
+    // and every entry's name goes to its tooltip (Plasma shows one only
+    // where it adds to the name). Switched off again, the cells and
+    // names come back; a tooltip title Plasma had left empty stays empty
+    // until the shell restarts.
     function styleGrid(grid, width) {
         const iconsOnly = Plasmoid.configuration.trayIconsOnly;
         if (!tray.gridCellHeight) tray.gridCellHeight = grid.cellHeight;
+        const icon = tray.root.u(iconsOnly ? 22 : 28);
         let cols = 2, cell = 0;
         if (iconsOnly) {
-            cell = Math.round(tray.root.u(32 + 2 * 4 + 8));
+            cell = Math.round(icon + 2 * 4 + tray.root.u(8));
             cols = Math.max(1, Math.floor(width / cell));
         }
         for (const loader of grid.contentItem.children) {
@@ -192,8 +219,11 @@ Item {
                 if (child.spacing !== undefined && child.children.length === 2) label = child.children[1];
             }
             if (!label) continue;
+            entry.iconContainer.implicitWidth = icon; entry.iconContainer.implicitHeight = icon;
+            label.font.family = Kirigami.Theme.defaultFont.family; label.font.pixelSize = tray.root.u(11);
+            label.font.weight = Plasmoid.configuration.hardContrast ? Font.DemiBold : Font.Normal;
             if (iconsOnly) {
-                cell = Math.max(cell, Math.round(entry.iconContainer.height + 2 * entry.margins + tray.root.u(8)));
+                cell = Math.max(cell, Math.round(icon + 2 * entry.margins + tray.root.u(8)));
                 if (label.visible) {
                     label.visible = false;
                     entry.mainText = Qt.binding(function() { return entry.text; });
