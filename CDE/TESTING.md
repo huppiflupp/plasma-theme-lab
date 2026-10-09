@@ -1111,3 +1111,45 @@ Kicker `AppsModel { flat: true }` lists only the categories in Plasma 6
 Kicker's `RunnerModel` with the `krunner_services` runner: "kon" lists
 Konqueror, Kontact, Konsole, …; "kons" puts Konsole first, and Return
 started it (`pgrep konsole`: none before, one after).
+
+## KDE Store edition 0.9.5 and the store pictures (2026-10-09)
+
+Ubuntu VM `ubuntu-lab` (Kubuntu 26.04, Plasma 6.6, Wayland, 1280×800), from
+the `clean` snapshot.
+
+- Store edition as KDE installs it: the eleven archives of `store.py`
+  installed with `kpackagetool6` (console, backdrop, Plasma style, the two
+  KWin packages, both global themes) and unpacked (SVG frames, colour
+  schemes, icons, cursors), then `plasma-apply-lookandfeel -a
+  org.cde.copper.desktop --resetLayout` from inside the session. The
+  defaults land in `~/.config/kdedefaults/` (colour scheme, icons, Breeze
+  widgets, cursor, splash, Plasma style, SVG frame, window switcher), the
+  layout puts the console in place; the status popup, Applications menu,
+  System subpanel and the window menu open, the journal has no QML errors.
+  The night theme applied the same way (Northern Sky, the night frame).
+  Found: the console spoke English until the shell was restarted (fixed
+  since: the console's catalogue is `plasma_applet_org.cde.copper.frontpanel`
+  in the store package); a Dolphin left running from the full installation
+  kept the old palette's icons until restarted (not a theme fault).
+- Console width: with "Each workspace in miniature" and four workspaces the
+  console ran off the right edge at 1280 px (the four cells of 104 px plus
+  the tiles). Now the cells give way to what the screen leaves beside the
+  other tiles (Workspaces.qml): the console spans 12–1268 px, nothing is
+  cut off; with the strip or the icons the cells keep their width.
+- Store pictures (`screenshots/kde-look/`): the full theme installed from
+  the tree with `install.sh --restart-shell` and `apply.sh --panel`, Kvantum
+  from the Ubuntu archive (`qt-style-kvantum`, `-themes`, `-l10n`,
+  `qt6-style-kvantum`), the session in English (`plasma-localerc`,
+  `LANG=en_US.UTF-8` for the restarted shell and the demo windows:
+  Dolphin on ~/Pictures with the theme's pictures, Konsole with
+  `tests/terminal-demo.sh`, placed by `tests/arrange.js`). Each frame:
+  `manage.py palette --palette X --backdrop Y` (pictures as
+  `picture:<key>`), the console's clock through `writeConfig` in a panel
+  script, a screenshot, the top 80 px cut for 1280×720. Then
+  `tools/store-pictures.py gif` (labels, 2.5 s a frame), `zoom` (the clock
+  tile enlarged three times for the clock GIF), `overview` (three frames
+  in perspective) and `logo`. The GRUB and Plymouth frames stay from the
+  Fedora VM of 2026-10-03 (the system parts are not installed here).
+  Found on the way: a plasmashell restarted from SSH needs
+  `XDG_MENU_PREFIX=plasma-`, or the Applications menu lists no categories;
+  `loginctl lock-session` from SSH does nothing, `lock-sessions` does.

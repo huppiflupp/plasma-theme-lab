@@ -161,15 +161,29 @@ def upload_guide(out, ids, have_deps):
     for key, (name, knsrc, category, title, what) in PARTS.items():
         lines.append(f"- **{title}** — {what}.")
     lines += ["", "## Description for the global theme entry", "",
+              "Put the links of the uploaded parts in (the store shows a bare address as a link); "
+              "until the ids are known the lines carry a placeholder.", "",
               "CDE Copper brings the Common Desktop Environment to Plasma 6: a front console "
               "with launchers, subpanels, a workspace switch and the window list, the Motif "
-              "window frame, CDE's palettes as colour schemes and its backdrops, icons and "
-              "cursors after CDE and Motif, and saved window layouts.", "",
-              "When applying, tick \"Desktop and window layout\" to get the front console. "
-              "This store edition uses Breeze widgets and Plasma's lock screen; the full "
-              "theme with Motif controls (Kvantum), CDE's lock screen and the style manager "
-              "with all 37 palettes is installed from the project page "
-              "(https://github.com/huppiflupp/plasma-theme-lab/tree/main/CDE).", ""]
+              "window frame, CDE's 37 palettes as colour schemes and its backdrops, icons and "
+              "cursors after CDE and Motif, and saved window layouts. A second global theme, "
+              "CDE Copper Night, is the dark counterpart for Plasma's day/night switching.", "",
+              "Install the global theme and apply it with \"Desktop and window layout\" ticked: "
+              "that puts the front console in place of the default panel. The parts below are "
+              "installed along with it (or one by one from their own entries).", ""]
+    for key, (name, knsrc, category, title, what) in PARTS.items():
+        link = f"https://store.kde.org/p/{ids[key]}/" if ids.get(key) else "(store link to come)"
+        lines.append(f"{title}: {link}")
+    lines += ["", "Requirements: Plasma 6.6 or newer (tested on 6.6 and 6.7, Wayland and X11); the "
+              "console needs the Plasma 5 Support data engine (package plasma5support, part of "
+              "most Plasma installations). The interface font is IBM Plex Sans Condensed, which "
+              "the store cannot install: without it the theme uses the system's sans-serif. "
+              "The fonts are in the full release.", "",
+              "This store edition uses Breeze widgets and Plasma's lock screen. The full theme "
+              "adds the Motif controls (a Kvantum style, also offered here as a separate archive "
+              "for Kvantum Manager), CDE's own lock screen and the style manager that switches "
+              "between all 37 palettes with matching icons and backdrops. It is installed from "
+              "the project's source (link in this entry's Source field).", ""]
     (out / "UPLOAD.md").write_text("\n".join(lines), encoding="utf-8")
 
 
