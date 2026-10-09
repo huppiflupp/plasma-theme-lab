@@ -583,6 +583,8 @@ screen-edge reveal; there is no separate retractable handle.
 Popups from the console open at the size they first appear with: under Wayland
 KWin does not move or resize them afterwards, so the Applications menu opens at
 the full size of both of its levels and leaves the unused part transparent.
+That part still belongs to the menu's window: a click there closes the menu
+but does not reach the window below.
 
 One console per screen is set up by `--panel`, but multiple physical monitors
 have not been validated (the test VM shows only one output). Very narrow

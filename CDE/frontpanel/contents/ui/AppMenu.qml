@@ -95,6 +95,18 @@ Item {
             // from it, both centred vertically on the tile.
             width: upright ? body.width + appsBox.width - 2 : body.width + 2 * (appsBox.width - 2)
             height: Math.max(body.height, 630)
+            // The transparent rest still belongs to the dialog's window and
+            // would swallow a click meant for what lies below; there it
+            // closes the menu, as a click beside any popup does.
+            MouseArea {
+                anchors.fill: parent
+                onPressed: mouse => {
+                    const inBody = body.contains(mapToItem(body, mouse.x, mouse.y));
+                    const inApps = appsBox.visible && appsBox.contains(mapToItem(appsBox, mouse.x, mouse.y));
+                    if (inBody || inApps) mouse.accepted = false;
+                    else menu.close();
+                }
+            }
             Bevel {
                 id: body
                 // Next to the console.
