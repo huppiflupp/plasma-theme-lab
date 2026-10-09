@@ -19,6 +19,9 @@ Button {
     property color foreground: consoleColors.panelText
     property color accent: consoleColors.highlight
     property color accentText: consoleColors.highlightText
+    // A frame round the whole button, for marking one among buttons in
+    // colours of their own (the current workspace); none when transparent.
+    property color frame: "transparent"
     implicitWidth: Math.round(68 * consoleColors.unit)
     implicitHeight: Math.round(66 * consoleColors.unit)
     padding: 5
@@ -39,6 +42,13 @@ Button {
             color: "transparent"
             border.color: control.selected ? control.accentText : control.accent
             border.width: control.visualFocus ? 2 : 0
+        }
+        Rectangle {
+            visible: control.frame.a > 0
+            anchors.fill: parent
+            color: "transparent"
+            border.color: control.frame
+            border.width: Math.max(2, Math.round(2 * consoleColors.unit))
         }
     }
     contentItem: Item {

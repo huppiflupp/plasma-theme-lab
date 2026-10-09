@@ -67,6 +67,9 @@ Bevel {
                         foreground: own ? (workspacesBlock.colors.hard ? Motif.stark(own.bg) : own.fg) : workspacesBlock.colors.panelText
                         accent: own ? own.sel : workspacesBlock.colors.highlight
                         accentText: own ? (workspacesBlock.colors.hard ? Motif.stark(own.bg) : own.fg) : workspacesBlock.colors.highlightText
+                        // In colours of their own the current one hardly stood out
+                        // (the lightest looked chosen): a frame in the accent colour.
+                        frame: selected && own ? workspacesBlock.colors.highlight : "transparent"
                         onClicked: workspacesBlock.root.run(workspacesBlock.root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
                     }
                     WindowWell {

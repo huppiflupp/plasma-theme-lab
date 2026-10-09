@@ -10,16 +10,30 @@ ListView {
     // The console (main.qml): given, never looked up.
     required property var root
     Layout.fillWidth: true; Layout.fillHeight: true
-    Layout.minimumHeight: taskList.root.vertical ? taskList.root.u(80) : 0
+    // Upright, the strip takes what the tiles leave of the screen, at least
+    // one button; more windows scroll. A larger minimum pushed the console
+    // past the screen's lower edge.
+    Layout.minimumHeight: taskList.root.vertical ? taskList.root.u(24) : 0
     orientation: taskList.root.vertical ? ListView.Vertical : ListView.Horizontal
     spacing: 3; clip: true
     model: taskList.root.taskModel
+    // The buttons' width, worked out once the view has settled: bound
+    // straight to the view's width it looped while the console turned
+    // between across and upright.
+    property real buttonWidth: 0
+    function fitButtons() {
+        buttonWidth = root.vertical ? width
+            : Math.min(root.u(220), Math.max(root.u(120), (width - (count - 1) * 3) / Math.max(1, count)));
+    }
+    onWidthChanged: Qt.callLater(fitButtons)
+    onCountChanged: Qt.callLater(fitButtons)
+    Connections { target: taskList.root; function onVerticalChanged() { Qt.callLater(taskList.fitButtons); } }
+    Component.onCompleted: fitButtons()
     delegate: ConsoleButton {
         id: taskButton
         required property int index
         required property var model
-        width: taskList.root.vertical ? taskList.width
-             : Math.min(taskList.root.u(220), Math.max(taskList.root.u(120), (taskList.width - (taskList.count - 1) * 3) / Math.max(1, taskList.count)))
+        width: taskList.buttonWidth
         height: taskList.root.vertical ? taskList.root.u(24) : taskList.height
         horizontal: true; iconSize: taskList.root.u(18)
         readonly property int windows: model.IsGroupParent ? model.ChildCount : 1

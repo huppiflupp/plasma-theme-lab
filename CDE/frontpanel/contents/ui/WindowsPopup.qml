@@ -52,11 +52,19 @@ PlasmaCore.Dialog {
                 clip: true; spacing: 2
                 model: windowsPopup.root.taskModel
                 ScrollBar.vertical: ScrollBar { policy: windowList.contentHeight > windowList.height ? ScrollBar.AlwaysOn : ScrollBar.AsNeeded }
+                // Room left of the scroll bar, worked out once the list has
+                // settled (bound directly, the width looped with the bar).
+                property real entryWidth: 0
+                function fitEntries() { entryWidth = width - (contentHeight > height ? 12 : 0); }
+                onWidthChanged: Qt.callLater(fitEntries)
+                onHeightChanged: Qt.callLater(fitEntries)
+                onContentHeightChanged: Qt.callLater(fitEntries)
+                Component.onCompleted: fitEntries()
                 delegate: ConsoleButton {
                     id: windowEntry
                     required property int index
                     required property var model
-                    width: windowList.width - (windowList.contentHeight > windowList.height ? 12 : 0)
+                    width: windowList.entryWidth
                     height: 34
                     horizontal: true; surface: windowsPopup.colors.window; foreground: windowsPopup.colors.windowText
                     text: model.display || i18nd("cde-copper", "Window")

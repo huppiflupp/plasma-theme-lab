@@ -53,6 +53,8 @@ ConfigPage {
             id: windowView
             Kirigami.FormData.label: i18nd("cde-copper", "Shown as:")
             Layout.preferredWidth: Kirigami.Units.gridUnit * 20
+            // The list wider than the field: a greyed entry carries its reason.
+            popup.width: Math.max(width, Kirigami.Units.gridUnit * 32)
             readonly property var values: [["strip", "none"], ["tileLeft", "none"], ["tileRight", "none"],
                                            ["strip", "icons"], ["strip", "pager"]]
             model: [i18nd("cde-copper", "Strip under the tiles"),
@@ -69,7 +71,7 @@ ConfigPage {
             delegate: ItemDelegate {
                 required property int index
                 required property string modelData
-                width: windowView.width
+                width: ListView.view ? ListView.view.width : windowView.width
                 enabled: index < 3 || showWorkspaces.checked
                 text: enabled ? modelData : i18nd("cde-copper", "%1 – needs the workspace switcher", modelData)
                 highlighted: windowView.highlightedIndex === index
