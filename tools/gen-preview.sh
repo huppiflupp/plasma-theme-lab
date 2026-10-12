@@ -1,30 +1,30 @@
 #!/usr/bin/env bash
-# Ersetzt die schematischen Vorschaubilder durch echte Screenshots.
+# Replaces the schematic preview images with real screenshots.
 #
-# Fuer jede Variante: in der Test-VM anwenden, Sitzung neu starten,
-# ein paar Fenster oeffnen, Bildschirmfoto machen, zuschneiden.
+# For every variant: apply it in the test VM, restart the session,
+# open a few windows, take a screenshot, crop it.
 #
-#   ./gen-preview.sh              # alle Varianten
-#   ./gen-preview.sh teal lilac   # nur diese
+#   ./gen-preview.sh              # all variants
+#   ./gen-preview.sh teal lilac   # only these
 #
-# Der Sitzungsneustart je Variante ist nicht wegzuoptimieren: KWin laedt
-# Aurorae-Themen ausschliesslich beim Start. Ohne Neustart traegt jedes
-# Bild die Titelleiste der vorherigen Variante - und genau die ist das
-# auffaelligste Merkmal.
+# The session restart per variant cannot be optimised away: KWin loads
+# Aurorae themes only at startup. Without a restart every image carries
+# the title bar of the previous variant - and that is exactly the
+# most noticeable feature.
 #
-# Dauer: rund zwei Minuten je Variante.
+# Duration: about two minutes per variant.
 
 set -uo pipefail
 
 LAB="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VMCTL="$LAB/vm/vmctl.sh"
 THEME="$LAB/nt-legacy"
-BREITE=1920
-HOEHE=1080
+WIDTH=1920
+HEIGHT=1080
 
-varianten=("$@")
-if [ ${#varianten[@]} -eq 0 ]; then
-    mapfile -t varianten < <(cd "$THEME" && python3 -c "
+variants=("$@")
+if [ ${#variants[@]} -eq 0 ]; then
+    mapfile -t variants < <(cd "$THEME" && python3 -c "
 import importlib.util
 s = importlib.util.spec_from_file_location('b', 'build.py')
 m = importlib.util.module_from_spec(s); s.loader.exec_module(m)
@@ -32,7 +32,7 @@ print('\n'.join(m.VARIANTEN))
 ")
 fi
 
-lnf_fuer() {
+lnf_for() {
     (cd "$THEME" && python3 -c "
 import importlib.util, sys
 s = importlib.util.spec_from_file_location('b', 'build.py')
@@ -41,7 +41,7 @@ print(m.ids(sys.argv[1])['lnf'])
 " "$1")
 }
 
-warte_auf_vm() {
+wait_for_vm() {
     for _ in $(seq 1 30); do
         "$VMCTL" ssh 'test -f /etc/plasma-lab-ready' >/dev/null 2>&1 && return 0
         sleep 10
@@ -49,27 +49,27 @@ warte_auf_vm() {
     return 1
 }
 
-echo "Uebertrage aktuellen Stand …"
+echo "Transferring current state …"
 "$VMCTL" push "$THEME/" /home/tester/nt-legacy/ >/dev/null 2>&1
 "$VMCTL" ssh 'cd nt-legacy && ./install.sh >/dev/null 2>&1' || {
-    echo "FEHLER: Installation in der VM fehlgeschlagen" >&2; exit 1; }
+    echo "ERROR: installation in the VM failed" >&2; exit 1; }
 
-for v in "${varianten[@]}"; do
-    lnf="$(lnf_fuer "$v")"
-    ziel="$THEME/look-and-feel/$lnf/contents/previews"
+for v in "${variants[@]}"; do
+    lnf="$(lnf_for "$v")"
+    dest="$THEME/look-and-feel/$lnf/contents/previews"
     echo
     echo "=== $v ==="
 
     "$VMCTL" ssh "cd nt-legacy && ./apply.sh $v >/dev/null 2>&1" || {
-        echo "  uebersprungen (apply.sh fehlgeschlagen)"; continue; }
+        echo "  skipped (apply.sh failed)"; continue; }
 
-    # Den Hintergrund der Variante ausdruecklich setzen.
+    # Set the variant's wallpaper explicitly.
     #
-    # Das Global Theme nennt ihn in contents/defaults, aber das greift
-    # nur bei einer frischen Sitzung - eine bestehende behaelt ihr Bild.
-    # Seit 0.2.6 ist das eine Landschaft und kein Farbverlauf mehr;
-    # ohne diese Zeile zeigten die Vorschaubilder weiter den alten
-    # Grund.
+    # The Global Theme names it in contents/defaults, but that only takes
+    # effect in a fresh session - an existing one keeps its image.
+    # Since 0.2.6 it is a landscape and no longer a gradient;
+    # without this line the previews kept showing the old
+    # background.
     wp="$(cd "$THEME" && python3 -c "
 import importlib.util, sys
 s = importlib.util.spec_from_file_location('b', 'build.py')
@@ -79,48 +79,48 @@ print(m.ids(sys.argv[1])['wallpaper'])
     "$VMCTL" ssh "plasma-apply-wallpaperimage \
         ~/.local/share/wallpapers/$wp >/dev/null 2>&1" || true
 
-    # Neu anmelden, damit die Fensterdekoration greift
+    # Log in again so the window decoration takes effect
     "$VMCTL" ssh 'sudo systemctl reboot' >/dev/null 2>&1
     sleep 45
-    warte_auf_vm || { echo "  VM kam nicht zurueck"; continue; }
+    wait_for_vm || { echo "  VM did not come back"; continue; }
     sleep 30
 
     "$VMCTL" ssh "
         kwriteconfig6 --file kscreenlockerrc --group Daemon --key Autolock false
-        # 16:9, damit die Kachel im Auswahldialog nicht beschneidet
-        kscreen-doctor output.1.mode.${BREITE}x${HOEHE}@60 >/dev/null 2>&1
+        # 16:9, so the tile in the selection dialog is not cropped
+        kscreen-doctor output.1.mode.${WIDTH}x${HEIGHT}@60 >/dev/null 2>&1
         sleep 4
 
-        # Drei Fenster nebeneinander statt gestapelt.
+        # Three windows side by side instead of stacked.
         #
-        # Gestapelt war die Idee, auf einem Bild eine aktive und mehrere
-        # inaktive Titelleisten zu zeigen. Der Preis war hoch: Von den
-        # unteren Fenstern blieb je ein Streifen uebrig, und gerade der
-        # Dateimanager - das Aushaengeschild fuer den Symbolsatz - war
-        # zur Haelfte verdeckt. Nebeneinander ist jedes Fenster ganz zu
-        # sehen. Die inaktive Titelleiste zeigen die beiden Fenster, die
-        # nicht den Fokus haben, weiterhin.
+        # Stacking was meant to show one active and several
+        # inactive title bars in one image. The price was high: of the
+        # lower windows only a strip each was left, and the file manager
+        # in particular - the showcase for the icon set - was
+        # half covered. Side by side every window can be seen in
+        # full. The two windows that do not have focus still show
+        # the inactive title bar.
         #
-        # Dolphin bekommt den groessten Anteil und steht im persoenlichen
-        # Ordner: Bilder, Dokumente, Downloads, Musik, Videos - jeder mit
-        # seiner eigenen Ordnermarke. Das ist auf einen Blick mehr vom
-        # Symbolsatz zu sehen als in jeder Werkzeugleiste.
+        # Dolphin gets the largest share and sits in the home
+        # folder: Pictures, Documents, Downloads, Music, Videos - each with
+        # its own folder emblem. That shows more of the icon set
+        # at a glance than any toolbar.
         #
-        # Positioniert wird ueber KWin-Fensterregeln, nicht ueber
-        # xdotool: Unter Wayland kann kein fremder Prozess Fenster
-        # verschieben. Die Regeln stehen in der Wegwerf-VM, nicht beim
-        # Nutzer.
-        # Die Fenster sitzen mit Abstand zum Rand und lassen unten einen
-# Streifen frei. Seit 0.2.6 ist der Hintergrund je Variante eine eigene
-# Landschaft - vollflaechig verdeckt waere sie im Vorschaubild nicht zu
-# sehen, und sie ist einer der Gruende, ueberhaupt neue Bilder zu machen.
-cat > ~/.config/kwinrulesrc <<'REGELN'
+        # Positioning is done via KWin window rules, not via
+        # xdotool: under Wayland no foreign process can move
+        # windows. The rules live in the throwaway VM, not on the
+        # user's machine.
+        # The windows keep a distance from the edge and leave a strip
+        # free at the bottom. Since 0.2.6 the wallpaper is a separate
+# landscape per variant - fully covered it would not be visible
+# in the preview, and it is one of the reasons to make new images at all.
+cat > ~/.config/kwinrulesrc <<'RULES'
 [General]
 count=4
-rules=vorschau-dateien,vorschau-editor,vorschau-taskmanager,vorschau-terminal
+rules=preview-files,preview-editor,preview-taskmanager,preview-terminal
 
-[vorschau-dateien]
-Description=Vorschau: Dateimanager links
+[preview-files]
+Description=Preview: file manager left
 wmclass=dolphin
 wmclassmatch=2
 position=40,40
@@ -128,8 +128,8 @@ positionrule=3
 size=660,790
 sizerule=3
 
-[vorschau-editor]
-Description=Vorschau: Editor Mitte
+[preview-editor]
+Description=Preview: editor middle
 wmclass=kwrite
 wmclassmatch=2
 position=716,40
@@ -137,8 +137,8 @@ positionrule=3
 size=500,790
 sizerule=3
 
-[vorschau-taskmanager]
-Description=Vorschau: Taskmanager rechts oben
+[preview-taskmanager]
+Description=Preview: task manager top right
 wmclass=nt-taskmanager
 wmclassmatch=2
 position=1232,40
@@ -146,48 +146,48 @@ positionrule=3
 size=648,420
 sizerule=3
 
-[vorschau-terminal]
-Description=Vorschau: Terminal rechts unten
+[preview-terminal]
+Description=Preview: terminal bottom right
 wmclass=konsole
 wmclassmatch=2
 position=1232,476
 positionrule=3
 size=648,354
 sizerule=3
-REGELN
+RULES
         qdbus-qt6 org.kde.KWin /KWin reconfigure >/dev/null 2>&1
         sleep 2
 
-        # Dolphin auf Symbolansicht mit grossen Symbolen. Die Detailliste
-        # zeigt 16-px-Symbole - da ist von den Ordnermarken nichts mehr zu
-        # erkennen.
+        # Dolphin in icon view with large icons. The detail list
+        # shows 16 px icons - the folder emblems are no longer
+        # recognisable there.
         kwriteconfig6 --file dolphinrc --group General --key ViewMode 0
         kwriteconfig6 --file dolphinrc --group IconsMode --key PreviewSize 64
         kwriteconfig6 --file dolphinrc --group IconsMode --key IconSize 64
         kwriteconfig6 --file dolphinrc --group General --key ShowFullPath false
 
-        # Was hier sonst herumliegt, gehoert nicht ins Bild. Das
-        # Arbeitsverzeichnis des Themes laesst sich nicht wegraeumen - es
-        # wird gebraucht -, aber .hidden nimmt es aus der Ansicht: KIO
-        # blendet jeden Namen aus, der dort steht.
-        mkdir -p ~/.vorschau-beiseite
-        mv ~/*.sh ~/*.py ~/.vorschau-beiseite/ 2>/dev/null
+        # Whatever else lies around here does not belong in the image. The
+        # theme's working directory cannot be cleared away - it is
+        # needed -, but .hidden takes it out of the view: KIO
+        # hides every name listed there.
+        mkdir -p ~/.preview-aside
+        mv ~/*.sh ~/*.py ~/.preview-aside/ 2>/dev/null
         printf 'nt-legacy\n' > ~/.hidden
 
-        # Die Benutzerordner auf englische Namen. Ohne das steht im Bild
-        # eine englische Seitenleiste neben deutschen Ordnernamen -
-        # \"Home, Documents, Pictures\" links, \"Bilder, Dokumente,
-        # Schreibtisch\" rechts. Genau die Ordner sind hier aber das
-        # Motiv, weil sie die neuen Ordnermarken tragen.
+        # The user folders get English names. Without this the image shows
+        # an English sidebar next to German folder names -
+        # \"Home, Documents, Pictures\" on the left, \"Bilder, Dokumente,
+        # Schreibtisch\" on the right. But these very folders are the
+        # subject here, because they carry the new folder emblems.
         #
-        # xdg-user-dirs-update taugt nicht: es legt die englischen Ordner
-        # neu an, statt die vorhandenen umzubenennen, und danach stehen
-        # beide da.
+        # xdg-user-dirs-update is no good: it creates the English folders
+        # anew instead of renaming the existing ones, and afterwards
+        # both are there.
         cd ~
-        while IFS=: read -r alt neu schluessel; do
-            [ -d \"\$alt\" ] && [ ! -e \"\$neu\" ] && mv \"\$alt\" \"\$neu\"
-            printf 'XDG_%s_DIR=\"\$HOME/%s\"\n' \"\$schluessel\" \"\$neu\"
-        done <<'ORDNER' > ~/.config/user-dirs.dirs
+        while IFS=: read -r old new key; do
+            [ -d \"\$old\" ] && [ ! -e \"\$new\" ] && mv \"\$old\" \"\$new\"
+            printf 'XDG_%s_DIR=\"\$HOME/%s\"\n' \"\$key\" \"\$new\"
+        done <<'FOLDERS' > ~/.config/user-dirs.dirs
 Schreibtisch:Desktop:DESKTOP
 Dokumente:Documents:DOCUMENTS
 Downloads:Downloads:DOWNLOAD
@@ -196,32 +196,32 @@ Bilder:Pictures:PICTURES
 Videos:Videos:VIDEOS
 Öffentlich:Public:PUBLICSHARE
 Vorlagen:Templates:TEMPLATES
-ORDNER
+FOLDERS
 
-        # Reihenfolge: das zuletzt geoeffnete Fenster hat den Fokus und
-        # zeigt die aktive Titelleiste. Das soll der Dateimanager sein.
+        # Order: the window opened last has focus and
+        # shows the active title bar. That should be the file manager.
         #
-        # Die Konsole bekommt einen Befehl mit auf den Weg. Ein blosser
-        # Prompt zeigt vom Terminal nur den Hintergrund - die acht
-        # ANSI-Farben sind aber eigens auf gemessenen Kontrast gebracht
-        # worden (4,5:1 normal, 7:1 intense), und ein farbiges ls ist der
-        # einzige Ort, an dem man das sieht.
-        # Englische Oberflaeche, obwohl die VM auf Deutsch laeuft. Die
-        # Bilder gehen an store.kde.org, und der Eintrag ist englisch -
-        # deutsche Menuepunkte schliessen den groessten Teil der Leser
-        # aus. Nur die Programme werden umgestellt, nicht die Sitzung:
-        # Panel und Uhr bleiben deutsch, was im Bild nicht auffaellt, und
-        # ein Sprachwechsel der ganzen Sitzung braeuchte einen weiteren
-        # Neustart.
+        # Konsole gets a command to run. A bare
+        # prompt shows only the terminal background - but the eight
+        # ANSI colours were specifically tuned to measured contrast
+        # (4.5:1 normal, 7:1 intense), and a coloured ls is the
+        # only place where you can see that.
+        # English UI, although the VM runs in German. The
+        # images go to store.kde.org, and the listing is in English -
+        # German menu items shut out most of the readers.
+        # Only the programs are switched, not the session:
+        # panel and clock stay German, which does not stand out in the image, and
+        # switching the language of the whole session would need another
+        # restart.
         export LANGUAGE=en_US LANG=en_US.UTF-8 LC_ALL=
         (setsid konsole -e bash -c 'ls --color=always -l /usr/share | head -22; exec bash' >/dev/null 2>&1 &); sleep 9
         (setsid kwrite ~/nt-legacy/INSTALL.md >/dev/null 2>&1 &); sleep 10
-        # Der Taskmanager auf dem Reiter mit den Balken: Prozessliste und
-        # Dienste sind Tabellen wie im Dateimanager nebenan, die Balken
-        # und Verlaeufe sind das Einzige, was es sonst nirgends im Bild
-        # gibt. --on-top waere hier falsch - die Regel setzt ihn ohnehin
-        # an seinen Platz, und obenauf verdeckte er beim naechsten
-        # Fenster etwas.
+        # The task manager on the tab with the graphs: the process list and
+        # services are tables like the file manager next to it, the bars
+        # and graphs are the only thing not found anywhere else in the
+        # image. --on-top would be wrong here - the rule puts it
+        # in its place anyway, and on top it would cover part of the next
+        # window.
         (setsid nt-taskmanager --tab 2 >/dev/null 2>&1 &); sleep 8
         (setsid dolphin ~ >/dev/null 2>&1 &); sleep 12
     " >/dev/null 2>&1
@@ -229,40 +229,40 @@ ORDNER
     virsh -c qemu:///system send-key plasma-lab KEY_LEFTSHIFT >/dev/null 2>&1
     sleep 3
 
-    roh="$(mktemp --suffix=.png)"
-    "$VMCTL" shot "$roh" >/dev/null 2>&1
-    if [ ! -s "$roh" ]; then
-        echo "  kein Bildschirmfoto"; rm -f "$roh"; continue
+    raw="$(mktemp --suffix=.png)"
+    "$VMCTL" shot "$raw" >/dev/null 2>&1
+    if [ ! -s "$raw" ]; then
+        echo "  no screenshot"; rm -f "$raw"; continue
     fi
 
-    mkdir -p "$ziel"
+    mkdir -p "$dest"
 
-    # Vollbild fuer die Grossansicht - dort ist Platz genug.
-    magick "$roh" -resize "${BREITE}x${HOEHE}!" -quality 88 \
-        "$ziel/fullscreenpreview.jpg"
+    # Full image for the large view - there is enough room there.
+    magick "$raw" -resize "${WIDTH}x${HEIGHT}!" -quality 88 \
+        "$dest/fullscreenpreview.jpg"
 
-    # Die Kachel zeigt nur die linken zwei Fenster, nicht alle vier.
+    # The tile shows only the two left windows, not all four.
     #
-    # Vier Fenster nebeneinander ergeben ein Motiv im Verhaeltnis 3:1.
-    # Die Kachel ist aber 16:9 - wer das hineinzwingt, bekommt entweder
-    # zwei leere Balken oder einen Bildausschnitt, in dem von den
-    # aeusseren Fenstern nichts mehr uebrig ist. Beides war schlechter
-    # als die einfache Loesung: Dolphin und der Editor, in ganzer Hoehe.
-    # Das sind ohnehin die beiden, die etwas zeigen - Ordnersymbole und
-    # eine eingefaerbte Textansicht. Das Terminal steht im Vollbild.
-    # 64 statt 69 Prozent: Bei 69 endete der Ausschnitt mitten im
-    # Taskmanager, seit der als viertes Fenster dazugekommen ist. 64
-    # schneidet in der Luecke zwischen Editor und Taskmanager - kein
-    # angeschnittenes Fenster am Rand. Das Verhaeltnis bleibt 16:9.
-    magick "$roh" -gravity northwest -crop 64%x64%+8+24 +repage \
-        -resize 600x337! "$ziel/preview.png"
-    cp "$ziel/preview.png" "$ziel/lockscreen.png"
-    cp "$ziel/preview.png" "$ziel/splash.png"
-    rm -f "$roh"
+    # Four windows side by side make a subject with a 3:1 ratio.
+    # The tile however is 16:9 - forcing it in gives either
+    # two empty bars or a crop in which nothing is left of the
+    # outer windows. Both were worse than the simple solution:
+    # Dolphin and the editor, at full height.
+    # Those are the two that show something anyway - folder icons and
+    # a coloured text view. The terminal is in the full image.
+    # 64 instead of 69 percent: at 69 the crop ended in the middle of the
+    # task manager, since it was added as the fourth window. 64
+    # cuts in the gap between editor and task manager - no
+    # partly cut window at the edge. The ratio stays 16:9.
+    magick "$raw" -gravity northwest -crop 64%x64%+8+24 +repage \
+        -resize 600x337! "$dest/preview.png"
+    cp "$dest/preview.png" "$dest/lockscreen.png"
+    cp "$dest/preview.png" "$dest/splash.png"
+    rm -f "$raw"
 
-    echo "  $(basename "$ziel")/preview.png  (aus echtem Bildschirmfoto)"
+    echo "  $(basename "$dest")/preview.png  (from a real screenshot)"
     "$VMCTL" ssh 'pkill dolphin; pkill kwrite; pkill konsole' >/dev/null 2>&1
 done
 
 echo
-echo "Fertig. Die Bilder liegen in nt-legacy/look-and-feel/*/contents/previews/."
+echo "Done. The images are in nt-legacy/look-and-feel/*/contents/previews/."

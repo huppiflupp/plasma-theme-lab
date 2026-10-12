@@ -16,15 +16,15 @@ UI_FONT = "IBM Plex Sans Condensed,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 TITLE_FONT = "IBM Plex Sans Condensed,10,-1,5,600,0,0,0,0,0,0,0,0,0,0,1"
 MONO_FONT = "IBM Plex Mono,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 KONSOLE_FONT = "IBM Plex Mono,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
-P = dict(flaeche="#86a4aa", fenster="#c4d2d0", panel="#2e7180",
-         kopf_aktiv="#e8874f", kopf_inaktiv="#649099", text="#10262b",
-         text2="#38565c", aktiv="#e8874f", auswahl="#e8874f", auswahl_text="#10262b",
-         hover="#f0b184", warnung="#aa571b", fehler="#a32626",
-         positiv="#24643d", desktop="#086875", hell="#c9dedb",
-         dunkel="#41646a", rahmen="#10262b", karo="#afc2c2",
-         fenster_text="#10262b", panel_text="#c9dedb", kopf_aktiv_text="#10262b",
-         kopf_inaktiv_text="#10262b", knopf_hover="#95b1b6", knopf_gedrueckt="#78969c",
-         rille="#6f8f96", inaktiv_text="#6f8588", alt_fenster="#b9cac9", link="#086875")
+P = dict(surface="#86a4aa", window="#c4d2d0", panel="#2e7180",
+         title_active="#e8874f", title_inactive="#649099", text="#10262b",
+         text2="#38565c", active="#e8874f", selection="#e8874f", selection_text="#10262b",
+         hover="#f0b184", warning="#aa571b", error="#a32626",
+         positive="#24643d", desktop="#086875", light="#c9dedb",
+         dark="#41646a", border="#10262b", checker="#afc2c2",
+         window_text="#10262b", panel_text="#c9dedb", title_active_text="#10262b",
+         title_inactive_text="#10262b", button_hover="#95b1b6", button_pressed="#78969c",
+         groove="#6f8f96", inactive_text="#6f8588", alt_window="#b9cac9", link="#086875")
 DECORATION = "kwin4_decoration_qml_cdecopper"
 
 
@@ -41,44 +41,47 @@ def load(path, name):
     return module
 
 
-def metadata(id_, name, description):
-    return {"KPlugin": {"Id": id_, "Name": name, "Description": description,
-                       "Version": VERSION, "License": "GPL-2.0-or-later",
-                       "Authors": [{"Name": "CDE Copper contributors"}],
-                       "Website": "https://github.com/huppiflupp/plasma-theme-lab"}}
+def metadata(id_, name, description, name_de=None):
+    plugin = {"Id": id_, "Name": name, "Description": description,
+              "Version": VERSION, "License": "GPL-2.0-or-later",
+              "Authors": [{"Name": "CDE Copper contributors"}],
+              "Website": "https://github.com/huppiflupp/plasma-theme-lab"}
+    if name_de:
+        plugin["Name[de]"] = name_de
+    return {"KPlugin": plugin}
 
 
 def colors(P, scheme="CDECopper", name="CDE Copper", base=None):
     def rgb(value):
         return ",".join(str(int(value[i:i+2], 16)) for i in (1, 3, 5))
     lines = ["[General]", f"Name={name}", f"ColorScheme={scheme}", "shadeSortColumn=true", "", "[KDE]", "contrast=7"]
-    groups = {"Window": ("flaeche", "text"), "Button": ("flaeche", "text"),
-              "View": ("fenster", "fenster_text"), "Selection": ("auswahl", "auswahl_text"),
-              "Tooltip": ("fenster", "fenster_text"), "Complementary": ("panel", "panel_text"),
-              "Header": ("auswahl", "auswahl_text")}
+    groups = {"Window": ("surface", "text"), "Button": ("surface", "text"),
+              "View": ("window", "window_text"), "Selection": ("selection", "selection_text"),
+              "Tooltip": ("window", "window_text"), "Complementary": ("panel", "panel_text"),
+              "Header": ("selection", "selection_text")}
     for group, (bg, fg) in groups.items():
         lines += ["", f"[Colors:{group}]"]
         for key, value in {"BackgroundNormal": bg, "BackgroundAlternate": bg,
                            "ForegroundNormal": fg, "ForegroundInactive": "text2",
                            "ForegroundActive": fg, "ForegroundLink": "link",
-                           "ForegroundVisited": "dunkel", "ForegroundNegative": "fehler",
-                           "ForegroundNeutral": "warnung", "ForegroundPositive": "positiv",
-                           "DecorationFocus": "auswahl", "DecorationHover": "panel"}.items():
+                           "ForegroundVisited": "dark", "ForegroundNegative": "error",
+                           "ForegroundNeutral": "warning", "ForegroundPositive": "positive",
+                           "DecorationFocus": "selection", "DecorationHover": "panel"}.items():
             lines.append(f"{key}={rgb(P[value])}")
-    lines += ["", "[WM]", f"activeBackground={rgb(P['kopf_aktiv'])}",
-              f"activeForeground={rgb(P['kopf_aktiv_text'])}", f"inactiveBackground={rgb(P['kopf_inaktiv'])}",
-              f"inactiveForeground={rgb(P['kopf_inaktiv_text'])}", "", "[ColorEffects:Disabled]",
-              f"Color={rgb(P['inaktiv_text'])}", "ColorEffect=0", "ContrastEffect=1", "ContrastAmount=0.55",
+    lines += ["", "[WM]", f"activeBackground={rgb(P['title_active'])}",
+              f"activeForeground={rgb(P['title_active_text'])}", f"inactiveBackground={rgb(P['title_inactive'])}",
+              f"inactiveForeground={rgb(P['title_inactive_text'])}", "", "[ColorEffects:Disabled]",
+              f"Color={rgb(P['inactive_text'])}", "ColorEffect=0", "ContrastEffect=1", "ContrastAmount=0.55",
               "IntensityEffect=0", "", "[ColorEffects:Inactive]", "Enable=false"]
     write(f"color-schemes/{scheme}.colors", "\n".join(lines) + "\n", base)
 
 
 def plasma(tools, P, theme="cde-copper", name="CDE Copper", base=None):
     mod = load(tools / "gen-plasma-svg.py", "plasma_svg")
-    generator = mod.Generator(P, rahmen=1, aussenrahmen=1, rundung=0)
+    generator = mod.Generator(P, border=1, outer_border=1, radius=0)
     for widget, spec in mod.WIDGETS.items():
-        svg = generator.erzeuge(widget, spec)
-        path = f"{spec.get('ordner', 'widgets')}/{spec.get('datei', widget)}.svg"
+        svg = generator.generate(widget, spec)
+        path = f"{spec.get('folder', 'widgets')}/{spec.get('file', widget)}.svg"
         write(f"plasma/desktoptheme/{theme}/{path}", svg, base)
         if widget in ("panel-background", "background", "background-dialog", "tooltip"):
             for mode in ("solid", "opaque", "translucent"):
@@ -96,13 +99,13 @@ def glowbar(P):
     lies along the bottom edge). KWin shares the corners between two edges
     each, so they stay empty: the bar has no end caps."""
     import palettes
-    copper = P["kopf_aktiv"]
+    copper = P["title_active"]
     light, dark = palettes.mix(copper, "#ffffff", 0.45), palettes.mix(copper, "#000000", 0.35)
 
     def bar(near, far):
         # Drawn lying along the bottom: ink towards the screen, then the
         # bevel, the screen edge at the bottom row.
-        rows = [P["rahmen"], near, copper, copper, copper, copper, far, far]
+        rows = [P["border"], near, copper, copper, copper, copper, far, far]
         return "".join(f'<rect x="0" y="{4 + i}" width="12" height="1" fill="{c}"/>' for i, c in enumerate(rows))
     # Light from the top left, whichever way the bar is turned.
     lit = {"top": bar(light, dark), "left": bar(light, dark), "bottom": bar(dark, light), "right": bar(dark, light)}
@@ -126,9 +129,9 @@ SPLASH_ICONS = {"display": "computer", "window": "window", "plasma": "cde-menu",
 
 def splash_colours(P):
     """Colours.qml of the start-up screen, from a palette's colours."""
-    values = {"desktop": P["desktop"], "face": P["flaeche"], "light": P["hell"], "dark": P["dunkel"],
-              "ink": P["text"], "accent": P["kopf_aktiv"], "title": P["kopf_aktiv"],
-              "titleText": P["kopf_aktiv_text"], "trough": P["rille"], "field": P["fenster"]}
+    values = {"desktop": P["desktop"], "face": P["surface"], "light": P["light"], "dark": P["dark"],
+              "ink": P["text"], "accent": P["title_active"], "title": P["title_active"],
+              "titleText": P["title_active_text"], "trough": P["groove"], "field": P["window"]}
     lines = "\n".join(f'    readonly property color {key}: "{value}"' for key, value in values.items())
     return f"import QtQuick\n\n// Written by CDE Copper for the palette in use.\nQtObject {{\n{lines}\n}}\n"
 
@@ -191,45 +194,78 @@ def backdrops_plugin():
 LOWPOLY = "Low-poly landscape in Copper colours"
 PICTURES = (
     ("altai", "Copper Altai", LOWPOLY), ("canopee", "Copper Canopée", LOWPOLY), ("cluster", "Copper Cluster", LOWPOLY),
-    ("fluss", "Copper Fluss", LOWPOLY), ("kaskade", "Copper Kaskade", LOWPOLY),
+    ("fluss", "Copper River", LOWPOLY), ("kaskade", "Copper Cascade", LOWPOLY),
     ("monolith", "CDE Monolith", "Retro ray-traced desert, Default palette"),
-    ("polarlicht", "CDE Polarlicht", "Aurora over a low-poly fjord, NorthernSky palette"),
+    ("polarlicht", "CDE Aurora", "Aurora over a low-poly fjord, NorthernSky palette"),
     ("mesa", "CDE Mesa", "Paper-cut desert, Arizona palette"),
-    ("riff", "CDE Riff", "Coral reef, Urchin palette"),
+    ("riff", "CDE Reef", "Coral reef, Urchin palette"),
     ("origami", "CDE Origami", "Folded paper lilies, Lilac palette"),
     ("bauhaus", "CDE Bauhaus", "Bauhaus poster, Golden palette"),
-    ("weinberg", "CDE Weinberg", "Isometric vineyard, Cabernet palette"),
+    ("weinberg", "CDE Vineyard", "Isometric vineyard, Cabernet palette"),
     ("orbit", "CDE Orbit", "Ringed planet in glass, Neptune palette"),
-    ("chipstadt", "CDE Chipstadt", "Miniature city built from workstation chips, Default palette"),
+    ("chipstadt", "CDE Chip City", "Miniature city built from workstation chips, Default palette"),
     ("cad", "CDE CAD", "Gear assembly in wireframe and solid, SoftBlue palette"),
-    ("molekuel", "CDE Molekül", "Protein ribbons and atoms, Crimson palette"),
-    ("sequenz", "CDE Sequenz", "Sequencing gel and chromatogram, Golden palette"),
-    ("druckvorstufe", "CDE Druckvorstufe", "Desktop publishing proofs, PBNJ palette"),
-    ("schnittplatz", "CDE Schnittplatz", "Film, tapes and a vectorscope, SkyRed palette"),
-    ("mrt", "CDE MRT", "MRI films on a lightbox, Alpine palette"),
-    ("mischpult", "CDE Mischpult", "Analog mixing console, Tundra palette"),
+    ("molekuel", "CDE Molecule", "Protein ribbons and atoms, Crimson palette"),
+    ("sequenz", "CDE Sequence", "Sequencing gel and chromatogram, Golden palette"),
+    ("druckvorstufe", "CDE Prepress", "Desktop publishing proofs, PBNJ palette"),
+    ("schnittplatz", "CDE Editing Suite", "Film, tapes and a vectorscope, SkyRed palette"),
+    ("mrt", "CDE MRI", "MRI films on a lightbox, Alpine palette"),
+    ("mischpult", "CDE Mixing Desk", "Analog mixing console, Tundra palette"),
     ("vlsi", "CDE VLSI", "Chip layout layers, Summer palette"),
-    ("stroemung", "CDE Strömung", "Computed flow around an airfoil, Delphinium palette"),
-    ("kristall", "CDE Kristall", "Crystal mosaic in Copper colours"),
-    ("marmor", "CDE Marmor", "Marbled ink, Crimson palette"),
-    ("duene", "CDE Düne", "Dunes with a lone workstation, Copper colours"),
-    ("aquarell", "CDE Aquarell", "Late-1990s watercolour, a workstation sending windows"),
+    ("stroemung", "CDE Flow", "Computed flow around an airfoil, Delphinium palette"),
+    ("kristall", "CDE Crystal", "Crystal mosaic in Copper colours"),
+    ("marmor", "CDE Marble", "Marbled ink, Crimson palette"),
+    ("duene", "CDE Dune", "Dunes with a lone workstation, Copper colours"),
+    ("aquarell", "CDE Watercolour", "Late-1990s watercolour, a workstation sending windows"),
     ("panorama", "CDE Panorama", "Late-1990s gouache landscape with a paper plane"),
     # One panorama split across two screens (wallpapers/gen/span.py): left 32", right 27", top-aligned.
-    ("duene-links", "CDE Düne links", "Left half of a dune panorama for a 32-inch screen beside a 27-inch one"),
-    ("duene-rechts", "CDE Düne rechts", "Right half of a dune panorama for a 27-inch screen beside a 32-inch one"),
-    ("weltraum-links", "CDE Weltraum links", "Left half of a space panorama for a 32-inch screen beside a 27-inch one"),
-    ("weltraum-rechts", "CDE Weltraum rechts", "Right half of a space panorama for a 27-inch screen beside a 32-inch one"),
+    ("duene-links", "CDE Dune Left", "Left half of a dune panorama for a 32-inch screen beside a 27-inch one"),
+    ("duene-rechts", "CDE Dune Right", "Right half of a dune panorama for a 27-inch screen beside a 32-inch one"),
+    ("weltraum-links", "CDE Space Left", "Left half of a space panorama for a 32-inch screen beside a 27-inch one"),
+    ("weltraum-rechts", "CDE Space Right", "Right half of a space panorama for a 27-inch screen beside a 32-inch one"),
     # Landscape photographs, by day and by night.
-    ("alpen", "CDE Alpen", "Alpine peak and mountain lake, Alpine palette"),
-    ("dolomiten", "CDE Dolomiten", "Dolomite towers above meadows, Desert palette"),
-    ("elbsandstein", "CDE Elbsandstein", "Sandstone pillars above morning fog, Sand palette"),
+    ("alpen", "CDE Alps", "Alpine peak and mountain lake, Alpine palette"),
+    ("dolomiten", "CDE Dolomites", "Dolomite towers above meadows, Desert palette"),
+    ("elbsandstein", "CDE Elbe Sandstone", "Sandstone pillars above morning fog, Sand palette"),
     ("fjord", "CDE Fjord", "Norwegian fjord, aurora at night, NorthernSky palette"),
-    ("island", "CDE Island", "Basalt columns on a black beach, Charcoal palette"),
-    ("schwarzwald", "CDE Schwarzwald", "Fir valley in fog, Grass palette"),
-    ("toskana", "CDE Toskana", "Wheat hills and cypresses, Wheat palette"),
-    ("watt", "CDE Watt", "Wadden Sea at low tide, SeaFoam palette"),
+    ("island", "CDE Iceland", "Basalt columns on a black beach, Charcoal palette"),
+    ("schwarzwald", "CDE Black Forest", "Fir valley in fog, Grass palette"),
+    ("toskana", "CDE Tuscany", "Wheat hills and cypresses, Wheat palette"),
+    ("watt", "CDE Wadden Sea", "Wadden Sea at low tide, SeaFoam palette"),
 )
+
+# German names of the pictures, for the packages' Name[de]; po/de.po has them
+# too, for the style manager and the wallpaper settings.
+PICTURE_NAMES_DE = {
+    "fluss": "Copper Fluss",
+    "kaskade": "Copper Kaskade",
+    "polarlicht": "CDE Polarlicht",
+    "riff": "CDE Riff",
+    "weinberg": "CDE Weinberg",
+    "chipstadt": "CDE Chipstadt",
+    "molekuel": "CDE Molekül",
+    "sequenz": "CDE Sequenz",
+    "druckvorstufe": "CDE Druckvorstufe",
+    "schnittplatz": "CDE Schnittplatz",
+    "mrt": "CDE MRT",
+    "mischpult": "CDE Mischpult",
+    "stroemung": "CDE Strömung",
+    "kristall": "CDE Kristall",
+    "marmor": "CDE Marmor",
+    "duene": "CDE Düne",
+    "aquarell": "CDE Aquarell",
+    "duene-links": "CDE Düne links",
+    "duene-rechts": "CDE Düne rechts",
+    "weltraum-links": "CDE Weltraum links",
+    "weltraum-rechts": "CDE Weltraum rechts",
+    "alpen": "CDE Alpen",
+    "dolomiten": "CDE Dolomiten",
+    "elbsandstein": "CDE Elbsandstein",
+    "island": "CDE Island",
+    "schwarzwald": "CDE Schwarzwald",
+    "toskana": "CDE Toskana",
+    "watt": "CDE Watt",
+}
 
 
 def picture_palette(description):
@@ -247,19 +283,20 @@ def pictures():
             target = OUT / base / "contents" / sub
             target.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / f"wallpapers/images/{key}{suffix}.jpg", target / "3840x2160.jpg")
-        write(base + "metadata.json", json.dumps(metadata(f"org.cde.copper.{key}", name, description + ", light and dark"), indent=2))
+        write(base + "metadata.json", json.dumps(metadata(f"org.cde.copper.{key}", name, description + ", light and dark",
+                                                   PICTURE_NAMES_DE.get(key)), indent=2))
 
 
 def palette_schemes():
     """Every CDE palette as a colour scheme, so System Settings lists them;
     the console completes the switch (Kvantum, Plasma surfaces, backdrop)."""
     import palettes
-    swatches = [{"name": "Copper", "colours": [P["panel"], P["flaeche"], P["fenster"], P["kopf_aktiv"], P["kopf_inaktiv"], P["desktop"]]}]
+    swatches = [{"name": "Copper", "colours": [P["panel"], P["surface"], P["window"], P["title_active"], P["title_inactive"], P["desktop"]]}]
     for name in palettes.names():
         colours = palettes.theme(name)
         colors(colours, "CDE" + name, "CDE " + name)
-        swatches.append({"name": name, "colours": [colours["panel"], colours["flaeche"], colours["fenster"],
-                                                   colours["kopf_aktiv"], colours["kopf_inaktiv"], colours["desktop"]]})
+        swatches.append({"name": name, "colours": [colours["panel"], colours["surface"], colours["window"],
+                                                   colours["title_active"], colours["title_inactive"], colours["desktop"]]})
     # For the style manager (and the console's old Style page while it exists).
     import backdrops
     script = ("// Generated by build.py: console, window, field, active, inactive, desktop.\n.pragma library\n\nconst PALETTES = "

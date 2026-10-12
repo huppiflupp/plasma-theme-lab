@@ -1,20 +1,20 @@
-# Referenzbilder und Priorität
+# Reference images and priority
 
-Alle Bilder haben 1536 × 1024 Pixel. Die Nummerierung bildet den Designprozess ab.
+All images are 1536 × 1024 pixels. The numbering reflects the design process.
 
-| Datei | Rolle | Übernehmen | Nicht übernehmen |
+| File | Role | Adopt | Do not adopt |
 |---|---|---|---|
-| `01-modern-blue-lavender.png` | erster moderner Entwurf | ruhige Flächen, klare Fensterhierarchie | Branding im Wallpaper, weiche moderne Optik, Standardicons |
-| `02-authentic-cde-motif.png` | Rückkehr zu CDE/Motif | harte Bevels, Fensterproportionen, niedrige Farbtiefe als Stilmittel | Lavendel als Zielpalette, starre 1990er-Abstände |
-| `03-cde-2026-teal-copper.png` | Palette und Motif-Sprache | Türkis/Kupfer, kantige Icons, aktive Titelleisten | konventionelle obere Leiste als Endlösung |
-| `04-classic-cde-retro.png` | stärkste historische Referenz | Workspace-/Task-Leiste, CDE-Silhouette, nüchterne Dichte | reine 1:1-Retro-Rekonstruktion |
-| `05-target-teal-copper-panel.png` | **verbindliche Zielreferenz** | Palette, Iconsprache, schwebendes zweistöckiges Panel, Menüs/Subpanels | Landschaftsbild und CDE-Schriftzug sind optional, nicht Teil des Themes |
+| `01-modern-blue-lavender.png` | first modern draft | calm surfaces, clear window hierarchy | branding in the wallpaper, soft modern look, stock icons |
+| `02-authentic-cde-motif.png` | return to CDE/Motif | hard bevels, window proportions, low colour depth as a stylistic device | lavender as target palette, rigid 1990s spacing |
+| `03-cde-2026-teal-copper.png` | palette and Motif language | teal/copper, angular icons, active title bars | conventional top bar as the final solution |
+| `04-classic-cde-retro.png` | strongest historical reference | workspace/task bar, CDE silhouette, sober density | pure 1:1 retro reconstruction |
+| `05-target-teal-copper-panel.png` | **binding target reference** | palette, icon language, floating two-row panel, menus/subpanels | the landscape image and CDE lettering are optional, not part of the theme |
 
-## Prioritätsregel bei Widersprüchen
+## Priority rule for contradictions
 
 1. `DESIGN-SPEC.md`
 2. `05-target-teal-copper-panel.png`
 3. `design-tokens.json`
-4. übrige Screenshots als Herkunft und Negativvergleich
+4. remaining screenshots as provenance and negative comparison
 
-Die Zieloberfläche darf moderner und ergonomischer als CDE sein, darf aber niemals wie ein umgefärbtes Breeze-, Oxygen- oder Plastik-Theme wirken.
+The target interface may be more modern and ergonomic than CDE, but must never look like a recoloured Breeze, Oxygen or plastic theme.

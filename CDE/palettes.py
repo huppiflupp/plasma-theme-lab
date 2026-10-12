@@ -167,27 +167,27 @@ def theme(name):
     s = load(name)
     active, inactive, desk, text, primary, secondary, _, panel = s
     return dict(
-        flaeche=primary["bg"], hell=primary["ts"], dunkel=primary["bs"], text=primary["fg"],
+        surface=primary["bg"], light=primary["ts"], dark=primary["bs"], text=primary["fg"],
         text2=legible(mix(primary["fg"], primary["bg"], 0.4), primary["bg"], primary["fg"]),
         link=legible(desk["bg"], primary["bg"], primary["fg"]),
-        rahmen=mix(primary["bs"], "#000000", 0.55),
-        karo=mix(primary["bg"], primary["ts"], 0.5),
-        fenster=text["bg"], fenster_text=text["fg"],
+        border=mix(primary["bs"], "#000000", 0.55),
+        checker=mix(primary["bg"], primary["ts"], 0.5),
+        window=text["bg"], window_text=text["fg"],
         menue=secondary["bg"], menue_text=secondary["fg"],
         panel=panel["bg"], panel_text=panel["fg"], panel_hell=panel["ts"], panel_dunkel=panel["bs"],
-        kopf_aktiv=active["bg"], kopf_aktiv_text=active["fg"],
-        kopf_inaktiv=inactive["bg"], kopf_inaktiv_text=inactive["fg"],
-        aktiv=active["bg"], auswahl=active["bg"], auswahl_text=active["fg"], hover=active["ts"],
+        title_active=active["bg"], title_active_text=active["fg"],
+        title_inactive=inactive["bg"], title_inactive_text=inactive["fg"],
+        active=active["bg"], selection=active["bg"], selection_text=active["fg"], hover=active["ts"],
         # Motif's shadows of the selection colour, for surfaces drawn in it
         # (Plasma's plasmoid headings).
-        auswahl_hell=active["ts"], auswahl_dunkel=active["bs"],
+        selection_light=active["ts"], selection_dark=active["bs"],
         desktop=desk["bg"],
-        warnung="#aa571b", fehler="#a32626", positiv="#24643d",
-        knopf_hover=mix(primary["bg"], primary["ts"], 0.3),
-        knopf_gedrueckt=primary["sel"],
-        rille=mix(primary["bg"], primary["bs"], 0.3),
-        inaktiv_text=mix(primary["fg"], primary["bg"], 0.55),
-        alt_fenster=mix(text["bg"], text["sel"], 0.35),
+        warning="#aa571b", error="#a32626", positive="#24643d",
+        button_hover=mix(primary["bg"], primary["ts"], 0.3),
+        button_pressed=primary["sel"],
+        groove=mix(primary["bg"], primary["bs"], 0.3),
+        inactive_text=mix(primary["fg"], primary["bg"], 0.55),
+        alt_window=mix(text["bg"], text["sel"], 0.35),
     )
 
 

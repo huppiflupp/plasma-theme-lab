@@ -11,7 +11,8 @@
         "EnabledByDefault": true,
         "Id": "nt-legacy-desert-nacht",
         "License": "GPL-2.0-or-later",
-        "Name": "NT Legacy Wueste Nacht",
+        "Name": "NT Legacy Desert Night",
+        "Name[de]": "NT Legacy Wueste Nacht",
         "Version": "0.3.0",
         "Website": "https://github.com/huppiflupp/nt-legacy"
     },

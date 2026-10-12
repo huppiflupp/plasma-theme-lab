@@ -1,27 +1,27 @@
-# 3. Look-and-Feel-Paket
+# 3. Look-and-Feel package
 
-Das Look-and-Feel-Paket ist das, was in den Systemeinstellungen als
-**„Globales Design"** erscheint. Es enthält selbst kaum Grafik — es ist
-eine Klammer, die die anderen Ebenen zusammenschaltet.
+The Look-and-Feel package is what appears in System Settings as a
+**"Global Theme"**. It contains hardly any graphics itself; it is a clamp
+that wires the other layers together.
 
-Genau deshalb ist es die riskanteste Ebene, die noch in `$HOME` lebt: Es
-schreibt in die Konfiguration des Nutzers.
+That is exactly why it is the riskiest layer that still lives in `$HOME`:
+it writes to the user's configuration.
 
 ---
 
-## 3.1 Paketstruktur
+## 3.1 Package structure
 
-Autoritativ aus dem Quellcode
+Authoritative, from the source code
 [`plasma-workspace/shell/packageplugins/lookandfeel/lookandfeel.cpp`]:
 
 ```
 <id>/
 ├── metadata.json
 └── contents/
-    ├── defaults                    ← das Kernstück
+    ├── defaults                    ← the core piece
     ├── colors
     ├── layouts/
-    │   ├── org.kde.plasma.desktop-layout.js   ← ersetzt Panels (3.4)
+    │   ├── org.kde.plasma.desktop-layout.js   ← replaces panels (3.4)
     │   └── defaults
     ├── previews/
     │   ├── preview.png             (400×250)
@@ -34,13 +34,13 @@ Autoritativ aus dem Quellcode
     └── windowswitcher/WindowSwitcher.qml
 ```
 
-Der Code ruft für keinen dieser Teile `setRequired()` auf — **alles ist
-optional**. Fehlende Teile kommen per `setFallbackPackage()` aus
-`org.kde.breeze.desktop`.
+The code calls `setRequired()` for none of these parts: **everything is
+optional**. Missing parts come from `org.kde.breeze.desktop` via
+`setFallbackPackage()`.
 
-**Es gibt keinen `lockscreen/`-Ordner mehr** und keinen `loginmanager/`.
-Siehe [Kapitel 1.4](01-layers-and-risk.md#wichtig-der-sperrbildschirm-gehört-nicht-mehr-ins-look-and-feel-paket) —
-wer dort QML pflegt, pflegt toten Code.
+**There is no `lockscreen/` folder any more**, and no `loginmanager/`.
+See [chapter 1.4](01-layers-and-risk.md#important-the-lock-screen-no-longer-belongs-in-the-look-and-feel-package):
+if you maintain QML there, you maintain dead code.
 
 ## 3.2 metadata.json
 
@@ -51,7 +51,7 @@ wer dort QML pflegt, pflegt toten Code.
         "Id": "com.github.huppiflupp.niceos9-dark",
         "Name": "NiceOS9 Dark",
         "Description": "Mac OS 9 Platinum look for Plasma 6",
-        "Authors": [{ "Name": "Vorname Nachname", "Email": "mail@example.org" }],
+        "Authors": [{ "Name": "First Last", "Email": "mail@example.org" }],
         "License": "GPL-3.0-or-later",
         "Version": "2.1.0",
         "Website": "https://github.com/…"
@@ -61,27 +61,27 @@ wer dort QML pflegt, pflegt toten Code.
 }
 ```
 
-Zwei Felder sind hier nicht optional:
+Two fields are not optional here:
 
-**`KPackageStructure` auf oberster Ebene.** Ohne diesen Schlüssel erscheint
-das Paket nicht unter „Globale Designs". Er gehört *nicht* in `KPlugin`.
+**`KPackageStructure` at the top level.** Without this key the package does
+not appear under "Global Themes". It does *not* belong in `KPlugin`.
 
-**`X-Plasma-APIVersion: "2"`** ist nicht kosmetisch. `kscreenlocker` prüft
-den Wert und verweigert bei `< 2` die Verwendung.
-[Quelle: `kscreenlocker/greeter/greeterapp.cpp`]
+**`X-Plasma-APIVersion: "2"`** is not cosmetic. `kscreenlocker` checks the
+value and refuses to use the package if it is `< 2`.
+[source: `kscreenlocker/greeter/greeterapp.cpp`]
 
-**Zur `Id`:** Umgekehrte Domainnotation ist Konvention
-(`org.kde.breeze.desktop`, `com.github.<nutzer>.<theme>`). Leerzeichen in
-der Id vermeiden — sie werden zum Verzeichnisnamen.
+**About `Id`:** reverse domain notation is the convention
+(`org.kde.breeze.desktop`, `com.github.<user>.<theme>`). Avoid spaces in the
+Id; it becomes the directory name.
 
-**Lizenz-Strings:** `KAboutLicense::byKeyword()` normalisiert und erkennt
-`"GPL-3.0-or-later"`. `"LGPL-2.1-only"` wird **nicht** erkannt und als
-„Custom" angezeigt. Kein Fehler, nur eine hässliche Anzeige.
+**License strings:** `KAboutLicense::byKeyword()` normalizes and recognizes
+`"GPL-3.0-or-later"`. `"LGPL-2.1-only"` is **not** recognized and is shown
+as "Custom". Not an error, just an ugly display.
 
-## 3.3 contents/defaults — das Kernstück
+## 3.3 contents/defaults — the core piece
 
-Format: `[datei][Gruppe]` gefolgt von `Schlüssel=Wert`. Die Referenz von
-Breeze: [geprüft]
+Format: `[file][Group]` followed by `Key=Value`. The Breeze reference:
+[verified]
 
 ```ini
 [kdeglobals][KDE]
@@ -110,29 +110,29 @@ theme=Breeze
 Theme=org.kde.breeze.desktop
 ```
 
-**Merke:** Die Dekorationsgruppe heißt `org.kde.kdecoration2`, auch unter
-KDecoration3. Siehe [Kapitel 1.6](01-layers-and-risk.md#16-fensterdekoration-kdecoration3-aber-konfigschlüssel-kdecoration2).
+**Remember:** the decoration group is called `org.kde.kdecoration2`, even
+under KDecoration3. See [chapter 1.6](01-layers-and-risk.md#16-window-decoration-kdecoration3-but-config-key-kdecoration2).
 
-Für ein Aurorae-Theme:
+For an Aurorae theme:
 ```ini
 [kwinrc][org.kde.kdecoration2]
 library=org.kde.kwin.aurorae.v2
-theme=__aurorae__svg__MeinTheme
+theme=__aurorae__svg__MyTheme
 ```
 
-### Was hier nicht hineingehört
+### What does not belong here
 
-Jeder Schlüssel in `defaults` überschreibt eine Einstellung des Nutzers.
-Beschränke dich auf das, was zum Erscheinungsbild gehört. Schriftarten,
-Doppelklick-Verhalten, Energieeinstellungen und Tastenkürzel gehören nicht
-in ein Theme — auch wenn man sie technisch dort setzen könnte.
+Every key in `defaults` overrides a user setting. Limit yourself to what is
+part of the appearance. Fonts, double-click behavior, power settings and
+keyboard shortcuts do not belong in a theme, even though you could
+technically set them there.
 
-## 3.4 Die Panel-Falle
+## 3.4 The panel trap
 
-**Der Punkt, an dem ein Theme Nutzerdaten kosten kann.**
+**The point at which a theme can cost user data.**
 
-Ein `contents/layouts/org.kde.plasma.desktop-layout.js` ist ein Skript, das
-die Desktop-Konfiguration neu aufbaut:
+A `contents/layouts/org.kde.plasma.desktop-layout.js` is a script that
+rebuilds the desktop configuration:
 
 ```javascript
 var panel = new Panel;
@@ -141,17 +141,17 @@ panel.addWidget("org.kde.plasma.kickoff");
 …
 ```
 
-Wird es ausgeführt, sind **alle Panels, Widgets und deren Einstellungen des
-Nutzers weg**. Nicht rückgängig zu machen. Wer sein Panel über Jahre
-eingerichtet hat, verliert diese Arbeit beim Ausprobieren eines Themes.
+When it runs, **all of the user's panels, widgets and their settings are
+gone**. This cannot be undone. Someone who set up their panel over years
+loses that work by trying out a theme.
 
-### Die Entwarnung
+### The all-clear
 
-KDE schützt an drei Stellen. Wer ein Layout ausliefern will, sollte das
-kennen — es ändert die Abwägung.
+KDE protects in three places. If you want to ship a layout, you should know
+them; they change the trade-off.
 
-**Die Checkbox ist vorab nicht angehakt.**
-[Quelle: `kcms/lookandfeel/kcm.cpp`, `resetSelectedContents()`]
+**The checkbox is not pre-checked.**
+[source: `kcms/lookandfeel/kcm.cpp`, `resetSelectedContents()`]
 
 ```cpp
 // But do not select layout contents by default if there appaerance settings
@@ -160,17 +160,15 @@ if (m_themeContents & KLookAndFeelManager::AppearanceSettings) {
 }
 ```
 
-Sobald ein Theme auch Erscheinungsbild-Einstellungen mitbringt — was jedes
-ernsthafte Theme tut —, ist „Arbeitsflächen- und Fenster-Layout"
-ausgeschaltet, wenn der Dialog aufgeht.
+As soon as a theme also brings appearance settings (which every serious
+theme does), "Desktop and window layout" is unchecked when the dialog opens.
 
-**Es gibt eine Warnung.** `SimpleOptions.qml` blendet unter der Checkbox
-eine rote `InlineMessage` ein, sobald man sie anhakt: *„Durch das Anwenden
-eines Arbeitsflächen-Layouts werden die aktuellen Arbeitsflächen,
-Kontrollleisten, Docks und Miniprogramme gelöscht."*
+**There is a warning.** `SimpleOptions.qml` shows a red `InlineMessage`
+below the checkbox as soon as you check it, saying that applying a desktop
+layout deletes the current desktops, panels, docks and widgets.
 
-**Die Kommandozeile fasst das Layout nicht an.**
-[Quelle: `kcms/lookandfeel/tool/lnftool.cpp`, geprüft]
+**The command line does not touch the layout.**
+[source: `kcms/lookandfeel/tool/lnftool.cpp`, verified]
 
 ```cpp
 // By default do not modify the layout, unless explicitly specified
@@ -181,95 +179,94 @@ if (parser.isSet(_resetLayout)) { selection |= KLookAndFeelManager::LayoutSettin
 
 ```console
 $ plasma-apply-lookandfeel --help
-  -a, --apply <Paketname>    Ein globales Design-Paket anwenden.
-      --resetLayout          Das Plasma-Arbeitsflächen-Layout zurücksetzen
+  -a, --apply <packagename>  Apply a global theme package.
+      --resetLayout          Reset the Plasma Desktop layout
 ```
 
-`plasma-apply-lookandfeel --apply <name>` fasst das Layout also nicht an.
-Nur `--resetLayout` tut es.
+So `plasma-apply-lookandfeel --apply <name>` does not touch the layout.
+Only `--resetLayout` does.
 
-**Aber:** Diese drei Netze fangen den Nutzer, der versehentlich klickt.
-Sie fangen nicht den, der die Checkbox bewusst anhakt — und das tut, wer
-das Theme so sehen will, wie es gemeint ist. Für den ist der Verlust
-seiner Panelkonfiguration endgültig.
+**But:** these three nets catch the user who clicks by accident. They do not
+catch the one who checks the box on purpose, and that is what anyone does
+who wants to see the theme the way it is meant. For them, the loss of their
+panel configuration is final.
 
-### Was daraus folgt
+### What follows from this
 
-Ein Layout auszuliefern ist legitim. Bei einem Theme, dessen Aufbau zum
-Look gehört — Menüleiste oben, kein schwebendes Panel —, wäre es sogar
-unvollständig ohne. Was fehlt, ist der Rückweg.
+Shipping a layout is legitimate. For a theme whose structure is part of the
+look (menu bar at the top, no floating panel), it would even be incomplete
+without one. What is missing is the way back.
 
-**Sichere die Panelkonfiguration im Installer, bevor du irgendetwas
-änderst:**
+**Back up the panel configuration in the installer before you change
+anything:**
 
 ```bash
 BACKUP="$HOME/.local/share/<theme>/panel-backup-$(date +%F-%H%M).rc"
 mkdir -p "$(dirname "$BACKUP")"
 cp -a "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" "$BACKUP" 2>/dev/null
-echo "Panel-Konfiguration gesichert: $BACKUP"
+echo "Panel configuration backed up: $BACKUP"
 ```
 
-Vier Zeilen, und aus „unwiderruflich" wird „Datei zurückkopieren, neu
-anmelden". Das ist der Unterschied zwischen einem Theme, das man
-ausprobieren kann, und einem, bei dem man vorher überlegt.
+Four lines, and "irreversible" becomes "copy the file back, log in again".
+That is the difference between a theme you can try out and one you have to
+think about first.
 
-### Panel-Preset statt Layout-Zwang
+### Panel preset instead of a forced layout
 
-Es gibt ein Paketformat genau für diesen Zweck: **`Plasma/LayoutTemplate`**.
+There is a package format for exactly this purpose: **`Plasma/LayoutTemplate`**.
 
 ```
-layout-templates/org.example.meintheme.panel/
+layout-templates/org.example.mytheme.panel/
 ├── metadata.json          ← "KPackageStructure": "Plasma/LayoutTemplate"
 └── contents/
     └── layout.js
 ```
 
 ```bash
-kpackagetool6 -t Plasma/LayoutTemplate -i ./layout-templates/org.example.meintheme.panel
+kpackagetool6 -t Plasma/LayoutTemplate -i ./layout-templates/org.example.mytheme.panel
 ```
 
-Ein Layout-Template erscheint beim Rechtsklick unter **„Panel hinzufügen"**
-und legt ein *zusätzliches* Panel an. Es überschreibt nichts. Der Nutzer
-entscheidet.
+A layout template appears on right-click under **"Add Panel"** and creates
+an *additional* panel. It overwrites nothing. The user decides.
 
-**Empfehlung:** Beides anbieten. Das `layouts/` im Look-and-Feel für
-alle, die das Theme vollständig wollen — abgesichert durch das Backup
-oben. Zusätzlich ein Layout-Template für alle, die ihr eingerichtetes
-Panel behalten und den Aufbau nur daneben ausprobieren wollen. In der
-README ein Satz dazu: „Das passende Panel gibt es auch einzeln — per
-Rechtsklick auf den Desktop → Panel hinzufügen → NiceOS9."
+**Recommendation:** offer both. The `layouts/` in the Look-and-Feel package
+for everyone who wants the full theme, protected by the backup above. In
+addition, a layout template for everyone who wants to keep their own panel
+and only try the layout next to it. One sentence about it in the README:
+"The matching panel is also available on its own: right-click the desktop →
+Add Panel → NiceOS9."
 
-Nebeneffekt: Layout-Skripte enthalten oft absolute Pfade (Hintergrundbild),
-die der Installer per `sed` einsetzen muss. Ohne Layout-Skript entfällt
-dieser Hack.
+Side effect: layout scripts often contain absolute paths (wallpaper) that
+the installer has to fill in with `sed`. Without a layout script, this hack
+goes away.
 
-## 3.5 Vorschaubilder
+## 3.5 Preview images
 
-`contents/previews/preview.png` ist das, was der Nutzer im
-Auswahldialog sieht. Fehlt es, steht dort ein graues Rechteck — der
-häufigste Grund, warum ein gutes Theme im Store übersehen wird.
+`contents/previews/preview.png` is what the user sees in the selection
+dialog. If it is missing, a gray rectangle appears there, the most common
+reason a good theme gets overlooked in the store.
 
-| Datei | Wo sichtbar |
+| File | Where it shows |
 |---|---|
-| `preview.png` | Kachel in der Design-Auswahl (400×250) |
-| `fullscreenpreview.jpg` | Großansicht |
-| `lockscreen.png` | Vorschau Sperrbildschirm |
-| `splash.png` | Vorschau Startbildschirm |
-| `windowswitcher.png` | Vorschau Fensterwechsler |
+| `preview.png` | Tile in the theme selection (400×250) |
+| `fullscreenpreview.jpg` | Large view |
+| `lockscreen.png` | Lock screen preview |
+| `splash.png` | Splash screen preview |
+| `windowswitcher.png` | Window switcher preview |
 
-## 3.6 Startbildschirm (KSplash)
+## 3.6 Splash screen (KSplash)
 
-`contents/splash/Splash.qml` — eine QML-Datei, die beim Anmelden gezeigt
-wird. Sie bekommt eine Eigenschaft `stage`, die von 1 bis 6 hochzählt.
+`contents/splash/Splash.qml` is a QML file shown at login. It gets a
+`stage` property that counts up from 1 to 6.
 
-Zwei Dinge, die man wissen muss: Der Startbildschirm läuft in einem sehr
-frühen Sessionzustand — nutze nur `QtQuick`, keine Plasma-Komponenten. Und
-er lässt sich einzeln testen:
+Two things you need to know: the splash screen runs in a very early session
+state, so use only `QtQuick`, no Plasma components. And it can be tested on
+its own:
 
 ```bash
-ksplashqml --test <paket-id>
+ksplashqml --test <package-id>
 ```
 
 ---
 
-**Weiter:** [Kapitel 4 — Bauen und Installieren](04-build-and-install.md)
+**Next:** [Chapter 4 — Building and installing](04-build-and-install.md)

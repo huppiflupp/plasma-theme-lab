@@ -1,13 +1,13 @@
-# 6. Wenn es schiefgeht
+# 6. When things go wrong
 
-Nach Eskalationsstufe sortiert. Fang immer bei der niedrigsten an, die auf
-deine Lage passt.
+Sorted by escalation level. Always start with the lowest one that fits your
+situation.
 
-Alle Kommandos auf Plasma 6.7.3 geprüft.
+All commands verified on Plasma 6.7.3.
 
 ---
 
-## Zuerst: Was ist überhaupt gesetzt?
+## First: what is actually set?
 
 ```bash
 kreadconfig6 --file plasmarc   --group Theme   --key name              # Plasma Style
@@ -20,15 +20,15 @@ kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key library
 kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme
 ```
 
-Diese acht Zeilen sind auch das, was ein Installer **vor** seiner ersten
-Änderung sichern sollte. Siehe
-[Kapitel 4.5](04-build-and-install.md#45-rollback-ist-teil-der-installation).
+These eight lines are also what an installer should back up **before** its
+first change. See
+[chapter 4.5](04-build-and-install.md#45-rollback-is-part-of-the-installation).
 
 ---
 
-## Stufe 1 — Die Oberfläche funktioniert noch
+## Level 1 — the desktop still works
 
-Alles zurück auf Breeze:
+Everything back to Breeze:
 
 ```bash
 plasma-apply-lookandfeel --apply org.kde.breeze.desktop
@@ -36,33 +36,32 @@ plasma-apply-desktoptheme default
 plasma-apply-colorscheme BreezeLight
 ```
 
-Beachte: Der Plasma Style von Breeze heißt **`default`**, nicht `breeze`.
+Note: Breeze's Plasma Style is called **`default`**, not `breeze`.
 
-## Stufe 2 — Panel weg, Session lebt noch
+## Level 2 — panel gone, session still alive
 
-Symptom: Kein Panel, kein Desktop-Hintergrund, aber Fenster funktionieren
-noch. Ein Terminal bekommst du über ein Tastenkürzel oder aus einem
-laufenden Programm heraus.
+Symptom: no panel, no desktop background, but windows still work. You can
+get a terminal via a keyboard shortcut or from a running program.
 
 ```bash
 rm -f ~/.cache/plasma_theme_*.kcache ~/.cache/ksvg-elements
 systemctl --user restart plasma-plasmashell.service
 ```
 
-Klassische Varianten:
+Classic variants:
 ```bash
 kquitapp6 plasmashell && kstart plasmashell
 plasmashell --replace &
 ```
 
-**Zur Beruhigung:** Es gibt keine endlose Absturzschleife.
-`plasma-plasmashell.service` hat `StartLimitBurst=3` in 60 Sekunden und
-`--no-respawn`. Nach drei Fehlversuchen gibt systemd auf. KWin läuft
-weiter, deine Fenster bleiben.
+**To reassure you:** there is no endless crash loop.
+`plasma-plasmashell.service` has `StartLimitBurst=3` within 60 seconds and
+`--no-respawn`. After three failed attempts, systemd gives up. KWin keeps
+running, your windows stay.
 
-## Stufe 3 — Session unbrauchbar, TTY nötig
+## Level 3 — session unusable, TTY needed
 
-`Strg`+`Alt`+`F3` bringt dich auf eine Textkonsole. Anmelden, dann:
+`Ctrl`+`Alt`+`F3` takes you to a text console. Log in, then:
 
 ```bash
 export XDG_RUNTIME_DIR=/run/user/$(id -u)
@@ -75,87 +74,86 @@ kwriteconfig6 --file kdeglobals --group Icons   --key Theme breeze
 kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.breeze
 kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme   Breeze
 
-rm -rf ~/.local/share/plasma/desktoptheme/<mein-theme>
-rm -rf ~/.local/share/plasma/look-and-feel/<mein-theme>
+rm -rf ~/.local/share/plasma/desktoptheme/<my-theme>
+rm -rf ~/.local/share/plasma/look-and-feel/<my-theme>
 rm -f  ~/.cache/plasma_theme_*.kcache ~/.cache/ksvg-elements
 ```
 
-Dann abmelden und neu anmelden.
+Then log out and log in again.
 
-### Notnagel: Panel-Konfiguration zurücksetzen
+### Last resort: reset the panel configuration
 
-Wenn ein Layout-Skript die Panels zerlegt hat:
+If a layout script has wrecked the panels:
 
 ```bash
 mv ~/.config/plasma-org.kde.plasma.desktop-appletsrc{,.bak}
 ```
 
-**Das löscht alle Widget-Einstellungen** und gibt dir beim nächsten Start
-das Standardlayout. Die `.bak` bleibt liegen — meist ist daraus nichts mehr
-zu retten, aber wegwerfen kann man sie später immer noch.
+**This deletes all widget settings** and gives you the default layout at the
+next start. The `.bak` stays; usually nothing can be rescued from it, but you
+can always throw it away later.
 
-## Stufe 4 — Es kommt keine Anmeldemaske mehr
+## Level 4 — the login screen no longer appears
 
-Jetzt hilft nur noch ein TTY (falls erreichbar) oder ein Live-Medium.
+Now only a TTY (if reachable) or a live medium helps.
 
 ```bash
 # Plasma Login Manager (Fedora 44+, Nobara, KDE Linux)
 sudo systemctl restart plasmalogin
 
-# SDDM (ältere Systeme)
+# SDDM (older systems)
 sudo sed -i 's/^Current=.*/Current=breeze/' /etc/sddm.conf.d/*.conf
 sudo systemctl restart sddm
 ```
 
-**Der Ausweg, der immer funktioniert** — grafische Anmeldung abschalten und
-im Textmodus reparieren:
+**The way out that always works:** turn off graphical login and repair in
+text mode:
 
 ```bash
 sudo systemctl set-default multi-user.target
 sudo reboot
-# ... reparieren ...
+# ... repair ...
 sudo systemctl set-default graphical.target
 ```
 
-## Stufe 5 — Der Rechner startet nicht mehr
+## Level 5 — the computer no longer boots
 
-Wenn Plymouth oder GRUB angefasst wurden. Live-Medium booten, System
-einhängen, chrooten:
+If Plymouth or GRUB were touched. Boot a live medium, mount the system,
+chroot:
 
 ```bash
-# Plymouth zurücksetzen
-sudo plymouth-set-default-theme -R bgrt        # Fedora-Standard
-sudo dracut -f --regenerate-all                # initramfs neu bauen
+# reset Plymouth
+sudo plymouth-set-default-theme -R bgrt        # Fedora default
+sudo dracut -f --regenerate-all                # rebuild the initramfs
 
-# GRUB zurücksetzen
+# reset GRUB
 sudo sed -i '/^GRUB_THEME=/d' /etc/default/grub
 sudo grub2-mkconfig -o /boot/grub2/grub.cfg
 ```
 
-Auf Debian/Ubuntu heißen die letzten beiden `update-initramfs -u` und
-`update-grub`.
+On Debian/Ubuntu the last two are `update-initramfs -u` and `update-grub`.
 
-**Wenn du hier landest, war der Fehler nicht das Theme, sondern die
-Entscheidung, es auf dem Arbeitsrechner zu installieren.** Siehe
-[Kapitel 5.4](05-testing.md#54-stufe-4--vollinstallation-in-der-vm).
+**If you end up here, the mistake was not the theme but the decision to
+install it on your work machine.** See
+[chapter 5.4](05-testing.md#54-stage-4--full-installation-in-the-vm).
 
 ---
 
-## Die Grenze, um die es geht
+## The boundary that matters
 
-| Sicher — nur `$HOME`, per TTY reparierbar | Gefährlich — systemweit, vor dem Login |
+| Safe — `$HOME` only, repairable via TTY | Dangerous — system-wide, before login |
 |---|---|
-| `~/.local/share/plasma/desktoptheme/` | `/usr/share/plasma/*` (kollidiert mit Paketupdates) |
+| `~/.local/share/plasma/desktoptheme/` | `/usr/share/plasma/*` (collides with package updates) |
 | `~/.local/share/plasma/look-and-feel/` | `/usr/share/sddm/themes/`, `/etc/sddm.conf.d/` |
 | `~/.local/share/color-schemes/` | `/etc/plasmalogin.conf*` |
 | `~/.local/share/aurorae/themes/` | `/usr/share/plymouth/`, `dracut -f` |
 | `~/.local/share/icons/`, `wallpapers/` | `/boot/grub2/`, `grub2-mkconfig` |
-| `~/.config/*rc`, `~/.cache/*` | `/usr/share/fonts/` statt `~/.local/share/fonts/` |
+| `~/.config/*rc`, `~/.cache/*` | `/usr/share/fonts/` instead of `~/.local/share/fonts/` |
 
-**Faustregel:** Wenn ein Installationsschritt nach `sudo` fragt, gehört er
-in ein eigenes Skript mit eigener Warnung — und nicht in den Durchlauf, den
-jemand ausführt, der „das Theme mal ausprobieren" will.
+**Rule of thumb:** if an installation step asks for `sudo`, it belongs in a
+separate script with its own warning, not in the run that someone executes
+who "just wants to try out the theme".
 
 ---
 
-**Zurück:** [Übersicht](README.md) · [Referenzkarte](reference.md)
+**Back:** [Overview](README.md) · [Reference card](reference.md)

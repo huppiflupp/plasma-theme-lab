@@ -42,7 +42,7 @@ def main():
         box = (ox + x0 * scale, oy, ox + (x0 + w) * scale, oy + h * scale)
         part = im.resize((out_w, out_h), Image.LANCZOS, box=box)
         part.save(path, quality=90, optimize=True, subsampling=0)
-        print(f"{path}: {w:g}x{h:g} mm aus {box[2] - box[0]:.0f}x{box[3] - box[1]:.0f} px")
+        print(f"{path}: {w:g}x{h:g} mm from {box[2] - box[0]:.0f}x{box[3] - box[1]:.0f} px")
 
 
 if __name__ == "__main__":

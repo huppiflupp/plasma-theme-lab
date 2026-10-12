@@ -1,41 +1,41 @@
 #!/usr/bin/env bash
-# Steuerzentrale der Test-VM. Alles, was man im Alltag braucht, an einer Stelle.
+# Control centre for the test VM. Everything you need day to day, in one place.
 #
-#   ./vmctl.sh start|stop|kill|status|ip|ssh [cmd...]|shot [datei]|console|viewer
+#   ./vmctl.sh start|stop|kill|status|ip|ssh [cmd...]|shot [file]|console|viewer
 #   ./vmctl.sh snap create <name> | snap list | snap revert <name> | snap rm <name>
-#   ./vmctl.sh reset          # zurueck auf den Snapshot 'clean'
-#   ./vmctl.sh push <quelle> <ziel>
+#   ./vmctl.sh reset          # back to the snapshot 'clean'
+#   ./vmctl.sh push <source> <target>
 #
-# Grundsatz: Diese VM ist ein Wegwerf-Ziel. 'reset' ist der Normalfall,
-# nicht die Ausnahme - jeder Theme-Test startet von einem sauberen Snapshot.
+# Principle: this VM is a disposable target. 'reset' is the normal case,
+# not the exception - every theme test starts from a clean snapshot.
 
 set -euo pipefail
 
 VM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Welche VM? Vorgabe ist die Fedora-Maschine aus lab.env.
+# Which VM? The default is the Fedora machine from lab.env.
 #
-# Seit es eine zweite gibt (EndeavourOS, fuer die Arch-Seite der Skripte)
-# waehlt LAB_ENV die Umgebung:
+# Since there is a second one (EndeavourOS, for the Arch side of the scripts)
+# LAB_ENV selects the environment:
 #
 #   ./vmctl.sh status                      # Fedora
 #   LAB_ENV=eos.env ./vmctl.sh status      # EndeavourOS
 #
-# Eine zweite Kopie dieses Skripts waere die naheliegende Loesung
-# gewesen - und die schlechtere: jede Korrektur muesste man dann an zwei
-# Stellen machen, und genau das vergisst man.
-LAB_ENV_DATEI="${LAB_ENV:-lab.env}"
-case "$LAB_ENV_DATEI" in
-    /*) source "$LAB_ENV_DATEI" ;;
-    *)  source "$VM_DIR/$LAB_ENV_DATEI" ;;
+# A second copy of this script would have been the obvious solution
+# - and the worse one: every fix would then have to be made in two
+# places, and that is exactly what gets forgotten.
+LAB_ENV_FILE="${LAB_ENV:-lab.env}"
+case "$LAB_ENV_FILE" in
+    /*) source "$LAB_ENV_FILE" ;;
+    *)  source "$VM_DIR/$LAB_ENV_FILE" ;;
 esac
 
 V() { virsh -c "$LIBVIRT_URI" "$@"; }
 
-die() { echo "FEHLER: $*" >&2; exit 1; }
+die() { echo "ERROR: $*" >&2; exit 1; }
 
 vm_ip() {
-    # Zuerst der Guest-Agent (zuverlaessig), dann der DHCP-Lease als Rueckfall.
+    # First the guest agent (reliable), then the DHCP lease as a fallback.
     local ip
     ip=$(V domifaddr "$VM_NAME" --source agent 2>/dev/null \
          | awk '$3=="ipv4" && $4!~/^127\./ {sub(/\/.*/,"",$4); print $4; exit}')
@@ -47,11 +47,11 @@ vm_ip() {
 
 wait_ssh() {
     local timeout="${1:-300}" waited=0 ip
-    echo -n "Warte auf SSH" >&2
+    echo -n "Waiting for SSH" >&2
     while [ "$waited" -lt "$timeout" ]; do
         if ip=$(vm_ip 2>/dev/null) && \
            ssh $SSH_OPTS "$VM_USER@$ip" 'test -f /etc/plasma-lab-ready' 2>/dev/null; then
-            echo " - bereit ($ip)" >&2
+            echo " - ready ($ip)" >&2
             echo "$ip"
             return 0
         fi
@@ -59,7 +59,7 @@ wait_ssh() {
         sleep 5
         waited=$((waited + 5))
     done
-    echo " - Zeitueberschreitung" >&2
+    echo " - timed out" >&2
     return 1
 }
 
@@ -69,13 +69,13 @@ shift || true
 case "$cmd" in
 
   start)
-      V domstate "$VM_NAME" 2>/dev/null | grep -q laufend || V start "$VM_NAME"
+      V domstate "$VM_NAME" 2>/dev/null | grep -qE 'laufend|running' || V start "$VM_NAME"
       wait_ssh "${1:-300}" >/dev/null
-      echo "VM laeuft."
+      echo "VM is running."
       ;;
 
   stop)
-      # Sauberes Herunterfahren - wichtig, damit Dateisystem-Snapshots konsistent sind.
+      # Clean shutdown - important so that file system snapshots are consistent.
       V shutdown "$VM_NAME" 2>/dev/null || true
       for _ in $(seq 60); do
           V domstate "$VM_NAME" 2>/dev/null | grep -q 'ausgeschaltet\|shut off' && break
@@ -86,29 +86,29 @@ case "$cmd" in
 
   kill)
       V destroy "$VM_NAME" 2>/dev/null || true
-      echo "VM hart gestoppt."
+      echo "VM stopped hard."
       ;;
 
   status)
-      V domstate "$VM_NAME" 2>/dev/null || die "VM '$VM_NAME' existiert nicht."
-      vm_ip 2>/dev/null | sed 's/^/IP: /' || echo "IP: (noch keine)"
+      V domstate "$VM_NAME" 2>/dev/null || die "VM '$VM_NAME' does not exist."
+      vm_ip 2>/dev/null | sed 's/^/IP: /' || echo "IP: (none yet)"
       V snapshot-list "$VM_NAME" 2>/dev/null | tail -n +3 | grep -v '^$' | sed 's/^/Snapshot: /' || true
       ;;
 
   ip)
-      vm_ip || die "Keine IP - laeuft die VM und ist der Guest-Agent aktiv?"
+      vm_ip || die "No IP - is the VM running and the guest agent active?"
       ;;
 
   ssh)
-      # Die Plasma-Werkzeuge (plasma-apply-*, kquitapp6, plasmashell)
-      # brauchen eine Verbindung zur laufenden Sitzung. Eine SSH-Sitzung
-      # hat die nicht - ohne DBUS_SESSION_BUS_ADDRESS bricht etwa
-      # 'plasma-apply-lookandfeel' mit SIGABRT ab, und zwar ohne
-      # brauchbare Meldung. Das sieht dann aus wie ein Theme-Fehler.
+      # The Plasma tools (plasma-apply-*, kquitapp6, plasmashell)
+      # need a connection to the running session. An SSH session
+      # does not have one - without DBUS_SESSION_BUS_ADDRESS, for example,
+      # 'plasma-apply-lookandfeel' aborts with SIGABRT, and without any
+      # useful message. That then looks like a theme bug.
       #
-      # In dieser VM laeuft immer genau eine Sitzung von uid 1000,
-      # deshalb sind die Werte fest.
-      ip=$(vm_ip) || die "Keine IP."
+      # In this VM there is always exactly one session of uid 1000,
+      # which is why the values are fixed.
+      ip=$(vm_ip) || die "No IP."
       ENV_PREFIX='export XDG_RUNTIME_DIR=/run/user/1000
 export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
 export WAYLAND_DISPLAY=wayland-0
@@ -123,22 +123,22 @@ export XDG_CURRENT_DESKTOP=KDE
       ;;
 
   push)
-      # push <lokale-quelle> <ziel-im-gast>
-      [ $# -eq 2 ] || die "Aufruf: $0 push <quelle> <ziel>"
-      ip=$(vm_ip) || die "Keine IP."
+      # push <local-source> <target-in-guest>
+      [ $# -eq 2 ] || die "Usage: $0 push <source> <target>"
+      ip=$(vm_ip) || die "No IP."
       rsync -a --delete -e "ssh $SSH_OPTS" "$1" "$VM_USER@$ip:$2"
       ;;
 
   pull)
-      [ $# -eq 2 ] || die "Aufruf: $0 pull <quelle-im-gast> <ziel>"
-      ip=$(vm_ip) || die "Keine IP."
+      [ $# -eq 2 ] || die "Usage: $0 pull <source-in-guest> <target>"
+      ip=$(vm_ip) || die "No IP."
       rsync -a -e "ssh $SSH_OPTS" "$VM_USER@$ip:$1" "$2"
       ;;
 
   shot)
-      # Screenshot ueber den Hypervisor - funktioniert auch, wenn Plasma
-      # abgestuerzt ist oder gar keine Session mehr laeuft. Genau deshalb
-      # ist das der richtige Weg fuer Theme-Tests.
+      # Screenshot via the hypervisor - works even when Plasma
+      # has crashed or no session is running at all. That is exactly why
+      # it is the right approach for theme tests.
       out="${1:-$VM_DIR/../tests/screenshots/shot-$(date +%Y%m%d-%H%M%S).png}"
       mkdir -p "$(dirname "$out")"
       tmp=$(mktemp --suffix=.ppm)
@@ -149,7 +149,7 @@ export XDG_CURRENT_DESKTOP=KDE
           convert "$tmp" "$out"
       else
           out="${out%.png}.ppm"; cp "$tmp" "$out"
-          echo "Hinweis: ImageMagick fehlt, PPM statt PNG gespeichert." >&2
+          echo "Note: ImageMagick is missing, saved PPM instead of PNG." >&2
       fi
       rm -f "$tmp"
       echo "$out"
@@ -160,19 +160,19 @@ export XDG_CURRENT_DESKTOP=KDE
       ;;
 
   viewer)
-      # --attach ist hier Pflicht, nicht Geschmackssache: die VM laeuft mit
-      # 'spice,listen=none', SPICE lauscht also auf keinem Netzwerk-Port.
-      # Ohne --attach versucht virt-viewer eine TCP-Verbindung und meldet
-      # "Verbindung fehlgeschlagen"; mit --attach laesst es sich den
-      # Socket von libvirt reichen.
+      # --attach is mandatory here, not a matter of taste: the VM runs with
+      # 'spice,listen=none', so SPICE does not listen on any network port.
+      # Without --attach, virt-viewer tries a TCP connection and reports
+      # "Connection failed"; with --attach it has libvirt hand it
+      # the socket.
       exec virt-viewer --attach -c "$LIBVIRT_URI" "$VM_NAME"
       ;;
 
   viewer-bg)
-      # Wie 'viewer', aber abgeloest von der aufrufenden Prozessgruppe.
-      # Noetig, wenn der Aufruf aus einem Werkzeug kommt, das seine
-      # Prozessgruppe nach dem Befehl abraeumt - dagegen helfen weder
-      # nohup noch setsid, wohl aber eine eigene systemd-User-Unit.
+      # Like 'viewer', but detached from the calling process group.
+      # Needed when the call comes from a tool that cleans up its
+      # process group after the command - neither nohup nor setsid
+      # helps against that, but a systemd user unit of its own does.
       systemctl --user stop plasma-lab-viewer 2>/dev/null || true
       systemd-run --user --unit=plasma-lab-viewer --collect \
           --setenv=WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}" \
@@ -185,24 +185,24 @@ export XDG_CURRENT_DESKTOP=KDE
       sub="${1:-list}"; shift || true
       case "$sub" in
           create)
-              name="${1:?Name des Snapshots fehlt}"
-              # Interner Snapshot bei laufender VM inkl. RAM waere schneller,
-              # aber ein Offline-Snapshot ist reproduzierbarer: gleicher
-              # Startzustand bei jedem Revert, keine halb-initialisierte Session.
-              V domstate "$VM_NAME" | grep -q laufend && { echo "Fahre VM herunter..."; "$0" stop >/dev/null; }
+              name="${1:?snapshot name missing}"
+              # An internal snapshot of the running VM including RAM would be faster,
+              # but an offline snapshot is more reproducible: the same
+              # starting state on every revert, no half-initialised session.
+              V domstate "$VM_NAME" | grep -qE 'laufend|running' && { echo "Shutting down VM..."; "$0" stop >/dev/null; }
               V snapshot-create-as "$VM_NAME" "$name" "Snapshot $name" --atomic
-              echo "Snapshot '$name' erstellt."
+              echo "Snapshot '$name' created."
               ;;
           list)   V snapshot-list "$VM_NAME" ;;
           revert)
-              name="${1:?Name des Snapshots fehlt}"
+              name="${1:?snapshot name missing}"
               V destroy "$VM_NAME" &>/dev/null || true
               V snapshot-revert "$VM_NAME" "$name" --running
               wait_ssh 300 >/dev/null
-              echo "Auf '$name' zurueckgesetzt, VM laeuft."
+              echo "Reverted to '$name', VM is running."
               ;;
-          rm)     V snapshot-delete "$VM_NAME" "${1:?Name fehlt}" ;;
-          *)      die "snap: unbekannt '$sub'" ;;
+          rm)     V snapshot-delete "$VM_NAME" "${1:?name missing}" ;;
+          *)      die "snap: unknown '$sub'" ;;
       esac
       ;;
 

@@ -1,34 +1,34 @@
 #!/usr/bin/env python3
-"""Macht aus einem Bild ein Plasma-Hintergrundpaket.
+"""Turns an image into a Plasma wallpaper package.
 
-    ./make-wallpaper.py bild.png --id ntlegacy-granit \\
-        --name "NT Legacy - Granit" [--kachel] [--qualitaet 95]
+    ./make-wallpaper.py image.png --id ntlegacy-granit \\
+        --name "NT Legacy - Granite" [--tile] [--quality 95]
 
-Ein Hintergrundpaket ist ein Verzeichnis mit metadata.json und
-contents/images/<breite>x<hoehe>.<endung>. Mehr braucht Plasma nicht.
+A wallpaper package is a directory with metadata.json and
+contents/images/<width>x<height>.<ext>. Plasma needs nothing more.
 
-Warum das nicht in build.py steht: build.py erzeugt alles aus
-Farbwerten, deterministisch und in Sekunden. Diese Bilder kommen aus
-einem Bildmodell, brauchen eine GPU und ein paar Minuten. Sie werden
-einmal erzeugt und liegen dann im Repo - ein Neubau des Themes soll sie
-nicht jedesmal anfassen muessen.
+Why this is not in build.py: build.py generates everything from
+colour values, deterministically and in seconds. These images come from
+an image model and need a GPU and a few minutes. They are
+generated once and then live in the repo - a rebuild of the theme should
+not have to touch them every time.
 
-Ausgegeben wird JPEG, nicht PNG. Die Rohbilder sind zusammen 378 MB;
-als JPEG sind es 35. Ein Theme-Archiv, das mehrere hundert Megabyte
-gross ist, laedt im Store niemand herunter.
+The output is JPEG, not PNG. The raw images total 378 MB;
+as JPEG they are 35. Nobody in the store downloads a theme archive
+that is several hundred megabytes in size.
 
-  Landschaften   q92, 3840x2160  ~0,6 MB   gezeichneter Stil, wenig Rauschen
-  Kacheln        q95, 2048x2048  ~3 MB     Rauschtexturen, brauchen mehr
-  Grossbilder    q92, 4096x4096  ~4 MB
+  Landscapes     q92, 3840x2160  ~0.6 MB   drawn style, little noise
+  Tiles          q95, 2048x2048  ~3 MB     noise textures, need more
+  Large images   q92, 4096x4096  ~4 MB
 
-Zu den Kacheln: JPEG rechnet in Bloecken von 8x8 Pixeln. Weil 2048 durch
-8 teilbar ist, liegen die Bloecke an beiden Kachelraendern gleich - die
-Naht bleibt da, wo sie war. Bei einer krummen Kantenlaenge waere das
-nicht so, dann muesste man PNG nehmen.
+About the tiles: JPEG works in blocks of 8x8 pixels. Because 2048 is
+divisible by 8, the blocks line up the same at both tile edges - the
+seam stays where it was. With an odd edge length that would
+not be the case, and you would have to use PNG.
 
---kachel schreibt den Hinweis in den Namen. Plasma merkt sich die
-Fuellart nicht im Paket, sondern in der Einstellung des Nutzers; der
-Hinweis im Namen ist alles, was das Paket dazu beitragen kann.
+--tile writes the hint into the name. Plasma does not store the
+fill mode in the package but in the user's settings; the
+hint in the name is all the package can contribute.
 """
 
 import argparse
@@ -37,12 +37,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-AUTOR = "huppiflupp"
-LIZENZ = "GPL-2.0-or-later"
+AUTHOR = "huppiflupp"
+LICENSE = "GPL-2.0-or-later"
 
 
-def groesse(bild: Path):
-    r = subprocess.run(["magick", "identify", "-format", "%wx%h", str(bild)],
+def size(image: Path):
+    r = subprocess.run(["magick", "identify", "-format", "%wx%h", str(image)],
                        capture_output=True, text=True)
     return r.stdout.strip()
 
@@ -51,59 +51,59 @@ def main():
     ap = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("bild", type=Path)
+    ap.add_argument("image", type=Path)
     ap.add_argument("--id", required=True)
     ap.add_argument("--name", required=True)
-    ap.add_argument("--ziel", type=Path,
+    ap.add_argument("--dest", type=Path,
                     default=Path(__file__).resolve().parent.parent
                     / "nt-legacy" / "wallpapers")
-    ap.add_argument("--kachel", action="store_true")
-    ap.add_argument("--qualitaet", type=int, default=92)
-    ap.add_argument("--verlustfrei", action="store_true",
-                    help="PNG statt JPEG - nur fuer Bilder mit harten "
-                         "Farbkanten, bei denen JPEG Raender saeumt")
+    ap.add_argument("--tile", action="store_true")
+    ap.add_argument("--quality", type=int, default=92)
+    ap.add_argument("--lossless", action="store_true",
+                    help="PNG instead of JPEG - only for images with hard "
+                         "colour edges where JPEG fringes the borders")
     a = ap.parse_args()
 
-    if not a.bild.is_file():
-        sys.exit(f"Kein Bild: {a.bild}")
+    if not a.image.is_file():
+        sys.exit(f"Not an image: {a.image}")
 
-    paket = a.ziel / a.id
-    bilder = paket / "contents" / "images"
-    bilder.mkdir(parents=True, exist_ok=True)
+    package = a.dest / a.id
+    images = package / "contents" / "images"
+    images.mkdir(parents=True, exist_ok=True)
 
-    g = groesse(a.bild)
+    g = size(a.image)
     if not g:
-        sys.exit("magick konnte die Groesse nicht lesen")
+        sys.exit("magick could not read the size")
 
-    # Erst raeumen: liegt aus einem frueheren Lauf ein Bild derselben
-    # Groesse in anderem Format daneben, hat Plasma zwei Kandidaten fuer
-    # dieselbe Aufloesung und nimmt irgendeinen.
-    for alt in bilder.glob(f"{g}.*"):
-        alt.unlink()
+    # Clean up first: if an image of the same size in another format is
+    # left over from an earlier run, Plasma has two candidates for
+    # the same resolution and picks either one.
+    for old in images.glob(f"{g}.*"):
+        old.unlink()
 
-    endung = "png" if a.verlustfrei else "jpg"
-    ziel = bilder / f"{g}.{endung}"
-    befehl = ["magick", str(a.bild)]
-    if not a.verlustfrei:
-        # -sampling-factor 1x1: keine Unterabtastung der Farbkanaele.
-        # Bei 4:2:0 verlaufen gesaettigte Kanten - und genau die tragen
-        # in den gezeichneten Landschaften die Form.
-        befehl += ["-quality", str(a.qualitaet), "-sampling-factor", "1x1",
-                   "-interlace", "none"]
-    befehl.append(str(ziel))
-    r = subprocess.run(befehl, capture_output=True, text=True)
+    ext = "png" if a.lossless else "jpg"
+    dest = images / f"{g}.{ext}"
+    cmd = ["magick", str(a.image)]
+    if not a.lossless:
+        # -sampling-factor 1x1: no chroma subsampling.
+        # With 4:2:0 saturated edges bleed - and those are exactly what
+        # carries the shapes in the drawn landscapes.
+        cmd += ["-quality", str(a.quality), "-sampling-factor", "1x1",
+                "-interlace", "none"]
+    cmd.append(str(dest))
+    r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit(f"magick: {r.stderr.strip()[:200]}")
 
-    (paket / "metadata.json").write_text(json.dumps({
+    (package / "metadata.json").write_text(json.dumps({
         "KPlugin": {
-            "Authors": [{"Name": AUTOR}],
+            "Authors": [{"Name": AUTHOR}],
             "Id": a.id,
-            "License": LIZENZ,
-            "Name": a.name + (" (Kachel)" if a.kachel else ""),
+            "License": LICENSE,
+            "Name": a.name + (" (Tile)" if a.tile else ""),
         }}, indent=4, ensure_ascii=False) + "\n")
 
-    mb = ziel.stat().st_size / 1048576
+    mb = dest.stat().st_size / 1048576
     print(f"  wallpapers/{a.id}/  ({g}, {mb:.1f} MB)")
     return 0
 

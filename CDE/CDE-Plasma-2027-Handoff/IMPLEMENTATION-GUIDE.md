@@ -1,81 +1,81 @@
-# Implementierungs- und Testanleitung
+# Implementation and test guide
 
-## Phase 0 — sichere Arbeitsbasis
+## Phase 0 — safe working base
 
-1. Zielversion von Plasma, Distribution und Qt dokumentieren.
-2. Entwicklung in einem neuen Benutzerprofil oder einer VM beginnen.
-3. Vor Änderungen `~/.config`, `~/.local/share/plasma`, Farbschemata und KWin-Konfiguration sichern.
-4. Repository mit Komponentenordnern, Lizenzangaben und Screenshot-Vergleich anlegen.
+1. Document the target versions of Plasma, distribution and Qt.
+2. Start development in a new user profile or a VM.
+3. Before making changes, back up `~/.config`, `~/.local/share/plasma`, colour schemes and KWin configuration.
+4. Set up a repository with component folders, licence information and screenshot comparison.
 
-## Phase 1 — visueller Kernprototyp
+## Phase 1 — visual core prototype
 
-Lieferumfang:
+Deliverables:
 
-- Farbschema aus `design-tokens.json`
-- aktive/inaktive Fensterdekoration
-- statischer zweistöckiger Panel-Prototyp
-- 12 Kernicons: CDE-Menü, Home, Datei, Ordner, Terminal, Web, Mail, Editor, Workspace, Netzwerk, Audio, Papierkorb
-- Beispielansicht bei 1920×1080 und 2560×1440
+- colour scheme from `design-tokens.json`
+- active/inactive window decoration
+- static two-row panel prototype
+- 12 core icons: CDE menu, home, file, folder, terminal, web, mail, editor, workspace, network, audio, trash
+- sample view at 1920×1080 and 2560×1440
 
-Abnahme:
+Acceptance:
 
-- Zielpalette wirkt wie `05-target-teal-copper-panel.png`.
-- Fenster und Panel sind auf den ersten Blick Motif/CDE, nicht Breeze.
-- aktive Titelleiste, gedrückter Button und Fokusfeld haben drei verschiedene, eindeutige Zustände.
+- the target palette looks like `05-target-teal-copper-panel.png`.
+- windows and panel read as Motif/CDE at first glance, not Breeze.
+- active title bar, pressed button and focused field have three different, unambiguous states.
 
-## Phase 2 — funktionales Frontpanel
+## Phase 2 — functional front panel
 
-1. Segmentkomponente und zwei Reihen bauen.
-2. Launcher, Tasks und Workspace-Umschaltung anbinden.
-3. Subpanel-Auslöser und Popups implementieren.
-4. Sichtbar/Autohide/Hotspot als Konfiguration anbieten.
-5. Mehrmonitorlogik und Panelposition oben/unten testen.
-6. Pointer, Tastatur und Touch separat prüfen.
+1. Build the segment component and two rows.
+2. Hook up launchers, tasks and workspace switching.
+3. Implement subpanel triggers and popups.
+4. Offer visible/autohide/hotspot as configuration.
+5. Test multi-monitor logic and panel position top/bottom.
+6. Check pointer, keyboard and touch separately.
 
-## Phase 3 — Theme-Abdeckung
+## Phase 3 — theme coverage
 
-- Plasma-Widgets, Benachrichtigungen, Kalender, System Tray und Tooltips
-- Qt-Widgets/Qt Quick Controls
-- vollständige Kernicon-Abdeckung und kontrollierter Fallback
-- Cursor, Sperrbildschirm und optional SDDM
+- Plasma widgets, notifications, calendar, system tray and tooltips
+- Qt Widgets/Qt Quick Controls
+- full core icon coverage and controlled fallback
+- cursor, lock screen and optionally SDDM
 
-## Phase 4 — Verpackung
+## Phase 4 — packaging
 
-- `install.sh`, `uninstall.sh`, Versionsmanifest und Lizenzdateien
-- trockener Testlauf ohne Root-Rechte
-- Installation auf frischem Benutzerprofil
-- vollständige Entfernung mit Wiederherstellung der vorherigen Auswahl
+- `install.sh`, `uninstall.sh`, version manifest and licence files
+- dry run without root privileges
+- installation on a fresh user profile
+- complete removal with restoration of the previous selection
 
-## Visuelle Prüfmatrix
+## Visual test matrix
 
-| Prüfung | Erwartung | Fehlerbeispiel |
+| Check | Expectation | Failure example |
 |---|---|---|
-| 100 % Skalierung | Kanten exakt, Text nicht gequetscht | halbe Pixel, verschwommene SVGs |
-| 150 % Skalierung | Bevelstufen weiterhin klar | unterschiedlich dicke Rahmen |
-| 200 % Skalierung | Icons besitzen saubere optische Größen | hochskalierte 16-px-Rastergrafik |
-| aktives/inaktives Fenster | ohne Zögern unterscheidbar | nur minimal anderer Farbton |
-| Tastaturfokus | an jedem Widget sichtbar | Fokus nur bei Texteingaben |
-| Panel-Autohide | keine Fokusfalle, kein Flackern | Panel schließt beim Weg zum Subpanel |
-| Mehrmonitor | Popup bleibt vollständig sichtbar | Subpanel außerhalb des Bildschirms |
-| dunkler Terminalinhalt | Rahmen bleibt klar lesbar | schwarze Fläche verschluckt Dekoration |
+| 100 % scaling | edges exact, text not squashed | half pixels, blurry SVGs |
+| 150 % scaling | bevel steps still clear | frames of varying thickness |
+| 200 % scaling | icons have clean optical sizes | upscaled 16 px raster graphic |
+| active/inactive window | distinguishable without hesitation | only a slightly different hue |
+| keyboard focus | visible on every widget | focus only on text inputs |
+| panel autohide | no focus trap, no flicker | panel closes on the way to the subpanel |
+| multi-monitor | popup stays fully visible | subpanel off screen |
+| dark terminal content | frame stays clearly legible | black area swallows the decoration |
 
-## Funktionale Abnahmekriterien
+## Functional acceptance criteria
 
-- Plasma startet ohne QML- oder KWin-Fehler.
-- Kein Bestandteil benötigt Root-Rechte.
-- Wayland-Sitzung ist primär funktionsfähig.
-- Autohide und Subpanel lassen sich vollständig per Tastatur bedienen.
-- Deinstallation entfernt nur eigene Dateien.
-- Fallback-Icons fallen kontrolliert auf ein dokumentiertes Theme zurück; im sichtbaren Kernbereich gibt es keine Stilbrüche.
+- Plasma starts without QML or KWin errors.
+- No component needs root privileges.
+- The Wayland session is primarily functional.
+- Autohide and subpanels can be fully operated by keyboard.
+- Uninstalling removes only our own files.
+- Fallback icons fall back in a controlled way to a documented theme; there are no style breaks in the visible core area.
 
-## Screenshot-Vergleich
+## Screenshot comparison
 
-Für jeden Meilenstein denselben Testdesktop aufnehmen:
+Capture the same test desktop for every milestone:
 
-- Dateimanager links, Terminal rechts
-- aktiver und inaktiver Fenstertitel gleichzeitig sichtbar
-- geöffnetes Anwendungsmenü und ein Subpanel
-- vier Workspaces, Systemstatus und Uhr im Panel
-- Auflösung und Skalierungsfaktor im Dateinamen
+- file manager on the left, terminal on the right
+- active and inactive window titles visible at the same time
+- open application menu and one subpanel
+- four workspaces, system status and clock in the panel
+- resolution and scale factor in the file name
 
-Das LLM soll zu jedem Screenshot kurz auflisten: Abweichung, vermutete Ursache, betroffene Komponente und nächster Fix.
+For each screenshot the LLM should briefly list: deviation, suspected cause, affected component and next fix.

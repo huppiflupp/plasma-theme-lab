@@ -19,7 +19,7 @@ def icon_colours(P):
     """Role -> colour for palette colours P (palettes.theme)."""
     import palettes
     lum, mix = palettes.luminance, palettes.mix
-    face, field = P["flaeche"], P["fenster"]
+    face, field = P["surface"], P["window"]
     # Icons sit on the console face and on text fields (file managers): the
     # darker of the two decides.
     ref = face if lum(face) <= lum(field) else field
@@ -37,22 +37,22 @@ def icon_colours(P):
         return "#ffffff"
     # A dark outline everywhere: on a dark face the bodies turn light and the
     # outline separates them from it, as Copper's do on its mid face.
-    ink = mix(P["rahmen"], "#000000", 0.3) if dark else P["rahmen"]
+    ink = mix(P["border"], "#000000", 0.3) if dark else P["border"]
     if not dark and palettes.contrast(ink, face) < 3:
         ink = palettes.legible(ink, face, "#000000", 3)
-    teal = P["panel"] if palettes.contrast(P["panel"], face) >= 1.6 else P["dunkel"]
-    paper, pale, grey = field, P["karo"], face
+    teal = P["panel"] if palettes.contrast(P["panel"], face) >= 1.6 else P["dark"]
+    paper, pale, grey = field, P["checker"], face
     if dark:
         # Bodies as light as on a light palette, in the palette's hues.
-        paper, pale, grey = (mix(c, "#ffffff", 0.55) for c in (field, P["karo"], P["hell"]))
-    teal, copper = lift(teal, 1.6), lift(P["kopf_aktiv"], 1.5)
+        paper, pale, grey = (mix(c, "#ffffff", 0.55) for c in (field, P["checker"], P["light"]))
+    teal, copper = lift(teal, 1.6), lift(P["title_active"], 1.5)
     # Copper lines on a teal ground (the menu logo, the globe, the lock):
     # lifted together they would run into each other.
     if palettes.contrast(copper, teal) < 1.8:
         copper = palettes.legible(copper, teal, "#000000" if lum(teal) > 0.25 else "#ffffff", 1.8)
     return {"ink": ink, "teal": teal, "copper": copper,
             "paper": paper if lum(paper) > lum(ref) or not dark else mix(paper, "#ffffff", 0.6),
-            "pale": pale, "grey": grey, "light": P["hell"], "dark": mix(P["rahmen"], "#000000", 0.4)}
+            "pale": pale, "grey": grey, "light": P["light"], "dark": mix(P["border"], "#000000", 0.4)}
 
 
 def recolour(theme: Path, P):

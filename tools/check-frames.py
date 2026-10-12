@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Prueft, ob der Fensterrahmen bei jeder Rahmengroesse dicht ist.
+"""Checks whether the window frame is closed at every border size.
 
-Hintergrund: Stellt der Nutzer in den Systemeinstellungen eine groessere
-Rahmengroesse ein, meldet KWin einen breiteren Rand, als die Elemente
-left/right/bottom der decoration.svg zeichnen. Die Differenz faellt in
-das center-Feld. Ist das transparent, sieht man dort den Desktop - eine
-Luecke zwischen Rahmen und Fensterinhalt.
+Background: if the user picks a larger border size in System Settings,
+KWin reports a wider border than the left/right/bottom elements of
+decoration.svg draw. The difference falls into the center element. If
+that is transparent, the desktop shows through there - a gap between
+the frame and the window content.
 
-Das Skript nimmt einen Bildschirmfoto-Pfad und die Desktopfarbe und
-meldet, ob diese Farbe innerhalb des Fensterrechtecks noch vorkommt.
+The script takes a screenshot path and the desktop colour and reports
+whether that colour still appears inside the window rectangle.
 
-    ./check-frames.py bild.png --zeile 400
+    ./check-frames.py image.png --row 400
 """
 
 import argparse
@@ -18,84 +18,84 @@ import subprocess
 from pathlib import Path
 
 
-def zeile_lesen(bild: Path, y: int, breite: int):
-    """Liest eine Bildzeile als Liste von (r,g,b)."""
-    roh = subprocess.run(
-        ["magick", str(bild), "-crop", f"{breite}x1+0+{y}", "+repage",
+def read_row(image: Path, y: int, width: int):
+    """Reads one image row as a list of (r,g,b)."""
+    raw = subprocess.run(
+        ["magick", str(image), "-crop", f"{width}x1+0+{y}", "+repage",
          "-depth", "8", "txt:-"],
         capture_output=True, text=True, check=True).stdout
-    punkte = []
-    for z in roh.splitlines()[1:]:
+    points = []
+    for z in raw.splitlines()[1:]:
         # Format: "0,0: (192,192,192)  #C0C0C0  srgb(192,192,192)"
-        teil = z.split("(", 1)
-        if len(teil) < 2:
+        part = z.split("(", 1)
+        if len(part) < 2:
             continue
-        werte = teil[1].split(")", 1)[0].split(",")
-        punkte.append(tuple(int(w.strip()) for w in werte[:3]))
-    return punkte
+        values = part[1].split(")", 1)[0].split(",")
+        points.append(tuple(int(w.strip()) for w in values[:3]))
+    return points
 
 
-def laeufe(punkte, toleranz=6):
-    """Fasst gleiche Farben zu Laeufen zusammen: [(farbe, von, bis)]."""
-    if not punkte:
+def runs(points, tolerance=6):
+    """Groups equal colours into runs: [(colour, start, end)]."""
+    if not points:
         return []
-    aus = []
-    start, aktuell = 0, punkte[0]
-    for i, p in enumerate(punkte[1:], 1):
-        if max(abs(a - b) for a, b in zip(p, aktuell)) > toleranz:
-            aus.append((aktuell, start, i - 1))
-            start, aktuell = i, p
-    aus.append((aktuell, start, len(punkte) - 1))
-    return aus
+    out = []
+    start, current = 0, points[0]
+    for i, p in enumerate(points[1:], 1):
+        if max(abs(a - b) for a, b in zip(p, current)) > tolerance:
+            out.append((current, start, i - 1))
+            start, current = i, p
+    out.append((current, start, len(points) - 1))
+    return out
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("bild", type=Path)
-    ap.add_argument("--zeile", type=int, required=True,
-                    help="Bildzeile durch die Fenstermitte")
-    ap.add_argument("--breite", type=int, default=1920)
-    ap.add_argument("--toleranz", type=int, default=6)
+    ap.add_argument("image", type=Path)
+    ap.add_argument("--row", type=int, required=True,
+                    help="image row through the middle of the window")
+    ap.add_argument("--width", type=int, default=1920)
+    ap.add_argument("--tolerance", type=int, default=6)
     args = ap.parse_args()
 
-    punkte = zeile_lesen(args.bild, args.zeile, args.breite)
-    if not punkte:
-        print("Zeile nicht lesbar"); return 2
-    lf = laeufe(punkte, args.toleranz)
+    points = read_row(args.image, args.row, args.width)
+    if not points:
+        print("Row not readable"); return 2
+    rs = runs(points, args.tolerance)
 
-    # Die Desktopfarbe ist die des ersten Laufs - links vom Fenster ist
-    # immer Schreibtisch. Robuster als eine fest eingetragene Farbe, denn
-    # jede Variante hat einen anderen Hintergrund.
-    desktop = lf[0][0]
+    # The desktop colour is that of the first run - left of the window is
+    # always desktop. More robust than a hard-coded colour, because
+    # every variant has a different background.
+    desktop = rs[0][0]
 
-    # Fenster: vom Ende des ersten bis zum Anfang des letzten
-    # Desktop-Laufs.
-    desktop_laeufe = [l for l in lf
-                      if max(abs(a - b) for a, b in zip(l[0], desktop)) <= args.toleranz]
-    if len(desktop_laeufe) < 2:
-        print("Kein Fenster auf dieser Zeile erkannt"); return 2
-    links, rechts = desktop_laeufe[0][2], desktop_laeufe[-1][1]
+    # Window: from the end of the first to the start of the last
+    # desktop run.
+    desktop_runs = [l for l in rs
+                    if max(abs(a - b) for a, b in zip(l[0], desktop)) <= args.tolerance]
+    if len(desktop_runs) < 2:
+        print("No window detected on this row"); return 2
+    left, right = desktop_runs[0][2], desktop_runs[-1][1]
 
-    # Nur die Laeufe ZWISCHEN dem ersten und dem letzten sind Luecken.
-    # Der erste liegt links vom Fenster, der letzte rechts davon - beide
-    # sind normaler Schreibtisch und keine Fehler.
-    luecken = desktop_laeufe[1:-1]
-    luecken_start = {l[1] for l in luecken}
+    # Only the runs BETWEEN the first and the last are gaps.
+    # The first lies left of the window, the last right of it - both
+    # are plain desktop and not errors.
+    gaps = desktop_runs[1:-1]
+    gap_starts = {l[1] for l in gaps}
 
-    print(f"Desktopfarbe {desktop}, Fenster von x={links+1} bis x={rechts-1}")
-    print("Farbfolge:")
-    for farbe, von, bis in lf:
-        if bis < links or von > rechts:
+    print(f"Desktop colour {desktop}, window from x={left+1} to x={right-1}")
+    print("Colour sequence:")
+    for colour, start, end in rs:
+        if end < left or start > right:
             continue
-        n = bis - von + 1
-        marke = "   <-- LUECKE: Desktop scheint durch" if von in luecken_start else ""
-        print(f"  x={von:4d}..{bis:<4d} {n:3d}px  rgb{farbe}{marke}")
+        n = end - start + 1
+        mark = "   <-- GAP: desktop shows through" if start in gap_starts else ""
+        print(f"  x={start:4d}..{end:<4d} {n:3d}px  rgb{colour}{mark}")
     print()
-    if luecken:
-        print(f"FEHLER: {len(luecken)} Luecke(n) im Rahmen.")
+    if gaps:
+        print(f"ERROR: {len(gaps)} gap(s) in the frame.")
         return 1
-    print("Rahmen dicht.")
+    print("Frame closed.")
     return 0
 
 

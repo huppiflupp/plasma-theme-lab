@@ -34,12 +34,12 @@ def names():
 
 # Seamless material tiles (wallpapers/tiles, 1024², natural colour), keyed
 # by file stem; shown tinted with the palette like the patterns, or in
-# their natural colour on request.
-TILES = (("akustikschaum", "Akustikschaum"), ("buettenpapier", "Büttenpapier"), ("eisblumen", "Eisblumen"),
-         ("filz", "Filz"), ("flokati", "Flokati"), ("kies", "Kies"), ("kork", "Kork"), ("lava", "Lava"),
-         ("leder", "Leder"), ("leinen", "Leinen"), ("lochblech", "Lochblech"), ("moos", "Moos"),
-         ("rattan", "Rattan"), ("sand", "Sand"), ("schiefer", "Schiefer"), ("strick", "Strick"),
-         ("terrazzo", "Terrazzo"), ("travertin", "Travertin"), ("velours", "Velours"), ("wasser", "Wasser"))
+# their natural colour on request. The German names are in po/de.po.
+TILES = (("akustikschaum", "Acoustic Foam"), ("buettenpapier", "Handmade Paper"), ("eisblumen", "Frost Flowers"),
+         ("filz", "Felt"), ("flokati", "Flokati"), ("kies", "Gravel"), ("kork", "Cork"), ("lava", "Lava"),
+         ("leder", "Leather"), ("leinen", "Linen"), ("lochblech", "Perforated Metal"), ("moos", "Moss"),
+         ("rattan", "Rattan"), ("sand", "Sand"), ("schiefer", "Slate"), ("strick", "Knit"),
+         ("terrazzo", "Terrazzo"), ("travertin", "Travertine"), ("velours", "Velour"), ("wasser", "Water"))
 
 
 def tile_names():

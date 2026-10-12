@@ -1,104 +1,104 @@
 #!/usr/bin/env bash
-# Zieht das Konsole-Farbschema dem Globalen Design nach.
+# Makes the Konsole colour scheme follow the global theme.
 #
-#   ./konsole-follow.sh            # einmal nachziehen
-#   ./konsole-follow.sh --zeigen   # nur sagen, was es taete
+#   ./konsole-follow.sh            # update once
+#   ./konsole-follow.sh --show     # only say what it would do
 #
-# Warum es das braucht:
+# Why this is needed:
 #
-# Konsole folgt dem Farbschema des Systems nicht. Das ist keine Luecke
-# in diesem Theme, sondern eine Eigenschaft des Programms: Das Farbschema
-# eines Terminals steht im PROFIL, und ein Profil ist eine Datei, die
-# Konsole allein verwaltet. Plasma fasst sie beim Designwechsel nicht an,
-# und Konsole hat keinen Schalter "dem System folgen".
+# Konsole does not follow the system colour scheme. That is not a gap
+# in this theme but a property of the program: the colour scheme
+# of a terminal lives in the PROFILE, and a profile is a file that
+# Konsole alone manages. Plasma does not touch it when switching themes,
+# and Konsole has no "follow the system" switch.
 #
-# apply.sh stellt die Zeile deshalb selbst um. Nur: wer das Design ueber
-# Systemeinstellungen > Design wechselt, ruft apply.sh nie auf - und
-# genau das ist der uebliche Weg. Das Terminal blieb dann in der alten
-# Farbwelt stehen, waehrend alles andere umsprang.
+# apply.sh therefore switches the line itself. But: whoever switches the theme via
+# System Settings > Theme never calls apply.sh - and
+# that is exactly the usual route. The terminal then stayed in the old
+# colour world while everything else switched.
 #
-# Dieses Skript schliesst die Luecke. Es wird nicht dauernd ausgefuehrt,
-# sondern von einer systemd-Pfadeinheit angestossen, wenn Plasma seine
-# Vorgabendateien schreibt (siehe appearance.sh).
+# This script closes the gap. It does not run all the time,
+# but is kicked off by a systemd path unit when Plasma writes its
+# defaults files (see appearance.sh).
 #
-# Grenze, die bleibt: Ein BEREITS OFFENES Konsole-Fenster behaelt seine
-# Farben. Konsole liest das Profil beim Anlegen einer Sitzung; ein Weg,
-# ihm von aussen ein erneutes Einlesen zu befehlen, existiert nicht
-# (weder ueber D-Bus noch ueber ein Signal). Das naechste neue Fenster
-# oder Unterfenster kommt richtig.
+# A limit that remains: an ALREADY OPEN Konsole window keeps its
+# colours. Konsole reads the profile when a session is created; there is no way
+# to tell it from outside to re-read it
+# (neither via D-Bus nor via a signal). The next new window
+# or tab comes out right.
 
 set -euo pipefail
 
-HIER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DATEN="${XDG_DATA_HOME:-$HOME/.local/share}"
-KONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DATA="${XDG_DATA_HOME:-$HOME/.local/share}"
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
 
-ZEIGEN=false
-[ "${1:-}" = "--zeigen" ] && ZEIGEN=true
+SHOW=false
+[ "${1:-}" = "--show" ] && SHOW=true
 
-PROFIL="$DATEN/konsole/NT Legacy.profile"
+PROFILE="$DATA/konsole/NT Legacy.profile"
 
-# Die Zuordnung kommt aus build.py, nicht aus einer zweiten Liste hier.
-# Im Arbeitsbaum liegt sie neben diesem Skript, installiert unter
-# nt-legacy/. Fehlt sie, ist das kein Fehler des Nutzers, sondern ein
-# unvollstaendiges Paket - deshalb eine Meldung und kein stilles Ende.
-TABELLE=""
-for kandidat in "$HIER/konsole-variants.tsv" \
-                "$DATEN/nt-legacy/konsole-variants.tsv"; do
-    [ -f "$kandidat" ] && { TABELLE="$kandidat"; break; }
+# The mapping comes from build.py, not from a second list here.
+# In the working tree it sits next to this script, installed under
+# nt-legacy/. If it is missing, that is not the user's fault but an
+# incomplete package - hence a message and not a silent exit.
+TABLE=""
+for candidate in "$HERE/konsole-variants.tsv" \
+                 "$DATA/nt-legacy/konsole-variants.tsv"; do
+    [ -f "$candidate" ] && { TABLE="$candidate"; break; }
 done
-if [ -z "$TABELLE" ]; then
-    echo "konsole-follow: konsole-variants.tsv nicht gefunden." >&2
+if [ -z "$TABLE" ]; then
+    echo "konsole-follow: konsole-variants.tsv not found." >&2
     exit 1
 fi
 
-# Welches Globale Design gilt gerade?
+# Which global theme is currently active?
 #
-# ~/.config/kdedefaults/package ist die verlaesslichere Quelle: Plasma
-# schreibt sie beim Anwenden, und sie enthaelt genau eine Zeile mit der
-# Kennung. kdeglobals wird nachrangig gelesen - dort steht der Wert nur,
-# wenn ihn jemand ausdruecklich gesetzt hat (etwa apply.sh).
-DESIGN=""
-if [ -f "$KONFIG/kdedefaults/package" ]; then
-    DESIGN="$(tr -d '\r\n' < "$KONFIG/kdedefaults/package")"
+# ~/.config/kdedefaults/package is the more reliable source: Plasma
+# writes it when applying, and it contains exactly one line with the
+# ID. kdeglobals is read as a fallback - the value is only there
+# if someone has set it explicitly (such as apply.sh).
+THEME=""
+if [ -f "$CONFIG/kdedefaults/package" ]; then
+    THEME="$(tr -d '\r\n' < "$CONFIG/kdedefaults/package")"
 fi
-if [ -z "$DESIGN" ] && command -v kreadconfig6 >/dev/null; then
-    DESIGN="$(kreadconfig6 --file kdeglobals --group KDE \
-                           --key LookAndFeelPackage 2>/dev/null || true)"
+if [ -z "$THEME" ] && command -v kreadconfig6 >/dev/null; then
+    THEME="$(kreadconfig6 --file kdeglobals --group KDE \
+                          --key LookAndFeelPackage 2>/dev/null || true)"
 fi
-if [ -z "$DESIGN" ]; then
-    $ZEIGEN && echo "Kein Globales Design ermittelbar - nichts zu tun."
+if [ -z "$THEME" ]; then
+    $SHOW && echo "No global theme could be determined - nothing to do."
     exit 0
 fi
 
-SCHEMA="$(awk -F'\t' -v d="$DESIGN" '$1 == d { print $2; exit }' "$TABELLE")"
+SCHEME="$(awk -F'\t' -v d="$THEME" '$1 == d { print $2; exit }' "$TABLE")"
 
-# Ein fremdes Design ist der Normalfall, kein Fehler: Wer von NT Legacy
-# auf Breeze wechselt, soll sein Terminal behalten. Es waere uebergriffig,
-# ihm dann ein NT-Schema hineinzuschreiben - und genauso falsch, ihm das
-# Breeze-Schema aufzuzwingen, das er vielleicht nie wollte.
-if [ -z "$SCHEMA" ]; then
-    $ZEIGEN && echo "'$DESIGN' gehoert nicht zu NT Legacy - Profil bleibt."
+# A different theme is the normal case, not an error: whoever switches from NT Legacy
+# to Breeze should keep their terminal. It would be intrusive
+# to write an NT scheme into it then - and just as wrong to force
+# the Breeze scheme on them, which they may never have wanted.
+if [ -z "$SCHEME" ]; then
+    $SHOW && echo "'$THEME' does not belong to NT Legacy - profile stays."
     exit 0
 fi
 
-if [ ! -f "$PROFIL" ]; then
-    $ZEIGEN && echo "Profil '$PROFIL' fehlt - erst ./install.sh."
+if [ ! -f "$PROFILE" ]; then
+    $SHOW && echo "Profile '$PROFILE' is missing - run ./install.sh first."
     exit 0
 fi
 
-ALT="$(kreadconfig6 --file "$PROFIL" --group Appearance \
+OLD="$(kreadconfig6 --file "$PROFILE" --group Appearance \
                     --key ColorScheme 2>/dev/null || true)"
 
-if [ "$ALT" = "$SCHEMA" ]; then
-    $ZEIGEN && echo "Schon richtig: $DESIGN -> $SCHEMA"
+if [ "$OLD" = "$SCHEME" ]; then
+    $SHOW && echo "Already correct: $THEME -> $SCHEME"
     exit 0
 fi
 
-if $ZEIGEN; then
-    echo "Wuerde setzen: $DESIGN -> $SCHEMA (steht auf '${ALT:-nichts}')"
+if $SHOW; then
+    echo "Would set: $THEME -> $SCHEME (currently '${OLD:-nothing}')"
     exit 0
 fi
 
-kwriteconfig6 --file "$PROFIL" --group Appearance --key ColorScheme "$SCHEMA"
-echo "konsole-follow: $DESIGN -> $SCHEMA"
+kwriteconfig6 --file "$PROFILE" --group Appearance --key ColorScheme "$SCHEME"
+echo "konsole-follow: $THEME -> $SCHEME"

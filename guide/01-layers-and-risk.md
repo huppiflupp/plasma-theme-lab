@@ -1,270 +1,267 @@
-# 1. Die sieben Ebenen und ihr Risiko
+# 1. The seven layers and their risk
 
-„Ein Theme" gibt es in Plasma nicht. Es gibt sieben voneinander unabhängige
-Ebenen und ein Bündelpaket, das sie zusammenschaltet. Sie greifen **nicht**
-ineinander — jede kann für sich kaputt oder unvollständig sein, ohne dass
-die anderen es merken.
+There is no such thing as "a theme" in Plasma. There are seven independent
+layers and a bundle package that wires them together. They do **not**
+interlock: each one can be broken or incomplete on its own without the
+others noticing.
 
-Das ist der häufigste Anfängerfehler: Man ändert den Plasma Style und
-wundert sich, warum Dolphin unverändert aussieht. Der Plasma Style färbt
-die Shell. Dolphin ist eine Qt-App und hört auf eine ganz andere Ebene.
+This is the most common beginner mistake: you change the Plasma Style and
+wonder why Dolphin looks unchanged. The Plasma Style colors the shell.
+Dolphin is a Qt app and listens to a completely different layer.
 
 ---
 
-## 1.1 Die Übersicht
+## 1.1 The overview
 
-| # | Ebene | Ort (nutzerlokal) | Metadaten | Wirkt auf |
+| # | Layer | Location (per user) | Metadata | Affects |
 |---|---|---|---|---|
-| 1 | **Plasma Style** | `~/.local/share/plasma/desktoptheme/<name>/` | `metadata.json` | Panel, Plasmoids, Tooltips, OSD, Benachrichtigungen — **nur die Shell** |
-| 2 | **Farbschema** | `~/.local/share/color-schemes/<Name>.colors` | INI in der Datei selbst | Qt-Apps **und** Shell |
-| 3 | **Anwendungsstil** (QStyle) | Plugin `.so` | Plugin-JSON | **nur Qt-Widget-Apps** |
-| 4 | **Fensterdekoration** | `~/.local/share/aurorae/themes/<name>/` | `metadata.desktop` | Titelleisten, Rahmen |
-| 5 | **Symbole** | `~/.local/share/icons/<name>/` | `index.theme` | Icons überall |
-| 6 | **Mauszeiger** | `~/.local/share/icons/<name>/cursors/` | `index.theme` | Zeiger |
-| 7 | **Startbildschirm** (KSplash) | im Look-and-Feel-Paket | — | Ladebildschirm |
-| ★ | **Look-and-Feel** („Globales Design") | `~/.local/share/plasma/look-and-feel/<id>/` | `metadata.json` + `KPackageStructure` | bündelt 1–7 über `contents/defaults` |
+| 1 | **Plasma Style** | `~/.local/share/plasma/desktoptheme/<name>/` | `metadata.json` | Panel, plasmoids, tooltips, OSD, notifications — **the shell only** |
+| 2 | **Color scheme** | `~/.local/share/color-schemes/<Name>.colors` | INI inside the file itself | Qt apps **and** the shell |
+| 3 | **Application style** (QStyle) | Plugin `.so` | Plugin JSON | **Qt Widgets apps only** |
+| 4 | **Window decoration** | `~/.local/share/aurorae/themes/<name>/` | `metadata.desktop` | Title bars, borders |
+| 5 | **Icons** | `~/.local/share/icons/<name>/` | `index.theme` | Icons everywhere |
+| 6 | **Cursors** | `~/.local/share/icons/<name>/cursors/` | `index.theme` | Pointer |
+| 7 | **Splash screen** (KSplash) | inside the Look-and-Feel package | — | Loading screen |
+| ★ | **Look-and-Feel** ("Global Theme") | `~/.local/share/plasma/look-and-feel/<id>/` | `metadata.json` + `KPackageStructure` | bundles 1–7 via `contents/defaults` |
 
-Der frühere Name „Desktop Theme" für Ebene 1 ist überholt; die Oberfläche
-sagt heute **Plasma-Stil**. Der Verzeichnisname `desktoptheme` blieb.
+The former name "Desktop Theme" for layer 1 is outdated; the UI now says
+**Plasma Style**. The directory name `desktoptheme` stayed.
 
 ---
 
-## 1.2 Die entscheidende Frage: Wer färbt was?
+## 1.2 The key question: what colors what?
 
-Diese Verwirrung kostet die meiste Zeit. Sortiert nach dem, was du siehst:
+This confusion costs the most time. Sorted by what you see:
 
-| Was du färben willst | Zuständige Ebene |
+| What you want to color | Responsible layer |
 |---|---|
-| Panel / Taskleiste | Plasma Style (`widgets/panel-background.svg`) |
-| Anwendungsstarter, Widgets im Panel | Plasma Style |
-| Benachrichtigungen, Tooltips, OSD | Plasma Style |
-| Titelleiste eines Fensters | Fensterdekoration (Aurorae) |
-| Menüleiste und Werkzeugleiste **in** Dolphin | Anwendungsstil + Farbschema |
-| Buttons und Eingabefelder **in** Dolphin | Anwendungsstil (QStyle) |
-| Systemeinstellungen, Discover (QML/Kirigami) | Farbschema — **nicht** der Anwendungsstil |
-| Sperrbildschirm | Shell-Paket (**nicht** mehr Look-and-Feel, s. 1.4) |
-| Anmeldebildschirm | Login-Manager (s. 1.5) |
+| Panel / taskbar | Plasma Style (`widgets/panel-background.svg`) |
+| Application launcher, widgets in the panel | Plasma Style |
+| Notifications, tooltips, OSD | Plasma Style |
+| A window's title bar | Window decoration (Aurorae) |
+| Menu bar and toolbar **inside** Dolphin | Application style + color scheme |
+| Buttons and input fields **inside** Dolphin | Application style (QStyle) |
+| System Settings, Discover (QML/Kirigami) | Color scheme — **not** the application style |
+| Lock screen | Shell package (**no longer** Look-and-Feel, see 1.4) |
+| Login screen | Login manager (see 1.5) |
 
-Der Anwendungsstil ist kompilierter C++-Code (`KStyle`/`QCommonStyle`), kein
-Datenformat. Man kann ihn nicht „malen". Wer echte eigene Buttons in
-Qt-Apps will, hat drei Optionen: Breeze/Fusion akzeptieren,
-[Kvantum](#kvantum) nehmen, oder einen QStyle forken.
+The application style is compiled C++ code (`KStyle`/`QCommonStyle`), not a
+data format. You cannot "paint" it. If you want truly custom buttons in Qt
+apps, you have three options: accept Breeze/Fusion, use
+[Kvantum](#kvantum), or fork a QStyle.
 
 ### Kvantum
 
-[Kvantum](https://github.com/tsujan/Kvantum) ist ein QStyle, der sein
-Aussehen aus SVG + INI zieht — der einzige realistische Weg zu eigenen
-Qt-Widgets ohne C++. Aktiv gepflegt (Stand 2026-08).
+[Kvantum](https://github.com/tsujan/Kvantum) is a QStyle that takes its
+appearance from SVG + INI — the only realistic path to custom Qt widgets
+without C++. Actively maintained (as of 2026-08).
 
-**Aber:** Kvantum färbt *nur* Qt-Widget-Apps. Plasma-Shell, Panel,
-Plasmoids, KRunner und die Systemeinstellungen bleiben unberührt — die
-kommen aus dem Plasma Style bzw. dem Farbschema.
+**But:** Kvantum colors *only* Qt Widgets apps. Plasma shell, panel,
+plasmoids, KRunner and System Settings stay untouched; they come from the
+Plasma Style or the color scheme.
 
-Kvantum ist eine externe Abhängigkeit, die der Nutzer installiert haben
-muss. Setzt dein `contents/defaults` `widgetStyle=kvantum` und Kvantum
-fehlt, landet der Nutzer bei einem ungestylten Fallback. **Als optionale
-Zusatzkomponente sinnvoll, als Pflichtbestandteil nicht.** WhiteSur und
-Colloid machen es genau so: Kvantum liegt bei, wird aber separat installiert.
+Kvantum is an external dependency the user must have installed. If your
+`contents/defaults` sets `widgetStyle=kvantum` and Kvantum is missing, the
+user ends up with an unstyled fallback. **Useful as an optional add-on, not
+as a required part.** WhiteSur and Colloid do exactly that: Kvantum is
+included but installed separately.
 
-### Bevor du zu Kvantum greifst: miss nach, was wirklich nicht passt
+### Before you reach for Kvantum: measure what really does not fit
 
-Ein einzelnes schlecht aussehendes Widget verleitet dazu, gleich den ganzen
-Widget-Stil ersetzen zu wollen. Meistens lohnt das nicht — und man tauscht
-ein Ärgernis gegen zwanzig neue ein, weil dann *alle* Widgets neu gezeichnet
-werden müssen.
+A single bad-looking widget tempts you to replace the whole widget style.
+Usually that is not worth it, and you trade one annoyance for twenty new
+ones, because then *all* widgets have to be redrawn.
 
-`tools/widget-test-window.py` zeigt alle Qt-Standardwidgets in einem Fenster
-und speichert es als Bild:
+`tools/widget-test-window.py` shows all standard Qt widgets in one window
+and saves it as an image:
 
 ```bash
-./widget-test-window.py --stil Windows --bild /tmp/win.png
-./widget-test-window.py --stil Breeze  --bild /tmp/breeze.png
+./widget-test-window.py --style Windows --image /tmp/win.png
+./widget-test-window.py --style Breeze  --image /tmp/breeze.png
 ```
 
-Unterscheiden sich die Bilder an einer Stelle, entscheidet dort der
-Widget-Stil. Sehen sie gleich aus, zeichnet die Anwendung selbst — dann
-hilft auch ein Stilwechsel nicht.
+Where the images differ, the widget style decides. Where they look the same,
+the application draws by itself, and switching styles will not help either.
 
-Für NT Legacy war das Ergebnis eindeutig: Der Stil „MS Windows 9x"
-(`widgetStyle=Windows`) zeichnet **alles** passend — eckige Knöpfe mit
-3D-Kante, eckige Ankreuzfelder, versenkte Eingabefelder, gestreifte
-Bildlaufleisten. Fortschrittsbalken sogar als klassische Blöcke in der
-Selektionsfarbe, also genau richtig.
+For NT Legacy the result was clear: the "MS Windows 9x" style
+(`widgetStyle=Windows`) draws **everything** right — square buttons with a
+3D edge, square checkboxes, sunken input fields, striped scroll bars.
+Progress bars even appear as classic blocks in the selection color, exactly
+as they should.
 
-### Der Ausreißer: Widgets, die sich selbst zeichnen
+### The outlier: widgets that draw themselves
 
-Dolphins Speicheranzeige („21,0 GiB frei") sieht trotzdem falsch aus — eine
-silberne Kapsel mit weichem Verlauf. Sie ist **kein** `QProgressBar`,
-sondern `KCapacityBar` aus KWidgetsAddons, und die zeichnet ihre Form selbst
-statt über den Stil.
+Dolphin's capacity indicator ("21.0 GiB free") still looks wrong — a silver
+capsule with a soft gradient. It is **not** a `QProgressBar` but
+`KCapacityBar` from KWidgetsAddons, and it draws its shape itself instead of
+going through the style.
 
-Der Test, der das beweist: Selektionsfarbe testweise auf Knallrot setzen.
-Listenauswahl und markierte Icons werden rot, der Balken bleibt silbern —
-er ignoriert die Palette. Solche Widgets erreicht **keine** Theme-Ebene;
-dagegen hilft nur ein Patch der Bibliothek.
+The test that proves it: set the selection color to bright red as a trial.
+List selections and highlighted icons turn red, the bar stays silver — it
+ignores the palette. **No** theme layer reaches such widgets; only a patch
+to the library helps.
 
-**Merke:** „Sieht falsch aus" hat drei mögliche Ursachen, und sie brauchen
-verschiedene Werkzeuge — Plasma Style (Shell), Widget-Stil (Qt-Widgets),
-oder die Anwendung selbst. Erst zuordnen, dann arbeiten.
+**Remember:** "looks wrong" has three possible causes, and they need
+different tools: Plasma Style (shell), widget style (Qt widgets), or the
+application itself. Assign first, then work.
 
 ---
 
-## 1.3 Risikoklassen — die wichtigste Tabelle im ganzen Leitfaden
+## 1.3 Risk classes — the most important table in the whole guide
 
-| Ebene | Risiko | Warum |
+| Layer | Risk | Why |
 |---|---|---|
-| Plasma Style | **niedrig** | Fallback auf `default` ist fest im Code verdrahtet |
-| Farbschema | **niedrig** | schlimmstenfalls unleserlich, per CLI umkehrbar |
-| Anwendungsstil | niedrig | fehlendes Plugin → Fusion |
-| Fensterdekoration | **mittel** | nur bei ungültiger `library`; ein ins Leere zeigender *Themename* lässt Fenster **ganz ohne Titelleiste** — s. u. |
-| Symbole / Mauszeiger | niedrig | Fallback über `Inherits` bzw. `hicolor` |
-| Look-and-Feel | **mittel** | schreibt in `kdeglobals`/`kwinrc`; ein Layout-Skript löscht Panels |
-| **Login-Manager** | **hoch** | systemweit, greift *vor* dem Login → schwarzer Bildschirm ohne GUI-Rettung |
-| **Plymouth / GRUB** | **hoch** | initramfs bzw. Bootloader — schlimmstenfalls startet der Rechner nicht mehr |
+| Plasma Style | **low** | Fallback to `default` is hard-wired in the code |
+| Color scheme | **low** | at worst unreadable, reversible via CLI |
+| Application style | low | missing plugin → Fusion |
+| Window decoration | **medium** | only with an invalid `library`; a *theme name* that points nowhere leaves windows **with no title bar at all** — see below |
+| Icons / cursors | low | Fallback via `Inherits` or `hicolor` |
+| Look-and-Feel | **medium** | writes to `kdeglobals`/`kwinrc`; a layout script deletes panels |
+| **Login manager** | **high** | system-wide, acts *before* login → black screen with no GUI rescue |
+| **Plymouth / GRUB** | **high** | initramfs or bootloader — at worst the computer no longer boots |
 
-**Die Trennlinie verläuft zwischen Zeile 6 und 7.** Alles darüber lebt in
-`$HOME` und ist aus einem TTY in einer Minute repariert. Alles darunter
-läuft, bevor du dich anmelden kannst.
+**The dividing line runs between rows 6 and 7.** Everything above it lives
+in `$HOME` and can be repaired from a TTY in a minute. Everything below it
+runs before you can log in.
 
-Praktische Konsequenz für dein Projekt:
+Practical consequence for your project:
 
 ```
 theme/
-├── install.sh            # nur $HOME, kein sudo, jederzeit ausprobierbar
-└── risky/                # eigener Ordner, eigene Warnung, Default = nein
+├── install.sh            # $HOME only, no sudo, safe to try at any time
+└── risky/                # separate folder, separate warning, default = no
     ├── install-sddm.sh
     ├── install-plymouth.sh
     └── install-grub.sh
 ```
 
-Ein `install.sh`, das nach `sudo` fragt und im selben Durchlauf GRUB
-anfasst, ist unabhängig von seiner Codequalität ein Konstruktionsfehler.
+An `install.sh` that asks for `sudo` and touches GRUB in the same run is a
+design flaw, regardless of its code quality.
 
-### Und: ein Theme setzt kein Aussehen fremder Programme
+### Also: a theme does not set the appearance of other programs
 
-Manches, was man dem Theme anlasten würde, ist eine Einstellung der
-Anwendung. Dolphins Statusleiste etwa erscheint seit einiger Zeit als
-schwebendes Kästchen unten links statt als durchgehende Leiste — das sieht
-neben einem eckigen Retro-Theme nach Fehler aus, ist aber die Vorgabe
-`ShowStatusBar=Small` aus `dolphinrc`. Mit Breeze sieht es identisch aus.
+Some things you would blame on the theme are a setting of the application.
+Dolphin's status bar, for example, has for some time appeared as a floating
+box at the bottom left instead of a full-width bar. Next to a square retro
+theme this looks like a bug, but it is the default `ShowStatusBar=Small`
+from `dolphinrc`. With Breeze it looks identical.
 
-**Der Test, der solche Verwechslungen auflöst:** denselben Screenshot einmal
-mit `widgetStyle=Breeze` machen. Sieht es dort genauso aus, liegt es nicht
-am Theme.
+**The test that resolves such mix-ups:** take the same screenshot once with
+`widgetStyle=Breeze`. If it looks the same there, the theme is not the
+cause.
 
-Die Versuchung ist dann, den Wert einfach in `apply.sh` mitzusetzen. Genau
-das nicht: Wer ein Design ausprobiert, rechnet nicht damit, dass hinterher
-seine Dolphin-Konfiguration eine andere ist — und findet den Zusammenhang
-später nie. Solche Eingriffe gehören in ein **eigenes, ausdrücklich
-aufgerufenes Skript mit vollständigem Rückweg** (in diesem Projekt:
-`nt-legacy/appearance.sh`). Dabei muss die Sicherung zwischen „war nicht
-gesetzt" und „war auf den Vorgabewert gesetzt" unterscheiden — sonst steht
-nach dem Zurücksetzen ein Wert dort, den der Nutzer nie gewählt hat.
+The temptation then is to simply set the value in `apply.sh` as well. Do not
+do exactly that: someone trying out a theme does not expect their Dolphin
+configuration to be different afterwards, and will never find the
+connection later. Such changes belong in a **separate, explicitly invoked
+script with a complete way back** (in this project: `nt-legacy/appearance.sh`).
+The backup must distinguish between "was not set" and "was set to the
+default value"; otherwise, after resetting, a value is left there that the
+user never chose.
 
 ---
 
-## 1.4 Plasma ist robuster als sein Ruf — vier Sicherheitsnetze
+## 1.4 Plasma is more robust than its reputation — four safety nets
 
-Es hilft zu wissen, was Plasma von sich aus abfängt. Das schont die Nerven
-und verhindert, dass man Schutzmechanismen nachbaut, die es schon gibt.
+It helps to know what Plasma catches on its own. That saves your nerves and
+keeps you from rebuilding protections that already exist.
 
-**Fehlende SVG-Datei → Breeze.** [Quelle: `ksvg/src/ksvg/private/imageset_p.cpp`]
-Die Fallback-Kette ist hart auf `default` verdrahtet:
+**Missing SVG file → Breeze.** [source: `ksvg/src/ksvg/private/imageset_p.cpp`]
+The fallback chain is hard-wired to `default`:
 ```cpp
 fallbackImageSets = {ImageSetPrivate::defaultImageSet};   // "default"
 ```
-Ein konfigurierbarer Fallback existiert **nicht** mehr. Die Doku auf
-develop.kde.org nennt weiterhin `[Settings] FallbackTheme=oxygen` in der
-`plasmarc` — dieser Schlüssel wird im aktuellen Code nirgends gelesen.
+A configurable fallback **no longer** exists. The documentation on
+develop.kde.org still mentions `[Settings] FallbackTheme=oxygen` in
+`plasmarc`; this key is not read anywhere in the current code.
 
-**Fehlende Element-ID → stiller Verzicht.** [Quelle: `ksvg` `FrameSvg::hasElementPrefix()`]
-Geprüft wird ausschließlich, ob `<prefix>-center` existiert. Fehlt es, wird
-der Präfix leer gesetzt. Kein Absturz — aber auch **keine Warnung**. Genau
-deshalb braucht man einen [eigenen Linter](05-testing.md#stufe-1-statische-prüfungen).
+**Missing element ID → silently skipped.** [source: `ksvg` `FrameSvg::hasElementPrefix()`]
+The only check is whether `<prefix>-center` exists. If it is missing, the
+prefix is set to empty. No crash, but also **no warning**. That is exactly
+why you need a [linter of your own](05-testing.md#51-stage-1--static-checks).
 
-**Plasmashell-Absturzschleife ist gedeckelt.** [geprüft]
+**The plasmashell crash loop is capped.** [verified]
 `/usr/lib/systemd/user/plasma-plasmashell.service`:
 ```ini
 StartLimitIntervalSec=60s
 StartLimitBurst=3
 ExecStart=/usr/bin/plasmashell --no-respawn
 ```
-Nach drei Fehlstarts in 60 Sekunden gibt systemd auf. Es gibt keine
-endlose Schleife. KWin und die Session laufen weiter — nur Panel und
-Desktop fehlen. Fenstertastenkürzel funktionieren noch.
+After three failed starts within 60 seconds, systemd gives up. There is no
+endless loop. KWin and the session keep running; only the panel and desktop
+are missing. Window keyboard shortcuts still work.
 
-**Der Sperrbildschirm kann niemanden aussperren.** [Quelle: `kscreenlocker/greeter/greeterapp.cpp`]
+**The lock screen cannot lock anyone out.** [source: `kscreenlocker/greeter/greeterapp.cpp`]
 ```cpp
 // on error, load the fallback lockscreen to not lock the user out of the system
 static const QUrl fallbackUrl(QStringLiteral("qrc:/fallbacktheme/LockScreen.qml"));
 ```
-Der Fallback ist in die Binärdatei einkompiliert.
+The fallback is compiled into the binary.
 
-### Wichtig: Der Sperrbildschirm gehört nicht mehr ins Look-and-Feel-Paket
+### Important: the lock screen no longer belongs in the Look-and-Feel package
 
-Das ist die folgenreichste Plasma-6-Änderung für Theme-Autoren.
-[Quelle: `greeterapp.cpp`, geprüft an `/usr/share/plasma/shells/`]
+This is the Plasma 6 change with the biggest consequences for theme authors.
+[source: `greeterapp.cpp`, verified against `/usr/share/plasma/shells/`]
 
-Der Sperrbildschirm wird aus dem **Shell**-Paket geladen:
+The lock screen is loaded from the **shell** package:
 ```
 /usr/share/plasma/shells/org.kde.plasma.desktop/contents/lockscreen/
 ```
-Das Look-and-Feel-Paketformat kennt **keinen** `lockscreen`-Ordner mehr —
-nur noch `previews/lockscreen.png`, also das Vorschaubild.
+The Look-and-Feel package format **no longer** has a `lockscreen` folder,
+only `previews/lockscreen.png`, i.e. the preview image.
 
-**Ein `look-and-feel/<x>/contents/lockscreen/LockScreen.qml` ist unter
-Plasma 6 toter Code.** Er wird nie geladen. Die Portierungsseite auf
-develop.kde.org erwähnt ihn noch; das ist veraltet.
+**A `look-and-feel/<x>/contents/lockscreen/LockScreen.qml` is dead code under
+Plasma 6.** It is never loaded. The porting page on develop.kde.org still
+mentions it; that is outdated.
 
 ---
 
-## 1.5 Der Login-Manager hat sich 2025/26 geändert
+## 1.5 The login manager changed in 2025/26
 
-Auf Fedora 44, Nobara 44 und KDE Linux ist **SDDM nicht mehr installiert**.
-An seiner Stelle läuft der **Plasma Login Manager** (`plasmalogin`), ein
-SDDM-Fork, den KDE seit etwa Plasma 6.6 selbst pflegt. [geprüft]
+On Fedora 44, Nobara 44 and KDE Linux, **SDDM is no longer installed**.
+In its place runs the **Plasma Login Manager** (`plasmalogin`), an SDDM fork
+that KDE has maintained itself since roughly Plasma 6.6. [verified]
 
 ```console
 $ readlink -f /etc/systemd/system/display-manager.service
 /usr/lib/systemd/system/plasmalogin.service
 $ rpm -q sddm
-Das Paket sddm ist nicht installiert
+package sddm is not installed
 ```
 
-Seine Konfiguration liegt in `/etc/plasmalogin.conf` und hat **keine
-`[Theme]`-Sektion**. Unter `/usr/share/plasmalogin/` gibt es kein
-`themes/`-Verzeichnis.
+Its configuration lives in `/etc/plasmalogin.conf` and has **no `[Theme]`
+section**. There is no `themes/` directory under `/usr/share/plasmalogin/`.
 
-**Konsequenz: Der Plasma Login Manager unterstützt keine QML-Themes.**
-Konfigurierbar ist im Wesentlichen das Hintergrundbild.
+**Consequence: the Plasma Login Manager does not support QML themes.**
+Essentially only the background image is configurable.
 
-Wenn dein Projekt ein SDDM-Theme mitbringt, braucht es deshalb eine
-Erkennung — sonst kopierst du Dateien in ein Verzeichnis, das niemand liest:
+If your project ships an SDDM theme, it therefore needs detection; otherwise
+you copy files into a directory nobody reads:
 
 ```bash
 if [ -f /usr/lib/systemd/system/plasmalogin.service ]; then
-    echo "Dieses System nutzt den Plasma Login Manager."
-    echo "Er unterstützt keine QML-Themes - der Anmeldebildschirm bleibt unverändert."
-    echo "Konfigurierbar ist nur das Hintergrundbild."
+    echo "This system uses the Plasma Login Manager."
+    echo "It does not support QML themes - the login screen stays unchanged."
+    echo "Only the background image is configurable."
 elif [ -f /usr/lib/systemd/system/sddm.service ]; then
-    # klassischer SDDM-Pfad
-    sudo cp -r sddm/mein-theme /usr/share/sddm/themes/
+    # classic SDDM path
+    sudo cp -r sddm/my-theme /usr/share/sddm/themes/
 fi
 ```
 
-Ob KDE für den Plasma Login Manager perspektivisch Themes vorsieht, ist
-offen. **[unsicher]**
+Whether KDE will eventually support themes for the Plasma Login Manager is
+open. **[uncertain]**
 
 ---
 
-## 1.6 Fensterdekoration: KDecoration3, aber Konfigschlüssel `kdecoration2`
+## 1.6 Window decoration: KDecoration3, but config key `kdecoration2`
 
-Eine Stolperfalle, die viel Zeit kostet. Plasma 6 nutzt **KDecoration3** —
-das Plugin-Verzeichnis heißt `/usr/lib64/qt6/plugins/org.kde.kdecoration3/`.
-[geprüft]
+A pitfall that costs a lot of time. Plasma 6 uses **KDecoration3**; the
+plugin directory is `/usr/lib64/qt6/plugins/org.kde.kdecoration3/`.
+[verified]
 
-**Der Konfigurationsschlüssel heißt aber weiterhin `org.kde.kdecoration2`.**
-[Quelle: `kwin/src/decorations/decorationbridge.cpp`]
+**The configuration key, however, is still `org.kde.kdecoration2`.**
+[source: `kwin/src/decorations/decorationbridge.cpp`]
 
 ```cpp
 static const QString s_pluginName    = QStringLiteral("org.kde.kdecoration3");
@@ -272,106 +269,106 @@ static const QString s_configKeyName = QStringLiteral("org.kde.kdecoration2");
 static const QString s_defaultPlugin = QStringLiteral("org.kde.breeze");
 ```
 
-Lokal bestätigt:
+Confirmed locally:
 ```console
 $ kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key library
 org.kde.breeze
 $ kreadconfig6 --file kwinrc --group org.kde.kdecoration3 --key library
-              # leer
+              # empty
 ```
 
-**Wer in `contents/defaults` `[kwinrc][org.kde.kdecoration3]` schreibt,
-erreicht nichts.** Die Gruppe muss `org.kde.kdecoration2` heißen — auch
-2026, auch unter KDecoration3.
+**If you write `[kwinrc][org.kde.kdecoration3]` in `contents/defaults`, you
+achieve nothing.** The group must be called `org.kde.kdecoration2` — even in
+2026, even under KDecoration3.
 
-### Welche Aurorae-Engine gehört in `defaults`? — `org.kde.kwin.aurorae`, nicht `.v2`
+### Which Aurorae engine goes into `defaults`? — `org.kde.kwin.aurorae`, not `.v2`
 
-Es gibt zwei: die klassische (`org.kde.kwin.aurorae`) und die
-KDecoration3-native (`org.kde.kwin.aurorae.v2`). Die naheliegende Wahl für
-ein neues Theme wäre `.v2`. **Sie ist falsch.**
+There are two: the classic one (`org.kde.kwin.aurorae`) and the
+KDecoration3-native one (`org.kde.kwin.aurorae.v2`). The obvious choice for
+a new theme would be `.v2`. **It is wrong.**
 
-`.v2` gibt es erst ab **Plasma 6.6**. Auf 6.0 bis 6.5 schlägt das Laden
-fehl, und KWin greift auf seine Fallback-Kette zurück
-(`decorations/decorationbridge.cpp`):
+`.v2` only exists from **Plasma 6.6** on. On 6.0 to 6.5, loading fails and
+KWin falls back to its fallback chain (`decorations/decorationbridge.cpp`):
 
 ```cpp
 if (!initPlugin(pluginId)) {
     if (s_defaultPlugin != pluginId) initPlugin(s_defaultPlugin);  // "org.kde.breeze"
 ```
 
-Der Nutzer bekommt also **Breeze-Fensterrahmen — ohne Fehlermeldung**. Auf
-dem eigenen aktuellen System sieht man das nie.
+So the user gets **Breeze window borders, with no error message**. On your
+own up-to-date system you never see this.
 
-Umgekehrt kostet die v1-Angabe auf neuen Systemen nichts: KWin schreibt
-die Zeile beim Sitzungsstart selbst hoch (`migrateAuroraeTheme`, vorhanden
-ab Plasma 6.6). In der Test-VM nachgeprüft, Plasma 6.7:
+Conversely, the v1 setting costs nothing on new systems: KWin upgrades the
+line itself at session start (`migrateAuroraeTheme`, present from
+Plasma 6.6 on). Verified in the test VM, Plasma 6.7:
 
 ```console
 $ kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 \
       --key library org.kde.kwin.aurorae
-$ # ... Neustart ...
+$ # ... restart ...
 $ kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key library
 org.kde.kwin.aurorae.v2
 ```
 
-**Also `org.kde.kwin.aurorae` eintragen und KWin die Migration überlassen.**
-Das ist auf jeder Version richtig — auf alten funktioniert es, auf neuen
-wird es automatisch zu `.v2`.
+**So enter `org.kde.kwin.aurorae` and leave the migration to KWin.** This is
+correct on every version: on old ones it works, on new ones it automatically
+becomes `.v2`.
 
-Aurorae-Themes nutzen weiterhin `metadata.desktop`. Das ist hier **kein**
-Legacy, sondern das vorgesehene Format:
+Aurorae themes still use `metadata.desktop`. Here this is **not** legacy but
+the intended format:
 
 ```ini
 [Desktop Entry]
-Name=Mein Theme
+Name=My Theme
 Type=Service
 X-KDE-ServiceTypes=KWin/Decoration
 X-KDE-Library=kwin3_aurorae
-X-KDE-PluginInfo-Name=__aurorae__svg__MeinTheme
+X-KDE-PluginInfo-Name=__aurorae__svg__MyTheme
 X-KDE-PluginInfo-Version=1.0
 ```
 
-Der Präfix `__aurorae__svg__` ist Pflicht und muss dem Ordnernamen folgen.
+The prefix `__aurorae__svg__` is mandatory and must be followed by the
+folder name.
 
-### Das `center`-Feld der `decoration.svg` darf nicht transparent sein
+### The `center` area of `decoration.svg` must not be transparent
 
-Die naheliegende Annahme: Die Mitte der Dekoration liegt vollständig unter
-dem Fensterinhalt, also kann sie leer bleiben. Das stimmt genau so lange,
-wie der Nutzer die Rahmengröße nicht anfasst.
+The obvious assumption: the middle of the decoration lies entirely under the
+window content, so it can stay empty. That holds exactly as long as the user
+does not touch the border size.
 
-Stellt er sie in *Systemeinstellungen → Fensterdekorationen → Rahmengröße*
-hoch, meldet KWin einen breiteren Rand, als die Elemente
-`left`/`right`/`bottom` zeichnen — diese behalten ihre natürliche Breite
-aus der SVG. Die Differenz fällt ins `center`-Feld. Die Aurorae-Doku sagt
-das ausdrücklich:
+If they increase it in *System Settings → Window Decorations → Border size*,
+KWin reports a wider border than the `left`/`right`/`bottom` elements draw;
+these keep their natural width from the SVG. The difference falls into the
+`center` area. The Aurorae documentation says so explicitly:
 
-> „the borders may extend into the center element if the border size is
+> "the borders may extend into the center element if the border size is
 > changed"
 > — [develop.kde.org/docs/plasma/aurorae](https://develop.kde.org/docs/plasma/aurorae/)
 
-War `center` transparent, sieht man dort den **Desktop durchscheinen** —
-eine Lücke zwischen Rahmen und Fensterinhalt. Gemessen bei `BorderSize=Large`
-und 4 px Rahmenbreite:
+If `center` was transparent, you see the **desktop shining through** there:
+a gap between the border and the window content. Measured at
+`BorderSize=Large` and a 4 px border width:
 
 ```
-x=76      schwarz     Außenkante
-x=77      weiß        Hellkante
-x=78..79  grau 192    Rahmenfläche   ← nur 4 px gezeichnet
-x=80..81  türkis      LÜCKE          ← KWin reserviert 6 px
-x=82+     weiß        Fensterinhalt
+x=76      black       outer edge
+x=77      white       highlight edge
+x=78..79  gray 192    border area    ← only 4 px drawn
+x=80..81  teal        GAP            ← KWin reserves 6 px
+x=82+     white       window content
 ```
 
-Also: `center` mit der Rahmenfläche füllen. Der Preis ist, dass man bei
-einem durchscheinenden Fenster diese Fläche statt des Desktops sieht — für
-ein deckendes Theme der richtige Tausch.
+So: fill `center` with the border area. The price is that with a
+translucent window you see this area instead of the desktop, which is the
+right trade for an opaque theme.
 
-**Zum Testen:** `BorderSize` wirkt **nicht** über
-`qdbus org.kde.KWin /KWin reconfigure`. KWin übernimmt die Rahmengröße erst
-beim Laden der Dekoration, also beim Sitzungsstart. Wer ohne Neuanmeldung
-misst, prüft achtmal denselben Zustand und hält das Ergebnis für Erfolg.
-`tools/check-frames.py` misst die Farbfolge quer durchs Fenster und meldet
-jede Stelle, an der die Desktopfarbe innerhalb des Fensters wieder auftaucht.
+**For testing:** `BorderSize` does **not** take effect via
+`qdbus org.kde.KWin /KWin reconfigure`. KWin only picks up the border size
+when loading the decoration, i.e. at session start. If you measure without
+logging in again, you check the same state eight times and take the result
+for success. `tools/check-frames.py` measures the color sequence across the
+window and reports every spot where the desktop color shows up again inside
+the window.
 
 ---
 
-**Weiter:** [Kapitel 2 — Plasma Style](02-plasma-style.md)
+**Next:** [Chapter 2 — Plasma Style](02-plasma-style.md)

@@ -29,9 +29,9 @@ L = {
      light="Sunrise, warm sandstone glowing above the fog, soft pastel sky.",
      dark="Night, the sandstone pillars as dark silhouettes above moonlit fog, stars above."),
 }
-def prompt(k, mode="hell"):
-    d = L[k]; return STYLE + d["scene"] + " " + (d["light"] if mode == "hell" else d["dark"]) + END
+def prompt(k, mode="light"):
+    d = L[k]; return STYLE + d["scene"] + " " + (d["light"] if mode == "light" else d["dark"]) + END
 if __name__ == "__main__":
     import sys
     seeds = [int(s) for s in sys.argv[1].split(",")]
-    print(json.dumps([{"name": f"land_{k}_hell_{s}", "prompt": prompt(k), "seed": s} for k in L for s in seeds]))
+    print(json.dumps([{"name": f"land_{k}_light_{s}", "prompt": prompt(k), "seed": s} for k in L for s in seeds]))

@@ -1,63 +1,63 @@
 #!/usr/bin/env bash
-# Spielt ein Theme in der Test-VM durch und haelt fest, was passiert.
+# Runs a theme through the test VM and records what happens.
 #
-#   ./run-theme-test.sh <theme-verzeichnis> [<installbefehl>]
+#   ./run-theme-test.sh <theme-directory> [<install-command>]
 #
-# Ablauf: zurueck auf den Snapshot 'clean' -> Theme hineinkopieren ->
-# installieren -> anwenden -> Screenshot -> neu starten -> Screenshot ->
-# deinstallieren -> pruefen, ob der Ausgangszustand wieder da ist.
+# Sequence: back to the snapshot 'clean' -> copy the theme in ->
+# install -> apply -> screenshot -> reboot -> screenshot ->
+# uninstall -> check whether the initial state is back.
 #
-# Der Neustart ist der wichtigste Schritt und wird am haeufigsten
-# uebersprungen: Ein kaputtes Theme faellt meist erst beim naechsten
-# Anmelden auf.
+# The reboot is the most important step and the one most often
+# skipped: a broken theme usually only shows up at the next
+# login.
 
-set -uo pipefail   # kein -e: ein fehlgeschlagener Schritt ist ein
-                   # Testergebnis, kein Grund zum Abbruch
+set -uo pipefail   # no -e: a failed step is a
+                   # test result, not a reason to abort
 
 LAB="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VMCTL="$LAB/vm/vmctl.sh"
 
-THEME_DIR="${1:?Aufruf: $0 <theme-verzeichnis> [<installbefehl>]}"
+THEME_DIR="${1:?Usage: $0 <theme-directory> [<install-command>]}"
 INSTALL_CMD="${2:-./install.sh}"
 
-[ -d "$THEME_DIR" ] || { echo "FEHLER: $THEME_DIR gibt es nicht"; exit 1; }
+[ -d "$THEME_DIR" ] || { echo "ERROR: $THEME_DIR does not exist"; exit 1; }
 
 NAME="$(basename "$THEME_DIR")"
 STAMP="$(date +%Y%m%d-%H%M%S)"
-OUT="$LAB/tests/laeufe/$NAME-$STAMP"
+OUT="$LAB/tests/runs/$NAME-$STAMP"
 mkdir -p "$OUT/screenshots"
-BERICHT="$OUT/bericht.md"
+REPORT="$OUT/report.md"
 
-schritt=0
-notiz() { echo -e "$*" | tee -a "$BERICHT"; }
+step=0
+note() { echo -e "$*" | tee -a "$REPORT"; }
 ssh_() { "$VMCTL" ssh "$@" 2>&1; }
 shot() {
-    schritt=$((schritt+1))
-    local datei="$OUT/screenshots/$(printf '%02d' $schritt)-$1.png"
-    "$VMCTL" shot "$datei" >/dev/null 2>&1
-    echo "  Screenshot: ${datei#$LAB/}"
+    step=$((step+1))
+    local file="$OUT/screenshots/$(printf '%02d' $step)-$1.png"
+    "$VMCTL" shot "$file" >/dev/null 2>&1
+    echo "  Screenshot: ${file#$LAB/}"
 }
 
 {
-    echo "# Testlauf: $NAME"
+    echo "# Test run: $NAME"
     echo
-    echo "- Zeitpunkt: $(date -Is)"
-    echo "- Quelle: \`$THEME_DIR\`"
-    echo "- Installbefehl: \`$INSTALL_CMD\`"
+    echo "- Time: $(date -Is)"
+    echo "- Source: \`$THEME_DIR\`"
+    echo "- Install command: \`$INSTALL_CMD\`"
     echo
-} > "$BERICHT"
+} > "$REPORT"
 
 # ---------------------------------------------------------------------------
-notiz "## 1. Ausgangszustand herstellen"
-# Ohne Reset testet der zweite Durchlauf auf den Resten des ersten.
+note "## 1. Restore the initial state"
+# Without a reset, the second run tests on the leftovers of the first.
 if ! "$VMCTL" reset >/dev/null 2>&1; then
-    notiz "FEHLER: Zuruecksetzen auf Snapshot 'clean' fehlgeschlagen."
-    notiz "Gibt es den Snapshot? \`vm/vmctl.sh snap list\`"
+    note "ERROR: resetting to snapshot 'clean' failed."
+    note "Does the snapshot exist? \`vm/vmctl.sh snap list\`"
     exit 1
 fi
-notiz "VM auf Snapshot 'clean' zurueckgesetzt."
+note "VM reset to snapshot 'clean'."
 
-VORHER="$(ssh_ 'for k in \
+BEFORE="$(ssh_ 'for k in \
     "plasmarc Theme name" \
     "kdeglobals General ColorScheme" \
     "kdeglobals KDE widgetStyle" \
@@ -66,147 +66,147 @@ VORHER="$(ssh_ 'for k in \
     "kwinrc org.kde.kdecoration2 library"; do
       set -- $k; echo "$1/$2/$3 = $(kreadconfig6 --file $1 --group $2 --key $3)"
     done')"
-notiz "\n<details><summary>Konfiguration vorher</summary>\n\n\`\`\`\n$VORHER\n\`\`\`\n</details>"
-shot ausgangszustand
+note "\n<details><summary>Configuration before</summary>\n\n\`\`\`\n$BEFORE\n\`\`\`\n</details>"
+shot initial-state
 
 # ---------------------------------------------------------------------------
-notiz "\n## 2. Theme uebertragen und installieren"
-# Die Schraegstriche am Ende sind nicht kosmetisch: ohne sie legt rsync
-# das Quellverzeichnis IM Ziel an (/home/tester/theme/niceos9/) statt
-# dessen Inhalt hineinzukopieren - und dann findet der Installbefehl
-# seine eigene install.sh nicht.
+note "\n## 2. Transfer and install the theme"
+# The trailing slashes are not cosmetic: without them rsync creates
+# the source directory INSIDE the target (/home/tester/theme/niceos9/) instead
+# of copying its contents in - and then the install command cannot
+# find its own install.sh.
 "$VMCTL" push "${THEME_DIR%/}/" "/home/tester/theme/" >/dev/null 2>&1 \
-    || { notiz "FEHLER beim Kopieren."; exit 1; }
+    || { note "ERROR while copying."; exit 1; }
 if ! ssh_ 'test -d /home/tester/theme' >/dev/null 2>&1; then
-    notiz "FEHLER: /home/tester/theme fehlt nach dem Kopieren."; exit 1
+    note "ERROR: /home/tester/theme is missing after copying."; exit 1
 fi
 
-# Die Installation laeuft ohne Terminal. Ein Installer, der interaktiv
-# nachfragt, wuerde haengen - deshalb entweder vorbereitete Antworten aus
-# $ANTWORTEN oder stdin aus /dev/null, dazu ein Timeout als Notbremse.
+# The installation runs without a terminal. An installer that asks
+# interactively would hang - so either prepared answers from
+# $ANSWERS or stdin from /dev/null, plus a timeout as an emergency brake.
 #
-#   ANTWORTEN='y\ny\nn\nn\nn\n' ./run-theme-test.sh ../niceos9
+#   ANSWERS='y\ny\nn\nn\nn\n' ./run-theme-test.sh ../niceos9
 #
-if [ -n "${ANTWORTEN:-}" ]; then
-    notiz "\nVorbereitete Antworten auf die Installer-Rueckfragen: \`$ANTWORTEN\`"
-    LOG_INSTALL="$(ssh_ "cd /home/tester/theme && printf '%b' '$ANTWORTEN' | timeout 300 $INSTALL_CMD")"
+if [ -n "${ANSWERS:-}" ]; then
+    note "\nPrepared answers to the installer's questions: \`$ANSWERS\`"
+    LOG_INSTALL="$(ssh_ "cd /home/tester/theme && printf '%b' '$ANSWERS' | timeout 300 $INSTALL_CMD")"
 else
     LOG_INSTALL="$(ssh_ "cd /home/tester/theme && timeout 300 $INSTALL_CMD < /dev/null")"
 fi
 RC=$?
-notiz "\nRueckgabewert: \`$RC\`"
-[ "$RC" -eq 124 ] && notiz "**Zeitueberschreitung** - der Installer wartet vermutlich auf eine Eingabe."
-notiz "\n<details><summary>Ausgabe des Installers</summary>\n\n\`\`\`\n$LOG_INSTALL\n\`\`\`\n</details>"
+note "\nExit code: \`$RC\`"
+[ "$RC" -eq 124 ] && note "**Timeout** - the installer is probably waiting for input."
+note "\n<details><summary>Installer output</summary>\n\n\`\`\`\n$LOG_INSTALL\n\`\`\`\n</details>"
 
 # ---------------------------------------------------------------------------
-notiz "\n## 3. Was wurde installiert?"
-NEU="$(ssh_ 'find ~/.local/share/plasma ~/.local/share/color-schemes \
+note "\n## 3. What was installed?"
+NEW="$(ssh_ 'find ~/.local/share/plasma ~/.local/share/color-schemes \
     ~/.local/share/aurorae ~/.local/share/icons ~/.local/share/wallpapers \
     -maxdepth 2 -mindepth 1 -newer /etc/plasma-lab-ready 2>/dev/null | sort')"
-notiz "\n\`\`\`\n${NEU:-(nichts gefunden)}\n\`\`\`"
+note "\n\`\`\`\n${NEW:-(nothing found)}\n\`\`\`"
 
-# Aenderungen ausserhalb von $HOME sind das eigentliche Risiko.
+# Changes outside $HOME are the real risk.
 SYS="$(ssh_ 'sudo find /usr/share/sddm /usr/share/plymouth /boot/grub2 /etc/sddm.conf.d \
     -newer /etc/plasma-lab-ready 2>/dev/null | head -30')"
 if [ -n "$SYS" ]; then
-    notiz "\n**Achtung - ausserhalb von \$HOME veraendert:**\n\n\`\`\`\n$SYS\n\`\`\`"
+    note "\n**Warning - changed outside \$HOME:**\n\n\`\`\`\n$SYS\n\`\`\`"
 else
-    notiz "\nKeine Aenderungen ausserhalb von \$HOME. Gut."
+    note "\nNo changes outside \$HOME. Good."
 fi
 
 # ---------------------------------------------------------------------------
-notiz "\n## 4. Theme anwenden"
-# kpackagetool6 schreibt eine Statuszeile ("KPackageType wird aufgelistet:
-# ... in ...") auf dieselbe Ausgabe wie die Paketnamen. Echte Ids
-# enthalten weder Leerzeichen noch Doppelpunkte - danach wird gefiltert.
+note "\n## 4. Apply the theme"
+# kpackagetool6 writes a status line ("Listing KPackageType: ... in ...")
+# to the same output as the package names. Real ids contain
+# neither spaces nor colons - that is what we filter on.
 LNF="$(ssh_ 'kpackagetool6 -t Plasma/LookAndFeel -l 2>/dev/null' \
        | grep -E '^[A-Za-z0-9][A-Za-z0-9._+-]*$' | head -20)"
-notiz "\nVerfuegbare globale Designs:\n\n\`\`\`\n${LNF:-(keines gefunden)}\n\`\`\`"
+note "\nAvailable global themes:\n\n\`\`\`\n${LNF:-(none found)}\n\`\`\`"
 
-ZIEL="$(echo "$LNF" | grep -iv breeze | head -1)"
-if [ -n "$ZIEL" ]; then
-    notiz "\nWende an: \`$ZIEL\` (bewusst OHNE --resetLayout)"
-    ANWENDEN="$(ssh_ "plasma-apply-lookandfeel --apply '$ZIEL'")"
-    notiz "\n\`\`\`\n$ANWENDEN\n\`\`\`"
+TARGET="$(echo "$LNF" | grep -iv breeze | head -1)"
+if [ -n "$TARGET" ]; then
+    note "\nApplying: \`$TARGET\` (deliberately WITHOUT --resetLayout)"
+    APPLY="$(ssh_ "plasma-apply-lookandfeel --apply '$TARGET'")"
+    note "\n\`\`\`\n$APPLY\n\`\`\`"
     sleep 15
-    shot nach-anwenden
+    shot after-apply
 
-    # Gegenprobe: hat sich ueberhaupt etwas geaendert? Ein identisches
-    # Bild heisst, dass das Anwenden wirkungslos war - genau der Fall,
-    # den der erste Durchlauf dieses Harness uebersehen hat, weil er nur
-    # auf "plasmashell laeuft noch" geachtet hat.
-    A="$OUT/screenshots/01-ausgangszustand.png"
-    B="$OUT/screenshots/02-nach-anwenden.png"
+    # Cross-check: did anything change at all? An identical
+    # image means applying had no effect - exactly the case
+    # the first run of this harness missed, because it only
+    # looked at "plasmashell is still running".
+    A="$OUT/screenshots/01-initial-state.png"
+    B="$OUT/screenshots/02-after-apply.png"
     if [ -f "$A" ] && [ -f "$B" ] && cmp -s "$A" "$B"; then
-        notiz "\n**Der Bildschirm ist unveraendert.** Das Anwenden hatte keine sichtbare Wirkung."
+        note "\n**The screen is unchanged.** Applying had no visible effect."
     else
-        notiz "\nDer Bildschirm hat sich sichtbar veraendert."
+        note "\nThe screen has changed visibly."
     fi
 
-    IST="$(ssh_ 'echo "Plasma Style : $(kreadconfig6 --file plasmarc --group Theme --key name)"
-echo "Farbschema   : $(kreadconfig6 --file kdeglobals --group General --key ColorScheme)"
-echo "Globales Des.: $(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)"
+    ACTUAL="$(ssh_ 'echo "Plasma Style : $(kreadconfig6 --file plasmarc --group Theme --key name)"
+echo "Color scheme : $(kreadconfig6 --file kdeglobals --group General --key ColorScheme)"
+echo "Global theme : $(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)"
 echo "Icons        : $(kreadconfig6 --file kdeglobals --group Icons --key Theme)"
-echo "Dekoration   : $(kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme)"
-echo "Stil         : $(kreadconfig6 --file kdeglobals --group KDE --key widgetStyle)"')"
-    notiz "\nWas tatsaechlich gesetzt wurde:\n\n\`\`\`\n$IST\n\`\`\`"
-    notiz "\nZum Vergleich das Soll aus \`contents/defaults\`:\n"
-    SOLL="$(ssh_ "cat ~/.local/share/plasma/look-and-feel/$ZIEL/contents/defaults 2>/dev/null")"
-    notiz "\`\`\`ini\n${SOLL:-(keine defaults-Datei)}\n\`\`\`"
+echo "Decoration   : $(kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme)"
+echo "Style        : $(kreadconfig6 --file kdeglobals --group KDE --key widgetStyle)"')"
+    note "\nWhat was actually set:\n\n\`\`\`\n$ACTUAL\n\`\`\`"
+    note "\nFor comparison, the target values from \`contents/defaults\`:\n"
+    EXPECTED="$(ssh_ "cat ~/.local/share/plasma/look-and-feel/$TARGET/contents/defaults 2>/dev/null")"
+    note "\`\`\`ini\n${EXPECTED:-(no defaults file)}\n\`\`\`"
 else
-    notiz "\nKein eigenes globales Design gefunden - uebersprungen."
+    note "\nNo custom global theme found - skipped."
 fi
 
 # ---------------------------------------------------------------------------
-notiz "\n## 5. Laeuft die Shell noch?"
+note "\n## 5. Is the shell still running?"
 SHELL_ST="$(ssh_ 'systemctl --user is-active plasma-plasmashell.service; \
                   systemctl --user show plasma-plasmashell.service -p NRestarts --value')"
-notiz "\n\`\`\`\n$SHELL_ST\n\`\`\`"
+note "\n\`\`\`\n$SHELL_ST\n\`\`\`"
 case "$SHELL_ST" in
-    active*) notiz "\nplasmashell laeuft." ;;
-    *)       notiz "\n**plasmashell laeuft NICHT.** Das ist ein Fehlschlag." ;;
+    active*) note "\nplasmashell is running." ;;
+    *)       note "\n**plasmashell is NOT running.** That is a failure." ;;
 esac
 
-FEHLER="$(ssh_ 'journalctl --user -u plasma-plasmashell.service --since "-10 min" \
+ERRORS="$(ssh_ 'journalctl --user -u plasma-plasmashell.service --since "-10 min" \
     -p warning --no-pager 2>/dev/null | tail -25')"
-[ -n "$FEHLER" ] && notiz "\n<details><summary>Warnungen im Journal</summary>\n\n\`\`\`\n$FEHLER\n\`\`\`\n</details>"
+[ -n "$ERRORS" ] && note "\n<details><summary>Warnings in the journal</summary>\n\n\`\`\`\n$ERRORS\n\`\`\`\n</details>"
 
 # ---------------------------------------------------------------------------
-notiz "\n## 6. Neustart - ueberlebt das Theme eine neue Sitzung?"
-# Der wichtigste Test. Viele Themes sehen bis zum Abmelden gut aus.
+note "\n## 6. Reboot - does the theme survive a new session?"
+# The most important test. Many themes look fine until you log out.
 ssh_ 'sudo systemctl reboot' >/dev/null 2>&1
 sleep 20
-bereit=false
+ready=false
 for _ in $(seq 1 30); do
-    if "$VMCTL" ssh 'test -f /etc/plasma-lab-ready' >/dev/null 2>&1; then bereit=true; break; fi
+    if "$VMCTL" ssh 'test -f /etc/plasma-lab-ready' >/dev/null 2>&1; then ready=true; break; fi
     sleep 10
 done
-if $bereit; then
-    sleep 25                       # Zeit fuer Autologin und Sitzungsaufbau
-    notiz "\nVM ist nach dem Neustart wieder erreichbar."
-    NACH_ST="$(ssh_ 'systemctl --user is-active plasma-plasmashell.service')"
-    notiz "plasmashell: \`$NACH_ST\`"
-    shot nach-neustart
+if $ready; then
+    sleep 25                       # time for autologin and session startup
+    note "\nVM is reachable again after the reboot."
+    AFTER_ST="$(ssh_ 'systemctl --user is-active plasma-plasmashell.service')"
+    note "plasmashell: \`$AFTER_ST\`"
+    shot after-reboot
 else
-    notiz "\n**Die VM kam nach dem Neustart nicht zurueck.** Schwerwiegend."
-    shot neustart-fehlgeschlagen
+    note "\n**The VM did not come back after the reboot.** Severe."
+    shot reboot-failed
 fi
 
 # ---------------------------------------------------------------------------
-notiz "\n## 7. Deinstallation"
+note "\n## 7. Uninstallation"
 if ssh_ 'test -x /home/tester/theme/uninstall.sh' >/dev/null 2>&1; then
-    # Der Uninstaller stellt dieselben Rueckfragen wie der Installer.
-    # Ohne Antworten waehlt er nichts aus und raeumt nichts weg - und der
-    # Test wuerde faelschlich "nichts uebrig" oder "nichts geprueft" melden.
-    ANTWORTEN_UNINSTALL="${ANTWORTEN_UNINSTALL:-${ANTWORTEN:-}}"
-    if [ -n "$ANTWORTEN_UNINSTALL" ]; then
-        LOG_UNINST="$(ssh_ "cd /home/tester/theme && printf '%b' '$ANTWORTEN_UNINSTALL' | timeout 180 ./uninstall.sh")"
+    # The uninstaller asks the same questions as the installer.
+    # Without answers it selects nothing and removes nothing - and the
+    # test would wrongly report "nothing left" or "nothing checked".
+    ANSWERS_UNINSTALL="${ANSWERS_UNINSTALL:-${ANSWERS:-}}"
+    if [ -n "$ANSWERS_UNINSTALL" ]; then
+        LOG_UNINST="$(ssh_ "cd /home/tester/theme && printf '%b' '$ANSWERS_UNINSTALL' | timeout 180 ./uninstall.sh")"
     else
         LOG_UNINST="$(ssh_ 'cd /home/tester/theme && timeout 180 ./uninstall.sh < /dev/null')"
     fi
-    notiz "\n<details><summary>Ausgabe</summary>\n\n\`\`\`\n$LOG_UNINST\n\`\`\`\n</details>"
+    note "\n<details><summary>Output</summary>\n\n\`\`\`\n$LOG_UNINST\n\`\`\`\n</details>"
 
-    NACHHER="$(ssh_ 'for k in \
+    AFTER="$(ssh_ 'for k in \
         "plasmarc Theme name" \
         "kdeglobals General ColorScheme" \
         "kdeglobals KDE widgetStyle" \
@@ -215,36 +215,36 @@ if ssh_ 'test -x /home/tester/theme/uninstall.sh' >/dev/null 2>&1; then
         "kwinrc org.kde.kdecoration2 library"; do
           set -- $k; echo "$1/$2/$3 = $(kreadconfig6 --file $1 --group $2 --key $3)"
         done')"
-    notiz "\n### Konfiguration: vorher gegen nachher\n"
-    DIFF="$(diff <(echo "$VORHER") <(echo "$NACHHER"))"
+    note "\n### Configuration: before versus after\n"
+    DIFF="$(diff <(echo "$BEFORE") <(echo "$AFTER"))"
     if [ -z "$DIFF" ]; then
-        notiz "Deckungsgleich - die Deinstallation ist vollstaendig."
+        note "Identical - the uninstallation is complete."
     else
-        # Nicht jede Abweichung ist ein Mangel. Auf einem frischen Konto
-        # sind die Schluessel gar nicht gesetzt; Plasma nutzt dann still
-        # Breeze. Setzt ein uninstall.sh sie ausdruecklich auf Breeze,
-        # ist das Ergebnis dasselbe - und sicherer, denn ein Schluessel,
-        # der auf ein geloeschtes Theme zeigt, kostet die Titelleiste.
+        # Not every difference is a flaw. On a fresh account
+        # the keys are not set at all; Plasma then silently uses
+        # Breeze. If an uninstall.sh sets them explicitly to Breeze,
+        # the result is the same - and safer, because a key
+        # pointing to a deleted theme costs you the title bar.
         #
-        # Deshalb: Zeigen die Werte NACHHER auf Breeze, ist das in
-        # Ordnung. Zeigen sie noch auf das getestete Theme, nicht.
+        # Therefore: if the values AFTER point to Breeze, that is
+        # fine. If they still point to the tested theme, it is not.
         if echo "$DIFF" | grep -qiE '^\+.*(nt-legacy|NTLegacy)'; then
-            notiz "**MANGEL - die Konfiguration zeigt noch auf das Theme:**\n\n\`\`\`diff\n$DIFF\n\`\`\`"
+            note "**FLAW - the configuration still points to the theme:**\n\n\`\`\`diff\n$DIFF\n\`\`\`"
         else
-            notiz "Abweichung, aber unbedenklich: die Schluessel stehen jetzt"
-            notiz "ausdruecklich auf Breeze statt leer. Wirkung ist dieselbe.\n"
-            notiz "<details><summary>Diff</summary>\n\n\`\`\`diff\n$DIFF\n\`\`\`\n</details>"
+            note "Difference, but harmless: the keys are now set"
+            note "explicitly to Breeze instead of empty. The effect is the same.\n"
+            note "<details><summary>Diff</summary>\n\n\`\`\`diff\n$DIFF\n\`\`\`\n</details>"
         fi
     fi
     REST="$(ssh_ 'find ~/.local/share/plasma ~/.local/share/aurorae ~/.local/share/color-schemes \
         -maxdepth 2 -mindepth 1 2>/dev/null | sort')"
-    [ -n "$REST" ] && notiz "\nUebriggebliebene Dateien:\n\n\`\`\`\n$REST\n\`\`\`"
+    [ -n "$REST" ] && note "\nLeftover files:\n\n\`\`\`\n$REST\n\`\`\`"
 else
-    notiz "\nKein \`uninstall.sh\` vorhanden - nicht pruefbar."
+    note "\nNo \`uninstall.sh\` present - cannot be checked."
 fi
 
-shot ende
+shot end
 
-notiz "\n---\n\nBericht: \`${BERICHT#$LAB/}\`"
+note "\n---\n\nReport: \`${REPORT#$LAB/}\`"
 echo
-echo "Fertig. Bericht: $BERICHT"
+echo "Done. Report: $REPORT"

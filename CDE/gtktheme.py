@@ -13,17 +13,17 @@ from pathlib import Path
 
 
 def bevel(P, sunken=False):
-    light, dark = (P["dunkel"], P["hell"]) if sunken else (P["hell"], P["dunkel"])
+    light, dark = (P["dark"], P["light"]) if sunken else (P["light"], P["dark"])
     return f"inset 1px 1px {light}, inset -1px -1px {dark}"
 
 
 def css(P, gtk4=False):
-    ink, face, field = P["rahmen"], P["flaeche"], P["fenster"]
-    text, field_text = P["text"], P["fenster_text"]
-    accent, accent_text = P["auswahl"], P["auswahl_text"]
-    hover, pressed, groove = P["knopf_hover"], P["knopf_gedrueckt"], P["rille"]
-    disabled = P["inaktiv_text"]
-    title, title_text = P["kopf_aktiv"], P["kopf_aktiv_text"]
+    ink, face, field = P["border"], P["surface"], P["window"]
+    text, field_text = P["text"], P["window_text"]
+    accent, accent_text = P["selection"], P["selection_text"]
+    hover, pressed, groove = P["button_hover"], P["button_pressed"], P["groove"]
+    disabled = P["inactive_text"]
+    title, title_text = P["title_active"], P["title_active_text"]
     raised, sunken = bevel(P), bevel(P, sunken=True)
     base = ('@import url("resource:///org/gtk/libgtk/theme/Default/Default-light.css");' if gtk4
             else '@import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained.css");')
@@ -86,9 +86,9 @@ button.flat, button.image-button.flat, headerbar button.flat {{
 button.flat:hover {{ border-color: {ink}; background-color: {hover}; box-shadow: {raised}; }}
 button.suggested-action, button.default {{
   border: 1px solid {ink};
-  box-shadow: 0 0 0 2px {P["dunkel"]}, {raised};
+  box-shadow: 0 0 0 2px {P["dark"]}, {raised};
 }}
-button.destructive-action {{ background-color: {P["fehler"]}; color: #ffffff; }}
+button.destructive-action {{ background-color: {P["error"]}; color: #ffffff; }}
 
 /* Text fields, spin boxes, combo entries: sunken. */
 entry, spinbutton, spinbutton:not(.vertical), textview, .view text {{
@@ -132,7 +132,7 @@ menubar > menuitem:hover, menubar > item:hover {{ background-color: {accent}; co
   padding: 2px;
 }}
 {menu_item} {{ background-color: {accent}; color: {accent_text}; border-radius: 0; }}
-menu separator, popover separator {{ background-color: {P["dunkel"]}; min-height: 1px; }}
+menu separator, popover separator {{ background-color: {P["dark"]}; min-height: 1px; }}
 
 /* Tabs. */
 notebook > header {{ background-color: {groove}; border-color: {ink}; }}
@@ -176,7 +176,7 @@ scrollbar slider:hover {{ background-color: {hover}; }}
 /* Progress bars and sliders. */
 progressbar trough, scale trough, levelbar trough {{
   background-image: none;
-  background-color: {P["karo"]};
+  background-color: {P["checker"]};
   border: 1px solid {ink};
   border-radius: 0;
   box-shadow: {sunken};
@@ -187,7 +187,7 @@ progressbar progress, scale highlight, levelbar block.filled {{
   background-color: {title};
   border: 1px solid {ink};
   border-radius: 0;
-  box-shadow: {bevel({**P, "hell": "rgba(255, 255, 255, 0.3)", "dunkel": "rgba(0, 0, 0, 0.3)"})};
+  box-shadow: {bevel({**P, "light": "rgba(255, 255, 255, 0.3)", "dark": "rgba(0, 0, 0, 0.3)"})};
 }}
 scale slider {{
   background-image: none;
@@ -205,8 +205,8 @@ switch:checked {{ background-color: {accent}; }}
 switch slider {{ background-color: {face}; border: 1px solid {ink}; border-radius: 0; box-shadow: {raised}; }}
 
 /* Frames, separators, tooltips. */
-frame > border, .frame {{ border: 1px solid {P["dunkel"]}; border-radius: 0; box-shadow: inset 1px 1px {P["hell"]}; }}
-separator {{ background-color: {P["dunkel"]}; }}
+frame > border, .frame {{ border: 1px solid {P["dark"]}; border-radius: 0; box-shadow: inset 1px 1px {P["light"]}; }}
+separator {{ background-color: {P["dark"]}; }}
 tooltip, tooltip.background {{
   background-color: {field};
   color: {field_text};
@@ -224,7 +224,7 @@ button:disabled, button:disabled:backdrop, button:checked:disabled, button.flat:
   background-image: none;
   background-color: {face};
   color: {disabled};
-  border-color: {P["dunkel"]};
+  border-color: {P["dark"]};
   box-shadow: none;
 }}
 button.flat:backdrop, headerbar button.flat:backdrop {{ background-color: transparent; border-color: transparent; box-shadow: none; }}
@@ -233,7 +233,7 @@ entry:disabled, entry:disabled:backdrop, spinbutton:disabled, spinbutton:disable
   background-image: none;
   background-color: {face};
   color: {disabled};
-  border-color: {P["dunkel"]};
+  border-color: {P["dark"]};
   box-shadow: none;
 }}
 {check}:backdrop, {radio}:backdrop, {check}:hover, {radio}:hover {{ background-image: none; background-color: {field}; border-color: {ink}; box-shadow: {sunken}; }}
@@ -249,12 +249,12 @@ entry:disabled, entry:disabled:backdrop, spinbutton:disabled, spinbutton:disable
   background-image: none;
   background-color: {face};
   color: {disabled};
-  border-color: {P["dunkel"]};
+  border-color: {P["dark"]};
   box-shadow: none;
 }}
 scale slider:backdrop, scale slider:hover {{ background-image: none; background-color: {face}; border-color: {ink}; box-shadow: {raised}; }}
-scale slider:disabled, scale trough:disabled, progressbar trough:disabled {{ background-image: none; background-color: {face}; border-color: {P["dunkel"]}; box-shadow: none; }}
-scale highlight:disabled {{ background-image: none; background-color: {P["kopf_inaktiv"]}; }}
+scale slider:disabled, scale trough:disabled, progressbar trough:disabled {{ background-image: none; background-color: {face}; border-color: {P["dark"]}; box-shadow: none; }}
+scale highlight:disabled {{ background-image: none; background-color: {P["title_inactive"]}; }}
 headerbar:backdrop, .titlebar:backdrop {{ background-image: none; background-color: {face}; color: {disabled}; }}
 notebook > header tab:backdrop {{ background-color: {face}; }}
 notebook > header > tabs > tab:checked, notebook > header.top > tabs > tab:checked, notebook > header.bottom > tabs > tab:checked,
@@ -274,7 +274,7 @@ progressbar > trough > progress, scale > trough > highlight, levelbar > trough >
   border: 1px solid {ink};
   border-radius: 0;
 }}
-progressbar > trough, scale > trough, levelbar > trough {{ background-image: none; background-color: {P["karo"]}; border-radius: 0; }}
+progressbar > trough, scale > trough, levelbar > trough {{ background-image: none; background-color: {P["checker"]}; border-radius: 0; }}
 scale > trough > slider {{ background-image: none; background-color: {face}; border: 1px solid {ink}; border-radius: 0; box-shadow: {raised}; }}
 checkbutton > check, checkbutton > radio {{ background-image: none; background-color: {field}; border: 1px solid {ink}; box-shadow: {sunken}; }}
 checkbutton > check:checked, checkbutton > check:indeterminate, checkbutton > radio:checked, checkbutton > radio:indeterminate {{

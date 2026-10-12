@@ -56,7 +56,8 @@ ColumnLayout {
         const picture = Backdrops.PICTURES.find(p => "picture:" + p.key === value);
         const natural = value.startsWith("natural:");
         const tile = Backdrops.TILES.find(t => t.key === (natural ? value.slice(8) : value));
-        return picture ? picture.name : tile ? (natural ? i18nd("cde-copper", "%1 (natural colour)", tile.name) : tile.name) : value;
+        return picture ? i18nd("cde-copper", picture.name) : tile ? (natural ? i18nd("cde-copper", "%1 (natural colour)", i18nd("cde-copper", tile.name))
+                                                                 : i18nd("cde-copper", tile.name)) : value;
     }
     function isTile(value) { return Backdrops.TILES.some(t => t.key === (value.startsWith("natural:") ? value.slice(8) : value)); }
     // A tile's preview: natural from the package, or tinted from the profile.

@@ -1,49 +1,49 @@
-# Auftrag an das Coding-LLM
+# Brief for the coding LLM
 
-Du erhältst ein vollständiges Design-Handoff für ein KDE-Plasma-6-Theme namens **CDE Plasma 2027**. Lies zuerst `README.md`, `MANIFEST.md`, `DESIGN-SPEC.md`, `KDE-PLASMA-MAPPING.md`, `IMPLEMENTATION-GUIDE.md` und `design-tokens.json`. Analysiere anschließend alle Bilder in `references/`.
+You are receiving a complete design handoff for a KDE Plasma 6 theme called **CDE Plasma 2027**. First read `README.md`, `MANIFEST.md`, `DESIGN-SPEC.md`, `KDE-PLASMA-MAPPING.md`, `IMPLEMENTATION-GUIDE.md` and `design-tokens.json`. Then analyse all images in `references/`.
 
-## Ziel
+## Goal
 
-Baue einen installierbaren, reversiblen Prototypen für KDE Plasma 6, der wie eine moderne Weiterentwicklung von CDE/Motif wirkt. Die verbindliche Bildreferenz ist `references/05-target-teal-copper-panel.png`. Die übrigen Bilder dokumentieren Entwurfsstufen und dürfen nicht ungeprüft gemischt werden.
+Build an installable, reversible prototype for KDE Plasma 6 that looks like a modern evolution of CDE/Motif. The binding image reference is `references/05-target-teal-copper-panel.png`. The other images document design stages and must not be mixed without scrutiny.
 
-## Unverhandelbare Anforderungen
+## Non-negotiable requirements
 
-1. Petrol/Türkis und Kupferorange gemäß den Design-Tokens.
-2. Harte, mehrstufige Motif-Bevels; praktisch keine Rundungen.
-3. Keine erkennbare Breeze-, Oxygen-, Material- oder „KDE-Plastik“-Ästhetik.
-4. Eigenständige Workstation-Icons; keine Standardicons im sichtbaren Kernbereich.
-5. Schwebendes, zweistöckiges Frontpanel mit mechanisch wirkenden Segmenten und kleinen Subpanel-Auslösern.
-6. Panelmodi: sichtbar, automatisch ausblenden, Hotspot/Griffkante.
-7. Plasma 6, Qt 6, HiDPI und Wayland; keine Root-Pflicht.
-8. Installation und Deinstallation dürfen keine fremden Dateien überschreiben oder löschen.
+1. Petrol/teal and copper orange according to the design tokens.
+2. Hard, multi-step Motif bevels; practically no rounded corners.
+3. No recognisable Breeze, Oxygen, Material or "KDE plastic" aesthetic.
+4. Distinct workstation icons; no stock icons in the visible core area.
+5. Floating, two-row front panel with mechanical-looking segments and small subpanel triggers.
+6. Panel modes: visible, auto-hide, hotspot/grip edge.
+7. Plasma 6, Qt 6, HiDPI and Wayland; no root requirement.
+8. Installing and uninstalling must not overwrite or delete anyone else's files.
 
-## Vorgehen
+## Approach
 
-Arbeite in überprüfbaren Phasen. Beginne ausschließlich mit Phase 1 aus `IMPLEMENTATION-GUIDE.md`. Lege vor dem Schreiben eine kurze Komponenten- und Dateistruktur vor. Implementiere danach vollständige Dateien, keine isolierten Fragmente. Führe Syntax-/QML-Prüfungen aus, starte soweit möglich einen isolierten Plasma-Test und dokumentiere verbleibende Einschränkungen.
+Work in verifiable phases. Start exclusively with phase 1 from `IMPLEMENTATION-GUIDE.md`. Before writing, present a short component and file structure. Then implement complete files, not isolated fragments. Run syntax/QML checks, start an isolated Plasma test where possible and document remaining limitations.
 
-Erzeuge nach Phase 1:
+After phase 1, produce:
 
-- installierbares Farbschema
-- Fensterdekorations-Prototyp
-- statisches zweistöckiges Frontpanel
-- zwölf Kernicons
-- `install.sh`, `uninstall.sh` und eigenes Installationsmanifest
-- README mit Voraussetzungen und Testschritten
-- Screenshots bei 1920×1080 und, falls verfügbar, 2560×1440
+- an installable colour scheme
+- a window decoration prototype
+- a static two-row front panel
+- twelve core icons
+- `install.sh`, `uninstall.sh` and an own installation manifest
+- a README with prerequisites and test steps
+- screenshots at 1920×1080 and, if available, 2560×1440
 
-## Entscheidungspflichten
+## Decision duties
 
-Wenn Plasma-APIs oder Distributiondetails fehlen, halte an der kleinsten notwendigen Stelle an und frage gezielt nach Plasma-Version und Distribution. Erfinde keine API. Wenn zwei normale Plasma-Panels für den ersten Prototyp verwendet werden, kennzeichne dies ausdrücklich als Phase-1-Näherung und plane das gemeinsame QML-Containment als Zielarchitektur.
+If Plasma APIs or distribution details are missing, stop at the smallest necessary point and ask specifically for the Plasma version and distribution. Do not invent any API. If two ordinary Plasma panels are used for the first prototype, mark this explicitly as a phase 1 approximation and plan the shared QML containment as the target architecture.
 
-## Selbstprüfung vor Übergabe
+## Self-check before handover
 
-Vergleiche den Prototyp mit der Zielreferenz und beantworte:
+Compare the prototype with the target reference and answer:
 
-- Ist CDE/Motif ohne Erläuterung erkennbar?
-- Ist das Panel ein eigenständiges Frontpanel oder nur eine eingefärbte Taskbar?
-- Sind Kupferflächen sparsam und funktional eingesetzt?
-- Gibt es sichtbare Standardicons oder moderne Rundungen?
-- Sind aktive, inaktive, Hover-, Fokus- und gedrückte Zustände eindeutig?
-- Funktionieren Installation, Deinstallation, Tastaturbedienung und HiDPI?
+- Is CDE/Motif recognisable without explanation?
+- Is the panel a distinct front panel or just a tinted taskbar?
+- Are copper areas used sparingly and functionally?
+- Are there visible stock icons or modern rounded corners?
+- Are active, inactive, hover, focus and pressed states unambiguous?
+- Do installation, uninstallation, keyboard operation and HiDPI work?
 
-Behebe gefundene P0/P1-Abweichungen vor der Übergabe.
+Fix any P0/P1 deviations found before handover.

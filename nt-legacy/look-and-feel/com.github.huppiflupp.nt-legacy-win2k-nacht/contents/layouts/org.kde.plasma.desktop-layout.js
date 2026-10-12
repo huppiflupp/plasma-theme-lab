@@ -1,31 +1,30 @@
-// nt-legacy-win2k-nacht - Panelvorgabe
+// nt-legacy-win2k-nacht - panel default
 
-// Ein Panel je Bildschirm.
+// One panel per screen.
 //
-// Bis 0.2.14 legte dieses Skript genau EINES an - so wie Plasmas eigene
-// Vorlage (layout-templates/org.kde.plasma.desktop.defaultPanel). Auf
-// einem Rechner mit einem Bildschirm ist das richtig. Auf zweien nicht:
-// Plasma entscheidet dann selbst, auf welchem das eine Panel landet, und
-// auf dem anderen ist keine Taskleiste. Gemeldet als "wenn ich auf NT
-// Legacy zurueckschalte, kommt keine Taskleiste mehr" - und weil die
-// Wahl von Lauf zu Lauf anders ausfallen kann, sah es aus, als laege es
-// an der Variante.
+// Up to 0.2.14 this script created exactly ONE - just like Plasma's own
+// template (layout-templates/org.kde.plasma.desktop.defaultPanel). On a
+// machine with one screen that is correct. On two it is not: Plasma then
+// decides by itself which screen the one panel lands on, and the other
+// has no taskbar. Reported as "when I switch back to NT Legacy, there is
+// no taskbar any more" - and because the choice can differ from run to
+// run, it looked as if it depended on the variant.
 //
-// Nachgemessen auf einem Rechner mit zwei 2560er Schirmen: screenCount=2,
+// Measured on a machine with two 2560 screens: screenCount=2,
 // panels().length=1, panel.screen=0.
-var alle = panels();
-for (var i = 0; i < alle.length; i++) {
-    alle[i].remove();
+var allPanels = panels();
+for (var i = 0; i < allPanels.length; i++) {
+    allPanels[i].remove();
 }
 
 for (var s = 0; s < screenCount; s++) {
-    // Weitere Bildschirme nur, wenn Plasma dort schon eine Arbeitsflaeche
-    // hat. Beim Anwenden des Designs im laufenden Plasma (Systemeinstellungen,
-    // "Arbeitsflaechen-Layout") kennt es den zweiten Schirm noch nicht: das
-    // zweite Panel landete nirgends, wurde unten wieder entfernt - und das
-    // riss das erste mit (screen -1, beide Schirme schwarz bis zum Neustart
-    // von plasmashell). In der VM mit zwei Schirmen: vorher in jedem
-    // zweiten Wechsel, so in 8 von 8 sauber.
+    // Further screens only if Plasma already has a desktop there. When the
+    // design is applied in a running Plasma (System Settings, "Desktop
+    // layout") it does not know the second screen yet: the second panel
+    // landed nowhere, was removed again below - and that took the first
+    // one with it (screen -1, both screens black until plasmashell was
+    // restarted). In the VM with two screens: before, in every second
+    // switch; this way, clean in 8 out of 8.
     if (s > 0 && !desktopForScreen(s)) {
         continue;
     }
@@ -37,54 +36,52 @@ for (var s = 0; s < screenCount; s++) {
     panel.hiding = "none";
     panel.alignment = "left";
 
-    // Das Anwendungsmenue, nicht der Anwendungsstarter.
+    // The application menu, not the application launcher.
     //
-    // org.kde.plasma.kickoff ist Plasmas Vorgabe: ein Fenster mit
-    // Suchfeld, Kachelraster und Reitern. org.kde.plasma.kicker ist das
-    // aufklappende Menue mit Untermenues - das, was Windows 95 bis 2000
-    // hatte, und das Einzige von beiden, das zu dieser Formensprache
-    // passt. Es bringt ausserdem die Seitenleiste mit, die der
-    // Plasma-Stil einfaerbt (widgets/frame, Praefix "plain").
+    // org.kde.plasma.kickoff is Plasma's default: a window with a search
+    // field, a tile grid and tabs. org.kde.plasma.kicker is the cascading
+    // menu with submenus - what Windows 95 to 2000 had, and the only one
+    // of the two that fits this design language. It also brings the
+    // sidebar that the Plasma style colors (widgets/frame, prefix
+    // "plain").
     panel.addWidget("org.kde.plasma.kicker");
     panel.addWidget("org.kde.plasma.icontasks");
     panel.addWidget("org.kde.plasma.systemtray");
     panel.addWidget("org.kde.plasma.digitalclock");
 
-    // Ab dem zweiten Bildschirm: nur behalten, wenn es dort auch
-    // wirklich sitzt. setScreen geht ueber Corona::setScreenForContainment
-    // und kann fehlschlagen - dann laegen alle Panels uebereinander auf
-    // demselben Schirm, und das waere schlimmer als der Zustand vorher.
-    // Das erste wird NIE entfernt: ein Panel weniger ist genau der
-    // Fehler, den diese Datei beheben soll.
+    // From the second screen on: only keep it if it really sits there.
+    // setScreen goes through Corona::setScreenForContainment and can
+    // fail - then all panels would lie on top of each other on the same
+    // screen, and that would be worse than the state before. The first
+    // one is NEVER removed: one panel too few is exactly the bug this
+    // file is meant to fix.
     if (s > 0 && panel.screen !== s) {
         panel.remove();
     }
 }
 
-// Hier stand bis 0.2.14 ein Block, der Laenge, Mindest- und Hoechstlaenge
-// des Panels auf die Bildschirmbreite setzte - gegen ein Panel, das
-// angeblich nur 34 Pixel breit wurde.
+// Up to 0.2.14 there was a block here that set the length, minimum and
+// maximum length of the panel to the screen width - against a panel that
+// supposedly only became 34 pixels wide.
 //
-// Den gab es nie. "panel.length" liefert nicht die gezeichnete Breite,
-// sondern die Breite des INHALTS; die Diagnose beruhte auf dieser
-// Fehlablesung. In der Test-VM gemessen: ohne jede Laengenangabe steht
-// lengthMode auf "fill", minimumLength und maximumLength stehen auf
-// 1280 - und das Panel ist auf dem Bildschirmfoto ueber die volle Breite
-// gezeichnet, waehrend "length" 388 meldet.
+// That never existed. "panel.length" does not return the drawn width but
+// the width of the CONTENT; the diagnosis was based on this misreading.
+// Measured in the test VM: without any length setting lengthMode is
+// "fill", minimumLength and maximumLength are 1280 - and on the screenshot
+// the panel is drawn across the full width, while "length" reports 388.
 //
-// Schaedlich war der Block obendrein: minimumLength und maximumLength
-// auf denselben Wert zu setzen nagelt das Panel auf eine feste Groesse
-// fest. Auf einem zweiten Bildschirm anderer Breite passt die dann
-// nicht mehr, und der Rueckfallwert 99999 (fuer den Fall, dass
-// screenGeometry noch nichts weiss) nagelt es auf eine Breite fest, die
-// es nirgends gibt.
+// The block was harmful on top of that: setting minimumLength and
+// maximumLength to the same value pins the panel to a fixed size. On a
+// second screen of a different width it no longer fits, and the fallback
+// value 99999 (for the case that screenGeometry does not know anything
+// yet) pins it to a width that exists nowhere.
 //
-// Plasmas eigene Vorlage setzt die Laenge ebenfalls nicht.
+// Plasma's own template does not set the length either.
 
-var flaechen = desktops();
-for (var j = 0; j < flaechen.length; j++) {
-    flaechen[j].wallpaperPlugin = "org.kde.image";
-    flaechen[j].currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
-    flaechen[j].writeConfig("Image", "ntlegacy-win2k-nacht");
-    flaechen[j].reloadConfig();
+var desktopList = desktops();
+for (var j = 0; j < desktopList.length; j++) {
+    desktopList[j].wallpaperPlugin = "org.kde.image";
+    desktopList[j].currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
+    desktopList[j].writeConfig("Image", "ntlegacy-win2k-nacht");
+    desktopList[j].reloadConfig();
 }

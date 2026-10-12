@@ -1,207 +1,207 @@
 {
  "monolith": {
-  "motiv": "monolith",
+  "motif": "monolith",
   "seed": 301,
-  "dunkel": {
+  "dark": {
    "lo": "#0a0f1a",
    "hi": "#3e4c62",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "polarlicht": {
-  "motiv": "polarlicht",
+  "motif": "polarlicht",
   "seed": 302,
-  "dunkel": {
+  "dark": {
    "lo": "#020a14",
    "hi": "#1d4566",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "mesa": {
-  "motiv": "mesa",
+  "motif": "mesa",
   "seed": 302,
-  "dunkel": {
+  "dark": {
    "lo": "#160a12",
    "hi": "#5a3646",
-   "akzent": "none"
+   "accent": "none"
   }
  },
  "riff": {
-  "motiv": "riff",
+  "motif": "riff",
   "seed": 301,
-  "dunkel": {
+  "dark": {
    "lo": "#021212",
    "hi": "#0f5654",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "origami": {
-  "motiv": "origami",
+  "motif": "origami",
   "seed": 301,
-  "dunkel": {
+  "dark": {
    "lo": "#110b16",
    "hi": "#4a3d58",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "bauhaus": {
-  "motiv": "bauhaus",
+  "motif": "bauhaus",
   "seed": 301,
-  "dunkel": {
+  "dark": {
    "lo": "#0b1220",
    "hi": "#34465f",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "weinberg": {
-  "motiv": "weinberg",
+  "motif": "weinberg",
   "seed": 302,
-  "dunkel": {
+  "dark": {
    "lo": "#0b1311",
    "hi": "#34443f",
-   "akzent": "none"
+   "accent": "none"
   }
  },
  "orbit": {
-  "motiv": "orbit",
+  "motif": "orbit",
   "seed": 301,
-  "dunkel": {
+  "dark": {
    "lo": "#020814",
    "hi": "#1f3a5c",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "chipstadt": {
-  "motiv": "chipstadt",
+  "motif": "chipstadt",
   "seed": 411,
-  "dunkel": {
+  "dark": {
    "lo": "#05070d",
    "hi": "#232c3a",
-   "akzent": "sat",
+   "accent": "sat",
    "img2img": "Nacht-Prompt, denoise 0.7"
   }
  },
  "cad": {
-  "motiv": "cad",
+  "motif": "cad",
   "seed": 601,
-  "dunkel": {
+  "dark": {
    "lo": "#02040a",
    "hi": "#1e2e50",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "molekuel": {
-  "motiv": "rasmol",
+  "motif": "rasmol",
   "seed": 601,
-  "dunkel": {
+  "dark": {
    "lo": "#000000",
    "hi": "#1a1a24",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "sequenz": {
-  "motiv": "sequenz",
+  "motif": "sequenz",
   "seed": 601,
-  "dunkel": {
+  "dark": {
    "lo": "#050810",
    "hi": "#1e2a40",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "druckvorstufe": {
-  "motiv": "dtp",
+  "motif": "dtp",
   "seed": 712,
-  "dunkel": {
+  "dark": {
    "lo": "#0e0806",
    "hi": "#4a3428",
-   "akzent": "none"
+   "accent": "none"
   }
  },
  "schnittplatz": {
-  "motiv": "video",
+  "motif": "video",
   "seed": 702,
-  "dunkel": {
+  "dark": {
    "lo": "#050708",
    "hi": "#2a3436",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "mrt": {
-  "motiv": "mrt",
+  "motif": "mrt",
   "seed": 702,
-  "dunkel": {
+  "dark": {
    "lo": "#020610",
    "hi": "#24405a",
-   "akzent": "none"
+   "accent": "none"
   }
  },
  "mischpult": {
-  "motiv": "mischpult",
+  "motif": "mischpult",
   "seed": 701,
-  "dunkel": {
+  "dark": {
    "lo": "#0a0a06",
    "hi": "#33362a",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "vlsi": {
-  "motiv": "vlsi",
+  "motif": "vlsi",
   "seed": 802,
-  "dunkel": {
+  "dark": {
    "lo": "#000000",
    "hi": "#14141c",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "kristall": {
-  "motiv": "kristall",
+  "motif": "kristall",
   "seed": 902,
-  "dunkel": {
+  "dark": {
    "lo": "#051419",
    "hi": "#345c64",
-   "akzent": "warm"
+   "accent": "warm"
   }
  },
  "marmor": {
-  "motiv": "marmor",
+  "motif": "marmor",
   "seed": 903,
-  "dunkel": {
+  "dark": {
    "lo": "#0c0812",
    "hi": "#2e2440",
-   "akzent": "sat"
+   "accent": "sat"
   }
  },
  "duene": {
-  "motiv": "duene",
+  "motif": "duene",
   "seed": 903,
-  "dunkel": {
+  "dark": {
    "lo": "#030c10",
    "hi": "#1d3c44",
-   "akzent": "warm"
+   "accent": "warm"
   }
  },
  "aquarell": {
-  "motiv": "aquarell",
+  "motif": "aquarell",
   "seed": "acro2_workstation_1011",
-  "dunkel": {
+  "dark": {
    "lo": "#0a1020",
    "hi": "#2c3e66",
-   "akzent": "none",
-   "img2img": "Nacht-Prompt aus acro_night_prompts.json, denoise 0.6"
+   "accent": "none",
+   "img2img": "night prompt from acro_night_prompts.json, denoise 0.6"
   }
  },
  "panorama": {
-  "motiv": "panorama",
+  "motif": "panorama",
   "seed": "acro_panorama_1001",
-  "dunkel": {
+  "dark": {
    "lo": "#060c1e",
    "hi": "#2a3c70",
-   "akzent": "sat",
-   "img2img": "Nacht-Prompt aus acro_night_prompts.json, Prefix 'Dark night scene', denoise 0.48, keep 0.45"
+   "accent": "sat",
+   "img2img": "night prompt from acro_night_prompts.json, prefix 'Dark night scene', denoise 0.48, keep 0.45"
   }
  },
  "stroemung": {
-  "motiv": "cfd",
-  "berechnet": "cfd.py (Joukowski-Profil, Potentialströmung)"
+  "motif": "cfd",
+  "computed": "cfd.py (Joukowski airfoil, potential flow)"
  }
 }

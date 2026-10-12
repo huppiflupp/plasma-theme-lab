@@ -1,101 +1,102 @@
-# Referenzkarte
+# Reference card
 
-Alles Nachschlagbare auf einer Seite. Geprüft auf Plasma 6.7.3.
+Everything you need to look up, on one page. Verified on Plasma 6.7.3.
 
 ---
 
-## Pfade
+## Paths
 
-| Was | Nutzerlokal (`~/.local/share/`) | Systemweit (`/usr/share/`) |
+| What | Per user (`~/.local/share/`) | System-wide (`/usr/share/`) |
 |---|---|---|
-| Plasma Style | `plasma/desktoptheme/<name>/` | dito |
-| Look-and-Feel | `plasma/look-and-feel/<id>/` | dito |
-| Layout-Template | `plasma/layout-templates/<id>/` | dito |
-| Farbschema | `color-schemes/<Name>.colors` | dito |
-| Aurorae | `aurorae/themes/<name>/` | dito |
-| Icons / Cursor | `icons/<name>/` | dito |
-| Hintergrundbilder | `wallpapers/<name>/` | dito |
-| Schriften | `fonts/` | `/usr/share/fonts/` |
-| Sperrbildschirm | — | `plasma/shells/org.kde.plasma.desktop/contents/lockscreen/` |
-| SDDM-Themes | — | `/usr/share/sddm/themes/<name>/` |
+| Plasma Style | `plasma/desktoptheme/<name>/` | same |
+| Look-and-Feel | `plasma/look-and-feel/<id>/` | same |
+| Layout template | `plasma/layout-templates/<id>/` | same |
+| Color scheme | `color-schemes/<Name>.colors` | same |
+| Aurorae | `aurorae/themes/<name>/` | same |
+| Icons / cursors | `icons/<name>/` | same |
+| Wallpapers | `wallpapers/<name>/` | same |
+| Fonts | `fonts/` | `/usr/share/fonts/` |
+| Lock screen | — | `plasma/shells/org.kde.plasma.desktop/contents/lockscreen/` |
+| SDDM themes | — | `/usr/share/sddm/themes/<name>/` |
 
 Cache: `~/.cache/plasma_theme_<name>_v<version>.kcache`, `~/.cache/ksvg-elements`
 
-## Kommandos
+## Commands
 
 ```bash
-# Anwenden
+# Apply
 plasma-apply-desktoptheme <name>          # --list-themes
 plasma-apply-colorscheme <Name>
-plasma-apply-lookandfeel --apply <id>     # --list, --resetLayout (VORSICHT)
+plasma-apply-lookandfeel --apply <id>     # --list, --resetLayout (CAUTION)
 plasma-apply-cursortheme <name>
-plasma-apply-wallpaperimage <datei>
+plasma-apply-wallpaperimage <file>
 /usr/libexec/plasma-apply-aurorae <name>
 
-# Paketverwaltung
-kpackagetool6 -t Plasma/Theme -i|-u|-r|-l|-s <ziel>
+# Package management
+kpackagetool6 -t Plasma/Theme -i|-u|-r|-l|-s <target>
 kpackagetool6 --list-types
 
-# Konfiguration lesen/schreiben
-kreadconfig6  --file <datei> --group <gruppe> --key <schlüssel>
-kwriteconfig6 --file <datei> --group <gruppe> --key <schlüssel> <wert>
+# Read/write configuration
+kreadconfig6  --file <file> --group <group> --key <key>
+kwriteconfig6 --file <file> --group <group> --key <key> <value>
 
-# Neu laden
+# Reload
 rm -f ~/.cache/plasma_theme_*.kcache ~/.cache/ksvg-elements
 systemctl --user restart plasma-plasmashell.service
 
-# Einzeltest
+# Single test
 plasmawindowed org.kde.plasma.digitalclock
 ksplashqml --test <id>
-kwin_wayland --virtual --width 1920 --height 1080 --exit-with-session <skript>
+kwin_wayland --virtual --width 1920 --height 1080 --exit-with-session <script>
 ```
 
-**Gibt es nicht:** `kpackagetool6 --validate`, `--generate-index`.
+**Does not exist:** `kpackagetool6 --validate`, `--generate-index`.
 
-## Konfigurationsschlüssel
+## Configuration keys
 
-| Ebene | Datei | Gruppe | Schlüssel | Breeze-Wert |
+| Layer | File | Group | Key | Breeze value |
 |---|---|---|---|---|
 | Plasma Style | `plasmarc` | `Theme` | `name` | `default` |
-| Farbschema | `kdeglobals` | `General` | `ColorScheme` | `BreezeLight` |
-| Anwendungsstil | `kdeglobals` | `KDE` | `widgetStyle` | `Breeze` |
+| Color scheme | `kdeglobals` | `General` | `ColorScheme` | `BreezeLight` |
+| Application style | `kdeglobals` | `KDE` | `widgetStyle` | `Breeze` |
 | Icons | `kdeglobals` | `Icons` | `Theme` | `breeze` |
-| Globales Design | `kdeglobals` | `KDE` | `LookAndFeelPackage` | `org.kde.breeze.desktop` |
-| Startbildschirm | `ksplashrc` | `KSplash` | `Theme` | `org.kde.breeze.desktop` |
-| Dekoration | `kwinrc` | `org.kde.kdecoration2` | `library` | `org.kde.breeze` |
-| Dekoration | `kwinrc` | `org.kde.kdecoration2` | `theme` | `Breeze` |
-| Mauszeiger | `kcminputrc` | `Mouse` | `cursorTheme` | `breeze_cursors` |
+| Global theme | `kdeglobals` | `KDE` | `LookAndFeelPackage` | `org.kde.breeze.desktop` |
+| Splash screen | `ksplashrc` | `KSplash` | `Theme` | `org.kde.breeze.desktop` |
+| Decoration | `kwinrc` | `org.kde.kdecoration2` | `library` | `org.kde.breeze` |
+| Decoration | `kwinrc` | `org.kde.kdecoration2` | `theme` | `Breeze` |
+| Cursors | `kcminputrc` | `Mouse` | `cursorTheme` | `breeze_cursors` |
 
-**Merke:** `kdecoration2`, auch unter KDecoration3. Und der Plasma Style von
-Breeze heißt `default`, nicht `breeze`.
+**Remember:** `kdecoration2`, even under KDecoration3. And Breeze's Plasma
+Style is called `default`, not `breeze`.
 
-## SVG-Element-IDs
+## SVG element IDs
 
-**9-Patch:** `topleft` `top` `topright` `left` `center` `right`
+**9-patch:** `topleft` `top` `topright` `left` `center` `right`
 `bottomleft` `bottom` `bottomright`
 
-Auch gültig: nur `left`/`center`/`right` (horizontal), nur
-`top`/`center`/`bottom` (vertikal), nur `center`.
+Also valid: only `left`/`center`/`right` (horizontal), only
+`top`/`center`/`bottom` (vertical), only `center`.
 
-**Zustandspräfixe** (Beispiel `button.svg`): `normal-` `hover-` `pressed-`
+**State prefixes** (example `button.svg`): `normal-` `hover-` `pressed-`
 `focus-` `shadow-` `toolbutton-hover-` `mask-normal-`
 
-Ein Präfix gilt als vorhanden, wenn `<präfix>-center` existiert — sonst nichts.
+A prefix counts as present if `<prefix>-center` exists, and nothing else is
+checked.
 
-**hint-IDs:**
+**hint IDs:**
 
-| ID | Wirkung |
+| ID | Effect |
 |---|---|
-| `hint-tile-center` | center kacheln statt strecken |
-| `hint-stretch-borders` | Kanten strecken statt kacheln |
-| `hint-compose-over-border` | center unter die Ränder zeichnen |
-| `hint-{top,right,bottom,left}-margin` | Innenabstand |
-| `hint-{top,right,bottom,left}-inset` | Rahmen nach innen (Schatten, Float) |
-| `hint-apply-color-scheme` | monochrom einfärben (nur ohne `colors`) |
-| `hint-focus-over-base` | Fokus über Basis |
-| `hint-size`, `hint-bar-size`, `hint-scrollbar-size` | Größenvorgaben |
+| `hint-tile-center` | tile center instead of stretching |
+| `hint-stretch-borders` | stretch edges instead of tiling |
+| `hint-compose-over-border` | draw center under the borders |
+| `hint-{top,right,bottom,left}-margin` | inner padding |
+| `hint-{top,right,bottom,left}-inset` | frame inward (shadow, floating) |
+| `hint-apply-color-scheme` | tint monochrome (only without `colors`) |
+| `hint-focus-over-base` | focus over base |
+| `hint-size`, `hint-bar-size`, `hint-scrollbar-size` | size settings |
 
-**Farbklassen** (vollständig, aus Breeze extrahiert):
+**Color classes** (complete, extracted from Breeze):
 
 ```
 ColorScheme-Text              ColorScheme-Background
@@ -108,24 +109,24 @@ ColorScheme-NegativeText      ColorScheme-NeutralText
 ColorScheme-PositiveText
 ```
 
-Immer zusammen mit `fill="currentColor"` bzw. `stroke="currentColor"`.
+Always together with `fill="currentColor"` or `stroke="currentColor"`.
 
-## Breeze im Quellcode
+## Breeze in the source code
 
-| Artefakt | Repo |
+| Artifact | Repo |
 |---|---|
 | **Plasma Style** | `plasma/libplasma` → `src/desktoptheme/{breeze,breeze-light,breeze-dark}/` |
-| Qt-Style + Dekoration | `plasma/breeze` → `kstyle/`, `kdecoration/` |
-| Farbschemata | `plasma/breeze` → `colors/` |
-| Look-and-Feel-Pakete | `plasma/plasma-workspace` → `lookandfeel/` |
-| SDDM-Theme | `plasma/plasma-desktop` → `sddm-theme/` |
+| Qt style + decoration | `plasma/breeze` → `kstyle/`, `kdecoration/` |
+| Color schemes | `plasma/breeze` → `colors/` |
+| Look-and-Feel packages | `plasma/plasma-workspace` → `lookandfeel/` |
+| SDDM theme | `plasma/plasma-desktop` → `sddm-theme/` |
 | Icons | `frameworks/breeze-icons` |
-| SVG-Werkzeuge | `frameworks/ksvg` → `src/tools/` |
+| SVG tools | `frameworks/ksvg` → `src/tools/` |
 
-**Häufigster Irrtum:** Das Repo `plasma/breeze` enthält **keinen** Plasma
-Style. Der liegt in `libplasma`.
+**Most common misconception:** the `plasma/breeze` repo contains **no**
+Plasma Style. That lives in `libplasma`.
 
-## Paketstruktur
+## Package structure
 
 **Plasma Style** (`metadata.json`):
 ```json
@@ -134,7 +135,7 @@ Style. Der liegt in `libplasma`.
   "X-Plasma-API": "5.0" }
 ```
 
-**Look-and-Feel** (`metadata.json`) — `KPackageStructure` ist Pflicht:
+**Look-and-Feel** (`metadata.json`) — `KPackageStructure` is mandatory:
 ```json
 { "KPackageStructure": "Plasma/LookAndFeel",
   "KPlugin": { … },
@@ -142,20 +143,20 @@ Style. Der liegt in `libplasma`.
   "X-Plasma-APIVersion": "2" }
 ```
 
-**Aurorae** (`metadata.desktop` — hier korrekt, kein Legacy):
+**Aurorae** (`metadata.desktop` — correct here, not legacy):
 ```ini
 [Desktop Entry]
 Name=…
 Type=Service
 X-KDE-ServiceTypes=KWin/Decoration
 X-KDE-Library=kwin3_aurorae
-X-KDE-PluginInfo-Name=__aurorae__svg__<Ordnername>
+X-KDE-PluginInfo-Name=__aurorae__svg__<folder-name>
 ```
 
-## Verifikation
+## Verification
 
 ```bash
-tools/lint-plasma-svg.py <theme> --vergleich /usr/share/plasma/desktoptheme/default
+tools/lint-plasma-svg.py <theme> --compare /usr/share/plasma/desktoptheme/default
 xmllint --noout $(find . -name '*.svg')
 check-jsonschema --schemafile kpluginmetadata.schema.json $(find . -name metadata.json)
 desktop-file-validate aurorae/*/metadata.desktop
@@ -164,38 +165,38 @@ reuse lint
 
 Schema: `https://invent.kde.org/sysadmin/ci-utilities/-/raw/master/resources/jsonschemas/kpluginmetadata.schema.json`
 
-## Notausgang
+## Emergency exit
 
 ```bash
 plasma-apply-lookandfeel --apply org.kde.breeze.desktop
 plasma-apply-desktoptheme default
 
-# aus dem TTY:
+# from the TTY:
 export XDG_RUNTIME_DIR=/run/user/$(id -u)
 kwriteconfig6 --file plasmarc --group Theme --key name default
 kwriteconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage org.kde.breeze.desktop
 kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.breeze
 rm -f ~/.cache/plasma_theme_*.kcache
 
-# Panels zurücksetzen (löscht alle Widget-Einstellungen):
+# reset panels (deletes all widget settings):
 mv ~/.config/plasma-org.kde.plasma.desktop-appletsrc{,.bak}
 
-# Grafische Anmeldung abschalten:
+# turn off graphical login:
 sudo systemctl set-default multi-user.target
 ```
 
-## Fallstricke
+## Pitfalls
 
-| Symptom | Ursache |
+| Symptom | Cause |
 |---|---|
-| Änderung wirkt nicht | Cache — `rm ~/.cache/plasma_theme_*.kcache` |
-| Theme erscheint nicht in der Liste | `metadata.json` fehlerhaft, oder Ordnername ≠ erwartet |
-| Globales Design fehlt in der Auswahl | `KPackageStructure` fehlt |
-| Dekoration wird nicht gesetzt | Gruppe `kdecoration3` statt `kdecoration2` benutzt |
-| Farben werden nicht ersetzt | `fill="currentColor"` fehlt |
-| Hover-Effekt fehlt | `hover-center` fehlt — Plasma meldet das nicht |
-| Panel-Geometrie falsch | `hint-*-inset` fehlt |
-| SDDM-Theme wirkt nicht | System nutzt `plasmalogin` — keine QML-Themes |
-| Sperrbildschirm-QML wirkt nicht | gehört ins Shell-Paket, nicht ins Look-and-Feel |
-| Nutzer verliert seine Panels | Layout-Skript im Look-and-Feel-Paket |
-| Nutzer sieht altes Theme nach Update | `KPlugin.Version` nicht hochgezählt |
+| Change has no effect | Cache — `rm ~/.cache/plasma_theme_*.kcache` |
+| Theme does not appear in the list | `metadata.json` faulty, or folder name ≠ expected |
+| Global theme missing from the selection | `KPackageStructure` missing |
+| Decoration is not set | group `kdecoration3` used instead of `kdecoration2` |
+| Colors are not replaced | `fill="currentColor"` missing |
+| Hover effect missing | `hover-center` missing — Plasma does not report this |
+| Panel geometry wrong | `hint-*-inset` missing |
+| SDDM theme has no effect | system uses `plasmalogin` — no QML themes |
+| Lock screen QML has no effect | belongs in the shell package, not in Look-and-Feel |
+| User loses their panels | layout script in the Look-and-Feel package |
+| User sees old theme after update | `KPlugin.Version` not bumped |

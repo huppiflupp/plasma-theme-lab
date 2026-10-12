@@ -31,12 +31,12 @@ six layers of the theme at once.
 ```bash
 tar -xf nt-legacy-full-manual-install-0.3.0.tar.xz
 cd nt-legacy
-./install.sh --anwenden win2k     # install, then apply that version
+./install.sh --apply win2k     # install, then apply that version
 ```
 
 `install.sh` creates a backup first and prints its path. It then installs
 Plasma styles, colour schemes, window decorations, icons, cursors and
-wallpapers. Without `--anwenden` it only installs and leaves your desktop
+wallpapers. Without `--apply` it only installs and leaves your desktop
 untouched; you pick a version afterwards:
 
 ```bash
@@ -86,8 +86,8 @@ effect*.
 | Command | Display name | Palette |
 |---|---|---|
 | `./apply.sh` or `teal` | NT Legacy | petrol and warm grey — the base version |
-| `./apply.sh lilac` | NT Legacy Flieder | lilac instead of petrol, after NT's *Lilac* |
-| `./apply.sh desert` | NT Legacy Wüste | sand and terracotta, after NT's *Desert* |
+| `./apply.sh lilac` | NT Legacy Lilac | lilac instead of petrol, after NT's *Lilac* |
+| `./apply.sh desert` | NT Legacy Desert | sand and terracotta, after NT's *Desert* |
 | `./apply.sh win2k` | NT Legacy 2000 | softer grey, blue gradient |
 | `./apply.sh win98` | NT Legacy 98 | system grey and navy blue |
 
@@ -102,13 +102,13 @@ Three extras:
 
 ```bash
 ./apply.sh win2k --panel      # also install the NT panel (replaces yours)
-./apply.sh win2k --rot        # red cursor instead of white
-./apply.sh win2k --schrift    # bold titlebar font, as in the original
+./apply.sh win2k --red        # red cursor instead of white
+./apply.sh win2k --font       # bold titlebar font, as in the original
 ```
 
 `--panel` is what makes the desktop look like the screenshots — see below.
 
-`--schrift` is deliberately not applied automatically: otherwise your
+`--font` is deliberately not applied automatically: otherwise your
 setting under *Fonts → Window Title* would be overwritten on every run.
 
 ### Why the selection colour is not the original navy
@@ -140,7 +140,7 @@ Plasma 6 can switch between a light and a dark global theme by time of day
 It uses two keys, `DefaultLightLookAndFeel` and `DefaultDarkLookAndFeel`.
 
 `apply.sh` fills both with the pair belonging to the palette you picked —
-`./apply.sh desert` registers *Wüste* as the light and *Wüste Nacht* as the
+`./apply.sh desert` registers *Desert* as the light and *Desert Night* as the
 dark version. So if you turn the automatic switch on, you stay in the same
 palette and only day and night change. Mixing two palettes is otherwise easy
 to end up with, and the machine then changes colour scheme entirely at dusk.
@@ -220,9 +220,9 @@ This is deliberately not part of `install.sh`. Someone trying out a theme
 does not expect their Dolphin configuration to be different afterwards.
 
 ```bash
-./appearance.sh --zeigen    # what would be set, and why
+./appearance.sh --show      # what would be set, and why
 ./appearance.sh             # apply
-./appearance.sh --zurueck   # full revert
+./appearance.sh --revert    # full revert
 ```
 
 ### Konsole
@@ -261,7 +261,7 @@ session is created, and there is no way from outside to make it read the
 file again. The next new window or tab is correct.
 
 ```bash
-./konsole-follow.sh --zeigen   # what it would do, without doing it
+./konsole-follow.sh --show   # what it would do, without doing it
 systemctl --user status nt-legacy-konsole.path
 ```
 
@@ -306,11 +306,11 @@ inside `$HOME`. They are separate scripts so that the decision is yours:
 ```bash
 ./install-grub.sh win2k          # boot menu
 ./install-plymouth.sh win2k      # boot splash
-./install-grub.sh --zurueck      # remove, restore what was there before
-./install-plymouth.sh --zurueck
+./install-grub.sh --revert       # remove, restore what was there before
+./install-plymouth.sh --revert
 ```
 
-Both back up what they change before changing it, and `--zurueck`
+Both back up what they change before changing it, and `--revert`
 restores it byte for byte — verified in a VM by comparing checksums of
 `/etc/default/grub` before and after.
 
@@ -378,7 +378,7 @@ System Settings:
 ```bash
 ./fetch-icons.sh            # Chicago95      -> "NT Legacy"      (default)
 ./fetch-icons.sh se98       # SE98           -> "NT Legacy (SE98)"
-./fetch-icons.sh beide      # both
+./fetch-icons.sh both       # both
 ./build.py                  # only needed if you build from source
 ```
 
@@ -472,7 +472,7 @@ Three levels, depending on how far back you want:
 
 ```bash
 ~/.local/share/nt-legacy/backup-*/restore.sh   # configuration from before the install
-./appearance.sh --zurueck                        # settings of other programs
+./appearance.sh --revert                       # settings of other programs
 ./uninstall.sh                                 # remove the theme completely
 ```
 

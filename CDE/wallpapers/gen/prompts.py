@@ -14,7 +14,7 @@ MOTIVE = {
  "fluss": "Viewed straight from above, a flat honeycomb floor of hexagonal tiles in muted slate tones, a winding river of brightly coloured hexagons meanders from the top left corner to the bottom right corner, its colour shifting gradually from pale teal through teal to glowing copper orange, a few lone tiles slightly lighter scattered around.",
  "kaskade": "A glacier of pale translucent faceted ice sheets cascades down over stepped terraces of hexagonal tiles, the terraces bordered by thin glowing copper edges, a narrow stream of light teal water winds along the side, seen from above at an angle.",
 }
-def prompt(m, mode): return STYLE + MOTIVE[m] + " " + (LIGHT if mode == "hell" else DARK) + END
+def prompt(m, mode): return STYLE + MOTIVE[m] + " " + (LIGHT if mode == "light" else DARK) + END
 if __name__ == "__main__":
     import sys
     seeds = [int(s) for s in sys.argv[1].split(",")]

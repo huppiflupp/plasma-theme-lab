@@ -329,22 +329,23 @@ turquoise); off by default, `--pattern-colour palette|cde` from a shell.
 40 picture wallpapers come along in 3840×2160, each with a dark version that
 Plasma shows on its own while a dark colour scheme is active:
 
-- **Copper Altai, Canopée, Cluster, Fluss, Kaskade**: low-poly landscapes after
+- **Copper Altai, Canopée, Cluster, River, Cascade**: low-poly landscapes after
   Plasma's own Altai, Canopée, Cluster, Flow and Cascade, in Copper's teal and copper.
-- **CDE Monolith, Polarlicht, Mesa, Riff, Origami, Bauhaus, Weinberg, Orbit**:
+- **CDE Monolith, Aurora, Mesa, Reef, Origami, Bauhaus, Vineyard, Orbit**:
   one CDE palette each, from Default to Neptune.
-- **CDE Chipstadt, CAD, Molekül, Sequenz, Druckvorstufe, Schnittplatz, MRT,
-  Mischpult, VLSI, Strömung**: what CDE workstations were used for in the 1990s.
-- **CDE Kristall, Marmor, Düne**: abstract, after the most popular KDE Store wallpapers.
-- **CDE Aquarell, Panorama**: late-1990s software box illustration.
-- **CDE Düne links/rechts, Weltraum links/rechts**: panoramas split across a 32-inch
+- **CDE Chip City, CAD, Molecule, Sequence, Prepress, Editing Suite, MRI,
+  Mixing Desk, VLSI, Flow**: what CDE workstations were used for in the 1990s.
+- **CDE Crystal, Marble, Dune**: abstract, after the most popular KDE Store wallpapers.
+- **CDE Watercolour, Panorama**: late-1990s software box illustration.
+- **CDE Dune Left/Right, Space Left/Right**: panoramas split across a 32-inch
   and a 27-inch screen (`wallpapers/gen/span.py` cuts them for other screens).
-- **CDE Alpen, Dolomiten, Elbsandstein, Fjord, Island, Schwarzwald, Toskana, Watt**:
+- **CDE Alps, Dolomites, Elbe Sandstone, Fjord, Iceland, Black Forest, Tuscany, Wadden Sea**:
   landscape photographs, by day and by night.
 
-All but Strömung are AI-generated decoration without logos or lettering;
-Strömung is a computed potential flow around an airfoil.
-`wallpapers/README.md` records how each was made.
+All but Flow are AI-generated decoration without logos or lettering;
+Flow is a computed potential flow around an airfoil.
+`wallpapers/README.md` records how each was made. On a German desktop the
+names are shown in German.
 
 They are backdrops too: the Style Manager › Backdrop and the "CDE Backdrop"
 wallpaper list them after the patterns, the ones painted for the chosen

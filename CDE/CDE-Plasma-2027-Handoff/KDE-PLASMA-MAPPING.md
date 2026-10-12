@@ -1,24 +1,24 @@
-# Zuordnung zu KDE Plasma 6
+# Mapping to KDE Plasma 6
 
-| Designbereich | Plasma-Baustein | Umsetzung | Priorität |
+| Design area | Plasma component | Implementation | Priority |
 |---|---|---|---|
-| Farben | KDE Color Scheme | `.colors` mit aktiven/inaktiven/disabled Gruppen | P0 |
-| Fensterrahmen | KDecoration3 | C++/Qt oder kompatible Dekoration; harte Bevels und quadratische Buttons | P0 |
-| Frontpanel | Plasma Containment/Layout | eigenes Plasma-Layout plus Theme; für echte Zweireihigkeit ggf. eigenes QML-Containment | P0 |
-| Paneloberflächen | Plasma Desktop Theme | SVG-Elemente für Panel, Widgets, Tooltips, Dialoghintergründe | P0 |
-| Subpanels | eigenes Plasmoid/QML-Popup | an Segment gebunden, Tastaturfokus, Randkorrektur | P0/P1 |
-| Icons | Freedesktop Icon Theme | vollständige Kernabdeckung als SVG; definierte Fallback-Regel | P1 |
-| Anwendungswidgets | Qt Quick Controls Style / Kvantum nur als Prototyp | langfristig eigener Qt-Style; harte Widget-Bevels | P1 |
-| Global Theme | Look-and-Feel-Paket | bündelt Farbschema, Plasma-Stil, Layout, Icons, Wallpaper optional | P1 |
-| KWin-Effekte | KWin Script/Settings | kurze Fokus-/Panelanimationen, feste Schatten | P2 |
-| Cursor | XCursor Theme | eckig, gut sichtbar, 24/32/48 px | P2 |
-| Login/Lock | SDDM/Look-and-Feel | erst nach stabiler Desktop-Implementierung | P3 |
+| Colours | KDE Color Scheme | `.colors` with active/inactive/disabled groups | P0 |
+| Window frames | KDecoration3 | C++/Qt or a compatible decoration; hard bevels and square buttons | P0 |
+| Front panel | Plasma Containment/Layout | own Plasma layout plus theme; for true two-row layout possibly an own QML containment | P0 |
+| Panel surfaces | Plasma Desktop Theme | SVG elements for panel, widgets, tooltips, dialog backgrounds | P0 |
+| Subpanels | own plasmoid/QML popup | bound to a segment, keyboard focus, edge correction | P0/P1 |
+| Icons | Freedesktop Icon Theme | full core coverage as SVG; defined fallback rule | P1 |
+| Application widgets | Qt Quick Controls Style / Kvantum only as a prototype | long term an own Qt style; hard widget bevels | P1 |
+| Global Theme | Look-and-Feel package | bundles colour scheme, Plasma style, layout, icons, wallpaper optional | P1 |
+| KWin effects | KWin Script/Settings | short focus/panel animations, firm shadows | P2 |
+| Cursor | XCursor Theme | angular, highly visible, 24/32/48 px | P2 |
+| Login/Lock | SDDM/Look-and-Feel | only after a stable desktop implementation | P3 |
 
-## Frontpanel-Architektur
+## Front panel architecture
 
-Ein echtes zweistöckiges CDE-Panel ist mit zwei gewöhnlichen Plasma-Panels nur näherungsweise möglich. Für den ersten Prototyp sind zwei gekoppelte Panels zulässig. Das Ziel ist ein gemeinsames QML-Containment oder ein spezielles Panel-Plasmoid, damit Rahmen, Segmentierung, Subpanel-Anker und Autohide wie ein einziges Objekt funktionieren.
+A true two-row CDE panel can only be approximated with two ordinary Plasma panels. Two coupled panels are acceptable for the first prototype. The goal is a shared QML containment or a dedicated panel plasmoid, so that frame, segmentation, subpanel anchors and autohide work as a single object.
 
-Empfohlene Modulstruktur:
+Recommended module structure:
 
 ```text
 org.cde.plasma.frontpanel/
@@ -32,9 +32,9 @@ org.cde.plasma.frontpanel/
 └── contents/config/main.xml
 ```
 
-## Installation im Benutzerprofil
+## Installation in the user profile
 
-Das Projekt soll keine Root-Rechte voraussetzen. Typische Ziele:
+The project must not require root privileges. Typical targets:
 
 ```text
 ~/.local/share/color-schemes/
@@ -45,8 +45,8 @@ Das Projekt soll keine Root-Rechte voraussetzen. Typische Ziele:
 ~/.local/share/kwin/decorations/
 ```
 
-Das Installationsskript muss vorhandene gleichnamige Dateien sichern oder die Installation abbrechen, niemals fremde Themes überschreiben. Ein `uninstall.sh` darf ausschließlich Dateien entfernen, die im eigenen Installationsmanifest stehen.
+The install script must back up existing files of the same name or abort the installation, and never overwrite third-party themes. An `uninstall.sh` may only remove files listed in its own installation manifest.
 
-## Prototyping-Entscheidung
+## Prototyping decision
 
-Für schnelles visuelles Testen kann Phase 1 Kvantum oder SVG/QML-Mockups verwenden. Für die Endfassung darf Kvantum nur bleiben, wenn Plasma-6-/Qt-6-Kompatibilität, Wayland-Verhalten und konsistente Zustände nachweislich stimmen. Die Fensterdekoration und das Frontpanel sollten nicht von einem nicht gepflegten Plasma-5-Theme abhängen.
+For quick visual testing, phase 1 may use Kvantum or SVG/QML mock-ups. In the final version Kvantum may only stay if Plasma 6/Qt 6 compatibility, Wayland behaviour and consistent states are demonstrably right. The window decoration and the front panel should not depend on an unmaintained Plasma 5 theme.

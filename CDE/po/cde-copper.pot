@@ -1547,3 +1547,175 @@ msgstr ""
 #: stylemanager/contents/ui/WindowDialog.qml:22
 msgid "Open windows take it at once."
 msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Acoustic Foam"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Handmade Paper"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Frost Flowers"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Felt"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Gravel"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Cork"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Leather"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Linen"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Perforated Metal"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Moss"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Slate"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Knit"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Travertine"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Velour"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Water"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Copper River"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "Copper Cascade"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Aurora"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Reef"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Vineyard"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Chip City"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Molecule"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Sequence"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Prepress"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Editing Suite"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE MRI"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Mixing Desk"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Flow"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Crystal"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Marble"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Dune"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Watercolour"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Dune Left"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Dune Right"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Space Left"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Space Right"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Alps"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Dolomites"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Elbe Sandstone"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Iceland"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Black Forest"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Tuscany"
+msgstr ""
+
+#. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
+msgid "CDE Wadden Sea"
+msgstr ""

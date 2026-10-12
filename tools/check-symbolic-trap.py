@@ -1,31 +1,31 @@
 #!/usr/bin/env python3
-"""Findet Symbolnamen, die unser Satz abfaengt, ohne sie zu bedienen.
+"""Finds icon names that our set captures without serving them.
 
-Warum es das gibt: In 0.2.2 zeigte der Lautstaerkeregler im Panel ein
-Blatt Papier mit einer Note. Der Grund war nicht, dass ein Symbol fehlte -
-der Grund war, dass eines zu viel da war.
+Why this exists: in 0.2.2 the volume control in the panel showed a
+sheet of paper with a musical note. The reason was not that an icon was
+missing - the reason was that one too many was there.
 
-Ein unvollstaendiger Satz ist schlechter als gar keiner: Er ueberschreibt
-den Rueckfall auf Breeze, ohne Ersatz zu liefern. Zwei Wege fuehren
-dahin, beide in der Test-VM mit kiconfinder6 nachgemessen:
+An incomplete set is worse than none at all: it overrides the fallback
+to Breeze without providing a replacement. Two paths lead there, both
+measured in the test VM with kiconfinder6:
 
-  1. Die Suche kuerzt einen unbekannten Namen an den Bindestrichen:
-     go-previous-skip -> go-previous. Meist harmlos, weil das kuerzere
-     Symbol dasselbe meint.
+  1. The lookup shortens an unknown name at the hyphens:
+     go-previous-skip -> go-previous. Usually harmless, because the
+     shorter icon means the same thing.
 
-  2. Sie faellt auf das Klassensymbol <klasse>-x-generic zurueck:
+  2. It falls back to the class icon <class>-x-generic:
 
          audio-volume-high  ->  audio-x-generic
          audio-card         ->  audio-x-generic
          image-rotate-left  ->  image-x-generic
 
-     Das ist der gefaehrliche Fall. Ein Blatt Papier mit Note ist die
-     richtige Antwort auf eine MP3-Datei und die falsche auf einen
-     Lautstaerkeregler - und weil der Treffer aus dem eigenen Satz kommt,
-     wird Breeze nie gefragt.
+     That is the dangerous case. A sheet of paper with a note is the
+     right answer for an MP3 file and the wrong one for a volume
+     control - and because the hit comes from our own set, Breeze is
+     never asked.
 
     ./check-symbolic-trap.py nt-legacy/icons-nt/NTLegacyIcons
-    ./check-symbolic-trap.py <verz> --alle    # auch Fall 1 auflisten
+    ./check-symbolic-trap.py <dir> --all    # also list case 1
 """
 
 import argparse
@@ -35,38 +35,38 @@ from pathlib import Path
 BREEZE = Path("/usr/share/icons/breeze")
 
 
-def namen(verzeichnis: Path) -> set:
-    """Alle Symbolnamen eines Themes, ohne Groesse und Endung."""
-    return set(mit_kontext(verzeichnis))
+def names(directory: Path) -> set:
+    """All icon names of a theme, without size and extension."""
+    return set(with_context(directory))
 
 
-def mit_kontext(verzeichnis: Path) -> dict:
-    """Symbolname -> Kontext (mimetypes, actions, apps, status, devices).
+def with_context(directory: Path) -> dict:
+    """Icon name -> context (mimetypes, actions, apps, status, devices).
 
-    Der Kontext trennt die echten Treffer von den harmlosen. Ein Name aus
-    mimetypes/ ist ein Dateityp - dass text-css unser text-x-generic
-    bekommt, ist genau richtig. Ein Name aus actions/ oder status/ ist
-    kein Dateityp: application-exit ist der Menuepunkt "Beenden", und ein
-    Blatt Papier ist dort schlicht falsch.
+    The context separates the real hits from the harmless ones. A name
+    from mimetypes/ is a file type - that text-css gets our
+    text-x-generic is exactly right. A name from actions/ or status/ is
+    not a file type: application-exit is the "Quit" menu item, and a
+    sheet of paper is simply wrong there.
     """
-    # Verweise zaehlen mit. Ein Alias ist ein geliefertes Symbol - wer
-    # sie ueberspringt, meldet Namen als gekapert, die laengst bedient
-    # werden. Genau das ist hier einmal passiert.
-    raus = {}
-    for p in verzeichnis.rglob("*"):
+    # Links count too. An alias is a delivered icon - skipping them
+    # reports names as captured that have long been served.
+    # That is exactly what happened here once.
+    out = {}
+    for p in directory.rglob("*"):
         if p.suffix.lower() in (".png", ".svg", ".svgz"):
-            # .../<kontext>/<groesse>/<name>.png
-            teile = p.relative_to(verzeichnis).parts
-            raus[p.stem] = teile[0] if len(teile) > 1 else "?"
-    return raus
+            # .../<context>/<size>/<name>.png
+            parts = p.relative_to(directory).parts
+            out[p.stem] = parts[0] if len(parts) > 1 else "?"
+    return out
 
 
-def zeige(titel, treffer, grenze=6):
-    print(f"{titel}\n")
-    for kurz in sorted(treffer, key=lambda k: -len(treffer[k])):
-        lang = sorted(treffer[kurz])
-        rest = f"  (+{len(lang) - grenze})" if len(lang) > grenze else ""
-        print(f"  {kurz:<24} faengt  {', '.join(lang[:grenze])}{rest}")
+def show(title, hits, limit=6):
+    print(f"{title}\n")
+    for short in sorted(hits, key=lambda k: -len(hits[k])):
+        long = sorted(hits[short])
+        rest = f"  (+{len(long) - limit})" if len(long) > limit else ""
+        print(f"  {short:<24} captures  {', '.join(long[:limit])}{rest}")
     print()
 
 
@@ -75,67 +75,67 @@ def main():
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("theme", type=Path)
-    ap.add_argument("--alle", action="store_true",
-                    help="auch die Kuerzung an Bindestrichen auflisten")
-    ap.add_argument("--vergleich", type=Path, default=BREEZE,
-                    help=f"Rueckfall-Theme (Vorgabe: {BREEZE})")
+    ap.add_argument("--all", action="store_true",
+                    help="also list the shortening at hyphens")
+    ap.add_argument("--compare", type=Path, default=BREEZE,
+                    help=f"fallback theme (default: {BREEZE})")
     args = ap.parse_args()
 
     if not args.theme.is_dir():
-        sys.exit(f"Kein Verzeichnis: {args.theme}")
-    if not args.vergleich.is_dir():
-        sys.exit(f"Rueckfall-Theme nicht gefunden: {args.vergleich}")
+        sys.exit(f"Not a directory: {args.theme}")
+    if not args.compare.is_dir():
+        sys.exit(f"Fallback theme not found: {args.compare}")
 
-    unsere = namen(args.theme)
-    # Symbolische Doppel interessieren nicht - sie zeigen auf dasselbe
-    # Bild wie der Name ohne Zusatz.
-    kontexte = {n: k for n, k in mit_kontext(args.vergleich).items()
+    ours = names(args.theme)
+    # Symbolic duplicates do not matter - they point to the same
+    # image as the name without the suffix.
+    contexts = {n: k for n, k in with_context(args.compare).items()
                 if not n.endswith(("-symbolic", "-rtl", "-symbolic-rtl"))}
-    fremde = set(kontexte)
+    foreign = set(contexts)
 
-    # Fall 2: das Klassensymbol faengt seine ganze Klasse. Dateitypen
-    # zaehlen nicht - fuer die ist das Klassensymbol gerade gedacht.
-    klassen = {}
-    for n in unsere:
+    # Case 2: the class icon captures its whole class. File types
+    # do not count - that is exactly what the class icon is meant for.
+    classes = {}
+    for n in ours:
         if n.endswith("-x-generic"):
             k = n[:-len("-x-generic")]
-            offen = sorted(f for f in fremde
+            open_ = sorted(f for f in foreign
                            if f.startswith(k + "-")
-                           and f not in unsere
+                           and f not in ours
                            and not f.startswith(k + "-x-")
-                           and kontexte[f] != "mimetypes")
-            if offen:
-                klassen[n] = offen
+                           and contexts[f] != "mimetypes")
+            if open_:
+                classes[n] = open_
 
-    # Fall 1: Kuerzung an Bindestrichen.
-    kurz_lang = {}
-    for kurz in unsere:
-        if kurz.endswith("-x-generic"):
+    # Case 1: shortening at hyphens.
+    short_long = {}
+    for short in ours:
+        if short.endswith("-x-generic"):
             continue
-        offen = [f for f in fremde
-                 if f.startswith(kurz + "-") and f not in unsere]
-        if offen:
-            kurz_lang[kurz] = offen
+        open_ = [f for f in foreign
+                 if f.startswith(short + "-") and f not in ours]
+        if open_:
+            short_long[short] = open_
 
-    if klassen:
-        zeige(f"{len(klassen)} Klassensymbole fangen Namen ab, die etwas "
-              f"anderes bedeuten\n(diese Namen zeigen im Betrieb ein "
-              f"falsches Bild):", klassen)
+    if classes:
+        show(f"{len(classes)} class icons capture names that mean something "
+             f"else\n(these names show a wrong "
+             f"image in use):", classes)
 
-    if args.alle and kurz_lang:
-        zeige(f"{len(kurz_lang)} Symbole fangen laengere Namen ab "
-              f"(meist eine sinnvolle Verallgemeinerung):", kurz_lang)
-    elif kurz_lang:
-        print(f"Dazu {len(kurz_lang)} Faelle der Bindestrich-Kuerzung - "
-              f"mit --alle auflisten.\n")
+    if args.all and short_long:
+        show(f"{len(short_long)} icons capture longer names "
+             f"(usually a sensible generalisation):", short_long)
+    elif short_long:
+        print(f"Plus {len(short_long)} cases of hyphen shortening - "
+              f"list them with --all.\n")
 
-    if not klassen:
-        print("Keine Klassensymbole fangen fremde Namen ab.")
+    if not classes:
+        print("No class icons capture foreign names.")
         return 0
 
-    print("Entweder die fehlenden Namen mitzeichnen oder das "
-          "Klassensymbol weglassen,\ndamit der Rueckfall auf Breeze "
-          "wieder greift.")
+    print("Either draw the missing names as well or drop the "
+          "class icon,\nso that the fallback to Breeze "
+          "works again.")
     return 1
 
 

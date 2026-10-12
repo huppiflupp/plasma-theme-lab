@@ -1,89 +1,88 @@
-# Konforme Plasma-6-Themes bauen
+# Building Well-Behaved Plasma 6 Themes
 
-Ein Leitfaden, der an der offiziellen KDE-Dokumentation ansetzt und dort
-weitermacht, wo sie aufhört: bei der Frage, wie man ein Theme so baut, dass
-man es **gefahrlos ausprobieren** kann und dass es **wartbar** bleibt.
+A guide that starts from the official KDE documentation and picks up where
+it stops: how to build a theme so that people can **try it out safely** and
+so that it stays **maintainable**.
 
-Stand: August 2026 · Referenzsystem: Plasma 6.7.3, KF6, Qt 6, Fedora/Nobara 44
+Status: August 2026 · Reference system: Plasma 6.7.3, KF6, Qt 6, Fedora/Nobara 44
 
 ---
 
-## Wer das hier lesen sollte
+## Who should read this
 
-Wer ein Plasma-Theme schreibt und schon einmal erlebt hat, dass ein Theme
-mehr kaputt gemacht hat als es schön gemacht hat. Der Leitfaden setzt
-voraus, dass du SVG und INI-Dateien lesen kannst. C++ braucht es nicht.
+Anyone who writes a Plasma theme and has seen a theme break more than it
+beautified. The guide assumes you can read SVG and INI files. You do not
+need C++.
 
-## Die Kapitel
+## The chapters
 
-| # | Kapitel | Worum es geht |
+| # | Chapter | What it covers |
 |---|---|---|
-| 1 | [Die sieben Ebenen und ihr Risiko](01-layers-and-risk.md) | Was ein Theme überhaupt ist — und welche Teile davon einen Rechner unbrauchbar machen können |
-| 2 | [Plasma Style](02-plasma-style.md) | SVGs, 9-Patch, `hint-*`-IDs, Farbschema-Stylesheets |
-| 3 | [Look-and-Feel-Paket](03-look-and-feel.md) | Das Bündelpaket, `contents/defaults`, und die Panel-Falle |
-| 4 | [Bauen und Installieren](04-build-and-install.md) | CMake, `kpackagetool6`, Varianten ohne Duplikate |
-| 5 | [Testen](05-testing.md) | Vier Stufen: Linter, Einzelwidget, Session, VM |
-| 6 | [Wenn es schiefgeht](06-recovery.md) | Rettungskommandos, nach Eskalationsstufe sortiert |
+| 1 | [The seven layers and their risk](01-layers-and-risk.md) | What a theme actually is, and which parts of it can make a computer unusable |
+| 2 | [Plasma Style](02-plasma-style.md) | SVGs, 9-patch, `hint-*` IDs, color scheme stylesheets |
+| 3 | [Look-and-Feel package](03-look-and-feel.md) | The bundle package, `contents/defaults`, and the panel trap |
+| 4 | [Building and installing](04-build-and-install.md) | CMake, `kpackagetool6`, variants without duplicates |
+| 5 | [Testing](05-testing.md) | Four stages: linter, single widget, session, VM |
+| 6 | [When things go wrong](06-recovery.md) | Recovery commands, sorted by escalation level |
 
-Dazu die [Referenzkarte](reference.md) — alles Nachschlagbare auf einer Seite.
-
----
-
-## Die fünf Regeln
-
-Wenn du nur eine Seite liest, dann diese.
-
-**1. Ein Theme, das man nicht gefahrlos ausprobieren kann, ist kein fertiges Theme.**
-Der Maßstab ist nicht „sieht gut aus", sondern „der Nutzer kann es anwenden,
-doof finden und in zehn Sekunden zurück". Alles andere ist ein Prototyp.
-
-**2. Trenne strikt, was in `$HOME` lebt, von dem, was ins System greift.**
-Alles unter `~/.local/share/` ist aus einem TTY in unter einer Minute
-reparierbar. Login-Manager, Plymouth und GRUB laufen *vor* dem Login — geht
-dort etwas schief, brauchst du im Zweifel ein Live-Medium. Diese beiden
-Klassen gehören nie in denselben Installationsdurchlauf.
-
-**3. Wenn du ein Panel-Layout ausliefern willst, sichere vorher das des Nutzers.**
-Ein `contents/layouts/org.kde.plasma.desktop-layout.js` ersetzt beim
-Anwenden alle Panels und Widgets — und das ist nicht rückgängig zu machen.
-KDE fragt vorher nach und hakt die Option nicht vorab an, aber wer das
-Theme vollständig sehen will, hakt sie an. Eine gesicherte Kopie von
-`plasma-org.kde.plasma.desktop-appletsrc` macht daraus einen Rückweg.
-Siehe [Kapitel 3.4](03-look-and-feel.md#34-die-panel-falle).
-
-**4. Baue Varianten aus einer Quelle, nicht per Copy-Paste.**
-Drei Farbvarianten heißen nicht drei SVG-Bäume. Breeze löst das mit *einem*
-SVG-Satz und drei Farbschemata. Wer kopiert, pflegt jeden Fix dreimal — und
-vergisst ihn beim dritten Mal.
-
-**5. Zähle `KPlugin.Version` bei jedem Release hoch.**
-Diese Zahl ist der Schlüssel des Render-Caches
-(`~/.cache/plasma_theme_<name>_v<version>.kcache`). Ohne Bump sehen deine
-Nutzer nach dem Update das alte Theme und melden Fehler, die es nicht gibt.
+Plus the [reference card](reference.md): everything you need to look up, on one page.
 
 ---
 
-## Warum es diesen Leitfaden gibt
+## The five rules
 
-Die offizielle Doku unter [develop.kde.org/docs/plasma/theme](https://develop.kde.org/docs/plasma/theme/)
-ist gut, aber sie beschreibt Plasma-Themes als Grafikaufgabe. Die Fragen,
-an denen Projekte tatsächlich scheitern, sind andere:
+If you read only one page, read this one.
 
-- Welcher Teil meines Themes kann den Rechner meines Nutzers unbrauchbar machen?
-- Warum wirkt meine SVG-Änderung nicht? (Antwort: [Cache](02-plasma-style.md#26-der-cache))
-- Wie teste ich das, ohne mein eigenes System zu opfern? ([Kapitel 5](05-testing.md))
-- Wie pflege ich drei Varianten, ohne dreimal zu arbeiten? ([Kapitel 4](04-build-and-install.md))
+**1. A theme that cannot be tried out safely is not a finished theme.**
+The bar is not "looks good" but "the user can apply it, dislike it and be
+back in ten seconds". Anything else is a prototype.
 
-An mehreren Stellen ist die offizielle Doku außerdem veraltet — der
-Leitfaden benennt diese Stellen und sagt, was stattdessen gilt.
+**2. Strictly separate what lives in `$HOME` from what reaches into the system.**
+Everything under `~/.local/share/` can be repaired from a TTY in under a
+minute. The login manager, Plymouth and GRUB run *before* login; if something
+goes wrong there, you may need a live medium. These two classes never belong
+in the same installation run.
 
-## Verifikationsgrade
+**3. If you want to ship a panel layout, back up the user's first.**
+A `contents/layouts/org.kde.plasma.desktop-layout.js` replaces all panels and
+widgets when applied, and that cannot be undone. KDE asks first and does not
+pre-check the option, but anyone who wants to see the full theme checks it.
+A backup copy of `plasma-org.kde.plasma.desktop-appletsrc` turns this into a
+way back. See [chapter 3.4](03-look-and-feel.md#34-the-panel-trap).
 
-Aussagen sind gekennzeichnet:
+**4. Build variants from one source, not by copy-paste.**
+Three color variants do not mean three SVG trees. Breeze solves this with
+*one* SVG set and three color schemes. Copy, and you maintain every fix three
+times, and forget it the third time.
 
-- **[geprüft]** — auf Plasma 6.7.3 lokal nachvollzogen
-- **[Quelle]** — im aktuellen KDE-Quellcode nachgelesen, mit Pfadangabe
-- **[unsicher]** — plausibel, aber nicht verifiziert; behandle es als Vermutung
+**5. Bump `KPlugin.Version` with every release.**
+This number is the key of the render cache
+(`~/.cache/plasma_theme_<name>_v<version>.kcache`). Without a bump, your
+users see the old theme after the update and report bugs that do not exist.
 
-Wo die offizielle Doku etwas anderes sagt als der Quellcode, steht das
-ausdrücklich dabei.
+---
+
+## Why this guide exists
+
+The official documentation at [develop.kde.org/docs/plasma/theme](https://develop.kde.org/docs/plasma/theme/)
+is good, but it treats Plasma themes as a graphics task. The questions
+projects actually fail on are different:
+
+- Which part of my theme can make my user's computer unusable?
+- Why does my SVG change have no effect? (Answer: [the cache](02-plasma-style.md#26-the-cache))
+- How do I test this without sacrificing my own system? ([Chapter 5](05-testing.md))
+- How do I maintain three variants without doing the work three times? ([Chapter 4](04-build-and-install.md))
+
+In several places the official documentation is also out of date; the guide
+names these places and says what applies instead.
+
+## Verification levels
+
+Statements are marked:
+
+- **[verified]** — reproduced locally on Plasma 6.7.3
+- **[source]** — read in the current KDE source code, with the path given
+- **[uncertain]** — plausible but not verified; treat it as a guess
+
+Where the official documentation says something different from the source
+code, this is stated explicitly.

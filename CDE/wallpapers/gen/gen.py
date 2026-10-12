@@ -62,10 +62,10 @@ for j in json.load(open(sys.argv[1])):
         queued = any(item[1] == pid for item in q["queue_running"] + q["queue_pending"])
         lost = 0 if queued else lost + 1
         if lost >= 3:  # neither queued nor in history: server restarted, job lost
-            print(f"{j['name']}: Job verloren, neu eingereicht", flush=True)
+            print(f"{j['name']}: job lost, resubmitted", flush=True)
             pid, lost = submit(), 0
     h = h[pid]
-    if h["status"]["status_str"] == "error": print(j["name"], "FEHLER", h["status"]["messages"][-1]); continue
+    if h["status"]["status_str"] == "error": print(j["name"], "ERROR", h["status"]["messages"][-1]); continue
     for o in h["outputs"].values():
         for im in o.get("images", []):
             dst.write_bytes(requests.get(f"{B}/view", auth=AUTH, params={**im, "type": "output"}).content)

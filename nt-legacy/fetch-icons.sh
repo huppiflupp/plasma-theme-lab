@@ -1,118 +1,118 @@
 #!/usr/bin/env bash
-# Holt ein fremdes Icon-Set und bereitet es fuer NT Legacy auf.
+# Fetches a third-party icon set and prepares it for NT Legacy.
 #
-#   ./fetch-icons.sh              # Chicago95 (Vorgabe, wie bisher)
-#   ./fetch-icons.sh se98         # SE98 - Win98-SE-Stil, viel groesser
-#   ./fetch-icons.sh beide
+#   ./fetch-icons.sh              # Chicago95 (default, as before)
+#   ./fetch-icons.sh se98         # SE98 - Win98 SE style, much larger
+#   ./fetch-icons.sh both
 #
-# Keines der beiden Sets liegt im Repository, und keines ist Teil der
-# Weitergabe - Begruendung in ATTRIBUTION.md. Kurz: Chicago95 hat keine
-# LICENSE-Datei, SE98 hat eine (GPL-2.0), bezeichnet sich in seiner
-# eigenen README aber als "manual copy-paste fork" von Chicago95 mit
-# Material aus dem MicroSoft-Memphis-Projekt. Ein GPL-Stempel deckt nur,
-# was der Setzende selbst geschaffen hat. Lies das, bevor du das Theme
-# weitergibst.
+# Neither of the two sets is in the repository, and neither is part of
+# redistribution - reasons in ATTRIBUTION.md. In short: Chicago95 has no
+# LICENSE file, SE98 has one (GPL-2.0), but calls itself in its
+# own README a "manual copy-paste fork" of Chicago95 with
+# material from the MicroSoft Memphis project. A GPL stamp only covers
+# what the person applying it created themselves. Read that before you
+# redistribute the theme.
 #
-# Fuer den eigenen Rechner ist beides unbedenklich: Die Sets landen in
-# ~/.local/share/icons und sind in den Systemeinstellungen waehlbar.
+# For your own machine both are harmless: the sets land in
+# ~/.local/share/icons and can be selected in System Settings.
 
 set -euo pipefail
-HIER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Wo liegen die Werkzeuge aus tools/?
+# Where are the tools from tools/?
 #
-# Zwei Lagen, und beide sind normal: im Arbeitsbaum neben nt-legacy/, im
-# ausgelieferten Archiv als nt-legacy/tools/. Bis 0.2.7 stand hier fest
-# "$HIER/../tools" - aus dem Archiv heraus lief das ins Leere, gemeldet
-# aus der Community: "line 65: /nt-legacy/../tools/fix-index-theme.py:
-# No such file or directory". Und weil das erst in Zeile 65 auffiel, war
-# der Klon von Chicago95 schon gelaufen.
-if [ -d "$HIER/tools" ]; then
-    WERKZEUGE="$HIER/tools"
+# Two locations, and both are normal: in the working tree next to nt-legacy/, in
+# the shipped archive as nt-legacy/tools/. Up to 0.2.7 this was hard-coded to
+# "$HERE/../tools" - from inside the archive that pointed nowhere, reported
+# from the community: "line 65: /nt-legacy/../tools/fix-index-theme.py:
+# No such file or directory". And because that was only noticed at line 65,
+# the clone of Chicago95 had already run.
+if [ -d "$HERE/tools" ]; then
+    TOOLS="$HERE/tools"
 else
-    WERKZEUGE="$HIER/../tools"
+    TOOLS="$HERE/../tools"
 fi
 for w in fix-index-theme.py gen-symbolic-aliases.py gen-icon-aliases.py; do
-    if [ ! -f "$WERKZEUGE/$w" ]; then
-        echo "FEHLER: $w fehlt (gesucht in $WERKZEUGE)." >&2
-        echo "        Dieses Skript braucht das Verzeichnis tools/." >&2
-        echo "        Es steckt im Gesamtarchiv und im Quelltext:" >&2
-        echo "        https://github.com/huppiflupp/nt-legacy" >&2
+    if [ ! -f "$TOOLS/$w" ]; then
+        echo "ERROR: $w is missing (looked in $TOOLS)." >&2
+        echo "       This script needs the tools/ directory." >&2
+        echo "       It is included in the full archive and in the source code:" >&2
+        echo "       https://github.com/huppiflupp/nt-legacy" >&2
         exit 1
     fi
 done
 
-WELCHE="${1:-chicago95}"
-case "$WELCHE" in
-    chicago95|se98|beide) ;;
-    -h|--hilfe|--help)
-        # Der Kopfkommentar bis zur ersten Zeile, die keiner mehr ist.
-        # Mit fester Zeilenspanne stand hier "set -euo pipefail" mit drin.
+WHICH="${1:-chicago95}"
+case "$WHICH" in
+    chicago95|se98|both) ;;
+    -h|--help)
+        # The header comment up to the first line that is no longer one.
+        # With a fixed line range "set -euo pipefail" was included here.
         awk 'NR>1 { if ($0 !~ /^#/) exit; sub(/^# ?/, ""); print }' "$0"
         exit 0 ;;
     *)
-        echo "FEHLER: unbekannte Quelle '$WELCHE'." >&2
-        echo "        Moeglich: chicago95, se98, beide" >&2
+        echo "ERROR: unknown source '$WHICH'." >&2
+        echo "       Possible: chicago95, se98, both" >&2
         exit 1 ;;
 esac
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-# Beiden Saetzen gemeinsam: Sektionen ergaenzen, symbolische Aliase, die
-# von Dolphin geforderten Namen. Ohne den letzten Schritt sind die
-# Ansichtsmodi in der Werkzeugleiste Breeze-Symbole mitten in der
-# Pixelart.
-nachbereiten() {
-    local ziel="$1"
-    "$WERKZEUGE/fix-index-theme.py"     "$ziel"
-    "$WERKZEUGE/gen-symbolic-aliases.py" "$ziel"
-    "$WERKZEUGE/gen-icon-aliases.py"     "$ziel"
+# Common to both sets: add sections, symbolic aliases, the
+# names Dolphin asks for. Without the last step the
+# view modes in the toolbar are Breeze icons in the middle of the
+# pixel art.
+post_process() {
+    local target="$1"
+    "$TOOLS/fix-index-theme.py"     "$target"
+    "$TOOLS/gen-symbolic-aliases.py" "$target"
+    "$TOOLS/gen-icon-aliases.py"     "$target"
 }
 
-hole_chicago95() {
-    local ziel="$HIER/icons/NTLegacy"
+fetch_chicago95() {
+    local target="$HERE/icons/NTLegacy"
 
-    echo "Hole Chicago95 (nur den Icon-Ordner) …"
+    echo "Fetching Chicago95 (only the icon folder) …"
     git clone --depth 1 --filter=blob:none --sparse \
         https://github.com/grassmunk/Chicago95.git "$TMP/c95" 2>&1 | tail -1
     git -C "$TMP/c95" sparse-checkout set Icons/Chicago95 >/dev/null
 
-    rm -rf "$ziel"
-    mkdir -p "$(dirname "$ziel")"
-    cp -r "$TMP/c95/Icons/Chicago95" "$ziel"
-    rm -f "$ziel/icon-theme.cache"
-    find "$ziel" \( -name '*.html' -o -name '*.old' \) -delete
+    rm -rf "$target"
+    mkdir -p "$(dirname "$target")"
+    cp -r "$TMP/c95/Icons/Chicago95" "$target"
+    rm -f "$target/icon-theme.cache"
+    find "$target" \( -name '*.html' -o -name '*.old' \) -delete
 
-    echo "Passe index.theme an …"
-    python3 - "$ziel" <<'PY'
+    echo "Adjusting index.theme …"
+    python3 - "$target" <<'PY'
 import sys, re
 from pathlib import Path
 p = Path(sys.argv[1]) / "index.theme"
 s = p.read_text()
 s = s.replace("Name=Chicago95", "Name=NT Legacy")
-s = re.sub(r"^Comment=.*$", "Comment=Windows-NT-4.0-Icons fuer Plasma 6, "
-           "auf Basis von Chicago95", s, count=1, flags=re.M)
-# Ohne Inherits faellt Plasma fuer jedes fehlende Icon auf hicolor
-# zurueck - und hicolor ist fast leer.
+s = re.sub(r"^Comment=.*$", "Comment=Windows NT 4.0 icons for Plasma 6, "
+           "based on Chicago95", s, count=1, flags=re.M)
+# Without Inherits Plasma falls back to hicolor for every missing icon
+# - and hicolor is almost empty.
 if "Inherits=" not in s:
     s = s.replace("[Icon Theme]", "[Icon Theme]\nInherits=breeze,hicolor", 1)
 p.write_text(s)
 PY
 
-    # In Chicago95 zeigen folder.svg, inode-directory.svg und
-    # folder-symbolic.svg unter places/scalable auf folder_open.svg. Da
-    # scalable bis 256px gewinnt, zeigt Dolphin ab 64px fuer JEDEN
-    # geschlossenen Ordner einen offenen. Ohne die Symlinks greift
-    # places/48/folder.png, darueber Breeze - weniger falsch.
+    # In Chicago95 folder.svg, inode-directory.svg and
+    # folder-symbolic.svg under places/scalable point to folder_open.svg. Since
+    # scalable wins up to 256px, Dolphin shows an open folder for EVERY
+    # closed folder from 64px up. Without the symlinks
+    # places/48/folder.png applies, above that Breeze - less wrong.
     for f in folder.svg inode-directory.svg folder-symbolic.svg; do
-        z="$ziel/places/scalable/$f"
+        z="$target/places/scalable/$f"
         if [ -L "$z" ] && readlink "$z" | grep -q open; then rm -f "$z"; fi
     done
 
-    # status/symbolic als Scalable 8..512 gewinnt gegen alle Fixed-Groessen
-    # und liefert 16px-Bitmaps hochskaliert - besonders im Systemabschnitt.
-    python3 - "$ziel" <<'PY2'
+    # status/symbolic as Scalable 8..512 wins against all Fixed sizes
+    # and delivers 16px bitmaps scaled up - especially in the system tray.
+    python3 - "$target" <<'PY2'
 import sys, re
 from pathlib import Path
 p = Path(sys.argv[1]) / "index.theme"
@@ -123,34 +123,34 @@ if m:
         "[status/symbolic]\nSize=16\nContext=Status\nType=Fixed\n\n"))
 PY2
 
-    nachbereiten "$ziel"
-    echo "  -> $ziel"
+    post_process "$target"
+    echo "  -> $target"
 }
 
-hole_se98() {
-    local ziel="$HIER/icons/NTLegacySE98"
+fetch_se98() {
+    local target="$HERE/icons/NTLegacySE98"
 
-    echo "Hole SE98 (nur den Icon-Ordner) …"
+    echo "Fetching SE98 (only the icon folder) …"
     git clone --depth 1 --filter=blob:none --sparse \
         https://www.opencode.net/nestoris/Win98SE.git "$TMP/se98" 2>&1 | tail -1
     git -C "$TMP/se98" sparse-checkout set SE98 >/dev/null
 
-    rm -rf "$ziel"
-    mkdir -p "$(dirname "$ziel")"
-    cp -a "$TMP/se98/SE98" "$ziel"
-    rm -f "$ziel/icon-theme.cache"
+    rm -rf "$target"
+    mkdir -p "$(dirname "$target")"
+    cp -a "$TMP/se98/SE98" "$target"
+    rm -f "$target/icon-theme.cache"
 
-    # SE98 fuehrt seine Werkzeuge und Vorschautabellen im Themenbaum mit:
-    # awk-Skripte, icons.html je Kontext, Groessenlisten, ein template.
-    # Nichts davon ist ein Icon. Die .icon-Dateien bleiben - das sind
-    # gueltige Freedesktop-Metadaten.
-    find "$ziel" \( -name '*.html' -o -name '*.md' -o -name '*.awk' \
+    # SE98 carries its tools and preview tables in the theme tree:
+    # awk scripts, icons.html per context, size lists, a template.
+    # None of that is an icon. The .icon files stay - they are
+    # valid freedesktop metadata.
+    find "$target" \( -name '*.html' -o -name '*.md' -o -name '*.awk' \
                  -o -name '*.sh' -o -name 'sizes_brief' -o -name 'sizes_md' \
                  -o -name 'template' -o -name 'file.data' -o -name 'apps.txt' \
                  -o -name 'table_grassmunk' \) -delete
 
-    echo "Passe index.theme an …"
-    python3 - "$ziel" <<'PY3'
+    echo "Adjusting index.theme …"
+    python3 - "$target" <<'PY3'
 import sys, re
 from pathlib import Path
 p = Path(sys.argv[1]) / "index.theme"
@@ -158,18 +158,18 @@ s = p.read_text()
 
 s = re.sub(r"^Name=.*$", "Name=NT Legacy (SE98)", s, count=1, flags=re.M)
 
-# Die uebersetzten Comment-Zeilen (26 Sprachen) beschreiben ein anderes
-# Theme, als hier steht. Raus damit, eine Zeile genuegt.
+# The translated Comment lines (26 languages) describe a different
+# theme than the one here. Out with them, one line is enough.
 s = re.sub(r"^Comment\[[^\]]+\]=.*\n", "", s, flags=re.M)
 s = re.sub(r"^Comment=.*$",
-           "Comment=Windows-98-SE-Icons fuer Plasma 6, auf Basis von SE98 "
-           "(nestoris) - nicht Teil der Weitergabe, siehe ATTRIBUTION.md",
+           "Comment=Windows 98 SE icons for Plasma 6, based on SE98 "
+           "(nestoris) - not part of redistribution, see ATTRIBUTION.md",
            s, count=1, flags=re.M)
 
-# "Breeze" gross gibt es als Verzeichnis nicht. Das Theme heisst breeze,
-# klein - auf jeder Distribution. Die Rueckfallkette lief also ins Leere:
-# was SE98 nicht hat, landete direkt bei hicolor, und hicolor ist fast
-# leer. Reihenfolge wie im uebrigen Theme, breeze zuerst.
+# "Breeze" capitalised does not exist as a directory. The theme is called breeze,
+# lower case - on every distribution. So the fallback chain pointed nowhere:
+# whatever SE98 lacks went straight to hicolor, and hicolor is almost
+# empty. Order as in the rest of the theme, breeze first.
 if re.search(r"^Inherits=", s, re.M):
     s = re.sub(r"^Inherits=.*$", "Inherits=breeze,Adwaita,hicolor",
                s, count=1, flags=re.M)
@@ -179,15 +179,15 @@ else:
 p.write_text(s)
 PY3
 
-    nachbereiten "$ziel"
-    echo "  -> $ziel"
+    post_process "$target"
+    echo "  -> $target"
 }
 
-case "$WELCHE" in
-    chicago95) hole_chicago95 ;;
-    se98)      hole_se98 ;;
-    beide)     hole_chicago95; echo; hole_se98 ;;
+case "$WHICH" in
+    chicago95) fetch_chicago95 ;;
+    se98)      fetch_se98 ;;
+    both)      fetch_chicago95; echo; fetch_se98 ;;
 esac
 
 echo
-echo "Fertig. Danach: ./build.py && ./install.sh"
+echo "Done. Next: ./build.py && ./install.sh"

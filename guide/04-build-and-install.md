@@ -1,39 +1,38 @@
-# 4. Bauen und Installieren
+# 4. Building and installing
 
-Die meisten Theme-Projekte installieren mit `cp -r` aus einem
-`install.sh`. Das funktioniert, bis man es zurücknehmen oder eine zweite
-Variante pflegen will. Dieses Kapitel zeigt, was stattdessen geht.
+Most theme projects install with `cp -r` from an `install.sh`. That works
+until you want to undo it or maintain a second variant. This chapter shows
+what to do instead.
 
 ---
 
-## 4.1 Warum nicht `cp -r`
+## 4.1 Why not `cp -r`
 
-Ein typischer Installer sieht so aus:
+A typical installer looks like this:
 
 ```bash
-rm -rf "$HOME/.local/share/plasma/desktoptheme/meintheme"
-cp -r desktoptheme/meintheme "$HOME/.local/share/plasma/desktoptheme/"
+rm -rf "$HOME/.local/share/plasma/desktoptheme/mytheme"
+cp -r desktoptheme/mytheme "$HOME/.local/share/plasma/desktoptheme/"
 ```
 
-Vier Probleme:
+Four problems:
 
-**Keine Prüfung.** Ein Tippfehler in `metadata.json` fällt erst auf, wenn
-der Nutzer das Theme nicht in der Liste findet.
+**No validation.** A typo in `metadata.json` only shows up when the user
+cannot find the theme in the list.
 
-**Keine saubere Deinstallation.** Das `uninstall.sh` muss die Liste der
-Pfade doppelt pflegen. Vergisst man einen, bleibt Müll liegen. Schlimmer:
-Löscht man Dateien, ohne die Konfiguration zurückzusetzen, bleibt der
-Nutzer mit einem halb kaputten System zurück — `plasmarc` zeigt auf ein
-Theme, das es nicht mehr gibt.
+**No clean uninstall.** The `uninstall.sh` has to maintain the list of paths
+a second time. Forget one and junk is left behind. Worse: if you delete files
+without resetting the configuration, the user is left with a half-broken
+system, because `plasmarc` points to a theme that no longer exists.
 
-**Kein `.svgz`.** Ausgeliefert wird, was im Repo liegt.
+**No `.svgz`.** Whatever is in the repo is what ships.
 
-**Versionen werden von Hand gepflegt.** Bei drei Varianten steht die
-Versionsnummer an drei Stellen. Beim Release ändert man zwei davon.
+**Versions are maintained by hand.** With three variants, the version number
+lives in three places. At release time you change two of them.
 
-## 4.2 Der Mittelweg ohne CMake
+## 4.2 The middle ground without CMake
 
-Wer kein CMake will, kommt mit einem `Makefile` und `kpackagetool6` weit:
+If you do not want CMake, a `Makefile` and `kpackagetool6` get you far:
 
 ```makefile
 VERSION  := 2.1.0
@@ -46,7 +45,7 @@ VARIANTS := niceos9 niceos9-dark niceos9-charcoal
 
 all: $(BUILD)/.stamp
 
-# metadata.json aus einer Vorlage erzeugen - die Version steht nur hier
+# generate metadata.json from a template - the version is set only here
 $(BUILD)/.stamp: $(shell find desktoptheme -type f)
 	@rm -rf $(BUILD); mkdir -p $(BUILD)
 	@for v in $(VARIANTS); do \
@@ -72,30 +71,29 @@ clean:
 	rm -rf $(BUILD)
 ```
 
-Das erledigt die drei wichtigsten Punkte: eine Versionsnummer,
-`.svgz`-Kompression, geprüfte Installation.
+This takes care of the three most important points: one version number,
+`.svgz` compression, validated installation.
 
 ## 4.3 kpackagetool6
 
-Der offizielle Weg, KDE-Pakete zu installieren. [geprüft, Plasma 6.7.3]
+The official way to install KDE packages. [verified, Plasma 6.7.3]
 
 ```bash
-kpackagetool6 -t Plasma/Theme       -i ./meintheme       # installieren
-kpackagetool6 -t Plasma/Theme       -u ./meintheme       # aktualisieren
-kpackagetool6 -t Plasma/Theme       -r meintheme         # entfernen
-kpackagetool6 -t Plasma/Theme       -l                   # auflisten
-kpackagetool6 -t Plasma/Theme       -s meintheme         # Metadaten zeigen
-kpackagetool6 -t Plasma/LookAndFeel -i ./com.example.meintheme
-kpackagetool6 -t Plasma/LayoutTemplate -i ./org.example.meintheme.panel
-sudo kpackagetool6 -g -t Plasma/Theme -i ./meintheme     # systemweit
+kpackagetool6 -t Plasma/Theme       -i ./mytheme       # install
+kpackagetool6 -t Plasma/Theme       -u ./mytheme       # upgrade
+kpackagetool6 -t Plasma/Theme       -r mytheme         # remove
+kpackagetool6 -t Plasma/Theme       -l                 # list
+kpackagetool6 -t Plasma/Theme       -s mytheme         # show metadata
+kpackagetool6 -t Plasma/LookAndFeel -i ./com.example.mytheme
+kpackagetool6 -t Plasma/LayoutTemplate -i ./org.example.mytheme.panel
+sudo kpackagetool6 -g -t Plasma/Theme -i ./mytheme     # system-wide
 ```
 
-`-i` und `-u` akzeptieren ein Verzeichnis **oder** ein Archiv
-(`.tar.gz`, `.zip`).
+`-i` and `-u` accept a directory **or** an archive (`.tar.gz`, `.zip`).
 
-Die Typen, die für Themes zählen:
+The types that matter for themes:
 
-| Typ | Zielverzeichnis |
+| Type | Target directory |
 |---|---|
 | `Plasma/Theme` | `plasma/desktoptheme/` |
 | `Plasma/LookAndFeel` | `plasma/look-and-feel/` |
@@ -103,112 +101,110 @@ Die Typen, die für Themes zählen:
 | `KWin/Aurorae` | `aurorae/themes/` |
 | `Plasma/Applet` | `plasma/plasmoids/` |
 
-**Was es nicht gibt:** `kpackagetool6 --validate`. Ältere Anleitungen
-erwähnen es; im Hilfetext von 6.7.3 kommt es nicht vor. [geprüft]
-Zur Metadatenprüfung siehe [Kapitel 5](05-testing.md).
+**What does not exist:** `kpackagetool6 --validate`. Older guides mention it;
+it does not appear in the help text of 6.7.3. [verified]
+For checking metadata, see [chapter 5](05-testing.md).
 
-Farbschemata und Aurorae-Themes werden weiterhin einfach kopiert:
+Color schemes and Aurorae themes are still simply copied:
 ```bash
 install -Dm644 color-schemes/*.colors -t "$HOME/.local/share/color-schemes/"
-cp -r aurorae/MeinTheme "$HOME/.local/share/aurorae/themes/"
+cp -r aurorae/MyTheme "$HOME/.local/share/aurorae/themes/"
 ```
 
-## 4.4 Varianten ohne Duplikate
+## 4.4 Variants without duplicates
 
-Das häufigste Wartungsproblem: drei Farbvarianten, drei SVG-Bäume, jeder
-Fix dreimal.
+The most common maintenance problem: three color variants, three SVG trees,
+every fix three times.
 
-### Wie Breeze es löst
+### How Breeze solves it
 
-Breeze liefert **einen** SVG-Satz aus, unter dem Namen `default`. Die
-Varianten `breeze-light` und `breeze-dark` enthalten: [geprüft]
+Breeze ships **one** SVG set, under the name `default`. The variants
+`breeze-light` and `breeze-dark` contain: [verified]
 
 ```console
 $ ls /usr/share/plasma/desktoptheme/breeze-light/
 colors  metadata.json  plasmarc
 ```
 
-**Keine einzige SVG-Datei.** Das funktioniert, weil
+**Not a single SVG file.** This works because
 
-1. fehlende Dateien auf `default` zurückfallen, und
-2. die Breeze-SVGs ihre Farben über `current-color-scheme`-Stylesheets aus
-   der `colors`-Datei der jeweiligen Variante beziehen.
+1. missing files fall back to `default`, and
+2. the Breeze SVGs take their colors, via `current-color-scheme`
+   stylesheets, from the `colors` file of the respective variant.
 
-### Der Haken für eigene Themes
+### The catch for your own themes
 
-Der Fallback geht **immer** auf `default`, also auf Breeze — nicht auf dein
-Basis-Theme. `meintheme-dark` ohne SVGs zeigt also Breeze-Grafik mit
-deinen Farben, nicht deine Grafik.
+The fallback **always** goes to `default`, i.e. to Breeze, not to your base
+theme. So `mytheme-dark` without SVGs shows Breeze graphics in your colors,
+not your graphics.
 
-Daraus folgen zwei gangbare Wege:
+That leaves two workable paths:
 
-**Weg A — eine Variante als Plasma Style, Varianten über das Farbschema.**
-Du lieferst genau *einen* Plasma Style aus. Die Varianten entstehen durch
-verschiedene Farbschemata und verschiedene Look-and-Feel-Pakete, die
-jeweils denselben Plasma Style setzen:
+**Path A — one variant as the Plasma Style, variants via the color scheme.**
+You ship exactly *one* Plasma Style. The variants come from different color
+schemes and different Look-and-Feel packages, each of which sets the same
+Plasma Style:
 
 ```ini
 # look-and-feel/…niceos9-dark/contents/defaults
 [plasmarc][Theme]
-name=niceos9                 ← derselbe Style für alle Varianten
+name=niceos9                 ← the same style for all variants
 [kdeglobals][General]
-ColorScheme=NiceOS9Dark      ← hier entsteht der Unterschied
+ColorScheme=NiceOS9Dark      ← this is where the difference comes from
 ```
 
-**Das ist der wartungsärmste Weg** und exakt der Grund, warum Breeze so
-gebaut ist: ein SVG-Satz, mehrere globale Designs.
+**This is the lowest-maintenance path** and exactly the reason Breeze is
+built this way: one SVG set, several global themes.
 
-Voraussetzung: Deine SVGs nutzen konsequent `class="ColorScheme-*"` und
-`fill="currentColor"`. Ohne das lassen sie sich nicht umfärben.
+Prerequisite: your SVGs use `class="ColorScheme-*"` and `fill="currentColor"`
+consistently. Without that, they cannot be recolored.
 
-**Weg B — SVGs beim Bauen in jede Variante kopieren.** Wenn Varianten sich
-in der *Form* unterscheiden sollen, nicht nur in der Farbe. Im Repo liegt
-ein Satz, das Build-Skript kopiert ihn in alle Varianten. Kostet
-Plattenplatz, aber keine doppelte Pflege.
+**Path B — copy the SVGs into each variant at build time.** For when variants
+should differ in *shape*, not only in color. The repo holds one set, and the
+build script copies it into all variants. It costs disk space, but no
+duplicate maintenance.
 
-Was du **nicht** tun solltest: drei SVG-Bäume ins Repository legen.
+What you should **not** do: put three SVG trees into the repository.
 
-### Farbschemata generieren
+### Generating color schemes
 
-Bei mehreren Varianten lohnt sich Generierung aus einer Palette.
-[Catppuccin für KDE](https://github.com/catppuccin/kde) macht das
-vorbildlich: aus einer Palettendatei entstehen über 60 `.colors`-Dateien.
+With several variants, generating them from a palette pays off.
+[Catppuccin for KDE](https://github.com/catppuccin/kde) does this
+exemplarily: more than 60 `.colors` files come out of one palette file.
 
-Für drei Varianten reicht ein kurzes Python-Skript:
+For three variants, a short Python script is enough:
 
 ```python
 # tools/gen-colors.py
-PALETTEN = {
+PALETTES = {
     "NiceOS9Bright":   {"bg": "221,221,221", "fg": "0,0,0",       "hl": "0,0,128"},
     "NiceOS9Dark":     {"bg": "44,42,40",    "fg": "230,226,220", "hl": "180,200,255"},
     "NiceOS8Charcoal": {"bg": "60,60,60",    "fg": "220,220,220", "hl": "128,128,160"},
 }
-VORLAGE = open("templates/colorscheme.in").read()
-for name, farben in PALETTEN.items():
-    text = VORLAGE
-    for schluessel, wert in {**farben, "name": name}.items():
-        text = text.replace(f"@{schluessel}@", wert)
+TEMPLATE = open("templates/colorscheme.in").read()
+for name, colors in PALETTES.items():
+    text = TEMPLATE
+    for key, value in {**colors, "name": name}.items():
+        text = text.replace(f"@{key}@", value)
     open(f"color-schemes/{name}.colors", "w").write(text)
 ```
 
-Wichtig: Generierte Dateien gehören mit ins Repository (der Nutzer soll
-nicht Python brauchen), aber die Vorlage ist die Quelle der Wahrheit. Ein
-CI-Job, der prüft, ob die generierten Dateien aktuell sind, verhindert
-Abweichungen.
+Important: generated files belong in the repository too (the user should not
+need Python), but the template is the source of truth. A CI job that checks
+whether the generated files are up to date prevents drift.
 
-## 4.5 Rollback ist Teil der Installation
+## 4.5 Rollback is part of the installation
 
-Ein `uninstall.sh`, das nur Dateien löscht, reicht nicht. Wenn dein
-Installer `plasmarc` und `kdeglobals` ändert, muss er die alten Werte
-sichern:
+An `uninstall.sh` that only deletes files is not enough. If your installer
+changes `plasmarc` and `kdeglobals`, it must back up the old values:
 
 ```bash
-# Im Installer, VOR jeder Änderung:
-RESTORE="$HOME/.local/share/meintheme/restore.sh"
+# In the installer, BEFORE any change:
+RESTORE="$HOME/.local/share/mytheme/restore.sh"
 mkdir -p "$(dirname "$RESTORE")"
 {
     echo '#!/usr/bin/env bash'
-    echo '# Automatisch erzeugt - stellt den Stand vor der Installation wieder her.'
+    echo '# Generated automatically - restores the state from before the installation.'
     echo "kwriteconfig6 --file plasmarc --group Theme --key name \
 '$(kreadconfig6 --file plasmarc --group Theme --key name)'"
     echo "kwriteconfig6 --file kdeglobals --group General --key ColorScheme \
@@ -219,49 +215,48 @@ mkdir -p "$(dirname "$RESTORE")"
 '$(kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key library)'"
 } > "$RESTORE"
 chmod +x "$RESTORE"
-echo "Rückweg gesichert: $RESTORE"
+echo "Way back saved: $RESTORE"
 ```
 
-Diese eine Datei ist der Unterschied zwischen „ich probiere das mal aus"
-und „ich traue mich nicht".
+This one file is the difference between "let me try this out" and "I don't
+dare".
 
-## 4.6 Veröffentlichen
+## 4.6 Publishing
 
-Das Format für den KDE Store ist ein schlichtes **`.tar.gz`**. Ein
-`.plasma`-Format gibt es nicht.
+The format for the KDE Store is a plain **`.tar.gz`**. There is no `.plasma`
+format.
 
-Zwei Stolpersteine: [geprüft an `/usr/share/knsrcfiles/`]
+Two stumbling blocks: [verified against `/usr/share/knsrcfiles/`]
 
-**Plasma Styles brauchen ein Tag.** `plasma-themes.knsrc` filtert mit
-`TagFilter=ghns_excluded!=1,plasma##version==5`. Ein Plasma Style ohne das
-Tag `plasma##version==5` erscheint **nicht** unter „Neue Plasma-Stile
-holen" — auch 2026 nicht.
+**Plasma Styles need a tag.** `plasma-themes.knsrc` filters with
+`TagFilter=ghns_excluded!=1,plasma##version==5`. A Plasma Style without the
+tag `plasma##version==5` does **not** appear under "Get New Plasma Styles",
+not even in 2026.
 
-**Globale Designs werden als ausführbar markiert.** `lookandfeel.knsrc`
-setzt `ContentWarning=Executables`, weil Look-and-Feel-Pakete
-Layout-Skripte enthalten können. Der Nutzer bekommt eine Warnung. Ein
-weiteres Argument, [kein `layouts/` auszuliefern](03-look-and-feel.md#panel-preset-statt-layout-zwang).
+**Global themes are flagged as executable.** `lookandfeel.knsrc` sets
+`ContentWarning=Executables` because Look-and-Feel packages can contain
+layout scripts. The user gets a warning. Another argument for
+[not shipping `layouts/`](03-look-and-feel.md#panel-preset-instead-of-a-forced-layout).
 
-### Lizenzen
+### Licenses
 
-Für ein Projekt außerhalb von KDE ist nichts davon Pflicht, aber billig zu
-haben und macht das Projekt paketierbar (Fedora und Debian fragen genau
-danach):
+For a project outside KDE none of this is mandatory, but it is cheap to have
+and makes the project packageable (Fedora and Debian ask exactly for this):
 
-- SPDX-Kopf in jeder Textdatei:
+- SPDX header in every text file:
   ```
   SPDX-FileCopyrightText: 2026 Name <mail@example.org>
   SPDX-License-Identifier: GPL-3.0-or-later
   ```
-- `LICENSES/<SPDX-Id>.txt` je verwendeter Lizenz (`reuse download <ID>`)
-- Binärdateien über `.license`-Sidecar oder `REUSE.toml`
-- Für Grafik ist `CC-BY-SA-4.0` die übliche Wahl
+- `LICENSES/<SPDX-Id>.txt` for each license used (`reuse download <ID>`)
+- Binary files via a `.license` sidecar or `REUSE.toml`
+- For graphics, `CC-BY-SA-4.0` is the usual choice
 
-Bei einem Retro-Nachbau ist die **Herkunft der Assets** die heiklere Frage
-als das Dateiformat. Schriften und Grafiken aus einem kommerziellen
-Betriebssystem sind nicht automatisch frei, auch Nachbauten nicht. Die
-Lizenz jeder übernommenen Schrift gehört explizit dokumentiert.
+For a retro recreation, the **origin of the assets** is the trickier question
+than the file format. Fonts and graphics from a commercial operating system
+are not automatically free, and neither are recreations. The license of every
+font you adopt must be documented explicitly.
 
 ---
 
-**Weiter:** [Kapitel 5 — Testen](05-testing.md)
+**Next:** [Chapter 5 — Testing](05-testing.md)

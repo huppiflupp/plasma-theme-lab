@@ -384,7 +384,7 @@ def cursor_edge(manifest):
     choice = manifest.get("cursor", "copper")
     if choice == "palette":
         name = manifest.get("palette", "Copper")
-        return CURSOR_COLOURS["copper"] if name == "Copper" else palettes.theme(name)["kopf_aktiv"]
+        return CURSOR_COLOURS["copper"] if name == "Copper" else palettes.theme(name)["title_active"]
     if re.fullmatch(r"#[0-9a-fA-F]{6}", choice):
         return choice.lower()
     return CURSOR_COLOURS.get(choice, CURSOR_COLOURS["copper"])

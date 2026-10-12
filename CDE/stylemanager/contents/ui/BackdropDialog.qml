@@ -19,12 +19,12 @@ StyleDialog {
     // painted for the palette in use first.
     readonly property var choices: [{value: "none", text: i18nd("cde-copper", "Plain palette colour")}]
         .concat(Palettes.BACKDROPS.map(name => ({value: name, text: name})))
-        .concat(Backdrops.TILES.map(t => ({value: t.key, text: t.name})))
-        .concat(Backdrops.TILES.map(t => ({value: "natural:" + t.key, text: i18nd("cde-copper", "%1 (natural colour)", t.name)})))
+        .concat(Backdrops.TILES.map(t => ({value: t.key, text: i18nd("cde-copper", t.name)})))
+        .concat(Backdrops.TILES.map(t => ({value: "natural:" + t.key, text: i18nd("cde-copper", "%1 (natural colour)", i18nd("cde-copper", t.name))})))
         .concat(Palettes.PICTURES.filter(p => p.palette === manager.current)
-                .map(p => ({value: "picture:" + p.key, text: i18nd("cde-copper", "Picture: %1 (for this palette)", p.name)})))
+                .map(p => ({value: "picture:" + p.key, text: i18nd("cde-copper", "Picture: %1 (for this palette)", i18nd("cde-copper", p.name))})))
         .concat(Palettes.PICTURES.filter(p => p.palette !== manager.current)
-                .map(p => ({value: "picture:" + p.key, text: i18nd("cde-copper", "Picture: %1", p.name)})))
+                .map(p => ({value: "picture:" + p.key, text: i18nd("cde-copper", "Picture: %1", i18nd("cde-copper", p.name))})))
         // A backdrop set some other way (several per workspace, an older
         // name): kept unless another is chosen.
         .concat(known(manager.installed.backdrop) ? [] : [{value: "", text: i18nd("cde-copper", "Keep the desktop as it is")}])

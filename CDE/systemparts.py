@@ -51,7 +51,7 @@ def frame(pieces, P, title=0):
     """A nine-piece Motif frame (GRUB pixmap style): ink outline, light top
     and left, dark bottom and right; with title > 0 the top pieces carry a
     copper title bar of that height."""
-    ink, light, dark, face, copper = (rgb(P[k]) + (255,) for k in ("rahmen", "hell", "dunkel", "flaeche", "kopf_aktiv"))
+    ink, light, dark, face, copper = (rgb(P[k]) + (255,) for k in ("border", "light", "dark", "surface", "title_active"))
     edge = 4
     top = edge + title
 
@@ -80,7 +80,7 @@ def plymouth_script(P):
     def c(value):
         r, g, b = rgb(value)
         return f"{r / 255:.3f}, {g / 255:.3f}, {b / 255:.3f}"
-    ink = c(P["rahmen"])
+    ink = c(P["border"])
     return f"""# CDE Copper boot splash: a Motif dialog on the tiled backdrop, a meter
 # of six blocks for the boot progress, and the passphrase prompt.
 
@@ -202,7 +202,7 @@ def grub_theme(P):
     included, and draws no progress bar without the timeout's id; so the
     title bar is an image with its text already in it, above the menu, both
     a fixed 640 pixels wide."""
-    ink, copper = P["rahmen"], P["kopf_aktiv"]
+    ink, copper = P["border"], P["title_active"]
     half = MENU_WIDTH // 2
     return f"""# CDE Copper boot menu: the backdrop, a Motif window with a copper title
 # bar, the selection in copper.
@@ -257,7 +257,7 @@ terminal-box: "menu_*.png"
     text = "@TIMEOUT_NOTIFICATION_LONG@"
     text_color = "{ink}"
     fg_color = "{copper}"
-    bg_color = "{P["rille"]}"
+    bg_color = "{P["groove"]}"
     border_color = "{ink}"
 }}
 """
@@ -266,7 +266,7 @@ terminal-box: "menu_*.png"
 def title_bar(P, width=MENU_WIDTH, height=TITLE_HEIGHT):
     """The copper title bar: ink outline, light top and left, dark bottom
     and right, as the window frame draws it."""
-    ink, light, dark, copper = (rgb(P[k]) + (255,) for k in ("rahmen", "hell", "dunkel", "kopf_aktiv"))
+    ink, light, dark, copper = (rgb(P[k]) + (255,) for k in ("border", "light", "dark", "title_active"))
     rows = []
     for y in range(height):
         row = []
@@ -289,7 +289,7 @@ def title_bar(P, width=MENU_WIDTH, height=TITLE_HEIGHT):
         font = ImageFont.truetype(str(Path(__file__).resolve().parent / "fonts/IBMPlex/IBMPlexSansCondensed-SemiBold.otf"), 18)
         draw = ImageDraw.Draw(image)
         box = draw.textbbox((0, 0), "CDE Copper", font=font)
-        draw.text(((width - box[2] - box[0]) // 2, (height - box[3] - box[1]) // 2), "CDE Copper", font=font, fill=P["kopf_aktiv_text"])
+        draw.text(((width - box[2] - box[0]) // 2, (height - box[3] - box[1]) // 2), "CDE Copper", font=font, fill=P["title_active_text"])
         out = io.BytesIO()
         image.save(out, "PNG")
         return out.getvalue()
@@ -311,8 +311,8 @@ def build_system(out: Path, P):
         "ModuleName=script\n\n[script]\nImageDir=/usr/share/plymouth/themes/cde-copper\n"
         "ScriptFile=/usr/share/plymouth/themes/cde-copper/cde-copper.script\n")
     (ply / "cde-copper.script").write_text(plymouth_script(P))
-    for name, key in (("ink", "rahmen"), ("face", "flaeche"), ("light", "hell"), ("dark", "dunkel"),
-                      ("copper", "kopf_aktiv"), ("trough", "rille"), ("field", "fenster")):
+    for name, key in (("ink", "border"), ("face", "surface"), ("light", "light"), ("dark", "dark"),
+                      ("copper", "title_active"), ("trough", "groove"), ("field", "window")):
         (ply / f"{name}.png").write_bytes(solid(P[key]))
     (ply / "backdrop.png").write_bytes(backdrops.render("Lattice", colours))
     (ply / "logo.png").write_bytes(logo(64))
@@ -321,14 +321,14 @@ def build_system(out: Path, P):
     grub.mkdir(parents=True, exist_ok=True)
     (grub / "theme.txt").write_text(grub_theme(P))
     # Commands system.py puts into grub.cfg: the terminal's background.
-    (grub / "terminal.cfg").write_text(f'insmod gfxterm_background\nbackground_color "{P["flaeche"]}"\n')
+    (grub / "terminal.cfg").write_text(f'insmod gfxterm_background\nbackground_color "{P["surface"]}"\n')
     (grub / "background.png").write_bytes(backdrops.desktop("Lattice", colours, 1920, 1080))
     (grub / "title.png").write_bytes(title_bar(P))
     pieces = {}
     frame(pieces, P)
     for name, data in pieces.items():
         (grub / f"menu_{name}.png").write_bytes(data)
-    select = {name: png_rgba(*size, [[rgb(P["kopf_aktiv"]) + (255,)] * size[0] for _ in range(size[1])])
+    select = {name: png_rgba(*size, [[rgb(P["title_active"]) + (255,)] * size[0] for _ in range(size[1])])
               for name, size in (("nw", (2, 2)), ("n", (8, 2)), ("ne", (2, 2)), ("w", (2, 8)), ("c", (8, 8)),
                                  ("e", (2, 8)), ("sw", (2, 2)), ("s", (8, 2)), ("se", (2, 2)))}
     for name, data in select.items():

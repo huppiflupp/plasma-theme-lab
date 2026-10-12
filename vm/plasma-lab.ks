@@ -1,19 +1,19 @@
-# Kickstart: Plasma-Theme-Test-VM (Fedora 44 KDE, Plasma 6)
-# Unattended-Installation, SSH-Zugang per Key, Autologin in die Plasma-Wayland-Session.
-# Zweck: Wegwerf-Umgebung zum Testen von Plasma-Themes, inkl. SDDM/Plymouth/GRUB.
+# Kickstart: Plasma theme test VM (Fedora 44 KDE, Plasma 6)
+# Unattended installation, SSH access by key, autologin into the Plasma Wayland session.
+# Purpose: disposable environment for testing Plasma themes, incl. SDDM/Plymouth/GRUB.
 
 text
 eula --agreed
 
-# Das updates-Repo ist hier PFLICHT, nicht Kosmetik. Fedora 44 GA liefert
-# kwin-6.7.4 zusammen mit kscreenlocker-6.6.4 aus - diese Kombination ist
-# ABI-inkompatibel. kwin_wayland startet dann gar nicht:
+# The updates repo is MANDATORY here, not cosmetic. Fedora 44 GA ships
+# kwin-6.7.4 together with kscreenlocker-6.6.4 - this combination is
+# ABI-incompatible. kwin_wayland then does not start at all:
 #
 #   kwin_wayland: symbol lookup error: /lib64/libkwin.so.6:
 #   undefined symbol: ScreenLocker::KSldApp::inhibitSuspend()
 #
-# Ohne Compositor gibt es keine Wayland-Sitzung, und der Autologin laeuft
-# in eine Endlosschleife. Der Fix (kscreenlocker-6.7.4) liegt in updates.
+# Without a compositor there is no Wayland session, and the autologin runs
+# into an endless loop. The fix (kscreenlocker-6.7.4) is in updates.
 url --url=https://download.fedoraproject.org/pub/fedora/linux/releases/44/Everything/x86_64/os/
 repo --name=updates --baseurl=https://download.fedoraproject.org/pub/fedora/linux/updates/44/Everything/x86_64/
 
@@ -21,11 +21,11 @@ lang de_DE.UTF-8
 keyboard --vckeymap=de --xlayouts='de'
 timezone Europe/Berlin --utc
 
-# Netzwerk: DHCP über libvirt-default-NAT
+# Network: DHCP via the libvirt default NAT
 network --bootproto=dhcp --device=link --activate --hostname=plasma-lab
 
-# Speicher: alles löschen, simples Layout ohne LVM/Btrfs-Subvolumes
-# (macht qcow2-Snapshots und Offline-Inspektion mit guestfish einfacher)
+# Storage: wipe everything, simple layout without LVM/Btrfs subvolumes
+# (makes qcow2 snapshots and offline inspection with guestfish easier)
 ignoredisk --only-use=vda
 clearpart --all --initlabel --drives=vda
 part /boot/efi --fstype=efi   --size=600  --ondisk=vda
@@ -33,29 +33,29 @@ part /boot     --fstype=ext4  --size=1024 --ondisk=vda
 part /         --fstype=ext4  --grow      --ondisk=vda
 bootloader --location=mbr --boot-drive=vda
 
-# Zugänge: root gesperrt, ein Testnutzer mit sudo.
-# Passwort ist bewusst trivial - die VM ist NAT-isoliert und ein Wegwerf-Ziel.
+# Access: root locked, one test user with sudo.
+# The password is deliberately trivial - the VM is NAT-isolated and a disposable target.
 rootpw --lock
 user --name=tester --groups=wheel --password=tester --plaintext --gecos="Theme Tester"
 sshkey --username=tester "SSH_PUBKEY_PLACEHOLDER"
 
 selinux --enforcing
 firewall --disabled
-# sddm bewusst NICHT hier: Fedora 44 liefert den Plasma Login Manager
-# (plasmalogin) statt SDDM aus. Der Login-Manager wird im %post erkannt.
+# sddm deliberately NOT here: Fedora 44 ships the Plasma Login Manager
+# (plasmalogin) instead of SDDM. The login manager is detected in %post.
 services --enabled=sshd,qemu-guest-agent
 skipx
 
 reboot
 
-# Bewusst minimal gehalten. Jedes zusätzliche Paket hier ist eine
-# mögliche Abbruchstelle in einer unbeaufsichtigten Installation - ein
-# Tippfehler im Paketnamen bringt Anaconda zum Stehen, und das ist in
-# einer VM ohne Bildschirmzugriff mühsam zu finden. Alle Testwerkzeuge
-# installiert stattdessen provision.sh nach, wo ein Fehler sichtbar und
-# ohne Neuinstallation behebbar ist.
+# Deliberately kept minimal. Every additional package here is a
+# possible point of failure in an unattended installation - a
+# typo in a package name brings Anaconda to a halt, and that is
+# tedious to find in a VM without screen access. All test tools are
+# installed by provision.sh instead, where an error is visible and
+# can be fixed without reinstalling.
 #
-# --ignoremissing: lieber ein fehlendes Paket als eine hängende Installation.
+# --ignoremissing: better a missing package than a hanging installation.
 %packages --ignoremissing
 @^kde-desktop-environment
 openssh-server
@@ -65,14 +65,14 @@ qemu-guest-agent
 %post --log=/root/ks-post.log
 set -x
 
-# --- Autologin in die Plasma-Wayland-Session -------------------------------
-# Ohne Autologin gibt es keine laufende Plasma-Session, gegen die man
-# plasma-apply-* aufrufen oder Screenshots machen kann.
+# --- Autologin into the Plasma Wayland session ------------------------------
+# Without autologin there is no running Plasma session against which
+# plasma-apply-* can be called or screenshots taken.
 #
-# Fedora 44 hat SDDM durch den Plasma Login Manager (plasmalogin) ersetzt.
-# Beide werden hier bedient, damit das Kickstart auch auf aelteren
-# Fedora-Versionen funktioniert - der jeweils nicht vorhandene Teil
-# ist einfach eine ungenutzte Konfigurationsdatei.
+# Fedora 44 replaced SDDM with the Plasma Login Manager (plasmalogin).
+# Both are handled here so that the kickstart also works on older
+# Fedora versions - the part that is not present in each case
+# is simply an unused configuration file.
 
 # Plasma Login Manager (Fedora 44+)
 if [ -f /usr/lib/systemd/system/plasmalogin.service ]; then
@@ -100,25 +100,25 @@ fi
 
 systemctl set-default graphical.target
 
-# --- SSH: Key-Login, Passwort-Login zusätzlich erlauben ---------------------
+# --- SSH: key login, additionally allow password login ----------------------
 mkdir -p /etc/ssh/sshd_config.d
 cat > /etc/ssh/sshd_config.d/10-lab.conf <<'EOF'
 PasswordAuthentication yes
 PermitRootLogin no
 EOF
 
-# --- sudo ohne Passwort: der Testharness fasst SDDM/Plymouth/GRUB an -------
+# --- sudo without password: the test harness touches SDDM/Plymouth/GRUB ----
 echo 'tester ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-tester
 chmod 440 /etc/sudoers.d/90-tester
 
-# --- Marker, an dem der Host erkennt, dass die Installation durch ist ------
+# --- Marker by which the host recognises that the installation is done ----
 echo "plasma-lab ready $(date -Is)" > /etc/plasma-lab-ready
 
-# --- Baseline der theme-relevanten Systempfade sichern ---------------------
-# Erlaubt später ein Diff "was hat der Installer am System verändert?"
+# --- Save a baseline of the theme-relevant system paths --------------------
+# Allows a later diff "what did the installer change on the system?"
 mkdir -p /var/lib/plasma-lab
 {
-  echo "# Baseline der theme-relevanten Systempfade"
+  echo "# Baseline of the theme-relevant system paths"
   ls -1 /usr/share/plasma/desktoptheme/     2>/dev/null | sed 's|^|desktoptheme/|'
   ls -1 /usr/share/plasma/look-and-feel/    2>/dev/null | sed 's|^|look-and-feel/|'
   ls -1 /usr/share/sddm/themes/             2>/dev/null | sed 's|^|sddm/|'

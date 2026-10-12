@@ -1,180 +1,179 @@
-# 5. Testen
+# 5. Testing
 
-Vier Stufen, von Sekunden bis Minuten. Die ersten drei laufen gefahrlos auf
-dem Arbeitsrechner. Die vierte gehört in eine Wegwerf-VM.
+Four stages, from seconds to minutes. The first three run safely on your
+work machine. The fourth belongs in a throwaway VM.
 
-| Stufe | Was | Dauer | Wo |
+| Stage | What | Duration | Where |
 |---|---|---|---|
-| 1 | Statische Prüfungen | Sekunden | überall, CI |
-| 2 | Einzelnes Widget rendern | Sekunden | Arbeitsrechner |
-| 3 | Session neu laden | ~30 s | Arbeitsrechner |
-| 4 | Vollinstallation | Minuten | **nur VM** |
+| 1 | Static checks | seconds | anywhere, CI |
+| 2 | Render a single widget | seconds | work machine |
+| 3 | Reload the session | ~30 s | work machine |
+| 4 | Full installation | minutes | **VM only** |
 
 ---
 
-## 5.1 Stufe 1 — statische Prüfungen
+## 5.1 Stage 1 — static checks
 
-### Der SVG-Linter
+### The SVG linter
 
-Plasma meldet fehlende Element-IDs **nicht**. Ein `hover-center`, das fehlt,
-äußert sich darin, dass der Hover-Effekt einfach nicht da ist. Es gibt kein
-offizielles Werkzeug dagegen — weder von KDE noch von Dritten.
+Plasma does **not** report missing element IDs. A missing `hover-center`
+shows only in that the hover effect is simply not there. There is no
+official tool against this, neither from KDE nor from third parties.
 
-Dieses Projekt bringt eines mit:
+This project ships one:
 
 ```bash
-tools/lint-plasma-svg.py desktoptheme/meintheme
-tools/lint-plasma-svg.py desktoptheme/meintheme \
-    --vergleich /usr/share/plasma/desktoptheme/default
+tools/lint-plasma-svg.py desktoptheme/mytheme
+tools/lint-plasma-svg.py desktoptheme/mytheme \
+    --compare /usr/share/plasma/desktoptheme/default
 ```
 
-Es prüft:
+It checks:
 
-- wohlgeformtes XML
-- Vollständigkeit der 9-Patch-Sätze je Zustandspräfix (kennt auch die
-  legitimen 3-Patch-Formen, die Breeze selbst verwendet)
-- `current-color-scheme`-Stylesheet vorhanden, wenn `ColorScheme-*`-Klassen
-  benutzt werden
-- `fill="currentColor"` gesetzt — ohne das bleiben die festen Farben stehen
-- unbekannte Farbklassen (Tippfehler in `ColorScheme-…`)
-- `hint-*-inset` bei Panel-Hintergründen
-- Pflichtfelder in `metadata.json`
+- well-formed XML
+- completeness of the 9-patch sets for each state prefix (it also knows the
+  legitimate 3-patch forms that Breeze itself uses)
+- a `current-color-scheme` stylesheet is present when `ColorScheme-*`
+  classes are used
+- `fill="currentColor"` is set; without it the fixed colors stay
+- unknown color classes (typos in `ColorScheme-…`)
+- `hint-*-inset` on panel backgrounds
+- required fields in `metadata.json`
 
-Der Vergleichsmodus zeigt, welche SVGs gegenüber Breeze fehlen — nach
-Dringlichkeit sortiert, mit den abgekündigten `icons/` herausgerechnet.
+The comparison mode shows which SVGs are missing compared with Breeze,
+sorted by urgency, with the deprecated `icons/` left out.
 
-**Kalibrierung:** Der Linter läuft gegen Breeze selbst mit null Fehlern
-durch. Das ist die Gegenprobe, die jeder Linter braucht — ein Werkzeug, das
-die Referenzimplementierung anmeckert, meckert falsch.
+**Calibration:** the linter runs against Breeze itself with zero errors.
+That is the cross-check every linter needs: a tool that complains about the
+reference implementation complains wrongly.
 
-### Symbolnamen, die der eigene Satz abfängt
+### Icon names your own set intercepts
 
-Ein unvollständiger Symbolsatz ist schlechter als gar keiner. Er
-überschreibt den Rückfall auf Breeze, ohne Ersatz zu liefern — und zwar
-über zwei Wege, beide mit `kiconfinder6` nachgemessen:
+An incomplete icon set is worse than none. It overrides the fallback to
+Breeze without providing a replacement, and it does so in two ways, both
+measured with `kiconfinder6`:
 
 ```
 audio-volume-high  →  audio-volume  →  audio  →  audio-x-generic
 ```
 
-Die Suche kürzt an den Bindestrichen und fällt am Ende auf das
-Klassensymbol `<klasse>-x-generic` zurück. Wer `audio-x-generic` mitliefert
-und `audio-volume-high` nicht, bekommt im Lautstärkeregler ein Blatt Papier
-mit einer Note — genau das wurde für 0.2.2 aus der Community gemeldet. Und
-weil der Treffer aus dem eigenen Satz kommt, wird Breeze nie gefragt.
+The lookup shortens at the hyphens and finally falls back to the class icon
+`<class>-x-generic`. If you ship `audio-x-generic` but not
+`audio-volume-high`, the volume control shows a sheet of paper with a musical
+note; exactly this was reported by the community for 0.2.2. And because the
+hit comes from your own set, Breeze is never asked.
 
 ```bash
 tools/check-symbolic-trap.py nt-legacy/icons-nt/NTLegacyIcons
-tools/check-symbolic-trap.py <verz> --alle    # auch die harmlosen Fälle
+tools/check-symbolic-trap.py <dir> --all     # also the harmless cases
 ```
 
-Das Werkzeug dreht die Frage um: Für jedes Klassensymbol im eigenen Satz
-sucht es in Breeze alle Namen derselben Klasse, die man **nicht** selbst
-liefert. Dateityp-Namen rechnet es heraus — dass `text-css` auf
-`text-x-generic` fällt, ist ja gerade der Zweck. Übrig bleibt, was im
-Betrieb ein falsches Bild zeigt: `application-exit` als Blatt Papier,
-`audio-card` als Notenblatt.
+The tool turns the question around: for every class icon in your own set,
+it looks up all names of the same class in Breeze that you do **not** ship
+yourself. It leaves out file-type names; that `text-css` falls back to
+`text-x-generic` is the whole point. What remains is what shows a wrong
+picture in practice: `application-exit` as a sheet of paper, `audio-card` as
+sheet music.
 
-Entweder die fehlenden Namen mitzeichnen oder das Klassensymbol weglassen.
-Beides ist vertretbar, nur der Zwischenzustand nicht.
+Either draw the missing names as well or leave out the class icon. Both are
+defensible; only the in-between state is not.
 
-### Metadaten gegen KDEs eigenes Schema
+### Metadata against KDE's own schema
 
-KDE liefert ein JSON-Schema für `KPluginMetaData` aus und nutzt es in der
-eigenen CI:
+KDE ships a JSON schema for `KPluginMetaData` and uses it in its own CI:
 
 ```bash
 curl -sO https://invent.kde.org/sysadmin/ci-utilities/-/raw/master/resources/jsonschemas/kpluginmetadata.schema.json
 check-jsonschema --schemafile kpluginmetadata.schema.json $(find . -name metadata.json)
 ```
 
-Es fängt Tippfehler in Personenobjekten und falsche Typen. Fehlende
-Pflichtfelder fängt es **nicht** (`additionalProperties: true`, keine
-Top-Level-`required`) — dafür ist der Linter oben zuständig.
+It catches typos in person objects and wrong types. It does **not** catch
+missing required fields (`additionalProperties: true`, no top-level
+`required`); the linter above takes care of that.
 
-### Der Rest
+### The rest
 
 ```bash
-xmllint --noout $(find . -name '*.svg')          # XML-Wohlgeformtheit
-desktop-file-validate aurorae/*/metadata.desktop  # Aurorae-Metadaten
-reuse lint                                        # Lizenzkonformität
-appstreamcli validate <datei>                     # AppStream, falls erzeugt
+xmllint --noout $(find . -name '*.svg')          # XML well-formedness
+desktop-file-validate aurorae/*/metadata.desktop  # Aurorae metadata
+reuse lint                                        # license compliance
+appstreamcli validate <file>                      # AppStream, if generated
 ```
 
-`reuse` ist dasselbe Werkzeug, das KDE in der CI benutzt
-(`fsfe/reuse:5` als Container).
+`reuse` is the same tool KDE uses in its CI (`fsfe/reuse:5` as a container).
 
-## 5.2 Stufe 2 — ein einzelnes Widget rendern
+## 5.2 Stage 2 — render a single widget
 
-Das am meisten unterschätzte Werkzeug:
+The most underrated tool:
 
 ```bash
 plasmawindowed org.kde.plasma.digitalclock
 plasmawindowed org.kde.plasma.kickoff
 ```
 
-Es rendert ein einzelnes Plasmoid in einem eigenen Fenster, mit dem aktiven
-Plasma Style. Kein `plasmashell --replace`, keine Wartezeit, kein Risiko für
-die laufende Session.
+It renders a single plasmoid in its own window, with the active Plasma
+Style. No `plasmashell --replace`, no waiting, no risk to the running
+session.
 
-Für SVG-Arbeit ist das die schnellste Rückkopplung, die es gibt: Datei
-speichern, Cache löschen, `plasmawindowed` neu starten.
+For SVG work this is the fastest feedback there is: save the file, clear the
+cache, restart `plasmawindowed`.
 
-## 5.3 Stufe 3 — Session neu laden
+## 5.3 Stage 3 — reload the session
 
 ```bash
-plasma-apply-desktoptheme meintheme
+plasma-apply-desktoptheme mytheme
 rm -f ~/.cache/plasma_theme_*.kcache ~/.cache/ksvg-elements
 systemctl --user restart plasma-plasmashell.service
 ```
 
-**Das Löschen des Caches ist nicht optional.** Ohne das siehst du deine
-Änderung nicht und suchst den Fehler an der falschen Stelle. Siehe
-[Kapitel 2.6](02-plasma-style.md#26-der-cache).
+**Clearing the cache is not optional.** Without it you do not see your
+change and look for the bug in the wrong place. See
+[chapter 2.6](02-plasma-style.md#26-the-cache).
 
-Weitere nützliche Kommandos:
+More useful commands:
 
 ```bash
 plasma-apply-desktoptheme --list-themes
-plasma-apply-colorscheme MeinSchema
+plasma-apply-colorscheme MyScheme
 plasma-apply-lookandfeel --list
-plasma-apply-lookandfeel --apply com.example.meintheme   # ohne --resetLayout!
-/usr/libexec/plasma-apply-aurorae MeinTheme
+plasma-apply-lookandfeel --apply com.example.mytheme   # without --resetLayout!
+/usr/libexec/plasma-apply-aurorae MyTheme
 ```
 
-### Leere Schlüssel nach dem Designwechsel — fast immer ein Messfehler
+### Empty keys after switching themes — almost always a measurement error
 
-Hier stand bis zum 9.8.2026 das Gegenteil: dass ein Wechsel über
-*Systemeinstellungen → Globales Design* einen halb gesetzten Zustand
-hinterlasse, weil `plasmarc/Theme`, `Icons/Theme` und `kwinrc` leer bleiben.
-Diese Messung war falsch, und sie hat ein ganzes Skript begründet, das es so
-nicht gebraucht hätte.
+Until 9 August 2026 this section said the opposite: that switching via
+*System Settings → Global Theme* left a half-set state behind, because
+`plasmarc/Theme`, `Icons/Theme` and `kwinrc` stayed empty. That measurement
+was wrong, and it justified an entire script that was not needed in that
+form.
 
-**Was wirklich passiert:** Plasma schreibt die Werte eines globalen Designs
-nicht als Nutzerwerte, sondern als *Vorgaben* nach `~/.config/kdedefaults/`
-— und löscht dabei den Nutzerwert
-(`libklookandfeel/klookandfeelmanager.cpp`, `writeNewDefaults`):
+**What really happens:** Plasma writes a global theme's values not as user
+values but as *defaults* to `~/.config/kdedefaults/`, and deletes the user
+value in the process (`libklookandfeel/klookandfeelmanager.cpp`,
+`writeNewDefaults`):
 
 ```cpp
-defaultGroup.writeEntry(key, value, writeFlags);   // Vorgabe schreiben
+defaultGroup.writeEntry(key, value, writeFlags);   // write the default
 if (m_mode == Mode::Apply) {
-    group.revertToDefault(key, writeFlags);        // Nutzerwert löschen
+    group.revertToDefault(key, writeFlags);        // delete the user value
 }
 ```
 
-Damit die Vorgaben gelesen werden, stellt Plasma sie beim Sitzungsstart der
-Kaskade voran:
+So that the defaults are read, Plasma prepends them to the cascade at
+session start:
 
 ```console
 $ echo $XDG_CONFIG_DIRS
-/home/du/.config/kdedefaults:/etc/xdg:/usr/share/kde-settings/…
+/home/you/.config/kdedefaults:/etc/xdg:/usr/share/kde-settings/…
 ```
 
-**Über SSH fehlt diese Variable.** `kreadconfig6` liest dann nur
-`~/.config`, findet nichts und meldet leer — obwohl alles korrekt gesetzt
-ist. Wer in einer Test-VM per `ssh` misst, misst genau daneben.
+**Over SSH this variable is missing.** `kreadconfig6` then reads only
+`~/.config`, finds nothing and reports empty, even though everything is set
+correctly. If you measure in a test VM via `ssh`, you measure exactly the
+wrong thing.
 
-Richtig messen heißt: die Kaskade der echten Sitzung übernehmen.
+Measuring correctly means: adopt the cascade of the real session.
 
 ```console
 $ export XDG_CONFIG_DIRS="$HOME/.config/kdedefaults:/etc/xdg:/usr/share/kde-settings/kde-profile/default/xdg"
@@ -182,150 +181,149 @@ $ kreadconfig6 --file plasmarc --group Theme --key name
 nt-legacy-win98
 ```
 
-Oder gleich aus dem laufenden Prozess:
+Or straight from the running process:
 
 ```console
 $ tr '\0' '\n' < /proc/$(pgrep plasmashell)/environ | grep XDG_CONFIG_DIRS
 ```
 
-**Folge für eigene Skripte:** `kwriteconfig6` schreibt *nichts*, wenn der
-Wert dem kaskadierten Default entspricht — KConfig speichert keinen
-Eintrag, der dem Vorgabewert gleicht. In der Test-VM nachgewiesen: nach
-`kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle Windows`
-stand der Schlüssel weiterhin nur in `kdedefaults`. Ein Skript, das mit
-`kwriteconfig6` „sichergehen" will, ist deshalb oft ein aufwendiger
-Leerlauf.
+**Consequence for your own scripts:** `kwriteconfig6` writes *nothing* if
+the value equals the cascaded default; KConfig does not store an entry that
+equals the default value. Demonstrated in the test VM: after
+`kwriteconfig6 --file kdeglobals --group KDE --key widgetStyle Windows` the
+key was still only in `kdedefaults`. A script that wants to "make sure" with
+`kwriteconfig6` is therefore often an elaborate no-op.
 
-### Der Anwendungsstil ist die Ausnahme — er greift als Vorgabe nicht
+### The application style is the exception — it does not take effect as a default
 
-Alles andere greift aus `kdedefaults`: Farbschema, Plasma-Stil, Symbole,
-Mauszeiger, Fensterdekoration, Startbildschirm. Der Anwendungsstil nicht.
+Everything else takes effect from `kdedefaults`: color scheme, Plasma Style,
+icons, cursors, window decoration, splash screen. The application style
+does not.
 
-Gemessen in der Test-VM auf einem sauberen Snapshot, nach Anmeldung:
+Measured in the test VM on a clean snapshot, after login:
 
 ```console
 $ kreadconfig6 --file kdeglobals --group KDE --key widgetStyle
-Windows                       # korrekt gesetzt - als Vorgabe
+Windows                       # set correctly - as a default
 ```
 
-und trotzdem startete jede Qt-Anwendung mit Breeze. Erst ein Eintrag in
-`~/.config/kdeglobals` selbst wirkt — und den kann `kwriteconfig6` nicht
-schreiben, solange er dem Vorgabewert gleicht. Wer den Stil ausliefern
-will, muss ihn an KConfig vorbei in die Nutzerdatei schreiben.
+and yet every Qt application started with Breeze. Only an entry in
+`~/.config/kdeglobals` itself works, and `kwriteconfig6` cannot write it as
+long as it equals the default value. If you want to ship the style, you have
+to write it into the user file bypassing KConfig.
 
-### Ein fremdes Panel macht jedes Theme kaputt
+### Someone else's panel breaks any theme
 
-`plasma-apply-lookandfeel --apply X` wendet nur das *Erscheinungsbild* an,
-nicht das Arbeitsflächen-Layout. Das Panel des Nutzers bleibt also stehen —
-und die meisten Distributionen liefern ein **schwebendes** Panel aus.
+`plasma-apply-lookandfeel --apply X` only applies the *appearance*, not the
+desktop layout. So the user's panel stays, and most distributions ship a
+**floating** panel.
 
-Schwebende Panels zeichnet Plasma mit den abgerundeten Varianten aus
-`translucent/`. Ein Theme, das für ein randbündiges Panel gebaut ist, sieht
-darin fremd aus — beim NT-Nachbau dunkel statt hellgrau, mit runden Ecken
-statt Kanten. Dieselbe Installation, einmal ohne und einmal mit
-`--resetLayout`, ergibt zwei völlig verschiedene Bilder.
+Plasma draws floating panels with the rounded variants from `translucent/`.
+A theme built for an edge-to-edge panel looks out of place in it; with the
+NT recreation, dark instead of light gray, with rounded corners instead of
+edges. The same installation, once without and once with `--resetLayout`,
+produces two completely different pictures.
 
-**Für Vorschaubilder heißt das:** Wer sie in einer VM erzeugt, in der das
-Layout irgendwann einmal angewendet wurde, fotografiert einen Zustand, den
-eine frische Installation nicht herstellt. Die Bilder versprechen dann
-mehr, als das Paket liefert. Deshalb: Vorschaubilder immer nach einem
-`vmctl.sh reset` erzeugen, nie auf gewachsenem Zustand.
+**For preview images this means:** if you produce them in a VM where the
+layout was applied at some point, you photograph a state that a fresh
+installation does not produce. The images then promise more than the
+package delivers. Therefore: always produce preview images after a
+`vmctl.sh reset`, never on accumulated state.
 
-Ebenfalls beachten: In der Designauswahl sitzt neben jeder Kachel ein
-Entfernen-Knopf. Ein versehentlicher Klick löscht den installierten Stil,
-und die Shell fällt still auf Breeze zurück — ohne Meldung.
+Also note: in the theme selection, every tile has a remove button next to
+it. An accidental click deletes the installed style, and the shell silently
+falls back to Breeze, with no message.
 
-### `plasma-apply-colorscheme` lädt ein *geändertes* Schema nicht neu
+### `plasma-apply-colorscheme` does not reload a *changed* scheme
 
-Ein Fallstrick, der viel Verwirrung stiftet: Wer die `.colors`-Datei
-bearbeitet und danach
+A pitfall that causes a lot of confusion: if you edit the `.colors` file and
+then run
 
 ```bash
-plasma-apply-colorscheme MeinSchema
+plasma-apply-colorscheme MyScheme
 ```
 
-aufruft, sieht **keine Änderung** — das Schema ist ja bereits aktiv, also
-tut der Befehl nichts. Die alten Farben stehen weiterhin in `kdeglobals`.
+you see **no change**: the scheme is already active, so the command does
+nothing. The old colors stay in `kdeglobals`.
 
-Besonders tückisch beim Zurücksetzen nach einem Test: Die `.colors`-Datei
-sieht wieder richtig aus, das System zeigt aber weiter die Testfarben.
+Especially treacherous when resetting after a test: the `.colors` file looks
+right again, but the system keeps showing the test colors.
 
-Der Umweg über ein anderes Schema erzwingt das Neuladen:
+Detouring through another scheme forces the reload:
 
 ```bash
 plasma-apply-colorscheme BreezeLight
-plasma-apply-colorscheme MeinSchema
+plasma-apply-colorscheme MyScheme
 ```
 
-Kontrollieren lässt sich der tatsächliche Zustand nur in `kdeglobals`, nicht
-in der Schemadatei:
+The actual state can only be checked in `kdeglobals`, not in the scheme
+file:
 
 ```bash
 kreadconfig6 --file kdeglobals --group "Colors:Selection" --key BackgroundNormal
 ```
 
-**Dasselbe Muster bei der Fensterdekoration:** `BorderSize` wirkt weder über
-`plasma-apply-*` noch über `qdbus org.kde.KWin /KWin reconfigure` — KWin
-übernimmt die Rahmengröße erst beim Sitzungsstart. Ein Testlauf über alle
-acht Größen ohne Neuanmeldung misst achtmal denselben Zustand.
+**The same pattern applies to the window decoration:** `BorderSize` takes
+effect neither via `plasma-apply-*` nor via `qdbus org.kde.KWin /KWin reconfigure`;
+KWin only picks up the border size at session start. A test run over all
+eight sizes without logging in again measures the same state eight times.
 
-## 5.4 Stufe 4 — Vollinstallation in der VM
+## 5.4 Stage 4 — full installation in the VM
 
-**Alles, was `sudo` braucht, gehört hierhin.** Login-Manager, Plymouth und
-GRUB laufen, bevor du dich anmelden kannst — ein Fehler dort kostet im
-Zweifel ein Live-Medium und einen Abend.
+**Everything that needs `sudo` belongs here.** The login manager, Plymouth
+and GRUB run before you can log in; a mistake there may cost you a live
+medium and an evening.
 
-Auch wenn dein Installer nur in `$HOME` schreibt, ist die VM der bessere
-Ort: Nur dort kannst du prüfen, wie sich das Theme auf einem **frischen**
-Benutzerkonto verhält. Auf deinem eigenen Rechner hast du längst
-Einstellungen, die Lücken im Theme kaschieren.
+Even if your installer only writes to `$HOME`, the VM is the better place:
+only there can you check how the theme behaves on a **fresh** user account.
+On your own computer you have long had settings that hide gaps in the theme.
 
-Das Vorgehen, das sich bewährt hat:
+The procedure that has proven itself:
 
-1. VM einmal aufsetzen, Werkzeuge installieren
-2. **Snapshot `clean`** anlegen
-3. Vor jedem Testlauf auf `clean` zurücksetzen
-4. Theme einspielen, installieren, Screenshot, Befund festhalten
-5. Zurück zu 3
+1. Set up the VM once, install the tools
+2. Create a **snapshot `clean`**
+3. Reset to `clean` before every test run
+4. Copy the theme in, install, take a screenshot, record the findings
+5. Back to 3
 
-Der Snapshot ist der eigentliche Trick. Ohne ihn testet man beim zweiten
-Durchlauf auf den Resten des ersten.
+The snapshot is the real trick. Without it, the second run tests on the
+leftovers of the first.
 
-Dieses Projekt bringt die VM mit:
+This project ships the VM:
 
 ```bash
-vm/build-vm.sh              # einmalig, unbeaufsichtigte Installation
-vm/provision.sh             # Werkzeuge, Autologin
+vm/build-vm.sh              # once, unattended installation
+vm/provision.sh             # tools, autologin
 vm/vmctl.sh snap create clean
 
-vm/vmctl.sh reset           # zurück auf clean, dauert Sekunden
+vm/vmctl.sh reset           # back to clean, takes seconds
 vm/vmctl.sh push ../niceos9 /home/tester/theme
 vm/vmctl.sh ssh 'cd theme && ./install.sh'
-vm/vmctl.sh shot befund.png
+vm/vmctl.sh shot findings.png
 ```
 
-**Screenshots über den Hypervisor, nicht über den Gast.** `vmctl.sh shot`
-nutzt `virsh screenshot` — das funktioniert auch dann noch, wenn Plasma
-abgestürzt ist oder gar keine Session mehr läuft. Genau das ist bei
-Theme-Tests der interessante Fall. Ein `spectacle` im Gast kann per
-Definition nichts liefern, wenn die Session weg ist.
+**Screenshots via the hypervisor, not via the guest.** `vmctl.sh shot` uses
+`virsh screenshot`, which still works when Plasma has crashed or no session
+is running at all. That is exactly the interesting case in theme tests. A
+`spectacle` inside the guest by definition cannot deliver anything once the
+session is gone.
 
-### Was man in der VM prüft
+### What to check in the VM
 
-- Installiert das Theme auf einem frischen Konto ohne Fehler?
-- Sieht es auf einem frischen Konto so aus wie gedacht?
-- Startet die Session nach dem Anwenden noch?
-- Überlebt es einen **Neustart**? (Der häufigste Fall, in dem ein Theme
-  auffällt: beim nächsten Anmelden.)
-- Bringt `uninstall.sh` das System wirklich in den Ausgangszustand?
-- Was hat sich im System geändert? (`rpm -Va`, Vergleich mit der Baseline)
+- Does the theme install on a fresh account without errors?
+- Does it look as intended on a fresh account?
+- Does the session still start after applying it?
+- Does it survive a **reboot**? (The most common case in which a theme
+  stands out: at the next login.)
+- Does `uninstall.sh` really return the system to its initial state?
+- What changed in the system? (`rpm -Va`, comparison with the baseline)
 
-Der Punkt „überlebt einen Neustart" ist der wichtigste und wird am
-häufigsten übersprungen.
+The "survives a reboot" point is the most important one and the one most
+often skipped.
 
 ## 5.5 Headless
 
-KWin bringt ein virtuelles Backend mit — Xvfb braucht es nicht:
+KWin ships a virtual backend; Xvfb is not needed:
 
 ```bash
 kwin_wayland --virtual --width 1920 --height 1080 \
@@ -333,92 +331,90 @@ kwin_wayland --virtual --width 1920 --height 1080 \
              --exit-with-session ./tools/smoke.sh
 ```
 
-`smoke.sh` startet `plasmashell`, wartet, macht einen Screenshot und
-vergleicht ihn mit einem Referenzbild:
+`smoke.sh` starts `plasmashell`, waits, takes a screenshot and compares it
+with a reference image:
 
 ```bash
-compare -metric AE referenz.png aktuell.png diff.png
+compare -metric AE reference.png current.png diff.png
 ```
 
-Für ein Retro-Theme mit pixelgenauem Anspruch ist Screenshot-Vergleich
-sinnvoll. KDE selbst meidet ihn bewusst und nutzt stattdessen
+For a retro theme that aims at pixel accuracy, screenshot comparison makes
+sense. KDE itself deliberately avoids it and instead uses
 [selenium-webdriver-at-spi](https://invent.kde.org/sdk/selenium-webdriver-at-spi)
-über AT-SPI2 — für ein Theme-Projekt ist das überdimensioniert.
+via AT-SPI2, which is oversized for a theme project.
 
-## 5.6 Wie andere es machen — recherchiert, nicht vermutet
+## 5.6 How others do it — researched, not guessed
 
-Die ernüchternde Erkenntnis vorweg: **Plasma-Themes werden nirgends
-visuell getestet — auch von KDE nicht.**
+The sobering finding first: **Plasma themes are not visually tested
+anywhere, not even by KDE.**
 
-KDE betreibt seit April 2026 eine eigene openQA-Instanz für KDE Linux
+Since April 2026, KDE has run its own openQA instance for KDE Linux
 ([os-autoinst-distri-kdelinux](https://invent.kde.org/kde-linux/os-autoinst-distri-kdelinux)).
-Deren 168 Needles dienen ausschließlich der Ablaufsteuerung — UEFI-Screen,
-Plymouth, Anmeldung, „Kickoff-Symbol sichtbar". Kein einziger Test prüft
-das Erscheinungsbild eines Themes. Bei openSUSE dasselbe: eine Suche über
-`os-autoinst-distri-opensuse` nach `breeze|lookandfeel|desktoptheme|colorscheme`
-ergibt null Treffer.
+Its 168 needles serve only to control the flow: UEFI screen, Plymouth,
+login, "Kickoff icon visible". Not a single test checks a theme's
+appearance. Same with openSUSE: a search of `os-autoinst-distri-opensuse`
+for `breeze|lookandfeel|desktoptheme|colorscheme` gives zero hits.
 
-Auch `plasma-workspace/appiumtests/kcms/` führt in die Irre. Dateien wie
-`kcm_desktoptheme_test.py` klingen einschlägig, prüfen aber das
-Einstellungsmodul, nicht das Theme — der Desktoptheme-Test besteht im
-Kern aus zwei Zeilen, die nachsehen, ob „All themes" und „Breeze Light"
-in der Liste stehen.
+`plasma-workspace/appiumtests/kcms/` is misleading too. Files like
+`kcm_desktoptheme_test.py` sound relevant but test the settings module, not
+the theme; at its core the desktop theme test consists of two lines that
+check whether "All themes" and "Breeze Light" are in the list.
 
-**Was daraus folgt:** Wer ein Theme in einer VM installiert, neu anmeldet
-und nachsieht, tut bereits mehr als die Referenzimplementierung. Die
-Messlatte liegt niedriger als erwartet — das ist kein Grund, es sich
-bequem zu machen, aber es relativiert die Frage „reicht das?".
+**What follows from this:** if you install a theme in a VM, log in again
+and look, you already do more than the reference implementation. The bar is
+lower than expected. That is no reason to get comfortable, but it puts the
+question "is this enough?" into perspective.
 
-### Der eine Pixelvergleich, den KDE fährt
+### The one pixel comparison KDE runs
 
-`breeze-icons/optimize-svg.sh` rendert jedes Icon **vor und nach** der
-SVGO-Optimierung und verwirft das Ergebnis bei `compare -metric MAE > 100`.
+`breeze-icons/optimize-svg.sh` renders every icon **before and after** SVGO
+optimization and discards the result if `compare -metric MAE > 100`.
 
-Das ist bemerkenswert, weil es kein eingechecktes Referenzbild ist,
-sondern ein Vorher/Nachher-Vergleich im selben Lauf. Damit fällt die
-Abhängigkeit von Schriftarten, Kantenglättung und Bildschirmauflösung weg
-— genau die Gründe, aus denen Golden-Image-Tests bei Oberflächen so
-zuverlässig nerven. Für ein Theme-Projekt ist das das bessere Muster.
+This is notable because it is not a checked-in reference image but a
+before/after comparison in the same run. That removes the dependency on
+fonts, anti-aliasing and screen resolution, exactly the reasons golden-image
+tests of user interfaces are so reliably annoying. For a theme project this
+is the better pattern.
 
-### Eine Warnung zu SVG-Optimierern
+### A warning about SVG optimizers
 
-SVGOs `cleanupIds` läuft in `preset-default` mit und entfernt IDs, die
-nicht intern referenziert werden. In einem Plasma-Theme sind `center`,
-`hint-tile-center` und Konsorten **nie** intern referenziert — Plasma
-sucht sie von außen. **Ein unbedachtes `svgo` über den Theme-Ordner
-zerstört das Theme vollständig.** Dieses Projekt setzt weder `svgo` noch
-`scour` ein; wer es tut, muss `cleanupIds` ausdrücklich abschalten.
+SVGO's `cleanupIds` runs as part of `preset-default` and removes IDs that are
+not referenced internally. In a Plasma theme, `center`, `hint-tile-center`
+and the like are **never** referenced internally; Plasma looks them up from
+outside. **A careless `svgo` run over the theme folder destroys the theme
+completely.** This project uses neither `svgo` nor `scour`; if you do, you
+must explicitly turn off `cleanupIds`.
 
-### Zwei Werkzeuge, die sich lohnen
+### Two tools worth having
 
-`plasmathemeexplorer` aus `plasma-sdk` zeigt alle Theme-Elemente als
-Raster und markiert je Element, ob es aus dem eigenen Theme kommt oder
-aus dem Breeze-Rückfall. Für die Frage „was fehlt noch?" gibt es nichts
-Besseres.
+`plasmathemeexplorer` from `plasma-sdk` shows all theme elements as a grid
+and marks for each element whether it comes from your own theme or from the
+Breeze fallback. For the question "what is still missing?" there is nothing
+better.
 
-Und eine Qt-Gegenprobe: Qt SVG unterstützt `<clipPath>` **nicht**
-([doc.qt.io](https://doc.qt.io/qt-6/svgextensions.html)) — der klassische
-Fall „in Inkscape schön, in Plasma kaputt". Dieselbe Datei einmal normal
-und einmal mit `QtSvg::Option::Tiny12FeaturesOnly` zu rendern und die
-Parserwarnungen mitzuschreiben, fängt eine Fehlerklasse ab, die weder
-`xmllint` noch ein eigener Linter sehen kann.
+And a Qt cross-check: Qt SVG does **not** support `<clipPath>`
+([doc.qt.io](https://doc.qt.io/qt-6/svgextensions.html)), the classic case
+of "pretty in Inkscape, broken in Plasma". Rendering the same file once
+normally and once with `QtSvg::Option::Tiny12FeaturesOnly` and logging the
+parser warnings catches a class of errors that neither `xmllint` nor a
+linter of your own can see.
 
 ---
 
-## 5.7 Was KDE selbst macht
+## 5.7 What KDE itself does
 
-Zur Einordnung: Die CI-Konfiguration ist zentral in
-`sysadmin/ci-utilities`; die Repos binden nur Vorlagen ein. `plasma/breeze`
-nutzt `linux-qt6`, `freebsd-qt6`, `windows-qt6`, `xml-lint`, `yaml-lint`.
-`libplasma` zusätzlich `qml-lint`.
+For context: the CI configuration is centralized in `sysadmin/ci-utilities`;
+the repos only include templates. `plasma/breeze` uses `linux-qt6`,
+`freebsd-qt6`, `windows-qt6`, `xml-lint`, `yaml-lint`. `libplasma` also uses
+`qml-lint`.
 
-Verfügbar und für eigene Projekte kopierbar: `clang-format`, `cppcheck`,
+Available and copyable for your own projects: `clang-format`, `cppcheck`,
 `json-validation`, `reuse-lint`, `qml-lint`, `xml-lint`, `yaml-lint`,
 `pre-commit`, `flatpak`.
 
-**Einen Theme-Linter gibt es in dieser Sammlung nicht.** Die SVG-Struktur
-prüft niemand — das ist die Lücke, die `tools/lint-plasma-svg.py` schließt.
+**There is no theme linter in this collection.** Nobody checks the SVG
+structure; that is the gap `tools/lint-plasma-svg.py` fills.
 
 ---
 
-**Weiter:** [Kapitel 6 — Wenn es schiefgeht](06-recovery.md)
+**Next:** [Chapter 6 — When things go wrong](06-recovery.md)

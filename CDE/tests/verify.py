@@ -287,9 +287,9 @@ class Palettes(unittest.TestCase):
         sys.path.insert(0, str(ROOT))
         import palettes
         self.assertEqual(len(palettes.names()), 47)   # 37 from CDE, 10 of our own
-        pairs = [("text", "flaeche"), ("text2", "flaeche"), ("link", "flaeche"), ("fenster_text", "fenster"),
-                 ("auswahl_text", "auswahl"), ("kopf_aktiv_text", "kopf_aktiv"),
-                 ("kopf_inaktiv_text", "kopf_inaktiv"), ("panel_text", "panel")]
+        pairs = [("text", "surface"), ("text2", "surface"), ("link", "surface"), ("window_text", "window"),
+                 ("selection_text", "selection"), ("title_active_text", "title_active"),
+                 ("title_inactive_text", "title_inactive"), ("panel_text", "panel")]
         for name in palettes.names():
             colours = palettes.theme(name)
             for fg, bg in pairs:
@@ -397,24 +397,24 @@ class ConsoleMenus(unittest.TestCase):
 
     def test_recent_files_from_all_three_sources(self):
         import sqlite3
-        docs = self.home / "Dokumente"
+        docs = self.home / "Documents"
         docs.mkdir()
-        for name in ("notiz.txt", "brief.odt", "tabelle.ods", "mit leer.txt", "geloescht.txt"):
+        for name in ("note.txt", "letter.odt", "sheet.ods", "with space.txt", "deleted.txt"):
             (docs / name).write_text("x")
-        (docs / "geloescht.txt").unlink()
+        (docs / "deleted.txt").unlink()
         folder = self.home / ".local/share/kactivitymanagerd/resources"
         folder.mkdir(parents=True)
         db = sqlite3.connect(folder / "database")
         db.execute("CREATE TABLE ResourceScoreCache (usedActivity TEXT, initiatingAgent TEXT, targettedResource TEXT,"
                    " scoreType INTEGER, cachedScore FLOAT, firstUpdate INTEGER, lastUpdate INTEGER)")
-        db.execute("INSERT INTO ResourceScoreCache VALUES ('a', 'org.kde.kwrite', ?, 0, 1, 1, 100)", (str(docs / "notiz.txt"),))
-        db.execute("INSERT INTO ResourceScoreCache VALUES ('a', 'org.kde.kwrite', ?, 0, 1, 1, 50)", (str(docs / "geloescht.txt"),))
-        db.execute("INSERT INTO ResourceScoreCache VALUES ('a', 'org.kde.dolphin', ?, 0, 1, 1, 200)", (str(docs / "brief.odt"),))
+        db.execute("INSERT INTO ResourceScoreCache VALUES ('a', 'org.kde.kwrite', ?, 0, 1, 1, 100)", (str(docs / "note.txt"),))
+        db.execute("INSERT INTO ResourceScoreCache VALUES ('a', 'org.kde.kwrite', ?, 0, 1, 1, 50)", (str(docs / "deleted.txt"),))
+        db.execute("INSERT INTO ResourceScoreCache VALUES ('a', 'org.kde.dolphin', ?, 0, 1, 1, 200)", (str(docs / "letter.odt"),))
         db.commit(); db.close()
         (self.home / ".local/share/recently-used.xbel").write_text(f"""<?xml version="1.0"?>
 <xbel version="1.0" xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks"
       xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info">
- <bookmark href="file://{docs}/mit%20leer.txt" modified="2026-10-03T10:00:00Z">
+ <bookmark href="file://{docs}/with%20space.txt" modified="2026-10-03T10:00:00Z">
   <info><metadata owner="http://freedesktop.org"><mime:mime-type type="text/plain"/>
    <bookmark:applications><bookmark:application name="KWrite" exec="'kwrite %u'" modified="2026-10-03T10:00:00Z" count="1"/></bookmark:applications>
   </metadata></info>
@@ -424,14 +424,14 @@ class ConsoleMenus(unittest.TestCase):
         office.mkdir(parents=True)
         (office / "registrymodifications.xcu").write_text(f"""<?xml version="1.0" encoding="UTF-8"?>
 <oor:items xmlns:oor="http://openoffice.org/2001/registry" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-<item oor:path="/org.openoffice.Office.Histories/Histories/org.openoffice.Office.Histories:HistoryInfo['PickList']/OrderList"><node oor:name="0" oor:op="replace"><prop oor:name="HistoryItemRef" oor:op="fuse"><value>file://{docs}/tabelle.ods</value></prop></node></item>
-<item oor:path="/org.openoffice.Office.Histories/Histories/org.openoffice.Office.Histories:HistoryInfo['PickList']/OrderList"><node oor:name="1" oor:op="replace"><prop oor:name="HistoryItemRef" oor:op="fuse"><value>file://{docs}/brief.odt</value></prop></node></item>
+<item oor:path="/org.openoffice.Office.Histories/Histories/org.openoffice.Office.Histories:HistoryInfo['PickList']/OrderList"><node oor:name="0" oor:op="replace"><prop oor:name="HistoryItemRef" oor:op="fuse"><value>file://{docs}/sheet.ods</value></prop></node></item>
+<item oor:path="/org.openoffice.Office.Histories/Histories/org.openoffice.Office.Histories:HistoryInfo['PickList']/OrderList"><node oor:name="1" oor:op="replace"><prop oor:name="HistoryItemRef" oor:op="fuse"><value>file://{docs}/letter.odt</value></prop></node></item>
 </oor:items>""")
         kwrite = self.run_menus("recent", "app:org.kde.kwrite")
-        self.assertEqual([i["label"] for i in kwrite["items"]], ["mit leer.txt", "notiz.txt"])
-        self.assertEqual(kwrite["items"][0]["args"], [str(docs / "mit leer.txt")])
-        self.assertEqual([i["label"] for i in self.run_menus("recent", "app:libreoffice-writer")["items"]], ["brief.odt"])
-        self.assertEqual([i["label"] for i in self.run_menus("recent", "app:libreoffice-calc")["items"]], ["tabelle.ods"])
+        self.assertEqual([i["label"] for i in kwrite["items"]], ["with space.txt", "note.txt"])
+        self.assertEqual(kwrite["items"][0]["args"], [str(docs / "with space.txt")])
+        self.assertEqual([i["label"] for i in self.run_menus("recent", "app:libreoffice-writer")["items"]], ["letter.odt"])
+        self.assertEqual([i["label"] for i in self.run_menus("recent", "app:libreoffice-calc")["items"]], ["sheet.ods"])
 
 
 class Installer(unittest.TestCase):
@@ -603,7 +603,7 @@ class IconPalettes(unittest.TestCase):
         for name in palettes.names():
             P = palettes.theme(name)
             c = icon_colours(P)
-            face, field = P["flaeche"], P["fenster"]
+            face, field = P["surface"], P["window"]
             ref = min((face, field), key=palettes.luminance)
             dark = palettes.luminance(ref) < 0.18
             against = ref if dark else face

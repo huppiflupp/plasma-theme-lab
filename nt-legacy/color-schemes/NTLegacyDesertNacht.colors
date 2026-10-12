@@ -1,6 +1,7 @@
 [General]
-ColorScheme=NT Legacy Wueste Nacht
-Name=NT Legacy Wueste Nacht
+ColorScheme=NT Legacy Desert Night
+Name=NT Legacy Desert Night
+Name[de]=NT Legacy Wueste Nacht
 shadeSortColumn=true
 
 [KDE]

@@ -1,218 +1,218 @@
 # plasma-theme-lab
 
-Werkstatt für Plasma-6-Themes: eine Wegwerf-VM zum Testen, ein Linter für
-Plasma-SVGs, ein Leitfaden — und die Referenzquellen von KDE zum Nachschlagen.
+A workshop for Plasma 6 themes: a disposable VM for testing, a linter for
+Plasma SVGs, a guide — and KDE's reference sources to look things up in.
 
-Entstanden aus der Arbeit an [NiceOS9](https://github.com/huppiflupp/NiceOS9-theme),
-aber nicht darauf beschränkt.
+Grew out of the work on [NiceOS9](https://github.com/huppiflupp/NiceOS9-theme),
+but not limited to it.
 
 ## CDE Copper
 
-Das erste fertige Theme aus dieser Werkstatt: das Common Desktop Environment
-für Plasma 6 — Frontkonsole, Motif-Fenster, CDEs 37 Paletten mit Symbolen
-und Hintergründen, Uhren, Arbeitsflächen, Stilverwaltung. Installation und
-Doku in [`CDE/`](CDE/README.md).
+The first finished theme from this workshop: the Common Desktop Environment
+for Plasma 6 — front panel, Motif windows, CDE's 37 palettes with icons
+and backdrops, clocks, workspaces, Style Manager. Installation and
+docs in [`CDE/`](CDE/README.md).
 
 <table>
 <tr>
-<td width="50%"><img src="CDE/screenshots/kde-look/1-palettes-and-pictures.gif" alt="Paletten mit ihren Bildern" width="100%"><br><sub>Paletten mit ihren Bildern</sub></td>
-<td width="50%"><img src="CDE/screenshots/kde-look/2-light-and-dark.gif" alt="Bilder hell und dunkel" width="100%"><br><sub>Bilder hell und dunkel</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/1-palettes-and-pictures.gif" alt="Palettes with their pictures" width="100%"><br><sub>Palettes with their pictures</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/2-light-and-dark.gif" alt="Pictures light and dark" width="100%"><br><sub>Pictures light and dark</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="CDE/screenshots/kde-look/3-cde-backdrops.gif" alt="CDEs Hintergrundmuster" width="100%"><br><sub>CDEs Hintergrundmuster</sub></td>
-<td width="50%"><img src="CDE/screenshots/kde-look/4-front-console.gif" alt="Die Konsole, verschieden eingerichtet" width="100%"><br><sub>Die Konsole, verschieden eingerichtet</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/3-cde-backdrops.gif" alt="CDE's backdrop patterns" width="100%"><br><sub>CDE's backdrop patterns</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/4-front-console.gif" alt="The front panel, set up in different ways" width="100%"><br><sub>The front panel, set up in different ways</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="CDE/screenshots/kde-look/5-clocks.gif" alt="14 Uhren, 4 Zifferblätter" width="100%"><br><sub>14 Uhren, 4 Zifferblätter</sub></td>
-<td width="50%"><img src="CDE/screenshots/kde-look/6-workspaces.gif" alt="Arbeitsflächen-Umschalter" width="100%"><br><sub>Arbeitsflächen-Umschalter</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/5-clocks.gif" alt="14 clocks, 4 dials" width="100%"><br><sub>14 clocks, 4 dials</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/6-workspaces.gif" alt="Workspace switcher" width="100%"><br><sub>Workspace switcher</sub></td>
 </tr>
 <tr>
-<td width="50%"><img src="CDE/screenshots/kde-look/7-style-manager.gif" alt="Stilverwaltung nach CDEs dtstyle" width="100%"><br><sub>Stilverwaltung nach CDEs dtstyle</sub></td>
-<td width="50%"><img src="CDE/screenshots/kde-look/8-session-and-boot.gif" alt="Start, Sperre, Abmelden, Bootmenü" width="100%"><br><sub>Start, Sperre, Abmelden, Bootmenü</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/7-style-manager.gif" alt="Style Manager modelled on CDE's dtstyle" width="100%"><br><sub>Style Manager modelled on CDE's dtstyle</sub></td>
+<td width="50%"><img src="CDE/screenshots/kde-look/8-session-and-boot.gif" alt="Startup, lock, logout, boot menu" width="100%"><br><sub>Startup, lock, logout, boot menu</sub></td>
 </tr>
 </table>
 
 ---
 
-## Was hier liegt
+## What's here
 
 ```
 plasma-theme-lab/
-├── guide/          Leitfaden: konforme Plasma-6-Themes bauen
-├── tools/          lint-plasma-svg.py — prüft, was Plasma stillschweigend verschluckt
-├── vm/             Test-VM (Fedora 44 KDE), unbeaufsichtigt aufgesetzt
-├── tests/          Testläufe und Screenshots
-├── reference/      geklonte KDE-Quellen (breeze, libplasma, plasma-workspace)
-└── niceos9/        das zu überarbeitende Theme
+├── guide/          guide: building conforming Plasma 6 themes
+├── tools/          lint-plasma-svg.py — checks what Plasma silently swallows
+├── vm/             test VM (Fedora 44 KDE), set up unattended
+├── tests/          test runs and screenshots
+├── reference/      cloned KDE sources (breeze, libplasma, plasma-workspace)
+└── niceos9/        the theme being reworked
 ```
 
-## Schnellstart
+## Quick start
 
-**Ein Theme prüfen — dauert Sekunden, braucht keine VM:**
+**Check a theme — takes seconds, needs no VM:**
 
 ```bash
 tools/lint-plasma-svg.py niceos9/desktoptheme/niceos9-dark \
-    --vergleich reference/libplasma/src/desktoptheme/breeze
+    --compare reference/libplasma/src/desktoptheme/breeze
 ```
 
-**Ein Theme in der VM ausprobieren:**
+**Try a theme in the VM:**
 
 ```bash
-vm/build-vm.sh                      # einmalig, ~30 min
-vm/provision.sh                     # Werkzeuge, Autologin
-vm/vmctl.sh snap create clean       # der Ausgangszustand
+vm/build-vm.sh                      # once, ~30 min
+vm/provision.sh                     # tools, autologin
+vm/vmctl.sh snap create clean       # the starting state
 
-vm/vmctl.sh reset                   # zurück auf clean, Sekunden
+vm/vmctl.sh reset                   # back to clean, seconds
 vm/vmctl.sh push niceos9 /home/tester/theme
 vm/vmctl.sh ssh 'cd theme && ./install.sh'
-vm/vmctl.sh shot befund.png
+vm/vmctl.sh shot finding.png
 ```
 
-## Die VM
+## The VM
 
-Fedora 44 KDE (Plasma 6), 6 GB RAM, 4 vCPU, 40 GB. Unbeaufsichtigt per
-Kickstart installiert, Autologin in die Plasma-Wayland-Session, SSH mit
-eigenem Schlüssel.
+Fedora 44 KDE (Plasma 6), 6 GB RAM, 4 vCPU, 40 GB. Installed unattended via
+kickstart, autologin into the Plasma Wayland session, SSH with
+its own key.
 
-Sie läuft unter `qemu:///system` — der libvirt-Dienst ist socket-aktiviert
-und die Gruppenmitgliedschaft `libvirt` reicht. **Kein sudo nötig.**
+It runs under `qemu:///system` — the libvirt service is socket-activated
+and membership in the `libvirt` group is enough. **No sudo needed.**
 
 ```bash
-vm/vmctl.sh status            # Zustand, IP, Snapshots
-vm/vmctl.sh ssh [befehl]      # Kommando im Gast
-vm/vmctl.sh push <von> <nach> # Dateien hinein
-vm/vmctl.sh shot [datei]      # Screenshot
+vm/vmctl.sh status            # state, IP, snapshots
+vm/vmctl.sh ssh [command]     # command in the guest
+vm/vmctl.sh push <from> <to>  # copy files in
+vm/vmctl.sh shot [file]       # screenshot
 vm/vmctl.sh snap create|list|revert|rm
-vm/vmctl.sh reset             # zurück auf 'clean'
-vm/vmctl.sh viewer            # grafische Konsole (interaktiv)
-vm/vmctl.sh viewer-bg         # dito, abgeloest im Hintergrund
+vm/vmctl.sh reset             # back to 'clean'
+vm/vmctl.sh viewer            # graphical console (interactive)
+vm/vmctl.sh viewer-bg         # same, detached in the background
 ```
 
-**Screenshots kommen vom Hypervisor**, nicht aus dem Gast (`virsh
-screenshot`). Das funktioniert auch dann noch, wenn Plasma abgestürzt ist
-oder keine Session mehr läuft — genau der Fall, der bei Theme-Tests
-interessant ist. Ein Werkzeug im Gast kann dann per Definition nichts mehr
-liefern.
+**Screenshots come from the hypervisor**, not from the guest (`virsh
+screenshot`). That still works when Plasma has crashed
+or no session is running any more — exactly the case that is interesting
+in theme tests. A tool inside the guest can, by definition, deliver
+nothing at that point.
 
-**Der Snapshot ist der eigentliche Trick.** Ohne ihn testet man beim zweiten
-Durchlauf auf den Resten des ersten.
+**The snapshot is the real trick.** Without it, the second run tests on
+the leftovers of the first.
 
-### Grafisch reinschauen
+### Looking in graphically
 
 ```bash
 vm/vmctl.sh viewer
-# entspricht: virt-viewer --attach -c qemu:///system plasma-lab
+# equivalent to: virt-viewer --attach -c qemu:///system plasma-lab
 ```
 
-`--attach` ist nötig, weil die VM mit `spice,listen=none` läuft — SPICE
-lauscht auf keinem Netzwerk-Port. Ohne `--attach` meldet virt-viewer
-"Verbindung fehlgeschlagen".
+`--attach` is necessary because the VM runs with `spice,listen=none` — SPICE
+does not listen on any network port. Without `--attach`, virt-viewer reports
+"Connection failed".
 
-`vmctl.sh viewer` läuft im Vordergrund und blockiert das Terminal. Wer den
-Betrachter aus einem Skript oder Werkzeug heraus starten will, nimmt
-`vmctl.sh viewer-bg`: Das legt eine eigene systemd-User-Unit an, die die
-Prozessgruppe des Aufrufers überlebt. `nohup` und `setsid` reichen dafür
-nicht — Werkzeuge, die ihre Prozessgruppe nach dem Befehl abräumen,
-erwischen den Prozess trotzdem.
+`vmctl.sh viewer` runs in the foreground and blocks the terminal. Anyone who
+wants to start the viewer from a script or tool uses
+`vmctl.sh viewer-bg`: it creates its own systemd user unit that outlives the
+caller's process group. `nohup` and `setsid` are not enough for this
+— tools that clean up their process group after the command still
+catch the process.
 
-## Der Linter
+## The linter
 
-Plasma meldet fehlende SVG-Element-IDs **nicht** — ein fehlendes
-`hover-center` äußert sich nur darin, dass der Hover-Effekt ausbleibt. Es
-gibt dafür kein offizielles Werkzeug; auch KDEs CI prüft SVG-Struktur nicht.
+Plasma does **not** report missing SVG element IDs — a missing
+`hover-center` only shows up as the hover effect not happening. There
+is no official tool for this; KDE's CI does not check SVG structure either.
 
-`tools/lint-plasma-svg.py` schließt diese Lücke. Er prüft 9-Patch-Sätze je
-Zustandspräfix, Farbschema-Anbindung, `currentColor`, Insets und die
-Pflichtfelder in `metadata.json`.
+`tools/lint-plasma-svg.py` closes this gap. It checks 9-patch sets per
+state prefix, colour scheme binding, `currentColor`, insets and the
+required fields in `metadata.json`.
 
-**Kalibriert gegen Breeze:** Die Referenzimplementierung läuft mit null
-Fehlern durch. Ein Linter, der das Original anmeckert, meckert falsch.
+**Calibrated against Breeze:** the reference implementation passes with zero
+errors. A linter that complains about the original is complaining wrongly.
 
-## Der Gerüst-Generator
+## The scaffold generator
 
-Eine Plasma-SVG ist kein Bild, sondern ein Atlas: Alle Zustände eines
-Widgets liegen nebeneinander im selben Koordinatenraum, Plasma schneidet
-sie über Element-IDs heraus. Ein `button.svg` braucht so 40+ exakt
-benannte Objekte — und ein Tippfehler in einer ID wird stillschweigend
-ignoriert.
+A Plasma SVG is not a picture but an atlas: all states of a
+widget sit side by side in the same coordinate space, and Plasma cuts
+them out by element ID. A `button.svg` thus needs 40+ precisely
+named objects — and a typo in an ID is silently
+ignored.
 
-`tools/gen-plasma-svg.py` erzeugt diese Struktur aus Parametern:
+`tools/gen-plasma-svg.py` generates this structure from parameters:
 
 ```bash
-tools/gen-plasma-svg.py --liste                     # was es gibt
-tools/gen-plasma-svg.py button                      # nach stdout
-tools/gen-plasma-svg.py --alle -o desktoptheme/meintheme/
-tools/gen-plasma-svg.py button --palette platinum-dark --stil flach --rahmen 2
+tools/gen-plasma-svg.py --list                      # what is available
+tools/gen-plasma-svg.py button                      # to stdout
+tools/gen-plasma-svg.py --all -o desktoptheme/mytheme/
+tools/gen-plasma-svg.py button --palette platinum-dark --style flat --border 2
 ```
 
-Kennt zwölf Widget-Typen mit ihren Zustandssätzen (aus dem Breeze-Quellbaum
-abgeleitet), setzt `hint-*`-Marker, Masken und das
-`current-color-scheme`-Stylesheet. Zustände werden sinnvoll unterschieden —
-`pressed` dreht den 3D-Rahmen um, aus herausstehend wird eingedrückt.
+Knows twelve widget types with their state sets (derived from the Breeze
+source tree), sets `hint-*` markers, masks and the
+`current-color-scheme` stylesheet. States are distinguished sensibly —
+`pressed` inverts the 3D frame, raised becomes sunken.
 
-Das Ergebnis ist bearbeitbares SVG: In Inkscape öffnen und die Flächen
-gestalten, ohne die IDs anzufassen. Oder die Palette in `PALETTEN`
-anpassen und neu erzeugen.
+The result is editable SVG: open it in Inkscape and design the surfaces
+without touching the IDs. Or adjust the palette in `PALETTES`
+and regenerate.
 
-**Gegenprobe:** Alle zwölf erzeugten Dateien laufen fehlerfrei durch
-`lint-plasma-svg.py`.
+**Cross-check:** all twelve generated files pass
+`lint-plasma-svg.py` without errors.
 
-## Die Lückenliste
+## The gap list
 
-Ein eigener Symbolsatz ist nie fertig — die Frage ist, was als Nächstes
-dran ist. `tools/missing-icons.py` beantwortet sie mit Zahlen statt
-mit Gefühl:
+An icon set of your own is never finished — the question is what comes
+next. `tools/missing-icons.py` answers it with numbers instead of
+gut feeling:
 
 ```bash
 tools/missing-icons.py nt-legacy/icons-nt/NTLegacyIcons
-tools/missing-icons.py <satz> --vergleich <anderer-satz>   # Vorlagen
+tools/missing-icons.py <set> --compare <other-set>   # templates
 ```
 
-Es liest den Bedarf aus zwei Quellen — `Icon=` aus allen installierten
-`.desktop`-Dateien und die Zeichenketten der KF6-Bibliotheken — und
-filtert ihn gegen Breeze: Was dort keinen Namen hat, fordert auch
-niemand an. Übrig bleibt, was das System verlangt und der geprüfte Satz
-nicht liefert, sortiert nach Gewicht.
+It reads the demand from two sources — `Icon=` from all installed
+`.desktop` files and the strings of the KF6 libraries — and
+filters it against Breeze: what has no name there, nobody requests
+either. What remains is what the system asks for and the set being checked
+does not provide, sorted by weight.
 
-Das Gegenstück ist `tools/check-symbolic-trap.py`: Jenes findet Namen,
-die ein Satz **falsch** bedient, dieses die, die er **gar nicht**
-bedient.
+The counterpart is `tools/check-symbolic-trap.py`: that one finds names
+a set serves **wrongly**, this one the names it does **not** serve
+at all.
 
-## Der Leitfaden
+## The guide
 
-[`guide/`](guide/README.md) — sechs Kapitel. Er wiederholt nicht die
-KDE-Doku, sondern behandelt, woran Projekte scheitern:
+[`guide/`](guide/README.md) — six chapters. It does not repeat the
+KDE docs but covers what projects fail on:
 
-1. [Die sieben Ebenen und ihr Risiko](guide/01-layers-and-risk.md)
-2. [Plasma Style](guide/02-plasma-style.md) — SVGs, 9-Patch, hints, Farbschemata
-3. [Look-and-Feel-Paket](guide/03-look-and-feel.md) — und die Panel-Falle
-4. [Bauen und Installieren](guide/04-build-and-install.md) — Varianten ohne Duplikate
-5. [Testen](guide/05-testing.md) — vier Stufen
-6. [Wenn es schiefgeht](guide/06-recovery.md) — Rettung nach Eskalationsstufe
+1. [The seven layers and their risk](guide/01-layers-and-risk.md)
+2. [Plasma Style](guide/02-plasma-style.md) — SVGs, 9-patch, hints, colour schemes
+3. [Look-and-feel package](guide/03-look-and-feel.md) — and the panel trap
+4. [Building and installing](guide/04-build-and-install.md) — variants without duplicates
+5. [Testing](guide/05-testing.md) — four stages
+6. [When things go wrong](guide/06-recovery.md) — recovery by escalation level
 
-Dazu die [Referenzkarte](guide/reference.md).
+Plus the [reference card](guide/reference.md).
 
-Aussagen sind als *geprüft*, *Quelle* oder *unsicher* markiert. Wo die
-offizielle Doku etwas anderes sagt als der Quellcode, steht das dabei.
+Statements are marked as *verified*, *source* or *uncertain*. Where the
+official docs say something different from the source code, that is noted.
 
-## Referenzquellen
+## Reference sources
 
-`reference/` enthält flache Klone:
+`reference/` contains shallow clones:
 
-| Verzeichnis | Was drin ist |
+| Directory | What's in it |
 |---|---|
-| `libplasma/src/desktoptheme/breeze/` | **der Breeze Plasma Style** — 43 Widget-SVGs |
-| `libplasma/src/desktoptheme/breeze-light/` | eine Variante *ohne* SVGs — das Vorbild für Varianten |
-| `breeze/` | Qt-Style (`kstyle/`) und Fensterdekoration (`kdecoration/`) |
-| `plasma-workspace/` | Look-and-Feel-Pakete, SDDM-Theme |
+| `libplasma/src/desktoptheme/breeze/` | **the Breeze Plasma Style** — 43 widget SVGs |
+| `libplasma/src/desktoptheme/breeze-light/` | a variant *without* SVGs — the model for variants |
+| `breeze/` | Qt style (`kstyle/`) and window decoration (`kdecoration/`) |
+| `plasma-workspace/` | look-and-feel packages, SDDM theme |
 
-**Häufigster Irrtum:** Das Repo `plasma/breeze` enthält keinen Plasma Style.
-Der liegt in `libplasma`.
+**Most common mistake:** the `plasma/breeze` repo contains no Plasma Style.
+That lives in `libplasma`.
 
-## Grundregeln
+## Ground rules
 
-1. Ein Theme, das man nicht gefahrlos ausprobieren kann, ist kein fertiges Theme.
-2. Was in `$HOME` lebt, und was ins System greift, gehören in getrennte Skripte.
-3. Wenn du ein Panel-Layout ausliefern willst, sichere vorher das des Nutzers.
-4. Baue Varianten aus einer Quelle, nicht per Copy-Paste.
-5. Zähle `KPlugin.Version` bei jedem Release hoch — sie ist der Cache-Schlüssel.
+1. A theme you cannot try out safely is not a finished theme.
+2. What lives in `$HOME` and what reaches into the system belong in separate scripts.
+3. If you want to ship a panel layout, back up the user's first.
+4. Build variants from one source, not by copy-paste.
+5. Bump `KPlugin.Version` with every release — it is the cache key.

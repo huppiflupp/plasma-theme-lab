@@ -62,8 +62,8 @@ M['duene'] = {'palette': 'Copper', 'style': 'Minimalist cinematic landscape phot
 
 def prompt(m, mode):
     d = M[m]
-    return d["style"] + " " + d["scene"] + " " + (d["light"] if mode == "hell" else d["dark"]) + END
+    return d["style"] + " " + d["scene"] + " " + (d["light"] if mode == "light" else d["dark"]) + END
 if __name__ == "__main__":
     import sys
     seeds = [int(s) for s in sys.argv[1].split(",")]
-    print(json.dumps([{"name": f"{m}_hell_{s}", "prompt": prompt(m, "hell"), "seed": s} for m in M for s in seeds], indent=1))
+    print(json.dumps([{"name": f"{m}_light_{s}", "prompt": prompt(m, "light"), "seed": s} for m in M for s in seeds], indent=1))

@@ -11,7 +11,8 @@
         "Description[de]": "Petrol und warmes Grau als Nachtfassung - dunkle Flaechen, gleiche Akzente",
         "Id": "com.github.huppiflupp.nt-legacy-teal-nacht",
         "License": "GPL-2.0-or-later",
-        "Name": "NT Legacy Nacht",
+        "Name": "NT Legacy Night",
+        "Name[de]": "NT Legacy Nacht",
         "Version": "0.3.0",
         "Website": "https://github.com/huppiflupp/nt-legacy"
     },

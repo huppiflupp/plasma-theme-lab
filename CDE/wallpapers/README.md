@@ -1,104 +1,104 @@
-# Hintergrundbilder
+# Wallpapers
 
-40 Bilder in 3840×2160, jedes hell (`<key>.jpg`) und dunkel (`<key>-dark.jpg`).
-`build.py` packt jedes Motiv als Plasma-Hintergrund `org.cde.copper.<key>` mit
-`images/` und `images_dark/`. Plasma nimmt die dunkle Fassung automatisch, solange
-ein dunkles Farbschema aktiv ist. Die Liste mit Namen steht in `build.py`
-(`PICTURES`), `manage.py` übernimmt sie für Installation und Deinstallation.
+40 pictures at 3840×2160, each light (`<key>.jpg`) and dark (`<key>-dark.jpg`).
+`build.py` packages every motif as the Plasma wallpaper `org.cde.copper.<key>` with
+`images/` and `images_dark/`. Plasma picks the dark version automatically while
+a dark colour scheme is active. The list with names is in `build.py`
+(`PICTURES`); `manage.py` takes it over for installation and uninstallation.
 
-Bis auf CDE Strömung sind die Bilder KI-generiert und reine Dekoration: keine
-echten Aufnahmen, keine Messdaten. Logos, Schrift und Markenzeichen sind bewusst
-herausgehalten.
+Except for CDE Flow the pictures are AI-generated and pure decoration: no
+real photographs, no measurement data. Logos, lettering and trademarks are deliberately
+kept out.
 
-## Die Sätze
+## The sets
 
-| Satz | Motive | Farben |
+| Set | Motifs | Colours |
 |---|---|---|
-| Copper | Altai, Canopée, Cluster, Fluss, Kaskade | Copper, im Stil der Plasma-5-Hintergründe |
-| CDE-Paletten | Monolith, Polarlicht, Mesa, Riff, Origami, Bauhaus, Weinberg, Orbit | je eine CDE-Palette (siehe `build.py`) |
-| Workstation-Arbeit | Chipstadt, CAD, Molekül, Sequenz, Druckvorstufe, Schnittplatz, MRT, Mischpult, VLSI, Strömung | wofür CDE-Workstations in den 90ern liefen |
-| Abstrakt | Kristall, Marmor, Düne | nach den Mustern der beliebtesten KDE-Store-Hintergründe |
-| 90er-Illustration | Aquarell, Panorama | Software-Cover-Illustration der späten 90er, ohne Figuren oder Logos der Vorlagen |
-| Zwei Bildschirme | Düne links/rechts, Weltraum links/rechts | je ein Panorama, auf 32 und 27 Zoll aufgeteilt |
-| Landschaften | Alpen, Dolomiten, Elbsandstein, Fjord, Island, Schwarzwald, Toskana, Watt | Fotografien, tags und nachts |
+| Copper | Altai, Canopée, Cluster, River, Cascade | Copper, in the style of the Plasma 5 wallpapers |
+| CDE palettes | Monolith, Aurora, Mesa, Reef, Origami, Bauhaus, Vineyard, Orbit | one CDE palette each (see `build.py`) |
+| Workstation work | Chip City, CAD, Molecule, Sequence, Prepress, Editing Suite, MRI, Mixing Desk, VLSI, Flow | what CDE workstations ran for in the 90s |
+| Abstract | Crystal, Marble, Dune | after the patterns of the most popular KDE Store wallpapers |
+| 90s illustration | Watercolour, Panorama | late-90s software cover illustration, without figures or logos of the originals |
+| Two screens | Dune Left/Right, Space Left/Right | one panorama each, split across 32 and 27 inches |
+| Landscapes | Alps, Dolomites, Elbe Sandstone, Fjord, Iceland, Black Forest, Tuscany, Wadden Sea | photographs, by day and by night |
 
-## Wie sie entstanden sind
+## How they were made
 
-Erzeugt mit ComfyUI auf ai395, Modell Krea-2 Turbo fp8 (8 Steps, cfg 1).
-Die Skripte liegen unter `gen/`:
+Generated with ComfyUI on ai395, model Krea-2 Turbo fp8 (8 steps, cfg 1).
+The scripts are under `gen/`:
 
-- `gen.py` schickt eine Jobliste (JSON) an ComfyUI und holt die Bilder. Es
-  kennt Text-zu-Bild, img2img (`init_file`, `denoise`), reines Hochskalieren
-  (`upscale_only`) und Vorrang in der Warteschlange (`front`). Geht ein Job
-  verloren, weil der Server neu startet, reicht es ihn neu ein. Die Zugangsdaten
-  liest es aus `~/.config/comfyui/claude-zugang`, sie gehören nicht ins Repo.
-- `prompts.py` (Copper-Satz), `prompts2.py` (alle anderen) und
-  `prompts_acro.py` (90er-Illustration) enthalten die Prompts. `prompts2.py`
-  enthält auch Rost und Seismik, die nicht übernommen wurden.
-- `selection.json` hält fest, welcher Seed je Motiv genommen wurde und mit welchen
-  Farben die Dunkelfassung entstand.
+- `gen.py` sends a job list (JSON) to ComfyUI and fetches the pictures. It
+  knows text-to-image, img2img (`init_file`, `denoise`), pure upscaling
+  (`upscale_only`) and queue priority (`front`). If a job gets lost because
+  the server restarts, it resubmits it. It reads the credentials
+  from `~/.config/comfyui/claude-zugang`; they do not belong in the repo.
+- `prompts.py` (Copper set), `prompts2.py` (all others) and
+  `prompts_acro.py` (90s illustration) contain the prompts. `prompts2.py`
+  also contains Rost (rust) and Seismik (seismics), which were not adopted.
+- `selection.json` records which seed was taken per motif and which
+  colours the dark version was made with.
 
-Ablauf je Motiv:
+Process per motif:
 
-1. Hell: Text-zu-Bild in 1920×1088 (Aquarell und Panorama in 1024×576),
-   mehrere Seeds, einer ausgewählt.
-2. Dunkel: `dark.py` dunkelt das helle Bild mit gleicher Komposition ab: neutrale
-   Flächen werden auf zwei Nachtfarben der Palette abgebildet, gesättigte Akzente
-   bleiben leuchtend (`warm`, `sat` oder `none`). Danach folgt img2img mit dem
-   Dunkel-Prompt und demselben Seed, meist Denoise 0.45–0.5. Erst dadurch stimmen
-   Licht und Glanz.
-3. Beide Fassungen gehen durch 4x-UltraSharp, `finish.py` macht daraus
+1. Light: text-to-image at 1920×1088 (Aquarell and Panorama at 1024×576),
+   several seeds, one selected.
+2. Dark: `dark.py` darkens the light picture keeping the same composition: neutral
+   areas are mapped onto two night colours of the palette, saturated accents
+   stay bright (`warm`, `sat` or `none`). Then follows img2img with the
+   dark prompt and the same seed, usually denoise 0.45–0.5. Only this gets
+   light and gloss right.
+3. Both versions go through 4x-UltraSharp; `finish.py` turns them into
    3840×2160 JPEG q90.
 
-CDE Strömung ist gerechnet statt generiert: `cfd.py` berechnet die
-Potentialströmung um ein Joukowski-Profil mit Zirkulation (Kutta-Bedingung).
-Die Linien sind Stromlinien, der Hintergrund ist der Druckbeiwert. Hell und
-dunkel stammen aus derselben Rechnung, direkt in 4K.
+CDE Flow is computed rather than generated: `cfd.py` calculates the
+potential flow around a Joukowski airfoil with circulation (Kutta condition).
+The lines are streamlines, the background is the pressure coefficient. Light and
+dark come from the same calculation, directly in 4K.
 
-## Ein Bild über zwei Bildschirme
+## One picture across two screens
 
-`panorama/duene.jpg` und `panorama/weltraum.jpg` (je mit `-dark`) sind breite Bilder
-(10752×3200, Krea-2 in 2688×800, Prompts in `gen/dune_wide_prompt.json` und
+`panorama/duene.jpg` and `panorama/weltraum.jpg` (each with `-dark`) are wide pictures
+(10752×3200, Krea-2 at 2688×800, prompts in `gen/dune_wide_prompt.json` and
 `gen/space_wide_prompt.json`,
-dann 4x-UltraSharp). `gen/span.py` teilt es nach Millimetern auf zwei
-Bildschirme auf, oben bündig, den Streifen hinter den Rahmen lässt es weg. So
-laufen die Linien gerade über den Rahmen, obwohl die Pixeldichten verschieden
-sind. Die Hälften links und rechts sind für einen 32-Zoll-Bildschirm
-(698×393 mm) links neben einem 27-Zoll-Bildschirm (597×336 mm) mit 20 mm
-Spalt geschnitten. Für andere Bildschirme:
+then 4x-UltraSharp). `gen/span.py` splits it by millimetres across two
+screens, top-aligned, leaving out the strip behind the bezels. That way
+the lines run straight across the bezel even though the pixel densities differ.
+The left and right halves are cut for a 32-inch screen
+(698×393 mm) to the left of a 27-inch screen (597×336 mm) with a 20 mm
+gap. For other screens:
 
-    python3 gen/span.py panorama/duene-dark.jpg links.jpg rechts.jpg \
+    python3 gen/span.py panorama/duene-dark.jpg left.jpg right.jpg \
         --left 698x393 --right 597x336 --gap 20
 
-Die Maße in Millimetern liefert `kscreen-doctor -j` (`sizeMM`). Plasma spannt
-kein Bild über mehrere Bildschirme, jeder bekommt seine Hälfte einzeln.
+`kscreen-doctor -j` gives the dimensions in millimetres (`sizeMM`). Plasma does not
+stretch one picture across several screens; each gets its half separately.
 
-## Kacheln
+## Tiles
 
-`tiles/` enthält 20 nahtlose Materialkacheln in 1024×1024, in Naturfarbe:
-Flokati, Moos, Filz, Kork, Terrazzo, Leinen, Büttenpapier, Sand (geharkt),
-Schiefer, Travertin, Rattan, Velours, Strick, Lavastein, Kies, Wasser,
-Eisblumen, Lochblech, Akustikschaum und Leder. Sie sind für die Kachelung Pixel
-für Pixel gedacht, wie die CDE-Backdrops, nur zeitgemäß.
+`tiles/` contains 20 seamless material tiles at 1024×1024, in natural colour:
+flokati, moss, felt, cork, terrazzo, linen, handmade paper, sand (raked),
+slate, travertine, rattan, velour, knit, lava stone, gravel, water,
+frost flowers, perforated metal, acoustic foam and leather. They are meant to be
+tiled pixel for pixel, like the CDE backdrops, just contemporary.
 
-- Krea-2 erzeugt jedes Material als Draufsicht (Prompts in
-  `gen/prompts_tiles.py`, Seed 1301).
-- `gen/tile.py seamless` macht daraus eine Kachel. Zuerst nimmt es den
-  großflächigen Helligkeitsverlauf heraus (sonst wiederholt sich die Vignette als
-  Schachbrett), dann verblendet es das Bild mit seiner halb verschobenen Kopie
-  über eine unregelmäßige Maske. Das klappt bei unregelmäßigen Materialien, nicht
-  bei Rastern.
-- Lochblech ist deshalb gerechnet (`gen/tile.py lochblech`): gebürstetes
-  Aluminium mit versetztem Lochraster, das die Kachel genau teilt.
-- `gen/tile.py tint --palette <Name>` färbt eine Kachel in eine CDE-Palette um.
-  Dafür bildet es die Helligkeit auf drei Farben des Arbeitsflächen-Satzes ab
-  (Schatten unten, Hintergrund, Licht oben), so wie CDE seine Backdrops in den
-  Farben der Arbeitsfläche zeichnet.
+- Krea-2 generates each material as a top view (prompts in
+  `gen/prompts_tiles.py`, seed 1301).
+- `gen/tile.py seamless` turns it into a tile. First it removes the
+  large-scale brightness gradient (otherwise the vignette repeats as a
+  checkerboard), then it blends the picture with its half-shifted copy
+  through an irregular mask. This works for irregular materials, not
+  for grids.
+- Perforated metal is therefore computed (`gen/tile.py lochblech`): brushed
+  aluminium with a staggered hole grid that divides the tile exactly.
+- `gen/tile.py tint --palette <name>` recolours a tile into a CDE palette.
+  To do so it maps the brightness onto three colours of the workspace set
+  (shadow at the bottom, background, light at the top), just as CDE draws its backdrops in the
+  colours of the workspace.
 
-## Landschaften
+## Landscapes
 
-Acht fotografische Landschaften, je hell und als Nachtaufnahme: Alpen,
-Dolomiten, Elbsandsteingebirge, Fjord, Island, Schwarzwald, Toskana und Watt.
-Prompts in `gen/prompts_land.py`, Auswahl und Nachtfarben in
-`gen/picks_land.json`. Die Nacht entsteht wie oben, mit Denoise 0.55, damit aus
-dem Tagfoto eine echte Nachtaufnahme wird.
+Eight photographic landscapes, each light and as a night shot: Alps,
+Dolomites, Elbe Sandstone Mountains, fjord, Iceland, Black Forest, Tuscany and the Wadden Sea.
+Prompts in `gen/prompts_land.py`, selection and night colours in
+`gen/picks_land.json`. The night is made as above, with denoise 0.55, so that
+the day photo becomes a real night shot.

@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# Spielt alle Varianten eines Themes durch - jede mit echtem Neustart.
+# Runs through all variants of a theme - each with a real reboot.
 #
-#   ./run-variants-test.sh              # alle aus build.py
-#   ./run-variants-test.sh teal desert  # nur diese
-#   ./run-variants-test.sh --schnell    # nur der Umschalttest, ohne Neustarts
+#   ./run-variants-test.sh              # all from build.py
+#   ./run-variants-test.sh teal desert  # only these
+#   ./run-variants-test.sh --quick      # only the switching test, without reboots
 #
-# Warum je Variante ein Neustart sein muss: KWin laedt Aurorae-Themes
-# ausschliesslich beim Sitzungsstart. Ohne Neustart traegt jedes Fenster
-# die Titelleiste der vorherigen Variante - und ausgerechnet die ist das
-# auffaelligste Merkmal. Ein Test ohne Neustart prueft also das, was er
-# gerade nicht pruefen soll.
+# Why every variant needs a reboot: KWin loads Aurorae themes
+# only at session start. Without a reboot every window wears
+# the title bar of the previous variant - and that of all things is the
+# most conspicuous feature. A test without a reboot therefore checks exactly
+# what it is not supposed to check.
 #
-# Zusaetzlich am Ende: schnelles Umschalten ohne Neustart. Das war einmal
-# der Weg in den schwarzen Desktop - plasma-plasmashell.service erlaubt
-# drei Starts in 60 Sekunden, und der Sitzungsstart zaehlt als erster.
-# Genau so klickt aber, wer Designs ausprobiert.
+# In addition, at the end: quick switching without a reboot. That was once
+# the road to the black desktop - plasma-plasmashell.service allows
+# three starts in 60 seconds, and the session start counts as the first.
+# But that is exactly how someone trying out themes clicks.
 
 set -uo pipefail
 
@@ -22,12 +22,12 @@ LAB="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VMCTL="$LAB/vm/vmctl.sh"
 THEME="$LAB/nt-legacy"
 
-SCHNELL_NUR=false
-[ "${1:-}" = "--schnell" ] && { SCHNELL_NUR=true; shift; }
+QUICK_ONLY=false
+[ "${1:-}" = "--quick" ] && { QUICK_ONLY=true; shift; }
 
-varianten=("$@")
-if [ ${#varianten[@]} -eq 0 ]; then
-    mapfile -t varianten < <(cd "$THEME" && python3 -c "
+variants=("$@")
+if [ ${#variants[@]} -eq 0 ]; then
+    mapfile -t variants < <(cd "$THEME" && python3 -c "
 import importlib.util
 s = importlib.util.spec_from_file_location('b', 'build.py')
 m = importlib.util.module_from_spec(s); s.loader.exec_module(m)
@@ -36,14 +36,14 @@ print('\n'.join(m.VARIANTEN))
 fi
 
 STAMP="$(date +%Y%m%d-%H%M%S)"
-OUT="$LAB/tests/laeufe/varianten-$STAMP"
+OUT="$LAB/tests/runs/variants-$STAMP"
 mkdir -p "$OUT/screenshots"
-BERICHT="$OUT/bericht.md"
-notiz() { echo -e "$*" | tee -a "$BERICHT"; }
+REPORT="$OUT/report.md"
+note() { echo -e "$*" | tee -a "$REPORT"; }
 
 ssh_() { "$VMCTL" ssh "$@" 2>&1; }
 
-warte_auf_vm() {
+wait_for_vm() {
     for _ in $(seq 1 40); do
         ssh_ 'test -f /etc/plasma-lab-ready' >/dev/null 2>&1 && return 0
         sleep 8
@@ -51,154 +51,154 @@ warte_auf_vm() {
     return 1
 }
 
-fehler=0
-melde() { notiz "  **FEHLER:** $*"; fehler=$((fehler + 1)); }
+errors=0
+report_error() { note "  **ERROR:** $*"; errors=$((errors + 1)); }
 
 {
-    echo "# Variantentest"
+    echo "# Variant test"
     echo
-    echo "- Zeitpunkt: $(date -Is)"
-    echo "- Varianten: ${varianten[*]}"
+    echo "- Time: $(date -Is)"
+    echo "- Variants: ${variants[*]}"
     echo
-} > "$BERICHT"
+} > "$REPORT"
 
-# ── Vorbereitung ─────────────────────────────────────────────────────────
-notiz "## Vorbereitung"
+# ── Preparation ──────────────────────────────────────────────────────────
+note "## Preparation"
 "$VMCTL" push "$THEME/" /home/tester/nt-legacy/ >/dev/null 2>&1
 if ! ssh_ 'cd nt-legacy && ./install.sh' >/dev/null 2>&1; then
-    notiz "Installation fehlgeschlagen - Abbruch."
+    note "Installation failed - aborting."
     exit 1
 fi
-notiz "Theme installiert.\n"
+note "Theme installed.\n"
 
-# ── Teil 1: jede Variante mit Neustart ───────────────────────────────────
-declare -A FARBE
-if ! $SCHNELL_NUR; then
-    notiz "## Teil 1 - jede Variante mit Sitzungsneustart\n"
-    notiz "| Variante | angewendet | Shell | KWin | Dekoration | Panelfarbe |"
-    notiz "|---|---|---|---|---|---|"
+# ── Part 1: each variant with a reboot ───────────────────────────────────
+declare -A COLOUR
+if ! $QUICK_ONLY; then
+    note "## Part 1 - each variant with a session restart\n"
+    note "| Variant | applied | Shell | KWin | Decoration | Panel colour |"
+    note "|---|---|---|---|---|---|"
 
-    for v in "${varianten[@]}"; do
-        anwenden="ok"
-        ssh_ "cd nt-legacy && ./apply.sh $v" >/dev/null 2>&1 || anwenden="FEHLER"
+    for v in "${variants[@]}"; do
+        applied="ok"
+        ssh_ "cd nt-legacy && ./apply.sh $v" >/dev/null 2>&1 || applied="ERROR"
 
         ssh_ 'sudo systemctl reboot' >/dev/null 2>&1
         sleep 45
-        if ! warte_auf_vm; then
-            notiz "| $v | $anwenden | **VM kam nicht zurueck** | - | - | - |"
-            melde "$v: VM nach dem Neustart nicht erreichbar"
+        if ! wait_for_vm; then
+            note "| $v | $applied | **VM did not come back** | - | - | - |"
+            report_error "$v: VM not reachable after the reboot"
             continue
         fi
         sleep 18
 
         shell=$(ssh_ 'systemctl --user is-active plasma-plasmashell.service' | tr -d '\r')
-        kwin=$(ssh_ 'pgrep -x kwin_wayland >/dev/null && echo laeuft || echo TOT' | tr -d '\r')
-        # Zeigt die Dekoration auf ein Theme, das es wirklich gibt?
-        deko=$(ssh_ 'th=$(kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme)
+        kwin=$(ssh_ 'pgrep -x kwin_wayland >/dev/null && echo running || echo DEAD' | tr -d '\r')
+        # Does the decoration point to a theme that really exists?
+        deco=$(ssh_ 'th=$(kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme)
             d=${th#__aurorae__svg__}
             if [ -d "$HOME/.local/share/aurorae/themes/$d" ]; then echo "ok"
-            else echo "FEHLT:$d"; fi' | tr -d '\r')
+            else echo "MISSING:$d"; fi' | tr -d '\r')
 
-        # Ein Fenster oeffnen, BEVOR das Bild entsteht.
+        # Open a window BEFORE the image is taken.
         #
-        # Ohne Fenster zeigt das Bildschirmfoto nur Schreibtisch und
-        # Panel - und ausgerechnet die Titelleiste fehlt, also das
-        # Merkmal, an dem sich die Varianten am staerksten unterscheiden.
-        # Der erste Lauf meldete deshalb teal-nacht, win98-nacht und
-        # win2k-nacht als praktisch identisch, obwohl ihre Titelleisten
-        # #176b78, #000080 und #0a246a sind.
+        # Without a window the screenshot shows only the desktop and
+        # panel - and the title bar is missing, of all things the
+        # feature in which the variants differ most.
+        # Because of this, the first run reported teal-nacht, win98-nacht and
+        # win2k-nacht as practically identical, although their title bars
+        # are #176b78, #000080 and #0a246a.
         ssh_ 'pkill dolphin 2>/dev/null; (setsid dolphin >/dev/null 2>&1 &)' >/dev/null 2>&1
         sleep 12
-        bild="$OUT/screenshots/$v.png"
-        "$VMCTL" shot "$bild" >/dev/null 2>&1
-        farbe=$(magick "$bild" -format "%[pixel:p{960,1050}]" info: 2>/dev/null \
+        image="$OUT/screenshots/$v.png"
+        "$VMCTL" shot "$image" >/dev/null 2>&1
+        colour=$(magick "$image" -format "%[pixel:p{960,1050}]" info: 2>/dev/null \
                 | sed 's/srgb//' || echo "?")
-        FARBE[$v]="$farbe"
+        COLOUR[$v]="$colour"
 
-        zeile="| $v | $anwenden | $shell | $kwin | $deko | \`$farbe\` |"
-        notiz "$zeile"
-        [ "$shell" = "active" ] || melde "$v: plasmashell ist '$shell'"
-        [ "$kwin" = "laeuft" ]  || melde "$v: kwin_wayland laeuft nicht"
-        [ "$deko" = "ok" ]      || melde "$v: Dekoration $deko"
+        row="| $v | $applied | $shell | $kwin | $deco | \`$colour\` |"
+        note "$row"
+        [ "$shell" = "active" ] || report_error "$v: plasmashell is '$shell'"
+        [ "$kwin" = "running" ] || report_error "$v: kwin_wayland is not running"
+        [ "$deco" = "ok" ]      || report_error "$v: decoration $deco"
     done
 
-    # ── Unterscheiden sich die Varianten ueberhaupt? ─────────────────────
-    notiz "\n### Sind die Varianten unterscheidbar?\n"
-    notiz "Zwei Varianten mit identischem Bildschirmfoto waeren ein Zeichen,"
-    notiz "dass eine davon gar nicht angewendet wurde.\n"
-    doppelt=0
-    dateien=("$OUT"/screenshots/*.png)
-    for ((i = 0; i < ${#dateien[@]}; i++)); do
-        for ((j = i + 1; j < ${#dateien[@]}; j++)); do
-            # RMSE statt AE: liefert einen normierten Wert zwischen 0 und 1
-            # und nicht eine Pixelzahl in wissenschaftlicher Notation, an
-            # der sich Bash-Arithmetik verschluckt - "5.7462e+09" wurde von
-            # ${d%%.*} zu "5" und damit als Treffer gewertet.
-            d=$(magick compare -metric RMSE "${dateien[i]}" "${dateien[j]}" null: 2>&1 \
+    # ── Do the variants differ at all? ───────────────────────────────────
+    note "\n### Can the variants be told apart?\n"
+    note "Two variants with an identical screenshot would be a sign"
+    note "that one of them was not applied at all.\n"
+    duplicates=0
+    files=("$OUT"/screenshots/*.png)
+    for ((i = 0; i < ${#files[@]}; i++)); do
+        for ((j = i + 1; j < ${#files[@]}; j++)); do
+            # RMSE instead of AE: gives a normalised value between 0 and 1
+            # and not a pixel count in scientific notation that
+            # Bash arithmetic chokes on - "5.7462e+09" became "5" via
+            # ${d%%.*} and was thus counted as a hit.
+            d=$(magick compare -metric RMSE "${files[i]}" "${files[j]}" null: 2>&1 \
                 | grep -oP '\(\K[0-9.]+(?=\))' | head -1)
             [ -z "$d" ] && continue
-            a="$(basename "${dateien[i]}" .png)"; b="$(basename "${dateien[j]}" .png)"
-            # Zwei Schwellen, weil es zwei verschiedene Aussagen sind:
+            a="$(basename "${files[i]}" .png)"; b="$(basename "${files[j]}" .png)"
+            # Two thresholds, because they are two different statements:
             #
-            # Nahezu null heisst, die zweite Variante wurde gar nicht
-            # angewendet - ein Fehler.
+            # Nearly zero means the second variant was not
+            # applied at all - an error.
             #
-            # Klein, aber deutlich ueber null heisst, sie wurde angewendet
-            # und sieht der anderen nur aehnlich. Das kann sogar richtig
-            # sein: win98-nacht und win2k-nacht liegen bei 0.015, weil
-            # ihre Titelleisten #000080 und #0a246a sind - historisch
-            # korrekt und trotzdem kaum zu unterscheiden. Das ist eine
-            # Gestaltungsfrage, kein Defekt, und wird nur vermerkt.
+            # Small but clearly above zero means it was applied
+            # and merely looks similar to the other. That can even be right:
+            # win98-nacht and win2k-nacht are at 0.015, because
+            # their title bars are #000080 and #0a246a - historically
+            # correct and still hard to tell apart. That is a
+            # design question, not a defect, and is only noted.
             if awk -v x="$d" 'BEGIN{exit !(x < 0.002)}'; then
-                notiz "  **FEHLER: $a und $b sind praktisch identisch** (RMSE $d)"
-                notiz "  - eine der beiden wurde vermutlich gar nicht angewendet"
-                doppelt=$((doppelt + 1))
+                note "  **ERROR: $a and $b are practically identical** (RMSE $d)"
+                note "  - one of the two was probably not applied at all"
+                duplicates=$((duplicates + 1))
             elif awk -v x="$d" 'BEGIN{exit !(x < 0.02)}'; then
-                notiz "  Hinweis: $a und $b aehneln sich stark (RMSE $d) -"
-                notiz "  angewendet wurden beide, es ist eine Gestaltungsfrage."
+                note "  Note: $a and $b are very similar (RMSE $d) -"
+                note "  both were applied, it is a design question."
             fi
         done
     done
-    [ "$doppelt" -eq 0 ] && notiz "  Alle Varianten unterscheiden sich deutlich." \
-                         || fehler=$((fehler + doppelt))
+    [ "$duplicates" -eq 0 ] && note "  All variants differ clearly." \
+                            || errors=$((errors + duplicates))
 fi
 
-# ── Teil 2: schnelles Umschalten ─────────────────────────────────────────
-notiz "\n## Teil 2 - schnelles Umschalten ohne Neustart\n"
-notiz "Drei Varianten in Folge, ohne Pause. Frueher fuehrte der dritte"
-notiz "Aufruf in 60 Sekunden zum schwarzen Desktop, weil systemd nur drei"
-notiz "Starts je Minute erlaubt und der Sitzungsstart als erster zaehlt.\n"
+# ── Part 2: quick switching ──────────────────────────────────────────────
+note "\n## Part 2 - quick switching without a reboot\n"
+note "Three variants in a row, without a pause. This used to lead to the"
+note "black desktop on the third call within 60 seconds, because systemd only allows"
+note "three starts per minute and the session start counts as the first.\n"
 
-drei=("${varianten[@]:0:3}")
-for v in "${drei[@]}"; do
+three=("${variants[@]:0:3}")
+for v in "${three[@]}"; do
     ssh_ "cd nt-legacy && ./apply.sh $v" >/dev/null 2>&1
-    notiz "  angewendet: $v"
+    note "  applied: $v"
 done
 sleep 8
 shell=$(ssh_ 'systemctl --user is-active plasma-plasmashell.service' | tr -d '\r')
-notiz "\nplasmashell danach: **$shell**"
+note "\nplasmashell afterwards: **$shell**"
 if [ "$shell" != "active" ]; then
-    melde "Nach drei schnellen Wechseln laeuft plasmashell nicht mehr ('$shell')"
-    notiz "\nJournal:"
-    notiz "\`\`\`\n$(ssh_ 'journalctl --user -u plasma-plasmashell.service -n 12 --no-pager')\n\`\`\`"
+    report_error "After three quick switches plasmashell is no longer running ('$shell')"
+    note "\nJournal:"
+    note "\`\`\`\n$(ssh_ 'journalctl --user -u plasma-plasmashell.service -n 12 --no-pager')\n\`\`\`"
 fi
-"$VMCTL" shot "$OUT/screenshots/nach-schnellwechsel.png" >/dev/null 2>&1
+"$VMCTL" shot "$OUT/screenshots/after-quick-switch.png" >/dev/null 2>&1
 
-# Ist ueberhaupt noch etwas zu sehen? Ein schwarzer Schirm faellt sonst
-# nicht auf - die Dienste koennen laufen und trotzdem nichts zeichnen.
-mittel=$(magick "$OUT/screenshots/nach-schnellwechsel.png" -format "%[fx:mean]" info: 2>/dev/null)
-notiz "Bildhelligkeit: $mittel (nahe 0 = schwarzer Schirm)"
-awk -v m="$mittel" 'BEGIN{exit !(m < 0.03)}' 2>/dev/null && \
-    melde "Bildschirm ist praktisch schwarz nach dem Umschalten"
+# Is anything visible at all? Otherwise a black screen goes
+# unnoticed - the services can be running and still draw nothing.
+mean=$(magick "$OUT/screenshots/after-quick-switch.png" -format "%[fx:mean]" info: 2>/dev/null)
+note "Image brightness: $mean (close to 0 = black screen)"
+awk -v m="$mean" 'BEGIN{exit !(m < 0.03)}' 2>/dev/null && \
+    report_error "Screen is practically black after switching"
 
-# ── Ergebnis ─────────────────────────────────────────────────────────────
-notiz "\n---\n"
-if [ "$fehler" -eq 0 ]; then
-    notiz "## Ergebnis: alle Pruefungen bestanden"
+# ── Result ───────────────────────────────────────────────────────────────
+note "\n---\n"
+if [ "$errors" -eq 0 ]; then
+    note "## Result: all checks passed"
 else
-    notiz "## Ergebnis: $fehler Beanstandung(en)"
+    note "## Result: $errors issue(s)"
 fi
-notiz "\nBericht: \`${BERICHT#$LAB/}\`"
+note "\nReport: \`${REPORT#$LAB/}\`"
 echo
-echo "Fertig. Bericht: $BERICHT"
-exit $((fehler > 0))
+echo "Done. Report: $REPORT"
+exit $((errors > 0))

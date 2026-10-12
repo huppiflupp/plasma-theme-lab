@@ -1,274 +1,274 @@
 #!/usr/bin/env bash
-# Stellt Programmeinstellungen auf die NT-Anmutung um - ausdruecklich
-# getrennt vom Theme.
+# Switches program settings to the NT look - explicitly
+# separate from the theme.
 #
-#   ./appearance.sh            # anwenden
-#   ./appearance.sh --zurueck  # auf die vorherigen Werte zuruecksetzen
-#   ./appearance.sh --zeigen   # nur anzeigen, was gesetzt wuerde
+#   ./appearance.sh            # apply
+#   ./appearance.sh --revert   # reset to the previous values
+#   ./appearance.sh --show     # only show what would be set
 #
-# Warum das nicht in apply.sh steht:
+# Why this is not in apply.sh:
 #
-# Ein Plasma-Theme darf Aussehen setzen - Farben, Rahmen, Dekoration. Es
-# darf nicht die Einstellungen fremder Programme ueberschreiben. Wer ein
-# Design ausprobiert, rechnet nicht damit, dass hinterher seine
-# Dolphin-Konfiguration eine andere ist. Genau solche stillen
-# Nebenwirkungen sind der Grund, warum ein Theme ein System unbrauchbar
-# machen kann.
+# A Plasma theme may set the look - colours, frames, decoration. It
+# may not overwrite the settings of other programs. Whoever tries out a
+# theme does not expect their Dolphin configuration to be different
+# afterwards. Exactly such silent
+# side effects are the reason a theme can make a system
+# unusable.
 #
-# Deshalb: eigenes Skript, ausdruecklicher Aufruf, vollstaendiger Rueckweg.
+# Hence: a separate script, an explicit call, a complete way back.
 
 set -euo pipefail
 
-DATEN="${XDG_DATA_HOME:-$HOME/.local/share}"
-SICHERUNG="$DATEN/nt-legacy/anmutung-vorher.conf"
+DATA="${XDG_DATA_HOME:-$HOME/.local/share}"
+BACKUP="$DATA/nt-legacy/anmutung-vorher.conf"
 
-# Datei : Gruppe : Schluessel : NT-Wert : Begruendung
+# File : group : key : NT value : reason
 #
-# Bewusst kurz gehalten. Jeder Eintrag hier ist ein Eingriff in ein
-# fremdes Programm und muss sich rechtfertigen lassen.
-EINSTELLUNGEN=(
-  "dolphinrc:General:ShowStatusBar:FullWidth:durchgehende Statusleiste statt schwebendem Kaestchen"
-  # PCManFM-Qt als Dateimanager. Gruende, gemessen in der Test-VM:
-  #   - Qt6, also greift der Widget-Stil vollstaendig
-  #   - echte Menueleiste statt Hamburger-Knopf
-  #   - freier Speicherplatz als Text ueber die volle Breite; Dolphin
-  #     zeichnet dort eine KCapacityBar, die sich selbst zeichnet und
-  #     weder Palette noch Widget-Stil folgt (silberne Kapsel)
-  "mimeapps.list:Default Applications:inode/directory:pcmanfm-qt.desktop:PCManFM-Qt als Dateimanager"
-  # Ohne diesen Eintrag findet pcmanfm-qt das Icon-Thema nicht und faellt
-  # auf oxygen zurueck - mitten im NT-Theme.
-  "pcmanfm-qt/default/settings.conf:System:FallbackIconThemeName:NTLegacy:Icon-Thema fuer PCManFM-Qt"
-  # Konsole auf das mitgelieferte Profil: Liberation Mono und ein
-  # Farbschema aus den Farben der jeweiligen Fassung. install.sh legt
-  # beides nur ab, aktiviert wird es erst hier. Das eigene Profil des
-  # Nutzers bleibt bestehen und ist im Menue weiter waehlbar.
-  "konsolerc:Desktop Entry:DefaultProfile:NT Legacy.profile:Konsole nutzt das NT-Profil"
-  # Kate ohne die Textvorschau am rechten Rand.
+# Deliberately kept short. Every entry here is an intervention in
+# someone else's program and has to be justifiable.
+SETTINGS=(
+  "dolphinrc:General:ShowStatusBar:FullWidth:full-width status bar instead of a floating box"
+  # PCManFM-Qt as the file manager. Reasons, measured in the test VM:
+  #   - Qt6, so the widget style applies fully
+  #   - a real menu bar instead of a hamburger button
+  #   - free space as text across the full width; Dolphin
+  #     draws a KCapacityBar there, which draws itself and
+  #     follows neither the palette nor the widget style (silver capsule)
+  "mimeapps.list:Default Applications:inode/directory:pcmanfm-qt.desktop:PCManFM-Qt as the file manager"
+  # Without this entry pcmanfm-qt does not find the icon theme and falls
+  # back to oxygen - in the middle of the NT theme.
+  "pcmanfm-qt/default/settings.conf:System:FallbackIconThemeName:NTLegacy:icon theme for PCManFM-Qt"
+  # Konsole on the bundled profile: Liberation Mono and a
+  # colour scheme from the colours of the respective version. install.sh only puts
+  # both in place, they are activated only here. The user's own
+  # profile remains and can still be selected in the menu.
+  "konsolerc:Desktop Entry:DefaultProfile:NT Legacy.profile:Konsole uses the NT profile"
+  # Kate without the text preview at the right edge.
   #
-  # Was dort wie eine sehr breite Bildlaufleiste aussieht, ist keine:
-  # Es ist Kates "Minimap", eine verkleinerte Darstellung des ganzen
-  # Dokuments, die KTextEditor ANSTELLE der Bildlaufleiste zeichnet -
-  # 60 Pixel breit statt der 16 des Widget-Stils. Sie kommt nicht vom
-  # Theme, und kein Farbschema und kein Widget-Stil macht sie schmaler.
+  # What looks like a very wide scroll bar there is not one:
+  # it is Kate's "minimap", a scaled-down view of the whole
+  # document that KTextEditor draws INSTEAD of the scroll bar -
+  # 60 pixels wide instead of the widget style's 16. It does not come from the
+  # theme, and no colour scheme and no widget style makes it narrower.
   #
-  # Der Schluessel heisst "Scroll Bar MiniMap" - ohne Leerzeichen
-  # zwischen Mini und Map, anders als die drei verwandten Schluessel
-  # daneben ("Scroll Bar Mini Map All", "Scroll Bar Mini Map Width").
-  # Nachgelesen in ktexteditor/src/utils/kateconfig.cpp; geraten haette
-  # man es falsch, und ein falscher Schluessel wird stillschweigend
-  # angelegt und nie gelesen.
+  # The key is called "Scroll Bar MiniMap" - without a space
+  # between Mini and Map, unlike the three related keys
+  # next to it ("Scroll Bar Mini Map All", "Scroll Bar Mini Map Width").
+  # Looked up in ktexteditor/src/utils/kateconfig.cpp; a guess would have
+  # got it wrong, and a wrong key is silently
+  # created and never read.
   #
-  # Die Gruppe gilt fuer die Anwendung, nicht fuer KTextEditor: Kate
-  # liest aus katerc, KWrite aus kwriterc. Deshalb beide.
-  "katerc:KTextEditor View:Scroll Bar MiniMap:false:Kate: schmale Bildlaufleiste statt Textvorschau"
-  "kwriterc:KTextEditor View:Scroll Bar MiniMap:false:KWrite: dasselbe"
+  # The group applies to the application, not to KTextEditor: Kate
+  # reads from katerc, KWrite from kwriterc. Hence both.
+  "katerc:KTextEditor View:Scroll Bar MiniMap:false:Kate: narrow scroll bar instead of text preview"
+  "kwriterc:KTextEditor View:Scroll Bar MiniMap:false:KWrite: the same"
 )
 
-# FeatherPad als einfacher Texteditor - nur wenn vorhanden.
+# FeatherPad as a simple text editor - only if present.
 #
-# Kate ist eine Entwicklungsumgebung: Projektleiste, LSP-Client,
-# Sitzungen, Terminal. Wer eine Notiz aufschreiben will, bekommt davon
-# nichts geschenkt. FeatherPad ist das Gegenstueck und kommt Notepad am
-# naechsten - echte Menueleiste, kein Werkzeugkasten, keine Seitenleisten.
+# Kate is a development environment: project bar, LSP client,
+# sessions, terminal. Whoever wants to jot down a note gets
+# nothing out of it. FeatherPad is the counterpart and comes closest to Notepad
+# - a real menu bar, no toolbox, no sidebars.
 #
-# Und es ist eine Qt-Anwendung: der Widget-Stil "Windows" greift
-# vollstaendig, das Fenster sieht aus wie der Rest des Themes. Die
-# GTK-Kandidaten (Mousepad, L3afpad, gedit) tun das nicht - sie
-# zeichnen sich selbst und bleiben ein Fremdkoerper.
+# And it is a Qt application: the "Windows" widget style applies
+# fully, the window looks like the rest of the theme. The
+# GTK candidates (Mousepad, L3afpad, gedit) do not - they
+# draw themselves and remain a foreign body.
 #
-# Bewusst nur, wenn es installiert ist. Ein Design darf keine Pakete
-# nachziehen, und ein Vorgabeprogramm, das es nicht gibt, ergibt beim
-# Doppelklick auf eine .txt eine Fehlermeldung statt eines Editors.
+# Deliberately only if it is installed. A theme must not pull in
+# packages, and a default program that does not exist produces an error
+# message instead of an editor when double-clicking a .txt.
 if command -v featherpad >/dev/null 2>&1; then
-    EINSTELLUNGEN+=(
-      "mimeapps.list:Default Applications:text/plain:featherpad.desktop:FeatherPad fuer einfachen Text"
+    SETTINGS+=(
+      "mimeapps.list:Default Applications:text/plain:featherpad.desktop:FeatherPad for plain text"
     )
     FEATHERPAD=true
 else
     FEATHERPAD=false
 fi
 
-# ── Konsole dem Designwechsel nachziehen ─────────────────────────────────
+# ── Make Konsole follow the theme switch ─────────────────────────────────
 #
-# Das Farbschema des Terminals steht im Profil, und Plasma fasst Profile
-# beim Designwechsel nicht an - Konsole kennt kein "dem System folgen".
-# apply.sh stellt die Zeile um; wer das Design aber ueber die
-# Systemeinstellungen wechselt, ruft apply.sh nie auf, und das Terminal
-# bleibt in der alten Farbwelt stehen.
+# The terminal's colour scheme lives in the profile, and Plasma does not touch profiles
+# when switching themes - Konsole has no "follow the system".
+# apply.sh switches the line; but whoever switches the theme via
+# System Settings never calls apply.sh, and the terminal
+# stays in the old colour world.
 #
-# Deshalb eine systemd-Pfadeinheit: Sie loest aus, wenn Plasma seine
-# Vorgabendateien schreibt, und stoesst konsole-follow.sh an. Kein
-# laufender Prozess, keine Abhaengigkeit ausser systemd - das haben
-# beide Test-VMs, Fedora wie EndeavourOS.
+# Hence a systemd path unit: it triggers when Plasma writes its
+# defaults files and kicks off konsole-follow.sh. No
+# running process, no dependency except systemd - which
+# both test VMs have, Fedora as well as EndeavourOS.
 #
-# Beobachtet wird genau EINE Datei: ~/.config/kdedefaults/package. Sie
-# traegt die Kennung des Globalen Designs und wird von Plasma beim
-# Anwenden neu geschrieben.
+# Exactly ONE file is watched: ~/.config/kdedefaults/package. It
+# holds the ID of the global theme and is rewritten by Plasma when
+# a theme is applied.
 #
-# Hier stand zuerst auch kdeglobals. Das brachte nichts und schadete:
-# Die Zuordnung geht ueber die Kennung des Designs, ein reiner
-# Farbschemawechsel liesse sich gar nicht zuordnen - dafuer aber
-# vervielfachte die zweite Datei die Ausloesungen je Wechsel und trieb
-# den Dienst in die Startbegrenzung (siehe unten).
+# At first kdeglobals was watched here too. That brought nothing and did harm:
+# the mapping goes via the ID of the theme, a pure
+# colour scheme switch could not be mapped at all - but
+# the second file multiplied the triggers per switch and drove
+# the service into the start limit (see below).
 #
-# Die Pfade stehen ausgeschrieben in der Einheit, nicht als %h: wer
-# XDG_DATA_HOME verlegt hat, bekaeme sonst eine Einheit, die ins Leere
-# zeigt - und systemd meldet das erst beim Ausloesen, in einem Protokoll,
-# in das niemand schaut.
-DIENST_VERZ="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
-DIENST_NAME="nt-legacy-konsole"
+# The paths are written out in full in the unit, not as %h: whoever
+# has moved XDG_DATA_HOME would otherwise get a unit that points
+# nowhere - and systemd only reports that when it triggers, in a log
+# nobody looks at.
+SERVICE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
+SERVICE_NAME="nt-legacy-konsole"
 
-dienst_ein() {
-    local skript="$DATEN/nt-legacy/bin/konsole-follow.sh"
-    if [ ! -x "$skript" ]; then
-        echo "  Hinweis: $skript fehlt - erst ./install.sh." >&2
+service_on() {
+    local script="$DATA/nt-legacy/bin/konsole-follow.sh"
+    if [ ! -x "$script" ]; then
+        echo "  Note: $script is missing - run ./install.sh first." >&2
         return
     fi
     if ! command -v systemctl >/dev/null; then
-        echo "  Hinweis: kein systemd - Konsole folgt dem Design nur ueber" >&2
-        echo "           ./apply.sh." >&2
+        echo "  Note: no systemd - Konsole follows the theme only via" >&2
+        echo "        ./apply.sh." >&2
         return
     fi
-    mkdir -p "$DIENST_VERZ"
-    # StartLimitIntervalSec=0 schaltet die Startbegrenzung ab, und das
-    # ist hier keine Bequemlichkeit, sondern notwendig.
+    mkdir -p "$SERVICE_DIR"
+    # StartLimitIntervalSec=0 switches off the start limit, and that
+    # is not a convenience here but a necessity.
     #
-    # systemd erlaubt einer Einheit von Haus aus fuenf Starts in zehn
-    # Sekunden. Ein einziger Designwechsel schreibt aber mehrere Dateien
-    # unterhalb von kdedefaults, und zwar innerhalb derselben Sekunde -
-    # die Pfadeinheit loest also vier- bis fuenfmal aus. Beim naechsten
-    # Wechsel ist das Kontingent aufgebraucht:
+    # By default systemd allows a unit five starts in ten
+    # seconds. But a single theme switch writes several files
+    # below kdedefaults, all within the same second -
+    # so the path unit triggers four to five times. By the next
+    # switch the quota is used up:
     #
     #   nt-legacy-konsole.service: Start request repeated too quickly.
     #   nt-legacy-konsole.path: Failed with result unit-start-limit-hit.
     #
-    # Und damit ist nicht nur ein Lauf ausgefallen: die PFADEINHEIT
-    # selbst geht in den Fehlerzustand und beobachtet nichts mehr. In
-    # der Test-VM genau so gemessen - der erste Wechsel zog das Profil
-    # nach, der zweite nicht mehr, und danach gar keiner. Auf dem
-    # Entwicklungsrechner war es nie aufgefallen, weil dort nur ein
-    # einzelner Wechsel getestet wurde.
+    # And that is not just one run lost: the PATH UNIT
+    # itself goes into the failed state and watches nothing any more. Measured
+    # exactly like that in the test VM - the first switch updated the profile,
+    # the second no longer did, and after that none at all. On the
+    # development machine it had never been noticed, because only a
+    # single switch was tested there.
     #
-    # Dieselbe Falle wie bei plasma-plasmashell.service, siehe apply.sh.
-    # Dort war sie gefaehrlicher, hier nur still.
+    # The same trap as with plasma-plasmashell.service, see apply.sh.
+    # There it was more dangerous, here merely silent.
     #
-    # Abschalten ist vertretbar: der Dienst ist ein Skript von wenigen
-    # Zeilen, das eine Zeile in eine Datei schreibt und sich beendet.
-    cat > "$DIENST_VERZ/$DIENST_NAME.service" <<DIENST
+    # Switching it off is justifiable: the service is a script of a few
+    # lines that writes one line into a file and exits.
+    cat > "$SERVICE_DIR/$SERVICE_NAME.service" <<SERVICE
 [Unit]
-Description=NT Legacy: Konsole-Farbschema dem Globalen Design nachziehen
+Description=NT Legacy: make the Konsole colour scheme follow the global theme
 StartLimitIntervalSec=0
 
 [Service]
 Type=oneshot
-ExecStart=$skript
-DIENST
-    cat > "$DIENST_VERZ/$DIENST_NAME.path" <<PFAD
+ExecStart=$script
+SERVICE
+    cat > "$SERVICE_DIR/$SERVICE_NAME.path" <<PATHUNIT
 [Unit]
-Description=NT Legacy: auf einen Wechsel des Globalen Designs warten
+Description=NT Legacy: wait for a change of the global theme
 
 [Path]
 PathChanged=${XDG_CONFIG_HOME:-$HOME/.config}/kdedefaults/package
-Unit=$DIENST_NAME.service
+Unit=$SERVICE_NAME.service
 
 [Install]
 WantedBy=default.target
-PFAD
+PATHUNIT
     systemctl --user daemon-reload 2>/dev/null || true
-    systemctl --user enable --now "$DIENST_NAME.path" >/dev/null 2>&1 || true
-    if systemctl --user is-active --quiet "$DIENST_NAME.path"; then
-        echo "  Konsole folgt jetzt dem Designwechsel ($DIENST_NAME.path)."
+    systemctl --user enable --now "$SERVICE_NAME.path" >/dev/null 2>&1 || true
+    if systemctl --user is-active --quiet "$SERVICE_NAME.path"; then
+        echo "  Konsole now follows the theme switch ($SERVICE_NAME.path)."
     else
-        echo "  Hinweis: $DIENST_NAME.path laeuft nicht." >&2
-        echo "           systemctl --user status $DIENST_NAME.path" >&2
+        echo "  Note: $SERVICE_NAME.path is not running." >&2
+        echo "        systemctl --user status $SERVICE_NAME.path" >&2
     fi
 }
 
-dienst_aus() {
+service_off() {
     command -v systemctl >/dev/null || return 0
-    systemctl --user disable --now "$DIENST_NAME.path" >/dev/null 2>&1 || true
-    rm -f "$DIENST_VERZ/$DIENST_NAME.path" "$DIENST_VERZ/$DIENST_NAME.service"
+    systemctl --user disable --now "$SERVICE_NAME.path" >/dev/null 2>&1 || true
+    rm -f "$SERVICE_DIR/$SERVICE_NAME.path" "$SERVICE_DIR/$SERVICE_NAME.service"
     systemctl --user daemon-reload 2>/dev/null || true
-    echo "  $DIENST_NAME entfernt."
+    echo "  $SERVICE_NAME removed."
 }
 
-zeigen() {
-    printf '%-12s %-10s %-16s %s\n' "Datei" "Gruppe" "Schluessel" "Wert"
-    for e in "${EINSTELLUNGEN[@]}"; do
-        IFS=: read -r datei gruppe schluessel wert grund <<< "$e"
-        printf '%-12s %-10s %-16s %s\n' "$datei" "$gruppe" "$schluessel" "$wert"
-        printf '%-40s %s\n' "" "$grund"
+show() {
+    printf '%-12s %-10s %-16s %s\n' "File" "Group" "Key" "Value"
+    for e in "${SETTINGS[@]}"; do
+        IFS=: read -r file group key value reason <<< "$e"
+        printf '%-12s %-10s %-16s %s\n' "$file" "$group" "$key" "$value"
+        printf '%-40s %s\n' "" "$reason"
     done
-    printf '%-12s %-10s %-16s %s\n' "systemd" "user" "$DIENST_NAME" "path+service"
-    printf '%-40s %s\n' "" "Konsole folgt dem Wechsel des Globalen Designs"
+    printf '%-12s %-10s %-16s %s\n' "systemd" "user" "$SERVICE_NAME" "path+service"
+    printf '%-40s %s\n' "" "Konsole follows the change of the global theme"
 }
 
-zurueck() {
-    if [ ! -f "$SICHERUNG" ]; then
-        echo "Keine Sicherung unter $SICHERUNG - nichts zurueckzusetzen." >&2
+revert() {
+    if [ ! -f "$BACKUP" ]; then
+        echo "No backup at $BACKUP - nothing to reset." >&2
         exit 1
     fi
-    while IFS=: read -r datei gruppe schluessel wert; do
-        [ -z "${datei:-}" ] && continue
-        if [ -z "$wert" ]; then
-            # Der Schluessel war vorher gar nicht gesetzt. Loeschen, nicht
-            # auf einen erratenen Vorgabewert setzen - sonst steht dort
-            # hinterher etwas, das der Nutzer nie gewaehlt hat.
-            kwriteconfig6 --file "$datei" --group "$gruppe" --key "$schluessel" --delete
-            echo "  $datei/$gruppe/$schluessel  entfernt (war nicht gesetzt)"
+    while IFS=: read -r file group key value; do
+        [ -z "${file:-}" ] && continue
+        if [ -z "$value" ]; then
+            # The key was not set at all before. Delete it, do not
+            # set it to a guessed default - otherwise it would afterwards hold
+            # something the user never chose.
+            kwriteconfig6 --file "$file" --group "$group" --key "$key" --delete
+            echo "  $file/$group/$key  removed (was not set)"
         else
-            kwriteconfig6 --file "$datei" --group "$gruppe" --key "$schluessel" "$wert"
-            echo "  $datei/$gruppe/$schluessel  -> $wert"
+            kwriteconfig6 --file "$file" --group "$group" --key "$key" "$value"
+            echo "  $file/$group/$key  -> $value"
         fi
-    done < "$SICHERUNG"
-    rm -f "$SICHERUNG"
-    dienst_aus
+    done < "$BACKUP"
+    rm -f "$BACKUP"
+    service_off
     echo
-    echo "Zurueckgesetzt. Offene Programme einmal neu starten."
+    echo "Reset. Restart open programs once."
 }
 
 case "${1:-}" in
-    --zeigen)  zeigen; exit 0 ;;
-    --zurueck) zurueck; exit 0 ;;
+    --show)    show; exit 0 ;;
+    --revert)  revert; exit 0 ;;
     "")        ;;
-    *)         echo "Unbekannte Option '$1'. Moeglich: --zeigen, --zurueck" >&2; exit 1 ;;
+    *)         echo "Unknown option '$1'. Possible: --show, --revert" >&2; exit 1 ;;
 esac
 
-# --- Anwenden ------------------------------------------------------------
+# --- Apply ---------------------------------------------------------------
 
-if [ -f "$SICHERUNG" ]; then
-    echo "Hinweis: Es gibt bereits eine Sicherung - die alten Werte bleiben"
-    echo "         erhalten, damit --zurueck weiterhin den Urzustand trifft."
+if [ -f "$BACKUP" ]; then
+    echo "Note: a backup already exists - the old values are kept,"
+    echo "      so that --revert still restores the original state."
 else
-    mkdir -p "$(dirname "$SICHERUNG")"
-    : > "$SICHERUNG"
-    for e in "${EINSTELLUNGEN[@]}"; do
-        IFS=: read -r datei gruppe schluessel _wert _grund <<< "$e"
-        # Leerer Wert heisst: war nicht gesetzt. Den Unterschied zwischen
-        # "nicht gesetzt" und "auf den Vorgabewert gesetzt" muss die
-        # Sicherung festhalten, sonst ist der Rueckweg ungenau.
-        alt=$(kreadconfig6 --file "$datei" --group "$gruppe" --key "$schluessel" 2>/dev/null || true)
-        echo "$datei:$gruppe:$schluessel:$alt" >> "$SICHERUNG"
+    mkdir -p "$(dirname "$BACKUP")"
+    : > "$BACKUP"
+    for e in "${SETTINGS[@]}"; do
+        IFS=: read -r file group key _value _reason <<< "$e"
+        # An empty value means: was not set. The backup has to record the
+        # difference between "not set" and "set to the default value",
+        # otherwise the way back is inaccurate.
+        old=$(kreadconfig6 --file "$file" --group "$group" --key "$key" 2>/dev/null || true)
+        echo "$file:$group:$key:$old" >> "$BACKUP"
     done
 fi
 
-for e in "${EINSTELLUNGEN[@]}"; do
-    IFS=: read -r datei gruppe schluessel wert grund <<< "$e"
-    kwriteconfig6 --file "$datei" --group "$gruppe" --key "$schluessel" "$wert"
-    echo "  $datei: $schluessel = $wert"
-    echo "      $grund"
+for e in "${SETTINGS[@]}"; do
+    IFS=: read -r file group key value reason <<< "$e"
+    kwriteconfig6 --file "$file" --group "$group" --key "$key" "$value"
+    echo "  $file: $key = $value"
+    echo "      $reason"
 done
 
-dienst_ein
+service_on
 
 if ! $FEATHERPAD; then
     cat <<EOF
 
-  Fuer einfachen Text bleibt Kate die Vorgabe. Wer lieber einen
-  schlichten Editor moechte - eine Menueleiste, sonst nichts, wie
-  Notepad - installiert FeatherPad und ruft dieses Skript noch einmal:
+  For plain text Kate remains the default. Whoever prefers a
+  simple editor - a menu bar, nothing else, like
+  Notepad - installs FeatherPad and runs this script once more:
 
-      sudo dnf install featherpad     # oder: sudo pacman -S featherpad
+      sudo dnf install featherpad     # or: sudo pacman -S featherpad
       ./appearance.sh
 
 EOF
@@ -276,13 +276,13 @@ fi
 
 cat <<EOF
 
-Angewendet. Betroffene Programme einmal neu starten.
+Applied. Restart the affected programs once.
 
-  Kate und Konsole lesen ihre Einstellungen beim Start. Ein offenes
-  Fenster behaelt deshalb sein bisheriges Aussehen - und Kate schreibt
-  seine Einstellungen beim Beenden zurueck, ueberschreibt also, was hier
-  gesetzt wurde. Deshalb: erst schliessen, dann dieses Skript.
+  Kate and Konsole read their settings at startup. An open
+  window therefore keeps its previous look - and Kate writes
+  its settings back on exit, overwriting what was
+  set here. So: close them first, then run this script.
 
-  Zurueck:  ./appearance.sh --zurueck
-  Gesichert: $SICHERUNG
+  To undo:  ./appearance.sh --revert
+  Backed up: $BACKUP
 EOF

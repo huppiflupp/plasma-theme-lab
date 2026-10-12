@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# Legt die zweite Test-VM an: EndeavourOS (Arch-Familie).
+# Creates the second test VM: EndeavourOS (Arch family).
 #
-#   ./build-vm-eos.sh          # legt an, bricht ab wenn sie existiert
-#   ./build-vm-eos.sh --force  # loescht eine bestehende vorher
+#   ./build-vm-eos.sh          # creates it, aborts if it exists
+#   ./build-vm-eos.sh --force  # deletes an existing one first
 #
-# Anders als build-vm.sh laeuft das hier NICHT unbeaufsichtigt.
+# Unlike build-vm.sh, this does NOT run unattended.
 #
-# Fedora installiert per Kickstart aus dem Netz; EndeavourOS bringt
-# Calamares mit, einen grafischen Assistenten ohne Antwortdatei. Die
-# zwanzig Minuten Klickarbeit sind der Preis dafuer, dass diese Familie
-# ueberhaupt im Labor vertreten ist.
+# Fedora installs from the network via kickstart; EndeavourOS ships
+# Calamares, a graphical wizard without an answer file. The
+# twenty minutes of clicking are the price for having this family
+# represented in the lab at all.
 #
-# Nach dem Durchklicken macht ./eos-finish.sh die Maschine fernsteuerbar.
+# After clicking through, ./eos-finish.sh makes the machine remote-controllable.
 
 set -euo pipefail
 
@@ -21,47 +21,47 @@ source "$VM_DIR/eos.env"
 FORCE=false
 [ "${1:-}" = "--force" ] && FORCE=true
 
-[ -f "$VM_ISO" ] || { echo "FEHLER: $VM_ISO fehlt."; exit 1; }
+[ -f "$VM_ISO" ] || { echo "ERROR: $VM_ISO is missing."; exit 1; }
 
 if virsh -c "$LIBVIRT_URI" dominfo "$VM_NAME" &>/dev/null; then
     if ! $FORCE; then
-        echo "FEHLER: VM '$VM_NAME' existiert bereits."
-        echo "        Neu bauen mit: $0 --force"
+        echo "ERROR: VM '$VM_NAME' already exists."
+        echo "       Rebuild with: $0 --force"
         exit 1
     fi
-    echo "Entferne bestehende VM '$VM_NAME' …"
+    echo "Removing existing VM '$VM_NAME' …"
     virsh -c "$LIBVIRT_URI" destroy "$VM_NAME" &>/dev/null || true
     virsh -c "$LIBVIRT_URI" undefine "$VM_NAME" --nvram --remove-all-storage &>/dev/null || true
 fi
 
-echo "Lege '$VM_NAME' an (Disk: $VM_DISK, ${VM_DISK_GB} GB) …"
+echo "Creating '$VM_NAME' (disk: $VM_DISK, ${VM_DISK_GB} GB) …"
 
-# Dieselben Eckdaten wie bei der Fedora-VM: q35, UEFI, virtio, SPICE ohne
-# Netzwerk-Port, Guest-Agent. Letzterer ist keine Bequemlichkeit -
-# vmctl.sh holt die IP darueber.
+# The same key parameters as for the Fedora VM: q35, UEFI, virtio, SPICE without
+# a network port, guest agent. The latter is not a convenience -
+# vmctl.sh gets the IP through it.
 #
-# Ein Unterschied ist noetig: Secure Boot aus.
+# One difference is necessary: Secure Boot off.
 #
-# "--boot uefi" waehlt auf diesem Rechner die Firmware mit hinterlegten
-# Schluesseln, und daran scheitert der Start vom EndeavourOS-Medium:
+# "--boot uefi" on this machine picks the firmware with enrolled
+# keys, and booting from the EndeavourOS medium fails on that:
 #
 #   failed to load Boot0002 "UEFI QEMU DVD-ROM" ...
 #   Access Denied -- rejected probably by Secure Boot
 #   No bootable option or device was found.
 #
-# Fedora bootet dort, weil sein Startpfad signiert ist; ein
-# Arch-Abkoemmling ist es nicht. Fuer eine Wegwerf-Testmaschine ist das
-# Abschalten die richtige Antwort - Secure Boot ist hier nichts, was
-# geprueft werden soll.
+# Fedora boots there because its boot path is signed; an
+# Arch derivative's is not. For a disposable test machine, switching it
+# off is the right answer - Secure Boot is not something to be
+# tested here.
 #
-# Zweiter Unterschied: qxl statt virtio als Grafik.
+# Second difference: qxl instead of virtio for graphics.
 #
-# Mit virtio lief das Live-System einwandfrei - Xorg und die
-# Willkommens-App liefen, der Guest-Agent antwortete -, aber
-# "virsh screenshot" lieferte ein schwarzes Bild. Genau darauf beruht
-# hier jeder Theme-Test: Bootmenue, Startbildschirm, Vorschaubilder.
-# QXL legt einen klassischen Framebuffer vor, den der Hypervisor
-# mitlesen kann.
+# With virtio the live system ran flawlessly - Xorg and the
+# welcome app ran, the guest agent answered - but
+# "virsh screenshot" returned a black image. Every theme test here
+# relies on exactly that: boot menu, splash screen, preview images.
+# QXL provides a classic framebuffer that the hypervisor
+# can read along.
 virt-install \
     --connect "$LIBVIRT_URI" \
     --name "$VM_NAME" \
@@ -83,22 +83,22 @@ virt-install \
 
 cat <<EOF
 
-Die VM laeuft und bootet vom ISO. Jetzt der Installer:
+The VM is running and booting from the ISO. Now the installer:
 
     LAB_ENV=eos.env ./vmctl.sh viewer
 
-Im Assistenten wichtig - danach richtet sich der Rest des Labors:
+Important in the wizard - the rest of the lab depends on it:
 
-  * Bootloader:   GRUB   (nicht systemd-boot - die Bootskripte sollen
-                          hier ja gerade auf der GRUB-Seite geprueft
-                          werden)
+  * Bootloader:   GRUB   (not systemd-boot - the whole point is to
+                          test the boot scripts on the GRUB side
+                          here)
   * Desktop:      KDE Plasma
-  * Benutzer:     tester   mit Passwort   tester
-                  (dieselben Werte wie in der Fedora-VM; die Maschine
-                  ist ein Wegwerf-Ziel ohne Netzzugang von aussen)
-  * Partition:    ganze Platte, Vorgaben uebernehmen
+  * User:         tester   with password   tester
+                  (the same values as in the Fedora VM; the machine
+                  is a disposable target without network access from outside)
+  * Partition:    whole disk, accept the defaults
 
-Danach einmal neu starten und weiter mit:
+Then reboot once and continue with:
 
     ./eos-finish.sh
 

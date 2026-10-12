@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Baut die Plasma-Theme-Test-VM von Grund auf neu.
+# Builds the Plasma theme test VM from scratch.
 #
-# Netzinstallation von Fedora 44 KDE per Kickstart - es wird kein ISO
-# heruntergeladen, Anaconda holt sich die Pakete direkt vom Mirror.
+# Network installation of Fedora 44 KDE via kickstart - no ISO is
+# downloaded, Anaconda fetches the packages directly from the mirror.
 #
-#   ./build-vm.sh          # baut, bricht ab wenn die VM schon existiert
-#   ./build-vm.sh --force  # loescht eine bestehende VM vorher
+#   ./build-vm.sh          # builds, aborts if the VM already exists
+#   ./build-vm.sh --force  # deletes an existing VM first
 
 set -euo pipefail
 
@@ -15,40 +15,40 @@ source "$VM_DIR/lab.env"
 FORCE=false
 [ "${1:-}" = "--force" ] && FORCE=true
 
-# --- bestehende VM behandeln -------------------------------------------------
+# --- handle an existing VM --------------------------------------------------
 if virsh -c "$LIBVIRT_URI" dominfo "$VM_NAME" &>/dev/null; then
     if ! $FORCE; then
-        echo "FEHLER: VM '$VM_NAME' existiert bereits."
-        echo "        Neu bauen mit: $0 --force"
+        echo "ERROR: VM '$VM_NAME' already exists."
+        echo "       Rebuild with: $0 --force"
         exit 1
     fi
-    echo "[1/4] Entferne bestehende VM '$VM_NAME'..."
+    echo "[1/4] Removing existing VM '$VM_NAME'..."
     virsh -c "$LIBVIRT_URI" destroy "$VM_NAME" &>/dev/null || true
     virsh -c "$LIBVIRT_URI" undefine "$VM_NAME" --nvram --remove-all-storage &>/dev/null || true
 else
-    echo "[1/4] Keine bestehende VM - baue neu."
+    echo "[1/4] No existing VM - building from scratch."
 fi
 
-# --- Kickstart mit dem echten Public-Key fuellen ------------------------------
-echo "[2/4] Bereite Kickstart vor..."
-[ -f "$VM_DIR/id_lab.pub" ] || { echo "FEHLER: $VM_DIR/id_lab.pub fehlt."; exit 1; }
+# --- fill the kickstart with the real public key ----------------------------
+echo "[2/4] Preparing kickstart..."
+[ -f "$VM_DIR/id_lab.pub" ] || { echo "ERROR: $VM_DIR/id_lab.pub is missing."; exit 1; }
 PUBKEY="$(cat "$VM_DIR/id_lab.pub")"
 KS_RENDERED="$VM_DIR/.plasma-lab.rendered.ks"
 sed "s|SSH_PUBKEY_PLACEHOLDER|$PUBKEY|" "$VM_DIR/plasma-lab.ks" > "$KS_RENDERED"
-grep -q SSH_PUBKEY_PLACEHOLDER "$KS_RENDERED" && { echo "FEHLER: Platzhalter nicht ersetzt."; exit 1; }
+grep -q SSH_PUBKEY_PLACEHOLDER "$KS_RENDERED" && { echo "ERROR: placeholder not replaced."; exit 1; }
 
-# --- Installation starten ----------------------------------------------------
-echo "[3/4] Starte unbeaufsichtigte Installation (dauert 20-40 min)..."
-echo "      Fortschritt ansehen:  virt-viewer --attach -c $LIBVIRT_URI $VM_NAME"
-echo "      oder auf der Konsole: virsh -c $LIBVIRT_URI console $VM_NAME"
+# --- start the installation -------------------------------------------------
+echo "[3/4] Starting unattended installation (takes 20-40 min)..."
+echo "      Watch progress:      virt-viewer --attach -c $LIBVIRT_URI $VM_NAME"
+echo "      or on the console:   virsh -c $LIBVIRT_URI console $VM_NAME"
 
-echo "      Bildschirm ansehen:  ./vmctl.sh shot /tmp/installer.png"
-echo "      In den Installer:    ssh root@<ip>   (Passwort: lab)"
+echo "      View the screen:     ./vmctl.sh shot /tmp/installer.png"
+echo "      Into the installer:  ssh root@<ip>   (password: lab)"
 
-# Bewusst KEIN '--serial file': libvirt legt die Zieldatei als root:root
-# 0600 an, sie ist also ohne sudo nicht lesbar - und beim naechsten Lauf
-# scheitert schon das Anlegen daran. Die Diagnose laeuft stattdessen ueber
-# den Grafikbildschirm (console=tty0) und ueber inst.sshd.
+# Deliberately NO '--serial file': libvirt creates the target file as root:root
+# 0600, so it is not readable without sudo - and on the next run
+# even creating it fails because of that. Diagnosis goes through
+# the graphical screen (console=tty0) and inst.sshd instead.
 virt-install \
     --connect "$LIBVIRT_URI" \
     --name "$VM_NAME" \
@@ -72,18 +72,18 @@ virt-install \
     --noautoconsole \
     --wait -1
 
-# Zur Wahl von console=tty0: Anaconda zeichnet seine Textoberflaeche auf
-# die zuletzt angegebene Konsole. Mit console=ttyS0 landet sie auf der
-# seriellen Schnittstelle - deren Log-Datei legt libvirt aber als
-# root:root 0600 an, und an das pty kommt man ohne Root ebenfalls nicht.
-# Eine haengende Installation waere damit eine Blackbox. Auf tty0 ist sie
-# per 'vmctl.sh shot' jederzeit sichtbar.
+# On the choice of console=tty0: Anaconda draws its text interface on
+# the console given last. With console=ttyS0 it ends up on the
+# serial port - but libvirt creates its log file as
+# root:root 0600, and you cannot get at the pty without root either.
+# A hanging installation would then be a black box. On tty0 it is
+# visible at any time via 'vmctl.sh shot'.
 #
-# inst.sshd + inst.rootpw oeffnen zusaetzlich einen SSH-Zugang IN den
-# laufenden Installer (root@<ip>, Passwort 'lab'), um /tmp/anaconda.log
-# und /tmp/packaging.log direkt zu lesen. Nur waehrend der Installation
-# aktiv - das installierte System nutzt den Key aus dem Kickstart.
+# inst.sshd + inst.rootpw additionally open SSH access INTO the
+# running installer (root@<ip>, password 'lab'), to read /tmp/anaconda.log
+# and /tmp/packaging.log directly. Only active during the installation
+# - the installed system uses the key from the kickstart.
 
-echo "[4/4] Installation abgeschlossen, VM startet neu."
+echo "[4/4] Installation finished, VM is rebooting."
 echo
-echo "Naechster Schritt:  $VM_DIR/wait-ready.sh && $VM_DIR/snapshot.sh create clean"
+echo "Next step:  $VM_DIR/wait-ready.sh && $VM_DIR/snapshot.sh create clean"
