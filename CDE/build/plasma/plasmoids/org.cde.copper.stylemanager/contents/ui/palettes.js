@@ -553,12 +553,12 @@ const PICTURES = [
  },
  {
   "key": "fluss",
-  "name": "Copper Fluss",
+  "name": "Copper River",
   "palette": "Copper"
  },
  {
   "key": "kaskade",
-  "name": "Copper Kaskade",
+  "name": "Copper Cascade",
   "palette": "Copper"
  },
  {
@@ -568,7 +568,7 @@ const PICTURES = [
  },
  {
   "key": "polarlicht",
-  "name": "CDE Polarlicht",
+  "name": "CDE Aurora",
   "palette": "NorthernSky"
  },
  {
@@ -578,7 +578,7 @@ const PICTURES = [
  },
  {
   "key": "riff",
-  "name": "CDE Riff",
+  "name": "CDE Reef",
   "palette": "Urchin"
  },
  {
@@ -593,7 +593,7 @@ const PICTURES = [
  },
  {
   "key": "weinberg",
-  "name": "CDE Weinberg",
+  "name": "CDE Vineyard",
   "palette": "Cabernet"
  },
  {
@@ -603,7 +603,7 @@ const PICTURES = [
  },
  {
   "key": "chipstadt",
-  "name": "CDE Chipstadt",
+  "name": "CDE Chip City",
   "palette": "Default"
  },
  {
@@ -613,32 +613,32 @@ const PICTURES = [
  },
  {
   "key": "molekuel",
-  "name": "CDE Molek\u00fcl",
+  "name": "CDE Molecule",
   "palette": "Crimson"
  },
  {
   "key": "sequenz",
-  "name": "CDE Sequenz",
+  "name": "CDE Sequence",
   "palette": "Golden"
  },
  {
   "key": "druckvorstufe",
-  "name": "CDE Druckvorstufe",
+  "name": "CDE Prepress",
   "palette": "PBNJ"
  },
  {
   "key": "schnittplatz",
-  "name": "CDE Schnittplatz",
+  "name": "CDE Editing Suite",
   "palette": "SkyRed"
  },
  {
   "key": "mrt",
-  "name": "CDE MRT",
+  "name": "CDE MRI",
   "palette": "Alpine"
  },
  {
   "key": "mischpult",
-  "name": "CDE Mischpult",
+  "name": "CDE Mixing Desk",
   "palette": "Tundra"
  },
  {
@@ -648,27 +648,27 @@ const PICTURES = [
  },
  {
   "key": "stroemung",
-  "name": "CDE Str\u00f6mung",
+  "name": "CDE Flow",
   "palette": "Delphinium"
  },
  {
   "key": "kristall",
-  "name": "CDE Kristall",
+  "name": "CDE Crystal",
   "palette": "Copper"
  },
  {
   "key": "marmor",
-  "name": "CDE Marmor",
+  "name": "CDE Marble",
   "palette": "Crimson"
  },
  {
   "key": "duene",
-  "name": "CDE D\u00fcne",
+  "name": "CDE Dune",
   "palette": "Copper"
  },
  {
   "key": "aquarell",
-  "name": "CDE Aquarell",
+  "name": "CDE Watercolour",
   "palette": "Copper"
  },
  {
@@ -678,37 +678,37 @@ const PICTURES = [
  },
  {
   "key": "duene-links",
-  "name": "CDE D\u00fcne links",
+  "name": "CDE Dune Left",
   "palette": "Copper"
  },
  {
   "key": "duene-rechts",
-  "name": "CDE D\u00fcne rechts",
+  "name": "CDE Dune Right",
   "palette": "Copper"
  },
  {
   "key": "weltraum-links",
-  "name": "CDE Weltraum links",
+  "name": "CDE Space Left",
   "palette": "Copper"
  },
  {
   "key": "weltraum-rechts",
-  "name": "CDE Weltraum rechts",
+  "name": "CDE Space Right",
   "palette": "Copper"
  },
  {
   "key": "alpen",
-  "name": "CDE Alpen",
+  "name": "CDE Alps",
   "palette": "Alpine"
  },
  {
   "key": "dolomiten",
-  "name": "CDE Dolomiten",
+  "name": "CDE Dolomites",
   "palette": "Desert"
  },
  {
   "key": "elbsandstein",
-  "name": "CDE Elbsandstein",
+  "name": "CDE Elbe Sandstone",
   "palette": "Sand"
  },
  {
@@ -718,22 +718,22 @@ const PICTURES = [
  },
  {
   "key": "island",
-  "name": "CDE Island",
+  "name": "CDE Iceland",
   "palette": "Charcoal"
  },
  {
   "key": "schwarzwald",
-  "name": "CDE Schwarzwald",
+  "name": "CDE Black Forest",
   "palette": "Grass"
  },
  {
   "key": "toskana",
-  "name": "CDE Toskana",
+  "name": "CDE Tuscany",
   "palette": "Wheat"
  },
  {
   "key": "watt",
-  "name": "CDE Watt",
+  "name": "CDE Wadden Sea",
   "palette": "SeaFoam"
  }
 ];

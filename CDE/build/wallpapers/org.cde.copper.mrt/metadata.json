@@ -1,7 +1,7 @@
 {
   "KPlugin": {
     "Id": "org.cde.copper.mrt",
-    "Name": "CDE MRT",
+    "Name": "CDE MRI",
     "Description": "MRI films on a lightbox, Alpine palette, light and dark",
     "Version": "0.9.5",
     "License": "GPL-2.0-or-later",
@@ -10,6 +10,7 @@
         "Name": "CDE Copper contributors"
       }
     ],
-    "Website": "https://github.com/huppiflupp/plasma-theme-lab"
+    "Website": "https://github.com/huppiflupp/plasma-theme-lab",
+    "Name[de]": "CDE MRT"
   }
 }

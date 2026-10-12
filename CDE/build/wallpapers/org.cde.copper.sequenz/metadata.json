@@ -1,7 +1,7 @@
 {
   "KPlugin": {
     "Id": "org.cde.copper.sequenz",
-    "Name": "CDE Sequenz",
+    "Name": "CDE Sequence",
     "Description": "Sequencing gel and chromatogram, Golden palette, light and dark",
     "Version": "0.9.5",
     "License": "GPL-2.0-or-later",
@@ -10,6 +10,7 @@
         "Name": "CDE Copper contributors"
       }
     ],
-    "Website": "https://github.com/huppiflupp/plasma-theme-lab"
+    "Website": "https://github.com/huppiflupp/plasma-theme-lab",
+    "Name[de]": "CDE Sequenz"
   }
 }

@@ -1,7 +1,7 @@
 {
   "KPlugin": {
     "Id": "org.cde.copper.alpen",
-    "Name": "CDE Alpen",
+    "Name": "CDE Alps",
     "Description": "Alpine peak and mountain lake, Alpine palette, light and dark",
     "Version": "0.9.5",
     "License": "GPL-2.0-or-later",
@@ -10,6 +10,7 @@
         "Name": "CDE Copper contributors"
       }
     ],
-    "Website": "https://github.com/huppiflupp/plasma-theme-lab"
+    "Website": "https://github.com/huppiflupp/plasma-theme-lab",
+    "Name[de]": "CDE Alpen"
   }
 }
