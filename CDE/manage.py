@@ -857,8 +857,15 @@ def watch_units(enable):
     path.write_text("[Unit]\nDescription=CDE Copper: the shell follows the global theme\n\n"
                     "[Path]\nPathChanged=%h/.config/kdeglobals\nPathChanged=%h/.config/kdedefaults/kdeglobals\n\n"
                     "[Install]\nWantedBy=default.target\n")
+    # The palette follows the colour scheme from here as well, not only from
+    # the front console: without a console in a panel, a CDE colour scheme
+    # chosen in System Settings left the surfaces and the backdrop behind.
+    # The tool compares, so the console asking too costs nothing; the wait
+    # matches the console's, until System Settings has written the scheme.
+    tool = "/usr/bin/python3 %h/.local/share/cde-copper/tool/manage.py"
     service.write_text("[Unit]\nDescription=CDE Copper: the shell follows the global theme\n\n"
-                       "[Service]\nType=oneshot\nExecStart=/usr/bin/python3 %h/.local/share/cde-copper/tool/manage.py follow-theme\n")
+                       f"[Service]\nType=oneshot\nExecStart={tool} follow-theme\n"
+                       f"ExecStart=/usr/bin/sleep 2\nExecStart={tool} palette --follow-scheme --notify\n")
     run("systemctl", "--user", "daemon-reload", check=False)
     run("systemctl", "--user", "enable", "--now", f"{WATCH}.path", check=False)
 

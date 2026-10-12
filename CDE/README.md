@@ -209,6 +209,22 @@ the installer backs up the previous layout first. Without that flag, your
 current panels stay in place. The front console can also be added as a widget
 through Plasma's normal widget picker.
 
+**Everything but the panel.** To keep your own panel and layout and take the
+rest (window frames, controls, icons, cursors, palettes, backdrops, lock
+screen, GTK theme), apply without `--panel`:
+
+```sh
+bash install.sh
+bash apply.sh
+```
+
+A CDE colour scheme chosen in System Settings › Colors then brings the
+Plasma surfaces, the controls and the backdrop along, with or without a
+console in a panel: `apply.sh` sets up a small systemd path unit
+(`cde-copper-theme.path`) that watches the colour scheme. Copying the
+packages into place by hand (or installing them one by one from the store)
+skips that step; run `install.sh` and `apply.sh` from the archive once.
+
 ### KDE Store edition
 
 On the store CDE Copper is one entry carrying the release archive of
