@@ -2,7 +2,7 @@
 # Sagt, welcher Stand von NT Legacy tatsaechlich installiert und aktiv
 # ist - Ebene fuer Ebene.
 #
-#     ./pruefe-installation.sh
+#     ./check-installation.sh
 #
 # Warum es das gibt: Ein Theme besteht aus sechs Ebenen, und "Neue
 # holen ..." aktualisiert JEDE EINZELN. Wer dort nur das Global Theme

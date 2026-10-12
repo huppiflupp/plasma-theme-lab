@@ -110,7 +110,7 @@ rm -f "$DATEN"/konsole/NTLegacy*.colorscheme "$DATEN/konsole/NT Legacy.profile" 
 # meldet bei jedem Designwechsel einen Fehlstart ins Journal. Sichtbar
 # wird davon nichts, und genau deshalb bleibt sie sonst ewig liegen.
 #
-# anmutung.sh --zurueck macht dasselbe. Doppelt ist hier richtig: Wer
+# appearance.sh --zurueck macht dasselbe. Doppelt ist hier richtig: Wer
 # deinstalliert, hat die Anmutung vielleicht nie zurueckgesetzt.
 DIENST_VERZ="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 if [ -f "$DIENST_VERZ/nt-legacy-konsole.path" ]; then
@@ -120,7 +120,7 @@ if [ -f "$DIENST_VERZ/nt-legacy-konsole.path" ]; then
     systemctl --user daemon-reload 2>/dev/null || true
     echo "  Dienst nt-legacy-konsole"
 fi
-rm -rf "$DATEN/nt-legacy/bin" "$DATEN/nt-legacy/konsole-varianten.tsv"
+rm -rf "$DATEN/nt-legacy/bin" "$DATEN/nt-legacy/konsole-variants.tsv"
 
 rm -f "$HOME/.cache/plasma_theme_"*.kcache "$HOME/.cache/ksvg-elements"
 

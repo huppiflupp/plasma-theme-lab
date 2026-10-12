@@ -21,7 +21,7 @@ Optional but recommended:
 - **PCManFM-Qt** as the file manager. Dolphin draws its free-space
   indicator past the widget style — a silver capsule in the middle of the
   NT grey. Everything works without PCManFM-Qt; that one bar just looks
-  out of place. See `./anmutung.sh` below.
+  out of place. See `./appearance.sh` below.
 
 ## Option 1 — full package (recommended)
 
@@ -212,7 +212,7 @@ access.
 
 ## The look — separate and optional
 
-`anmutung.sh` changes settings of **other programs**: a full-width status
+`appearance.sh` changes settings of **other programs**: a full-width status
 bar in Dolphin, PCManFM-Qt as the file manager, its icon theme, and
 Konsole's default profile.
 
@@ -220,9 +220,9 @@ This is deliberately not part of `install.sh`. Someone trying out a theme
 does not expect their Dolphin configuration to be different afterwards.
 
 ```bash
-./anmutung.sh --zeigen    # what would be set, and why
-./anmutung.sh             # apply
-./anmutung.sh --zurueck   # full revert
+./appearance.sh --zeigen    # what would be set, and why
+./appearance.sh             # apply
+./appearance.sh --zurueck   # full revert
 ```
 
 ### Konsole
@@ -230,7 +230,7 @@ does not expect their Dolphin configuration to be different afterwards.
 `install.sh` only *places* a Konsole profile and five colour schemes in
 `~/.local/share/konsole/` — one scheme per palette, built from the same
 colour values as everything else. Nothing is switched over until you run
-`anmutung.sh`; your own profiles stay and remain selectable in the menu.
+`appearance.sh`; your own profiles stay and remain selectable in the menu.
 
 The profile uses **Liberation Mono**, which is metrically Courier
 compatible and present on practically every Linux. A theme should not
@@ -247,10 +247,10 @@ Settings → Colours and Themes → Global Theme* never calls it, and Konsole
 has no "follow the system" switch of its own: a terminal's colours live in
 its **profile**, and Plasma does not touch profiles.
 
-So `anmutung.sh` installs a small systemd user unit,
+So `appearance.sh` installs a small systemd user unit,
 `nt-legacy-konsole.path`. It watches the two files Plasma writes when a
-global theme is applied and runs `konsole-folgen.sh`, which looks the
-theme up in `konsole-varianten.tsv` and rewrites that one line in the
+global theme is applied and runs `konsole-follow.sh`, which looks the
+theme up in `konsole-variants.tsv` and rewrites that one line in the
 profile. No resident process; nothing else is touched. If the new theme is
 not one of ours, the profile is left exactly as it is — switching to
 Breeze should not drag your terminal along.
@@ -261,13 +261,13 @@ session is created, and there is no way from outside to make it read the
 file again. The next new window or tab is correct.
 
 ```bash
-./konsole-folgen.sh --zeigen   # what it would do, without doing it
+./konsole-follow.sh --zeigen   # what it would do, without doing it
 systemctl --user status nt-legacy-konsole.path
 ```
 
 ### Kate, and an editor closer to Notepad
 
-`anmutung.sh` switches off Kate's **mini map**. What looks like a very wide
+`appearance.sh` switches off Kate's **mini map**. What looks like a very wide
 scroll bar on the right edge is not one: it is a shrunken rendering of the
 whole document that KTextEditor draws *instead of* the scroll bar, 60
 pixels wide against the widget style's 16. It comes from Kate, not from the
@@ -275,7 +275,7 @@ theme, and no colour scheme or widget style makes it narrower.
 
 Kate is a development environment — project bar, LSP client, sessions, a
 terminal. For writing down a note none of that helps. If **FeatherPad** is
-installed, `anmutung.sh` also makes it the default for plain text: a Qt
+installed, `appearance.sh` also makes it the default for plain text: a Qt
 program with a real menu bar and nothing else, which is as close to Notepad
 as this desktop gets, and which the Windows widget style draws completely.
 The GTK candidates (Mousepad, L3afpad, gedit) draw themselves and stay
@@ -283,7 +283,7 @@ foreign bodies.
 
 ```bash
 sudo dnf install featherpad     # or: sudo pacman -S featherpad
-./anmutung.sh
+./appearance.sh
 ```
 
 Nothing is installed for you, and if FeatherPad is absent the entry is
@@ -291,7 +291,7 @@ simply left out — a default application that does not exist produces an
 error message instead of an editor.
 
 Both programs read their settings at start up and write them back when they
-exit, so close them before running `anmutung.sh`.
+exit, so close them before running `appearance.sh`.
 
 ## Boot screens — GRUB and Plymouth
 
@@ -412,8 +412,8 @@ package.
 ## Verifying
 
 ```bash
-./pruefe.sh            # are all parts present?
-./pruefe.sh --system   # also check against the installed system
+./check.sh            # are all parts present?
+./check.sh --system   # also check against the installed system
 ```
 
 ## If something does not take effect
@@ -472,7 +472,7 @@ Three levels, depending on how far back you want:
 
 ```bash
 ~/.local/share/nt-legacy/backup-*/restore.sh   # configuration from before the install
-./anmutung.sh --zurueck                        # settings of other programs
+./appearance.sh --zurueck                        # settings of other programs
 ./uninstall.sh                                 # remove the theme completely
 ```
 

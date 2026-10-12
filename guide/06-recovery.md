@@ -22,7 +22,7 @@ kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme
 
 Diese acht Zeilen sind auch das, was ein Installer **vor** seiner ersten
 Änderung sichern sollte. Siehe
-[Kapitel 4.5](04-bauen-und-installieren.md#45-rollback-ist-teil-der-installation).
+[Kapitel 4.5](04-build-and-install.md#45-rollback-ist-teil-der-installation).
 
 ---
 
@@ -137,7 +137,7 @@ Auf Debian/Ubuntu heißen die letzten beiden `update-initramfs -u` und
 
 **Wenn du hier landest, war der Fehler nicht das Theme, sondern die
 Entscheidung, es auf dem Arbeitsrechner zu installieren.** Siehe
-[Kapitel 5.4](05-testen.md#54-stufe-4--vollinstallation-in-der-vm).
+[Kapitel 5.4](05-testing.md#54-stufe-4--vollinstallation-in-der-vm).
 
 ---
 
@@ -158,4 +158,4 @@ jemand ausführt, der „das Theme mal ausprobieren" will.
 
 ---
 
-**Zurück:** [Übersicht](README.md) · [Referenzkarte](referenz.md)
+**Zurück:** [Übersicht](README.md) · [Referenzkarte](reference.md)

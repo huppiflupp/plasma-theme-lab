@@ -35,7 +35,7 @@ Die Skripte liegen unter `gen/`:
 - `prompts.py` (Copper-Satz), `prompts2.py` (alle anderen) und
   `prompts_acro.py` (90er-Illustration) enthalten die Prompts. `prompts2.py`
   enthält auch Rost und Seismik, die nicht übernommen wurden.
-- `auswahl.json` hält fest, welcher Seed je Motiv genommen wurde und mit welchen
+- `selection.json` hält fest, welcher Seed je Motiv genommen wurde und mit welchen
   Farben die Dunkelfassung entstand.
 
 Ablauf je Motiv:
@@ -58,8 +58,8 @@ dunkel stammen aus derselben Rechnung, direkt in 4K.
 ## Ein Bild über zwei Bildschirme
 
 `panorama/duene.jpg` und `panorama/weltraum.jpg` (je mit `-dark`) sind breite Bilder
-(10752×3200, Krea-2 in 2688×800, Prompts in `gen/duene_breit_prompt.json` und
-`gen/weltraum_breit_prompt.json`,
+(10752×3200, Krea-2 in 2688×800, Prompts in `gen/dune_wide_prompt.json` und
+`gen/space_wide_prompt.json`,
 dann 4x-UltraSharp). `gen/span.py` teilt es nach Millimetern auf zwei
 Bildschirme auf, oben bündig, den Streifen hinter den Rahmen lässt es weg. So
 laufen die Linien gerade über den Rahmen, obwohl die Pixeldichten verschieden

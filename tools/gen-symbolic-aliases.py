@@ -12,8 +12,8 @@ sodass Plasma die farbige Fassung findet statt der Breeze-Striche. Die
 Icons werden dabei NICHT monochrom gemacht - genau das ist der Zweck:
 lieber ein farbiges Icon im richtigen Stil als ein graues im falschen.
 
-    ./gen-symbolic-aliase.py ~/.local/share/icons/NTLegacy
-    ./gen-symbolic-aliase.py <theme> --probe   # nur zeigen, nichts tun
+    ./gen-symbolic-aliases.py ~/.local/share/icons/NTLegacy
+    ./gen-symbolic-aliases.py <theme> --probe   # nur zeigen, nichts tun
 """
 
 import argparse

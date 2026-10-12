@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Findet Symbolnamen, die das System anfordert und unser Satz nicht hat.
 
-Das Gegenstueck zu pruefe-symbolfalle.py. Jenes sucht Namen, die wir
+Das Gegenstueck zu check-symbolic-trap.py. Jenes sucht Namen, die wir
 FALSCH bedienen; dieses sucht Namen, die wir GAR NICHT bedienen - und
 sortiert sie danach, wie oft das System sie ueberhaupt verlangt.
 
@@ -10,7 +10,7 @@ Woher der Bedarf kommt, in dieser Reihenfolge:
   1. Icon= aus allen installierten .desktop-Dateien. Das sind die
      Programmsymbole - jedes fehlende ist im Startmenue sichtbar.
   2. Zeichenketten aus den Programmen und KF6-Bibliotheken selbst.
-     Derselbe Weg, auf dem die Zuordnungen in gen-icon-aliase.py
+     Derselbe Weg, auf dem die Zuordnungen in gen-icon-aliases.py
      entstanden sind: ein Icon-Name steht im Quelltext als Literal und
      ueberlebt das Uebersetzen.
 
@@ -22,7 +22,7 @@ dort keinen Namen hat, fordert auch niemand an.
 Mit --vergleich laesst sich ein zweiter Satz danebenlegen. Dann steht in
 der letzten Spalte, ob es dort eine Vorlage gibt:
 
-    ./luecken-symbole.py nt-legacy/icons-nt/NTLegacyIcons \\
+    ./missing-icons.py nt-legacy/icons-nt/NTLegacyIcons \\
         --vergleich nt-legacy/icons/NTLegacySE98
 
 Der Vergleichssatz ist ausdruecklich NUR Vorlage. Fremdmaterial wandert

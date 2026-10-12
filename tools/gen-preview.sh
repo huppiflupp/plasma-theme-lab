@@ -4,8 +4,8 @@
 # Fuer jede Variante: in der Test-VM anwenden, Sitzung neu starten,
 # ein paar Fenster oeffnen, Bildschirmfoto machen, zuschneiden.
 #
-#   ./gen-vorschau.sh              # alle Varianten
-#   ./gen-vorschau.sh teal lilac   # nur diese
+#   ./gen-preview.sh              # alle Varianten
+#   ./gen-preview.sh teal lilac   # nur diese
 #
 # Der Sitzungsneustart je Variante ist nicht wegzuoptimieren: KWin laedt
 # Aurorae-Themen ausschliesslich beim Start. Ohne Neustart traegt jedes

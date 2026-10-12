@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Spielt alle Varianten eines Themes durch - jede mit echtem Neustart.
 #
-#   ./run-varianten-test.sh              # alle aus build.py
-#   ./run-varianten-test.sh teal desert  # nur diese
-#   ./run-varianten-test.sh --schnell    # nur der Umschalttest, ohne Neustarts
+#   ./run-variants-test.sh              # alle aus build.py
+#   ./run-variants-test.sh teal desert  # nur diese
+#   ./run-variants-test.sh --schnell    # nur der Umschalttest, ohne Neustarts
 #
 # Warum je Variante ein Neustart sein muss: KWin laedt Aurorae-Themes
 # ausschliesslich beim Sitzungsstart. Ohne Neustart traegt jedes Fenster

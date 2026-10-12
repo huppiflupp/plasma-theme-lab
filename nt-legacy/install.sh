@@ -186,8 +186,8 @@ if [ -d "$HIER/icons-nt" ]; then
     #
     # tools/ liegt im Arbeitsbaum neben nt-legacy/, im Archiv darin.
     if [ ! -d "$HIER/icons-nt/NTLegacyIconsNacht" ]; then
-        for w in "$HIER/tools/mach-nacht-symbole.py" \
-                 "$HIER/../tools/mach-nacht-symbole.py"; do
+        for w in "$HIER/tools/make-night-icons.py" \
+                 "$HIER/../tools/make-night-icons.py"; do
             [ -f "$w" ] || continue
             python3 "$w" "$HIER/icons-nt/NTLegacyIcons" >/dev/null 2>&1 || true
             break
@@ -271,7 +271,7 @@ fi
 
 if [ -d "$HIER/konsole" ]; then
     # Nur ablegen, nicht aktivieren. Konsole zeigt Profil und Schemata
-    # danach zur Auswahl an; umgestellt wird erst durch anmutung.sh -
+    # danach zur Auswahl an; umgestellt wird erst durch appearance.sh -
     # Konsole ist ein fremdes Programm, und wer ein Design ausprobiert,
     # rechnet nicht damit, dass hinterher sein Terminal anders aussieht.
     echo "Konsole-Profil und -Farbschemata (nur ablegen) …"
@@ -281,18 +281,18 @@ fi
 
 # Das Hilfsskript, das Konsole dem Designwechsel nachzieht, samt seiner
 # Tabelle. Beides wird nur abgelegt - eingeschaltet wird der Dienst erst
-# von anmutung.sh, aus demselben Grund wie beim Profil darueber.
+# von appearance.sh, aus demselben Grund wie beim Profil darueber.
 #
 # Nicht nach konsole/: dort liegen die Dateien, die Konsole selbst liest,
 # und ein Skript zwischen den Profilen taucht im Auswahlmenue als
 # fehlerhaftes Profil auf. Gemessen ist das nicht - aber der Ordner
 # gehoert einem fremden Programm, und da legt man nichts hinein, was es
 # nicht erwartet.
-if [ -f "$HIER/konsole-folgen.sh" ]; then
+if [ -f "$HIER/konsole-follow.sh" ]; then
     mkdir -p "$DATEN/nt-legacy/bin"
-    install -m 755 "$HIER/konsole-folgen.sh" "$DATEN/nt-legacy/bin/"
-    [ -f "$HIER/konsole-varianten.tsv" ] \
-        && install -m 644 "$HIER/konsole-varianten.tsv" "$DATEN/nt-legacy/"
+    install -m 755 "$HIER/konsole-follow.sh" "$DATEN/nt-legacy/bin/"
+    [ -f "$HIER/konsole-variants.tsv" ] \
+        && install -m 644 "$HIER/konsole-variants.tsv" "$DATEN/nt-legacy/"
 fi
 
 if [ -d "$HIER/wallpapers" ]; then

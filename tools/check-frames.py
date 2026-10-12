@@ -10,7 +10,7 @@ Luecke zwischen Rahmen und Fensterinhalt.
 Das Skript nimmt einen Bildschirmfoto-Pfad und die Desktopfarbe und
 meldet, ob diese Farbe innerhalb des Fensterrechtecks noch vorkommt.
 
-    ./pruefe-rahmen.py bild.png --zeile 400
+    ./check-frames.py bild.png --zeile 400
 """
 
 import argparse

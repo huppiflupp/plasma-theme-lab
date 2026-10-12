@@ -7,8 +7,8 @@ Wo dessen Zeichnung nicht zum Theme passt, hilft kein Neubau der SVGs.
 
 Um das zu trennen, braucht man dasselbe Fenster unter zwei Stilen:
 
-    ./widget-testfenster.py --stil Windows --bild /tmp/win.png
-    ./widget-testfenster.py --stil Breeze  --bild /tmp/breeze.png
+    ./widget-test-window.py --stil Windows --bild /tmp/win.png
+    ./widget-test-window.py --stil Breeze  --bild /tmp/breeze.png
 
 Unterscheiden sich die Bilder an einer Stelle, entscheidet dort der
 Widget-Stil - und das Theme kommt nicht heran. Sehen sie gleich aus, liegt

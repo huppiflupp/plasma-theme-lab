@@ -160,12 +160,12 @@ anpassen und neu erzeugen.
 ## Die Lückenliste
 
 Ein eigener Symbolsatz ist nie fertig — die Frage ist, was als Nächstes
-dran ist. `tools/luecken-symbole.py` beantwortet sie mit Zahlen statt
+dran ist. `tools/missing-icons.py` beantwortet sie mit Zahlen statt
 mit Gefühl:
 
 ```bash
-tools/luecken-symbole.py nt-legacy/icons-nt/NTLegacyIcons
-tools/luecken-symbole.py <satz> --vergleich <anderer-satz>   # Vorlagen
+tools/missing-icons.py nt-legacy/icons-nt/NTLegacyIcons
+tools/missing-icons.py <satz> --vergleich <anderer-satz>   # Vorlagen
 ```
 
 Es liest den Bedarf aus zwei Quellen — `Icon=` aus allen installierten
@@ -174,7 +174,7 @@ filtert ihn gegen Breeze: Was dort keinen Namen hat, fordert auch
 niemand an. Übrig bleibt, was das System verlangt und der geprüfte Satz
 nicht liefert, sortiert nach Gewicht.
 
-Das Gegenstück ist `tools/pruefe-symbolfalle.py`: Jenes findet Namen,
+Das Gegenstück ist `tools/check-symbolic-trap.py`: Jenes findet Namen,
 die ein Satz **falsch** bedient, dieses die, die er **gar nicht**
 bedient.
 
@@ -183,14 +183,14 @@ bedient.
 [`guide/`](guide/README.md) — sechs Kapitel. Er wiederholt nicht die
 KDE-Doku, sondern behandelt, woran Projekte scheitern:
 
-1. [Die sieben Ebenen und ihr Risiko](guide/01-ebenen-und-risiko.md)
+1. [Die sieben Ebenen und ihr Risiko](guide/01-layers-and-risk.md)
 2. [Plasma Style](guide/02-plasma-style.md) — SVGs, 9-Patch, hints, Farbschemata
 3. [Look-and-Feel-Paket](guide/03-look-and-feel.md) — und die Panel-Falle
-4. [Bauen und Installieren](guide/04-bauen-und-installieren.md) — Varianten ohne Duplikate
-5. [Testen](guide/05-testen.md) — vier Stufen
+4. [Bauen und Installieren](guide/04-build-and-install.md) — Varianten ohne Duplikate
+5. [Testen](guide/05-testing.md) — vier Stufen
 6. [Wenn es schiefgeht](guide/06-recovery.md) — Rettung nach Eskalationsstufe
 
-Dazu die [Referenzkarte](guide/referenz.md).
+Dazu die [Referenzkarte](guide/reference.md).
 
 Aussagen sind als *geprüft*, *Quelle* oder *unsicher* markiert. Wo die
 offizielle Doku etwas anderes sagt als der Quellcode, steht das dabei.

@@ -24,8 +24,8 @@ dahin, beide in der Test-VM mit kiconfinder6 nachgemessen:
      Lautstaerkeregler - und weil der Treffer aus dem eigenen Satz kommt,
      wird Breeze nie gefragt.
 
-    ./pruefe-symbolfalle.py nt-legacy/icons-nt/NTLegacyIcons
-    ./pruefe-symbolfalle.py <verz> --alle    # auch Fall 1 auflisten
+    ./check-symbolic-trap.py nt-legacy/icons-nt/NTLegacyIcons
+    ./check-symbolic-trap.py <verz> --alle    # auch Fall 1 auflisten
 """
 
 import argparse

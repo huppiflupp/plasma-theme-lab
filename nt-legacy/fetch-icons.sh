@@ -32,7 +32,7 @@ if [ -d "$HIER/tools" ]; then
 else
     WERKZEUGE="$HIER/../tools"
 fi
-for w in fix-index-theme.py gen-symbolic-aliase.py gen-icon-aliase.py; do
+for w in fix-index-theme.py gen-symbolic-aliases.py gen-icon-aliases.py; do
     if [ ! -f "$WERKZEUGE/$w" ]; then
         echo "FEHLER: $w fehlt (gesucht in $WERKZEUGE)." >&2
         echo "        Dieses Skript braucht das Verzeichnis tools/." >&2
@@ -66,8 +66,8 @@ trap 'rm -rf "$TMP"' EXIT
 nachbereiten() {
     local ziel="$1"
     "$WERKZEUGE/fix-index-theme.py"     "$ziel"
-    "$WERKZEUGE/gen-symbolic-aliase.py" "$ziel"
-    "$WERKZEUGE/gen-icon-aliase.py"     "$ziel"
+    "$WERKZEUGE/gen-symbolic-aliases.py" "$ziel"
+    "$WERKZEUGE/gen-icon-aliases.py"     "$ziel"
 }
 
 hole_chicago95() {

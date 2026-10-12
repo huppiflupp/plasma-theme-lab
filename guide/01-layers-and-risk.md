@@ -73,12 +73,12 @@ Widget-Stil ersetzen zu wollen. Meistens lohnt das nicht — und man tauscht
 ein Ärgernis gegen zwanzig neue ein, weil dann *alle* Widgets neu gezeichnet
 werden müssen.
 
-`tools/widget-testfenster.py` zeigt alle Qt-Standardwidgets in einem Fenster
+`tools/widget-test-window.py` zeigt alle Qt-Standardwidgets in einem Fenster
 und speichert es als Bild:
 
 ```bash
-./widget-testfenster.py --stil Windows --bild /tmp/win.png
-./widget-testfenster.py --stil Breeze  --bild /tmp/breeze.png
+./widget-test-window.py --stil Windows --bild /tmp/win.png
+./widget-test-window.py --stil Breeze  --bild /tmp/breeze.png
 ```
 
 Unterscheiden sich die Bilder an einer Stelle, entscheidet dort der
@@ -157,7 +157,7 @@ das nicht: Wer ein Design ausprobiert, rechnet nicht damit, dass hinterher
 seine Dolphin-Konfiguration eine andere ist — und findet den Zusammenhang
 später nie. Solche Eingriffe gehören in ein **eigenes, ausdrücklich
 aufgerufenes Skript mit vollständigem Rückweg** (in diesem Projekt:
-`nt-legacy/anmutung.sh`). Dabei muss die Sicherung zwischen „war nicht
+`nt-legacy/appearance.sh`). Dabei muss die Sicherung zwischen „war nicht
 gesetzt" und „war auf den Vorgabewert gesetzt" unterscheiden — sonst steht
 nach dem Zurücksetzen ein Wert dort, den der Nutzer nie gewählt hat.
 
@@ -180,7 +180,7 @@ develop.kde.org nennt weiterhin `[Settings] FallbackTheme=oxygen` in der
 **Fehlende Element-ID → stiller Verzicht.** [Quelle: `ksvg` `FrameSvg::hasElementPrefix()`]
 Geprüft wird ausschließlich, ob `<prefix>-center` existiert. Fehlt es, wird
 der Präfix leer gesetzt. Kein Absturz — aber auch **keine Warnung**. Genau
-deshalb braucht man einen [eigenen Linter](05-testen.md#stufe-1-statische-prüfungen).
+deshalb braucht man einen [eigenen Linter](05-testing.md#stufe-1-statische-prüfungen).
 
 **Plasmashell-Absturzschleife ist gedeckelt.** [geprüft]
 `/usr/lib/systemd/user/plasma-plasmashell.service`:
@@ -369,7 +369,7 @@ ein deckendes Theme der richtige Tausch.
 `qdbus org.kde.KWin /KWin reconfigure`. KWin übernimmt die Rahmengröße erst
 beim Laden der Dekoration, also beim Sitzungsstart. Wer ohne Neuanmeldung
 misst, prüft achtmal denselben Zustand und hält das Ergebnis für Erfolg.
-`tools/pruefe-rahmen.py` misst die Farbfolge quer durchs Fenster und meldet
+`tools/check-frames.py` misst die Farbfolge quer durchs Fenster und meldet
 jede Stelle, an der die Desktopfarbe innerhalb des Fensters wieder auftaucht.
 
 ---

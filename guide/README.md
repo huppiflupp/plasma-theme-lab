@@ -18,14 +18,14 @@ voraus, dass du SVG und INI-Dateien lesen kannst. C++ braucht es nicht.
 
 | # | Kapitel | Worum es geht |
 |---|---|---|
-| 1 | [Die sieben Ebenen und ihr Risiko](01-ebenen-und-risiko.md) | Was ein Theme überhaupt ist — und welche Teile davon einen Rechner unbrauchbar machen können |
+| 1 | [Die sieben Ebenen und ihr Risiko](01-layers-and-risk.md) | Was ein Theme überhaupt ist — und welche Teile davon einen Rechner unbrauchbar machen können |
 | 2 | [Plasma Style](02-plasma-style.md) | SVGs, 9-Patch, `hint-*`-IDs, Farbschema-Stylesheets |
 | 3 | [Look-and-Feel-Paket](03-look-and-feel.md) | Das Bündelpaket, `contents/defaults`, und die Panel-Falle |
-| 4 | [Bauen und Installieren](04-bauen-und-installieren.md) | CMake, `kpackagetool6`, Varianten ohne Duplikate |
-| 5 | [Testen](05-testen.md) | Vier Stufen: Linter, Einzelwidget, Session, VM |
+| 4 | [Bauen und Installieren](04-build-and-install.md) | CMake, `kpackagetool6`, Varianten ohne Duplikate |
+| 5 | [Testen](05-testing.md) | Vier Stufen: Linter, Einzelwidget, Session, VM |
 | 6 | [Wenn es schiefgeht](06-recovery.md) | Rettungskommandos, nach Eskalationsstufe sortiert |
 
-Dazu die [Referenzkarte](referenz.md) — alles Nachschlagbare auf einer Seite.
+Dazu die [Referenzkarte](reference.md) — alles Nachschlagbare auf einer Seite.
 
 ---
 
@@ -71,8 +71,8 @@ an denen Projekte tatsächlich scheitern, sind andere:
 
 - Welcher Teil meines Themes kann den Rechner meines Nutzers unbrauchbar machen?
 - Warum wirkt meine SVG-Änderung nicht? (Antwort: [Cache](02-plasma-style.md#26-der-cache))
-- Wie teste ich das, ohne mein eigenes System zu opfern? ([Kapitel 5](05-testen.md))
-- Wie pflege ich drei Varianten, ohne dreimal zu arbeiten? ([Kapitel 4](04-bauen-und-installieren.md))
+- Wie teste ich das, ohne mein eigenes System zu opfern? ([Kapitel 5](05-testing.md))
+- Wie pflege ich drei Varianten, ohne dreimal zu arbeiten? ([Kapitel 4](04-build-and-install.md))
 
 An mehreren Stellen ist die offizielle Doku außerdem veraltet — der
 Leitfaden benennt diese Stellen und sagt, was stattdessen gilt.

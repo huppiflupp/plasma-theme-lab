@@ -716,7 +716,7 @@ def shell_symbole(z: Zeichner):
     # Dieselbe Falle, andere Namen: das Lautstaerkemenue und die
     # Systemeinstellungen fragen nach Geraeten, und auch die landeten
     # bisher auf audio-x-generic. Gefunden mit
-    # tools/pruefe-symbolfalle.py.
+    # tools/check-symbolic-trap.py.
     s["audio-card"] = (
         z.kasten(4, 10, 24, 14, p["m_mitte"]) +
         f'<rect x="7" y="24" width="4" height="5" fill="{p["m_dunkel"]}" '
@@ -1023,7 +1023,7 @@ WEITERE_NAMEN = {
     "audio-mpeg":             "audio-x-generic",
     # Damit die Klasse audio- vollstaendig ist und audio-x-generic nichts
     # mehr abfaengt, was kein Dateityp ist - siehe
-    # tools/pruefe-symbolfalle.py.
+    # tools/check-symbolic-trap.py.
     "audio-speakers":         "audio-volume-high",
     "audio-on":               "audio-volume-high",
     "audio-ready":            "audio-volume-high",

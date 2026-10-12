@@ -25,8 +25,8 @@ einmal ein Symbol zerstoert worden (siehe den Kommentar zu den Verweisen
 in gen-icons.py). Der Satz ist 184 KB gross - die doppelte Ablage ist
 billiger als die Fehlersuche.
 
-    ./mach-nacht-symbole.py nt-legacy/icons-nt/NTLegacyIcons
-    ./mach-nacht-symbole.py <quelle> --ziel <verz>   # sonst <quelle>Nacht
+    ./make-night-icons.py nt-legacy/icons-nt/NTLegacyIcons
+    ./make-night-icons.py <quelle> --ziel <verz>   # sonst <quelle>Nacht
 """
 
 import argparse

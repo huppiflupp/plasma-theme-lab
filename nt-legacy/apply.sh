@@ -121,7 +121,7 @@ for feld in KURZ STYLE LNF KONSOLE SYMBOLE; do
 done
 
 # Trockenlauf: nur pruefen, ob die Variante existiert, nichts anwenden.
-# Wird von pruefe.sh genutzt.
+# Wird von check.sh genutzt.
 for arg in "$@"; do [[ "$arg" == "--nur-pruefen" ]] && exit 0; done
 
 # Die Zeiger gibt es nur einmal fuer alle Varianten - sie unterscheiden
@@ -249,7 +249,7 @@ kwriteconfig6 --file kdeglobals --group KDE     --key LookAndFeelPackage "$LNF"
 # Konsole: das Farbschema der Farbwelt im mitgelieferten Profil
 # nachziehen. Das ist KEIN Eingriff in fremde Konfiguration - die Datei
 # gehoert zum Theme. Ob Konsole sie ueberhaupt benutzt, entscheidet
-# allein konsolerc, und das setzt nur anmutung.sh.
+# allein konsolerc, und das setzt nur appearance.sh.
 PROFIL="$DATEN/konsole/NT Legacy.profile"
 if [ "$KONSOLE" != "-" ] && [ -f "$PROFIL" ]; then
     kwriteconfig6 --file "$PROFIL" --group Appearance --key ColorScheme "$KONSOLE"

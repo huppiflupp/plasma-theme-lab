@@ -2,9 +2,9 @@
 # Stellt Programmeinstellungen auf die NT-Anmutung um - ausdruecklich
 # getrennt vom Theme.
 #
-#   ./anmutung.sh            # anwenden
-#   ./anmutung.sh --zurueck  # auf die vorherigen Werte zuruecksetzen
-#   ./anmutung.sh --zeigen   # nur anzeigen, was gesetzt wuerde
+#   ./appearance.sh            # anwenden
+#   ./appearance.sh --zurueck  # auf die vorherigen Werte zuruecksetzen
+#   ./appearance.sh --zeigen   # nur anzeigen, was gesetzt wuerde
 #
 # Warum das nicht in apply.sh steht:
 #
@@ -97,7 +97,7 @@ fi
 # bleibt in der alten Farbwelt stehen.
 #
 # Deshalb eine systemd-Pfadeinheit: Sie loest aus, wenn Plasma seine
-# Vorgabendateien schreibt, und stoesst konsole-folgen.sh an. Kein
+# Vorgabendateien schreibt, und stoesst konsole-follow.sh an. Kein
 # laufender Prozess, keine Abhaengigkeit ausser systemd - das haben
 # beide Test-VMs, Fedora wie EndeavourOS.
 #
@@ -119,7 +119,7 @@ DIENST_VERZ="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 DIENST_NAME="nt-legacy-konsole"
 
 dienst_ein() {
-    local skript="$DATEN/nt-legacy/bin/konsole-folgen.sh"
+    local skript="$DATEN/nt-legacy/bin/konsole-follow.sh"
     if [ ! -x "$skript" ]; then
         echo "  Hinweis: $skript fehlt - erst ./install.sh." >&2
         return
@@ -269,7 +269,7 @@ if ! $FEATHERPAD; then
   Notepad - installiert FeatherPad und ruft dieses Skript noch einmal:
 
       sudo dnf install featherpad     # oder: sudo pacman -S featherpad
-      ./anmutung.sh
+      ./appearance.sh
 
 EOF
 fi
@@ -283,6 +283,6 @@ Angewendet. Betroffene Programme einmal neu starten.
   seine Einstellungen beim Beenden zurueck, ueberschreibt also, was hier
   gesetzt wurde. Deshalb: erst schliessen, dann dieses Skript.
 
-  Zurueck:  ./anmutung.sh --zurueck
+  Zurueck:  ./appearance.sh --zurueck
   Gesichert: $SICHERUNG
 EOF

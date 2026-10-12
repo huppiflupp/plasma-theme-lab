@@ -105,7 +105,7 @@ Die Typen, die für Themes zählen:
 
 **Was es nicht gibt:** `kpackagetool6 --validate`. Ältere Anleitungen
 erwähnen es; im Hilfetext von 6.7.3 kommt es nicht vor. [geprüft]
-Zur Metadatenprüfung siehe [Kapitel 5](05-testen.md).
+Zur Metadatenprüfung siehe [Kapitel 5](05-testing.md).
 
 Farbschemata und Aurorae-Themes werden weiterhin einfach kopiert:
 ```bash
@@ -264,4 +264,4 @@ Lizenz jeder übernommenen Schrift gehört explizit dokumentiert.
 
 ---
 
-**Weiter:** [Kapitel 5 — Testen](05-testen.md)
+**Weiter:** [Kapitel 5 — Testen](05-testing.md)

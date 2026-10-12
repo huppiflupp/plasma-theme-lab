@@ -112,7 +112,7 @@ Plasma prüft die Existenz eines Präfixes, indem es nachsieht, ob
 ```
 
 Fehlt `hover-center`, gibt es keinen Hover-Zustand — **ohne Fehlermeldung**.
-Das ist der Grund für [Stufe 1 des Testens](05-testen.md).
+Das ist der Grund für [Stufe 1 des Testens](05-testing.md).
 
 ### Nützliches Werkzeug
 
@@ -194,7 +194,7 @@ gesetzten **Akzentfarbe**.
 
 **Warum das wichtig ist:** Nur wer diese Klassen konsequent nutzt, kann
 Farbvarianten ohne SVG-Duplikate bauen. Siehe
-[Kapitel 4](04-bauen-und-installieren.md#44-varianten-ohne-duplikate).
+[Kapitel 4](04-build-and-install.md#44-varianten-ohne-duplikate).
 
 ### Hilfsskripte
 
@@ -266,7 +266,7 @@ liegen Klartext-SVGs, die man diffen und in Inkscape öffnen kann.
 Ausgeliefert wird die komprimierte Fassung. Plasma liest beide.
 
 Wie man das ohne CMake macht, steht in
-[Kapitel 4](04-bauen-und-installieren.md).
+[Kapitel 4](04-build-and-install.md).
 
 ## 2.9 Die `colors`-Datei im Plasma Style — besser weglassen
 

@@ -34,7 +34,7 @@ Zwei Punkte zur Lizenz, damit sie nicht untergehen:
   Ob diese Bedingung auf die *Ausgabe* eines Modells durchschlägt, ist
   ungeklärt und wird unterschiedlich beurteilt. Wer hier sicher gehen
   will, rendert die Bilder ohne diesen Schritt neu; die Rohbilder liegen
-  in `wallpaper/` und `tools/mach-hintergruende.py` baut die Pakete
+  in `wallpaper/` und `tools/make-backgrounds.py` baut die Pakete
   daraus in einem Durchlauf.
 
 Die Verlaufsflächen aus `build.py` bleiben erhalten — je Variante als
@@ -70,8 +70,8 @@ zu zeichnen: einheitlicher Stil, eine Lizenz, keine Fremdquelle zu pflegen.
 
 ```bash
 tools/gen-icons.py nt-legacy/icons-nt/NTLegacyIcons
-tools/gen-icon-aliase.py     nt-legacy/icons-nt/NTLegacyIcons
-tools/gen-symbolic-aliase.py nt-legacy/icons-nt/NTLegacyIcons
+tools/gen-icon-aliases.py     nt-legacy/icons-nt/NTLegacyIcons
+tools/gen-symbolic-aliases.py nt-legacy/icons-nt/NTLegacyIcons
 ```
 
 162 gezeichnete Symbole in 16/22/32/48 px, dazu Verweise für weitere
@@ -140,13 +140,13 @@ Deshalb dasselbe Verfahren wie bei Chicago95: nachladbar, nicht
 mitgeliefert.
 
 Was wir stattdessen daraus ziehen, ist die Lückenliste.
-`tools/luecken-symbole.py` ermittelt, welche Namen das System anfordert
+`tools/missing-icons.py` ermittelt, welche Namen das System anfordert
 und unser Satz nicht hat — aus den `.desktop`-Dateien und den
 Zeichenketten der KF6-Bibliotheken, gefiltert gegen Breeze. Mit
 `--vergleich` steht daneben, ob SE98 eine Vorlage hätte:
 
 ```bash
-tools/luecken-symbole.py nt-legacy/icons-nt/NTLegacyIcons \
+tools/missing-icons.py nt-legacy/icons-nt/NTLegacyIcons \
     --vergleich nt-legacy/icons/NTLegacySE98
 ```
 

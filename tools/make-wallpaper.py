@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Macht aus einem Bild ein Plasma-Hintergrundpaket.
 
-    ./mach-wallpaper.py bild.png --id ntlegacy-granit \\
+    ./make-wallpaper.py bild.png --id ntlegacy-granit \\
         --name "NT Legacy - Granit" [--kachel] [--qualitaet 95]
 
 Ein Hintergrundpaket ist ein Verzeichnis mit metadata.json und

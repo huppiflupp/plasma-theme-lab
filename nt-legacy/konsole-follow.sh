@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Zieht das Konsole-Farbschema dem Globalen Design nach.
 #
-#   ./konsole-folgen.sh            # einmal nachziehen
-#   ./konsole-folgen.sh --zeigen   # nur sagen, was es taete
+#   ./konsole-follow.sh            # einmal nachziehen
+#   ./konsole-follow.sh --zeigen   # nur sagen, was es taete
 #
 # Warum es das braucht:
 #
@@ -19,7 +19,7 @@
 #
 # Dieses Skript schliesst die Luecke. Es wird nicht dauernd ausgefuehrt,
 # sondern von einer systemd-Pfadeinheit angestossen, wenn Plasma seine
-# Vorgabendateien schreibt (siehe anmutung.sh).
+# Vorgabendateien schreibt (siehe appearance.sh).
 #
 # Grenze, die bleibt: Ein BEREITS OFFENES Konsole-Fenster behaelt seine
 # Farben. Konsole liest das Profil beim Anlegen einer Sitzung; ein Weg,
@@ -43,12 +43,12 @@ PROFIL="$DATEN/konsole/NT Legacy.profile"
 # nt-legacy/. Fehlt sie, ist das kein Fehler des Nutzers, sondern ein
 # unvollstaendiges Paket - deshalb eine Meldung und kein stilles Ende.
 TABELLE=""
-for kandidat in "$HIER/konsole-varianten.tsv" \
-                "$DATEN/nt-legacy/konsole-varianten.tsv"; do
+for kandidat in "$HIER/konsole-variants.tsv" \
+                "$DATEN/nt-legacy/konsole-variants.tsv"; do
     [ -f "$kandidat" ] && { TABELLE="$kandidat"; break; }
 done
 if [ -z "$TABELLE" ]; then
-    echo "konsole-folgen: konsole-varianten.tsv nicht gefunden." >&2
+    echo "konsole-follow: konsole-variants.tsv nicht gefunden." >&2
     exit 1
 fi
 
@@ -101,4 +101,4 @@ if $ZEIGEN; then
 fi
 
 kwriteconfig6 --file "$PROFIL" --group Appearance --key ColorScheme "$SCHEMA"
-echo "konsole-folgen: $DESIGN -> $SCHEMA"
+echo "konsole-follow: $DESIGN -> $SCHEMA"

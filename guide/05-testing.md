@@ -64,8 +64,8 @@ mit einer Note — genau das wurde für 0.2.2 aus der Community gemeldet. Und
 weil der Treffer aus dem eigenen Satz kommt, wird Breeze nie gefragt.
 
 ```bash
-tools/pruefe-symbolfalle.py nt-legacy/icons-nt/NTLegacyIcons
-tools/pruefe-symbolfalle.py <verz> --alle    # auch die harmlosen Fälle
+tools/check-symbolic-trap.py nt-legacy/icons-nt/NTLegacyIcons
+tools/check-symbolic-trap.py <verz> --alle    # auch die harmlosen Fälle
 ```
 
 Das Werkzeug dreht die Frage um: Für jedes Klassensymbol im eigenen Satz

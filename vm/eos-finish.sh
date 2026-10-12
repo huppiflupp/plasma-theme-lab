@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Macht die frisch installierte EndeavourOS-VM fernsteuerbar.
 #
-#   ./eos-fertig.sh
+#   ./eos-finish.sh
 #
 # Nach Calamares fehlen der Maschine drei Dinge, die vmctl.sh braucht:
 # ein laufender sshd, unser Schluessel darin, und der Guest-Agent (ueber
@@ -42,7 +42,7 @@ sudo pacman -S --noconfirm --needed openssh qemu-guest-agent && sudo systemctl e
 
 Danach dieses Skript noch einmal starten:
 
-    ./eos-fertig.sh
+    ./eos-finish.sh
 
 EOF
     exit 1

@@ -35,7 +35,7 @@ __pycache__/
 nt-legacy/icons/
 
 # Fertige Archive fuer den KDE Store. Sie entstehen reproduzierbar aus
-# dem Baum mit tools/mach-paket.sh - Binaerdaten gehoeren nicht ins Repo.
+# dem Baum mit tools/make-package.sh - Binaerdaten gehoeren nicht ins Repo.
 dist/
 
 # Nachtfassung des Symbolsatzes. Reine Ableitung aus NTLegacyIcons -
@@ -47,7 +47,7 @@ nt-legacy/icons-nt/NTLegacyIconsNacht/
 # Das Rohmaterial der Hintergruende: 378 MB PNG aus dem Bildmodell.
 # Ins Repository gehen die fertigen Pakete unter nt-legacy/wallpapers/ -
 # dieselben Bilder als JPEG, zusammen 69 MB. Der Weg von hier nach dort
-# ist tools/mach-hintergruende.py.
+# ist tools/make-backgrounds.py.
 wallpaper/
 
 # Arbeitsstand fuer das Terminal-Cockpit (Plan, Ereignisse, Hinweise).

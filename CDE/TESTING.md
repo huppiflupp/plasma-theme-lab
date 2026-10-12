@@ -236,7 +236,7 @@ Checks of 2026-10-03 (version 0.2.2, clock), same VM:
   the list shows "CDE", no second entry. Side effect: while CDE Copper is
   installed, any Kvantum theme is listed under that name.
 - Progress bars: the filled part was a flat copper area. Ten variants were
-  drawn on a proof sheet (screenshots/progress-varianten.png); three are
+  drawn on a proof sheet (screenshots/progress-variants.png); three are
   built in and chosen in the console's Style page or with
   `manage.py palette --progress outlined|floating|slim`: outlined (dark
   edge, one-pixel bevel; the default), floating (a pixel inside the groove,
@@ -301,7 +301,7 @@ Checks of 2026-10-03 (after 0.4.0: review fixes, pixel icons), same VM:
   cursor font. System Settings lists them as "CDE"; applied in the VM with
   plasma-apply-cursortheme. A test reads the Xcursor headers.
 - Cursors, revised after a proof sheet of ten variants
-  (screenshots/zeiger-varianten.png; chosen: 8 with the shadow of 9): slim
+  (screenshots/cursor-variants.png; chosen: 8 with the shadow of 9): slim
   shapes rasterised anew at every size, black on a coloured rim, soft
   shadow (premultiplied ARGB, computed without an image library, as the
   tool runs on the user's machine). Rim: Style page › Mouse cursors, or

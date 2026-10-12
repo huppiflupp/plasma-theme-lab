@@ -39,7 +39,7 @@ optional**. Fehlende Teile kommen per `setFallbackPackage()` aus
 `org.kde.breeze.desktop`.
 
 **Es gibt keinen `lockscreen/`-Ordner mehr** und keinen `loginmanager/`.
-Siehe [Kapitel 1.4](01-ebenen-und-risiko.md#wichtig-der-sperrbildschirm-gehört-nicht-mehr-ins-look-and-feel-paket) —
+Siehe [Kapitel 1.4](01-layers-and-risk.md#wichtig-der-sperrbildschirm-gehört-nicht-mehr-ins-look-and-feel-paket) —
 wer dort QML pflegt, pflegt toten Code.
 
 ## 3.2 metadata.json
@@ -111,7 +111,7 @@ Theme=org.kde.breeze.desktop
 ```
 
 **Merke:** Die Dekorationsgruppe heißt `org.kde.kdecoration2`, auch unter
-KDecoration3. Siehe [Kapitel 1.6](01-ebenen-und-risiko.md#16-fensterdekoration-kdecoration3-aber-konfigschlüssel-kdecoration2).
+KDecoration3. Siehe [Kapitel 1.6](01-layers-and-risk.md#16-fensterdekoration-kdecoration3-aber-konfigschlüssel-kdecoration2).
 
 Für ein Aurorae-Theme:
 ```ini
@@ -272,4 +272,4 @@ ksplashqml --test <paket-id>
 
 ---
 
-**Weiter:** [Kapitel 4 — Bauen und Installieren](04-bauen-und-installieren.md)
+**Weiter:** [Kapitel 4 — Bauen und Installieren](04-build-and-install.md)

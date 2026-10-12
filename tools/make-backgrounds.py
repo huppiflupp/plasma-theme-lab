@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Ueberfuehrt das Bildmaterial aus wallpaper/ in Hintergrundpakete.
 
-    ./mach-hintergruende.py            # alle
-    ./mach-hintergruende.py --nur kacheln
-    ./mach-hintergruende.py --pruefen  # nur zeigen, was entstuende
+    ./make-backgrounds.py            # alle
+    ./make-backgrounds.py --nur kacheln
+    ./make-backgrounds.py --pruefen  # nur zeigen, was entstuende
 
 Die Rohbilder liegen in wallpaper/ und gehoeren nicht ins Repository:
 378 MB PNG aus einem Bildmodell, erzeugt mit kachle.sh. Was ins
@@ -33,7 +33,7 @@ from pathlib import Path
 
 LAB = Path(__file__).resolve().parent.parent
 QUELLE = LAB / "wallpaper"
-MACHER = LAB / "tools" / "mach-wallpaper.py"
+MACHER = LAB / "tools" / "make-wallpaper.py"
 
 # Die Landschaft je Variante. Der Schluessel ist der Dateiname in
 # wallpaper/landschaften/, der Wert die Paketkennung - und die muss zu
@@ -127,7 +127,7 @@ def main():
     if a.nur in (None, "bilder"):
         print("\nGrossbilder (ganzflaechig, q92):")
         for datei, name in GROSSBILDER.items():
-            # Praefix "gross-": mach-paket.sh nimmt Kacheln und
+            # Praefix "gross-": make-package.sh nimmt Kacheln und
             # Grossbilder ueber genau diese beiden Muster aus dem
             # Gesamtarchiv heraus. Ohne Praefix hiesse das Grossbild
             # ntlegacy-asphalt und die Kachel ntlegacy-kachel-asphalt -

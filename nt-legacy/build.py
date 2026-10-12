@@ -1151,7 +1151,7 @@ def baue(variante, pruefen=False):
     # Das Hauptpaket ist das, auf das contents/defaults zeigt. Dort liegt
     # die Landschaft - ein 4K-Bild, das nicht aus Farbwerten entsteht,
     # sondern aus einem Bildmodell. Es kommt ueber
-    # tools/mach-hintergruende.py ins Repository und wird hier NICHT
+    # tools/make-backgrounds.py ins Repository und wird hier NICHT
     # angefasst: ein Neubau des Themes dauert Sekunden, ein Neubau der
     # Bilder Stunden.
     #
@@ -1201,7 +1201,7 @@ def baue(variante, pruefen=False):
 
     # Vorschaubilder fuer die Design-Auswahl.
     #
-    # Nur erzeugen, wenn noch keine da sind: tools/gen-vorschau.sh
+    # Nur erzeugen, wenn noch keine da sind: tools/gen-preview.sh
     # ersetzt sie durch echte Bildschirmfotos aus der Test-VM, und die
     # wuerde ein Neubau sonst jedes Mal durch die schematische Fassung
     # ueberschreiben. Wer sie neu will, loescht sie vorher.
@@ -1279,13 +1279,13 @@ def main():
 
     # Das Konsole-Profil, eines fuer alle. Die Vorgabe zeigt auf die
     # Grundfassung; apply.sh stellt die Zeile auf die gewaehlte Farbwelt
-    # um, sobald anmutung.sh das Profil aktiviert hat.
+    # um, sobald appearance.sh das Profil aktiviert hat.
     schreibe(HIER / "konsole" / "NT Legacy.profile",
              konsole_profil(VARIANTEN["teal"]["kurz"]))
 
     # Die Zuordnung Globales Design -> Konsole-Farbschema, als Tabelle.
     #
-    # Sie steht hier und nirgends sonst. konsole-folgen.sh laeuft spaeter
+    # Sie steht hier und nirgends sonst. konsole-follow.sh laeuft spaeter
     # als eigener Dienst auf dem Rechner des Nutzers und hat build.py
     # nicht zur Hand - ohne diese Datei muesste es die Namen ein zweites
     # Mal fuehren, und beim naechsten Hinzufuegen einer Farbwelt waere
@@ -1300,7 +1300,7 @@ def main():
         basis = v[:-len("-nacht")] if v.endswith("-nacht") else v
         if basis in VARIANTEN:
             zeilen.append(f"{ids(v)['lnf']}\t{ids(basis)['schema']}")
-    schreibe(HIER / "konsole-varianten.tsv", "\n".join(zeilen) + "\n")
+    schreibe(HIER / "konsole-variants.tsv", "\n".join(zeilen) + "\n")
 
     # Zeiger einmal fuer alle Varianten. Sie unterscheiden sich nur in
     # weiss und rot - je Farbwelt ein eigenes Thema waere Ballast im
@@ -1329,7 +1329,7 @@ def main():
         print("\nSymbolische Aliase:")
         for icons in fremd:
             r = subprocess.run(
-                [sys.executable, werkzeug("gen-symbolic-aliase.py"),
+                [sys.executable, werkzeug("gen-symbolic-aliases.py"),
                  str(icons)], capture_output=True, text=True)
             zeile = r.stdout.strip().splitlines()
             print(f"  {icons.name}: {zeile[0] if zeile else '—'}")
@@ -1340,7 +1340,7 @@ def main():
     hell = HIER / "icons-nt" / "NTLegacyIcons"
     if hell.is_dir():
         r = subprocess.run(
-            [sys.executable, werkzeug("mach-nacht-symbole.py"),
+            [sys.executable, werkzeug("make-night-icons.py"),
              str(hell)], capture_output=True, text=True)
         print("\nSymbole fuer die Nachtfassungen:")
         print(r.stdout.rstrip() if r.returncode == 0

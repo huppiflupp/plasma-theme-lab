@@ -3,7 +3,7 @@
 Die Archive entstehen mit
 
 ```bash
-./tools/mach-paket.sh
+./tools/make-package.sh
 ```
 
 und liegen danach in `dist/`. Sie sind **nicht** im Repository — sie
@@ -211,7 +211,7 @@ Fensterdekoration, Mauszeiger und Hintergründe sind vollständig erzeugt
 ausdrücklich **nicht** enthalten — dessen Lizenzlage ist ungeklärt.
 
 **Screenshots:** liegen in `dist/screenshots/` und werden von
-`mach-paket.sh` miterzeugt:
+`make-package.sh` miterzeugt:
 
 | Datei | Maße | Zweck |
 |---|---|---|
@@ -236,7 +236,7 @@ ausgerechnet der Dateimanager zur Hälfte verdeckt war. Nebeneinander ist
 jedes Fenster ganz zu sehen; Dolphin öffnet zuletzt und trägt damit
 weiterhin die aktive Titelleiste, die beiden anderen die inaktive.
 
-Die englische Oberfläche stellt `gen-vorschau.sh` nur für diese drei
+Die englische Oberfläche stellt `gen-preview.sh` nur für diese drei
 Programme her (`LANGUAGE=en_US`), nicht für die ganze Sitzung — Panel und
 Uhr bleiben deutsch, was im Bild nicht auffällt. Die Benutzerordner werden
 dabei mit umbenannt, sonst stünde eine englische Seitenleiste neben
@@ -248,7 +248,7 @@ Tag, unten rechts Nacht. Im Store ist das die übliche Darstellung für
 Themes mit zwei Fassungen — zwei fast gleiche Vollbilder nebeneinander
 liest man dagegen leicht als Wiederholung.
 
-Das funktioniert nur, weil `gen-vorschau.sh` für jede Variante dieselben
+Das funktioniert nur, weil `gen-preview.sh` für jede Variante dieselben
 Programme in derselben Reihenfolge bei derselben Auflösung öffnet. Die
 Fensterkanten laufen dadurch über den Schnitt hinweg durch. Wer die
 Aufnahmen anders erzeugt, bekommt zwei versetzte Bilder statt einer
@@ -265,14 +265,14 @@ so sortiert, dass ein `ls` schon die richtige Reihenfolge ergibt.
 - Plasma 6 (getestet auf 6.7, Fedora 44)
 - Der Anwendungsstil steht auf *MS Windows 9x* — der ist in Qt eingebaut,
   es muss nichts nachinstalliert werden
-- PCManFM-Qt ist **optional**. `anmutung.sh` setzt es als Dateimanager,
+- PCManFM-Qt ist **optional**. `appearance.sh` setzt es als Dateimanager,
   weil Dolphins Speicheranzeige am Widget-Stil vorbei zeichnet. Ohne
   PCManFM-Qt funktioniert alles, nur diese eine Leiste sieht fremd aus
 
 ## Vor dem Hochladen prüfen
 
 ```bash
-./tools/mach-paket.sh --pruefen   # was käme hinein?
+./tools/make-package.sh --pruefen   # was käme hinein?
 sha256sum -c dist/SHA256SUMS      # Archive unbeschädigt?
 ```
 
@@ -286,7 +286,7 @@ Der Store zieht die Versionsnummer nicht automatisch. Bei einer neuen
 Fassung:
 
 1. `KPlugin.Version` in allen `metadata.json` erhöhen (macht `build.py`)
-2. `./tools/mach-paket.sh` neu laufen lassen
+2. `./tools/make-package.sh` neu laufen lassen
 3. Neue Dateien im bestehenden Eintrag hinzufügen, alte nicht löschen —
    sonst brechen Verweise aus Foren und Sammlungen
 

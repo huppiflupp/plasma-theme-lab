@@ -11,7 +11,7 @@
 # zwanzig Minuten Klickarbeit sind der Preis dafuer, dass diese Familie
 # ueberhaupt im Labor vertreten ist.
 #
-# Nach dem Durchklicken macht ./eos-fertig.sh die Maschine fernsteuerbar.
+# Nach dem Durchklicken macht ./eos-finish.sh die Maschine fernsteuerbar.
 
 set -euo pipefail
 
@@ -100,6 +100,6 @@ Im Assistenten wichtig - danach richtet sich der Rest des Labors:
 
 Danach einmal neu starten und weiter mit:
 
-    ./eos-fertig.sh
+    ./eos-finish.sh
 
 EOF

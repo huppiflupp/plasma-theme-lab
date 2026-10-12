@@ -9,8 +9,8 @@
 # Dieses Skript vergleicht fuer jede Variante, ob alle Bestandteile, auf
 # die apply.sh verweist, auch wirklich erzeugt wurden.
 #
-#   ./pruefe.sh          # gegen das Bauverzeichnis
-#   ./pruefe.sh --system # zusaetzlich gegen das installierte System
+#   ./check.sh          # gegen das Bauverzeichnis
+#   ./check.sh --system # zusaetzlich gegen das installierte System
 
 set -uo pipefail
 HIER="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

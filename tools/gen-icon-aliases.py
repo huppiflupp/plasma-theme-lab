@@ -10,7 +10,7 @@ Das Skript legt fuer jeden fehlenden Namen einen Verweis auf ein
 vorhandenes, inhaltlich passendes Icon an. In allen Groessen, in denen
 die Quelle existiert.
 
-    ./gen-icon-aliase.py <theme-verzeichnis> [--probe]
+    ./gen-icon-aliases.py <theme-verzeichnis> [--probe]
 
 Die Zuordnungen sind Handarbeit - welches Icon inhaltlich passt, kann
 kein Skript entscheiden.

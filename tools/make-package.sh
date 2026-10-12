@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Schnuert die Archive fuer den KDE Store (store.kde.org / kde-look.org).
 #
-#   ./mach-paket.sh            # alle Archive nach dist/
-#   ./mach-paket.sh --pruefen  # nur zeigen, was hineinkaeme
+#   ./make-package.sh            # alle Archive nach dist/
+#   ./make-package.sh --pruefen  # nur zeigen, was hineinkaeme
 #
 # Es entstehen zwei Sorten:
 #
@@ -285,7 +285,7 @@ done
 # oben links Tag, unten rechts Nacht. Im Store ist das die uebliche
 # Darstellung fuer Themes mit zwei Fassungen.
 #
-# Das funktioniert nur, weil gen-vorschau.sh die Fenster fuer jede
+# Das funktioniert nur, weil gen-preview.sh die Fenster fuer jede
 # Variante an dieselbe Stelle setzt: gleiche Programme, gleiche
 # Reihenfolge, gleiche Aufloesung. Die Fensterkanten laufen ueber den
 # Schnitt hinweg durch, und man sieht denselben Bildschirm zweimal
@@ -355,7 +355,7 @@ if command -v magick >/dev/null && [ "$anzahl" -gt 0 ]; then
         # laeuft die Schnittkante schraeg durch die Kachel statt von Ecke
         # zu Ecke, und der Effekt geht verloren.
         #
-        # Derselbe Ausschnitt wie bei preview.png in gen-vorschau.sh:
+        # Derselbe Ausschnitt wie bei preview.png in gen-preview.sh:
         # linke obere Ecke, die beiden linken Fenster. Ein mittiger
         # Ausschnitt sass frueher richtig, als die Fenster gestapelt
         # waren - seit sie nebeneinander stehen, trifft er den Editor und
