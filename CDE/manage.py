@@ -1047,7 +1047,9 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
     write_config("kwinrc", "org.kde.kdecoration2", {"library": "org.kde.kwin.aurorae", "theme": DECORATION, "ButtonsOnLeft": "M", "ButtonsOnRight": "IAX", "BorderSize": "Normal"})
     write_config("kwinrc", "WM", {"activeFont": TITLE_FONT})
     write_config("kwinrc", "Plugins", {"cde-copper-arrangeEnabled": "true"})
-    write_config("kwinrc", "TabBox", {"LayoutName": "org.cde.copper.switcher"})
+    # Alt+Tab lists the windows of every workspace, minimized ones included;
+    # choosing one switches to its workspace and restores it (KWin does both).
+    write_config("kwinrc", "TabBox", {"LayoutName": "org.cde.copper.switcher", "DesktopMode": "0", "MinimizedMode": "0"})
     write_config("konsolerc", "Desktop Entry", {"DefaultProfile": "CDE Copper.profile"})
     dbus("org.kde.KWin", "/KWin", "reconfigure")
     dbus("org.kde.KWin", "/Scripting", "org.kde.kwin.Scripting.start")

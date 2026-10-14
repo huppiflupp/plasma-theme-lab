@@ -1225,3 +1225,20 @@ Found on the way: the Style Manager's windows open where KWin places
 them, not where the last one was; clicks by position need the window
 placed first (a KWin script setting `frameGeometry`) or a look at the
 screen.
+
+## Alt+Tab across all workspaces (0.9.6, 2026-10-14)
+
+`manage.py apply` now sets `[kwinrc][TabBox] DesktopMode=0` (all
+workspaces; KWin's default 1 is the current one only) and
+`MinimizedMode=0` (minimized windows listed). Each tile of the switcher
+shows the window's workspace (`desktopName` role) on a second line;
+minimized windows (`minimized` role) have a greyed icon and their caption
+in parentheses; the title bar reads "caption — workspace". Choosing a
+window is KWin's own activation, which switches to its workspace and
+unminimizes it. Order stays KWin's focus chain, not grouped by workspace,
+so Tab steps through the tiles in the order shown.
+
+Checked: `build.py`, `tests/verify.py` green; on the host the switcher
+file replaced and both keys written, KWin reconfigured. Not checked: the
+switcher looked at in the VM (KWin may load the changed QML only after
+logging in again), X11.

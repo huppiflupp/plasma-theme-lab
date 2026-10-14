@@ -41,7 +41,7 @@ KWin.TabBoxSwitcher {
             color: Kirigami.Theme.backgroundColor
             readonly property int margin: 8
             readonly property int tileWidth: 112
-            readonly property int tileHeight: Math.max(84, 62 + Math.ceil(metrics.height))
+            readonly property int tileHeight: Math.max(100, 64 + 2 * Math.ceil(metrics.height))
             readonly property int columns: Math.max(1, Math.min(6, windows.count,
                 Math.floor((tabBox.screenGeometry.width * 0.9 - 2 * margin) / tileWidth)))
             readonly property int rows: Math.max(1, Math.ceil(windows.count / columns))
@@ -62,7 +62,10 @@ KWin.TabBoxSwitcher {
                 Text {
                     anchors.fill: parent
                     anchors.margins: 4
-                    text: windows.currentItem ? windows.currentItem.caption : qsTr("No open windows")
+                    // Alt+Tab spans all workspaces: say where the window lives.
+                    text: windows.currentItem
+                        ? windows.currentItem.caption + (windows.currentItem.desktop ? "  \u2014  " + windows.currentItem.desktop : "")
+                        : qsTr("No open windows")
                     textFormat: Text.PlainText
                     font: Kirigami.Theme.defaultFont
                     color: Kirigami.Theme.highlightedTextColor
@@ -93,6 +96,8 @@ KWin.TabBoxSwitcher {
                 delegate: Item {
                     id: tile
                     property string caption: model.caption
+                    property string desktop: model.desktopName
+                    readonly property bool minimized: model.minimized
                     readonly property bool selected: index === windows.currentIndex
                     width: windows.cellWidth
                     height: windows.cellHeight
@@ -113,16 +118,30 @@ KWin.TabBoxSwitcher {
                         width: 48
                         height: 48
                         source: model.icon
+                        // Minimized windows are listed too, greyed like an iconified Motif window.
+                        opacity: tile.minimized ? 0.45 : 1
                     }
                     Text {
                         x: 7
                         y: 60
                         width: parent.width - 14
                         height: metrics.height
-                        text: tile.caption
+                        text: tile.minimized ? "(" + tile.caption + ")" : tile.caption
                         textFormat: Text.PlainText
                         font: Kirigami.Theme.defaultFont
                         color: tile.selected ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
+                        horizontalAlignment: Text.AlignHCenter
+                        elide: Text.ElideRight
+                    }
+                    Text {
+                        x: 7
+                        y: 62 + metrics.height
+                        width: parent.width - 14
+                        height: metrics.height
+                        text: tile.desktop
+                        textFormat: Text.PlainText
+                        font: Kirigami.Theme.defaultFont
+                        color: tile.selected ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.disabledTextColor
                         horizontalAlignment: Text.AlignHCenter
                         elide: Text.ElideRight
                     }

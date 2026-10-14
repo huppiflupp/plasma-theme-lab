@@ -27,6 +27,10 @@ languages can be added as `po/<language>.po`.
   A short hard shadow at the right and bottom (switchable in the Style
   Manager › Window or the decoration's settings); inactive frames have a flatter
   bevel.
+- Alt+Tab switcher in Motif style. It lists the windows of every workspace,
+  minimized ones included: each tile names its workspace below the caption,
+  a minimized window's icon is greyed and its caption in parentheses.
+  Choosing one switches to its workspace and restores it.
 - Kvantum widget style with Motif controls: bevelled buttons, sunken fields,
   diamond radio buttons, copper focus frame, default button and selection,
   bevelled scrollbars with arrows, attached tabs and hard-edged menus.
@@ -610,7 +614,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 0.9.5. The application style is a Kvantum theme, not a
+This is version 0.9.6. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,
