@@ -3,7 +3,7 @@
     "Id": "org.cde.copper.mischpult",
     "Name": "CDE Mixing Desk",
     "Description": "Analog mixing console, Tundra palette, light and dark",
-    "Version": "0.9.6",
+    "Version": "0.9.7",
     "License": "GPL-2.0-or-later",
     "Authors": [
       {

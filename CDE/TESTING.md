@@ -1243,7 +1243,7 @@ file replaced and both keys written, KWin reconfigured. Not checked: the
 switcher looked at in the VM (KWin may load the changed QML only after
 logging in again), X11.
 
-## Material tiles tinted without Pillow (issue #2, 2026-10-15)
+## Material tiles tinted without Pillow (0.9.7, issue #2, 2026-10-15)
 
 Reported: on a fresh laptop the material tiles stayed in their natural
 colour with every palette, previews included; the CDE patterns were
