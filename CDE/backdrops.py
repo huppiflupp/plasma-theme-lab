@@ -35,6 +35,8 @@ def names():
 # Seamless material tiles (wallpapers/tiles, 1024², natural colour), keyed
 # by file stem; shown tinted with the palette like the patterns, or in
 # their natural colour on request. The German names are in po/de.po.
+# The build stores each tile's brightness as a grey PNG (write_luma); a
+# palette tints it without Pillow (tint_tile).
 TILES = (("akustikschaum", "Acoustic Foam"), ("buettenpapier", "Handmade Paper"), ("eisblumen", "Frost Flowers"),
          ("filz", "Felt"), ("flokati", "Flokati"), ("kies", "Gravel"), ("kork", "Cork"), ("lava", "Lava"),
          ("leder", "Leather"), ("leinen", "Linen"), ("lochblech", "Perforated Metal"), ("moos", "Moss"),
@@ -46,50 +48,83 @@ def tile_names():
     return [key for key, _ in TILES]
 
 
-def tint_tile(src, dst, colour_set, quality=88):
-    """The tile's brightness mapped onto three palette colours (bottom shadow,
-    background, top shadow), as CDE draws its backdrops in the workspace
-    colours. Pillow only; without it the natural-colour tile is copied."""
-    import shutil
-    try:
-        from PIL import Image
-    except ImportError:
-        shutil.copy2(src, dst)
-        return False
-    im = Image.open(src).convert("L")
-    hist, total = im.histogram(), im.size[0] * im.size[1]
-    def percentile(p):
-        acc = 0
-        for value, count in enumerate(hist):
-            acc += count
-            if acc >= total * p:
-                return value
-        return 255
-    lo = percentile(0.02)
-    span = max(percentile(0.98) - lo, 1)
+def write_luma(tiles, out):
+    """Build machine only (Pillow): every tile's brightness as an 8-bit grey
+    PNG in out/<key>.png, stretched so 2 % of the pixels end up black and 2 %
+    white. Tinting then needs nothing but the standard library."""
+    from PIL import Image
+    out.mkdir(parents=True, exist_ok=True)
+    for key, _ in TILES:
+        im = Image.open(Path(tiles) / f"{key}.jpg").convert("L")
+        hist, total = im.histogram(), im.size[0] * im.size[1]
+        def percentile(p):
+            acc = 0
+            for value, count in enumerate(hist):
+                acc += count
+                if acc >= total * p:
+                    return value
+            return 255
+        lo = percentile(0.02)
+        span = max(percentile(0.98) - lo, 1)
+        im.point([round(min(max((v - lo) / span, 0.0), 1.0) * 255) for v in range(256)]).save(out / f"{key}.png", optimize=True)
+
+
+def tile_palette(colour_set):
+    """256 colours from bottom shadow over background to top shadow, as CDE
+    draws its backdrops in the workspace colours."""
     dark, mid, light = (rgb(colour_set[k]) for k in ("bs", "bg", "ts"))
-    palette = []
+    palette = b""
     for value in range(256):
-        t = min(max((value - lo) / span, 0.0), 1.0)
-        if t < 0.5:
-            palette += [int(round(dark[i] + (mid[i] - dark[i]) * t * 2)) for i in range(3)]
-        else:
-            palette += [int(round(mid[i] + (light[i] - mid[i]) * (t * 2 - 1))) for i in range(3)]
-    im.putpalette(palette)
-    im.convert("RGB").save(dst, quality=quality)
-    return True
+        t = value / 255
+        a, b, u = (dark, mid, t * 2) if t < 0.5 else (mid, light, t * 2 - 1)
+        palette += bytes(int(round(a[i] + (b[i] - a[i]) * u)) for i in range(3))
+    return palette
 
 
-def write_tiles(colour_set, out, tiles):
-    """The material tiles tinted into out/<key>.jpg from tiles/<key>.jpg."""
+def tint_tile(src, colour_set):
+    """The grey PNG from write_luma as an indexed PNG in the palette's colours:
+    the image data stays as it is, the grey levels become indices into a
+    colour table. No pixel is touched, so this runs on any desktop."""
+    data = Path(src).read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ValueError(f"{src}: not a PNG")
+    out, pos = data[:8], 8
+    while pos < len(data):
+        length, = struct.unpack(">I", data[pos:pos + 4])
+        kind, body = data[pos + 4:pos + 8], data[pos + 8:pos + 8 + length]
+        pos += 12 + length
+        if kind == b"IHDR":
+            width, height, depth, colour, method, filtering, interlace = struct.unpack(">IIBBBBB", body)
+            if (depth, colour) != (8, 0):
+                raise ValueError(f"{src}: not an 8-bit grey PNG")
+            out += chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 3, method, filtering, interlace))
+            out += chunk(b"PLTE", tile_palette(colour_set))
+        elif kind in (b"IDAT", b"IEND"):
+            out += chunk(kind, body)
+    return out
+
+
+def write_tiles(colour_set, out, luma):
+    """The material tiles tinted into out/<key>.png from luma/<key>.png."""
     out.mkdir(parents=True, exist_ok=True)
     written = []
     for key, _ in TILES:
-        src = Path(tiles) / f"{key}.jpg"
+        src = Path(luma) / f"{key}.png"
         if src.exists():
-            tint_tile(src, out / f"{key}.jpg", colour_set)
+            (out / f"{key}.png").write_bytes(tint_tile(src, colour_set))
             written.append(key)
     return written
+
+
+def write_tiles_jpeg(colour_set, out, luma, quality=88):
+    """Build machine only (Pillow): the tinted tiles as out/<key>.jpg, the
+    plugin's packaged fallback, at a third of the PNG's size."""
+    import io
+    from PIL import Image
+    out.mkdir(parents=True, exist_ok=True)
+    for key, _ in TILES:
+        Image.open(io.BytesIO(tint_tile(Path(luma) / f"{key}.png", colour_set))).convert("RGB").save(
+            out / f"{key}.jpg", quality=quality)
 
 
 def fill_mode(name):
@@ -149,14 +184,15 @@ def read_xbm(path, colours):
     return width, height, rows
 
 
+def chunk(kind, data):
+    return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xffffffff)
+
+
 def png(width, height, rows, scale=1):
     raw = b""
     for row in rows:
         line = b"".join(bytes(px) * scale for px in row)
         raw += (b"\x00" + line) * scale
-
-    def chunk(kind, data):
-        return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xffffffff)
     return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", width * scale, height * scale, 8, 2, 0, 0, 0))
             + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
 

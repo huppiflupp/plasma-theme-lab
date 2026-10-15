@@ -125,7 +125,7 @@ StyleDialog {
                     cache: false
                     source: !dialog.isTile ? ""
                           : dialog.chosen.startsWith("natural:") ? "file://" + dialog.manager.dataDir + "/plasma/wallpapers/org.cde.copper.backdrop/contents/images/tiles/" + dialog.chosen.slice(8) + ".jpg"
-                          : "file://" + dialog.manager.dataDir + "/cde-copper/backdrops/current/" + dialog.chosen + ".jpg"
+                          : "file://" + dialog.manager.dataDir + "/cde-copper/backdrops/current/" + dialog.chosen + ".png"
                 }
                 Rectangle {
                     anchors.fill: parent; anchors.margins: 2

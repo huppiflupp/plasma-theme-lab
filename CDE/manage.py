@@ -34,6 +34,8 @@ from build import PICTURES  # noqa: E402  (build.py is part of the tool copy too
 # them; the rest of a palette is generated when it is applied.
 SCHEMES = tuple(f"color-schemes/CDE{name}.colors" for name in palettes.names())
 TOOL = "cde-copper"
+# The material tiles' brightness, tinted per palette (backdrops.write_luma).
+LUMA_TILES = "plasma/wallpapers/org.cde.copper.backdrop/contents/images/luma"
 LANGUAGES = ("de",)        # po/<language>.po, compiled by build.py
 TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "kwin/scripts/cde-copper-arrange",
            "kwin/tabbox/org.cde.copper.switcher",
@@ -251,11 +253,24 @@ def install_tool():
         else:
             shutil.copy2(source, tool / item)
     # Copper's tiles until a palette is applied (previews, CDE Backdrop).
+    # The plugin may not be copied yet: the grey tiles come from this build.
+    import backdrops
+    luma = ROOT / "build" / LUMA_TILES
     tiles = DATA / TOOL / "backdrops"
     if not tiles.exists():
-        import backdrops
         backdrops.write_all(palettes.copper_desktop(), tiles / "Copper")
-        backdrops.write_tiles(palettes.copper_desktop(), tiles / "Copper", material_tiles())
+        backdrops.write_tiles(palettes.copper_desktop(), tiles / "Copper", luma)
+    # Up to 0.9.6 the material tiles were JPEGs, and natural-coloured ones
+    # where Pillow was missing: the palettes kept here get PNGs.
+    for folder in sorted(f for f in tiles.iterdir() if f.is_dir() and not f.is_symlink()):
+        if not all((folder / f"{key}.png").exists() for key in backdrops.tile_names()):
+            try:
+                colour_set = workspace_set(folder.name)
+            except Exception:
+                continue   # a palette that is gone; set_palette replaces it
+            backdrops.write_tiles(colour_set, folder, luma)
+            for key in backdrops.tile_names():
+                remove(folder / f"{key}.jpg")
     # Tiles from before 0.8.12 have no "current" link: the one palette there.
     current = tiles / "current"
     if not current.exists():
@@ -922,8 +937,8 @@ def update_splash(name):
 
 
 def material_tiles():
-    """The natural-colour material tiles, as installed with the backdrop plugin."""
-    return DATA / "plasma/wallpapers/org.cde.copper.backdrop/contents/images/tiles"
+    """The material tiles as grey PNGs, as installed with the backdrop plugin."""
+    return DATA / LUMA_TILES
 
 
 def set_backdrop(manifest, name, scale):

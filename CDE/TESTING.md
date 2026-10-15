@@ -1242,3 +1242,29 @@ Checked: `build.py`, `tests/verify.py` green; on the host the switcher
 file replaced and both keys written, KWin reconfigured. Not checked: the
 switcher looked at in the VM (KWin may load the changed QML only after
 logging in again), X11.
+
+## Material tiles tinted without Pillow (issue #2, 2026-10-15)
+
+Reported: on a fresh laptop the material tiles stayed in their natural
+colour with every palette, previews included; the CDE patterns were
+tinted. Cause: `tint_tile` needed Pillow and silently copied the natural
+tile without it; Pillow was not among the requirements. Reproduced on the
+host with Pillow blocked: the tinted tile was byte for byte the natural one.
+
+Now the build stores each tile's brightness as an 8-bit grey PNG
+(`contents/images/luma`, stretched 2 %/98 % as before) and the tool writes
+the tinted tile as an indexed PNG: the same image data, a colour table from
+bottom shadow over background to top shadow. Standard library only, about
+2 ms per tile. Profile tiles are PNGs now (14.5 MB per palette instead of
+JPEGs); the packaged Copper fallback stays JPEG. `install.sh` converts the
+palettes already in the profile (JPEGs, natural or not) to PNGs.
+
+Checked: `build.py`, `tests/verify.py` green (new test: tinting with Pillow
+blocked); tinted against the old Pillow result, no visible difference
+(mean difference 4.8 levels, mostly the old JPEG's artefacts); old
+profile with natural JPEGs converted by `install_tool` with Pillow blocked;
+plasma-lab VM, fresh install with Pillow blocked: CopperNight with Leather
+shows the tinted tile, `natural:leder` the natural one, no QML errors in
+the journal. The visible seam across the leather (at 1280×800) is in the
+natural tile too. Not checked: the Backdrop page's preview grid opened in
+the VM, Ubuntu and EndeavourOS.

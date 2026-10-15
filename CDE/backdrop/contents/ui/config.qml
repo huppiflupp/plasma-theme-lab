@@ -62,7 +62,7 @@ ColumnLayout {
     function isTile(value) { return Backdrops.TILES.some(t => t.key === (value.startsWith("natural:") ? value.slice(8) : value)); }
     // A tile's preview: natural from the package, or tinted from the profile.
     function tileSource(value) {
-        return value.startsWith("natural:") ? Qt.resolvedUrl("../images/tiles/" + value.slice(8) + ".jpg") : folder + value + ".jpg";
+        return value.startsWith("natural:") ? Qt.resolvedUrl("../images/tiles/" + value.slice(8) + ".jpg") : folder + value + ".png";
     }
     readonly property string pictures: StandardPaths.writableLocation(StandardPaths.GenericDataLocation) + "/wallpapers/"
     // The palette in use, kept under this name by the tool.

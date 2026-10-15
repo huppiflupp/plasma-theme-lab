@@ -336,6 +336,36 @@ class Backdrops(unittest.TestCase):
             width, height = struct.unpack(">II", screen[16:24])
             self.assertEqual((width, height), (640, 480), name)
 
+    def test_material_tiles_tint_without_pillow(self):
+        """Issue #2: without Pillow the desktop got natural-coloured tiles."""
+        sys.path.insert(0, str(ROOT))
+        import builtins
+        import backdrops
+        import palettes
+        luma = ROOT / "build/plasma/wallpapers/org.cde.copper.backdrop/contents/images/luma"
+        real_import = builtins.__import__
+
+        def no_pillow(name, *args, **kwargs):
+            if name == "PIL" or name.startswith("PIL."):
+                raise ImportError(name)
+            return real_import(name, *args, **kwargs)
+        colour_set = palettes.load("Default")[2]
+        with tempfile.TemporaryDirectory(prefix="cde-tiles-") as temp:
+            builtins.__import__ = no_pillow
+            try:
+                written = backdrops.write_tiles(colour_set, Path(temp), luma)
+            finally:
+                builtins.__import__ = real_import
+            self.assertEqual(written, backdrops.tile_names())
+            for key in written:
+                tile = (Path(temp) / f"{key}.png").read_bytes()
+                # Indexed, 8 bit, and the colour table is the palette's.
+                self.assertEqual(tile[24:26], b"\x08\x03", key)
+                plte = tile.index(b"PLTE")
+                self.assertEqual(tile[plte + 4:plte + 4 + 768], backdrops.tile_palette(colour_set), key)
+                self.assertEqual(tile[plte + 4:plte + 7], bytes(backdrops.rgb(colour_set["bs"])), key)
+                self.assertEqual(tile[plte + 4 + 765:plte + 4 + 768], bytes(backdrops.rgb(colour_set["ts"])), key)
+
 
 class ConsoleMenus(unittest.TestCase):
     """frontpanel/contents/code/menus.py against made-up profiles."""

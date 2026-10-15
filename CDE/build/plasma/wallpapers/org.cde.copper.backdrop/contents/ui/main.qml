@@ -34,19 +34,19 @@ WallpaperItem {
     // new, so the image is read again.
     readonly property string revision: root.configuration.Revision ? "?r=" + root.configuration.Revision : ""
     readonly property int pixel: Math.max(1, Math.min(4, root.configuration.PixelSize || 1))
-    // Material tiles (wallpapers/tiles) are JPEGs: "<key>" is tinted per
-    // palette by the tool like the patterns, "natural:<key>" is the tile as
-    // photographed, straight from the package.
+    // Material tiles (wallpapers/tiles): "<key>" is tinted per palette by
+    // the tool like the patterns (a PNG in the profile, the packaged Copper
+    // fallback a JPEG), "natural:<key>" is the tile as photographed, a JPEG
+    // straight from the package.
     readonly property bool natural: backdrop.startsWith("natural:")
     readonly property string key: natural ? backdrop.slice(8) : backdrop
     readonly property bool isTile: Backdrops.TILES.some(t => t.key === key)
-    readonly property string suffix: isTile ? ".jpg" : ".png"
     readonly property string profile: StandardPaths.writableLocation(StandardPaths.GenericDataLocation) + "/cde-copper/backdrops/"
     readonly property string profileTile: natural ? Qt.resolvedUrl("../images/tiles/" + key + ".jpg")
-        : profile + paletteName + "/" + key + suffix
+        : profile + paletteName + "/" + key + ".png"
     // The palette in use, whatever this desktop's settings name.
-    readonly property string currentTile: natural ? profileTile : profile + "current/" + key + suffix
-    readonly property string packageTile: natural ? profileTile : Qt.resolvedUrl("../images/Copper/" + key + suffix)
+    readonly property string currentTile: natural ? profileTile : profile + "current/" + key + ".png"
+    readonly property string packageTile: natural ? profileTile : Qt.resolvedUrl("../images/Copper/" + key + (isTile ? ".jpg" : ".png"))
     readonly property bool isPicture: backdrop.startsWith("picture:")
     readonly property bool dark: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
     readonly property string picture: StandardPaths.writableLocation(StandardPaths.GenericDataLocation)
