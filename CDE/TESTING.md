@@ -1268,3 +1268,22 @@ shows the tinted tile, `natural:leder` the natural one, no QML errors in
 the journal. The visible seam across the leather (at 1280×800) is in the
 natural tile too. Not checked: the Backdrop page's preview grid opened in
 the VM, Ubuntu and EndeavourOS.
+
+## Two screens, windows dragged, tiles raise open windows (1.0.0, 2026-10-18)
+
+The workspace switcher drew only one screen on a two-screen desktop (245k,
+2 × 2560×1440): the remaining console had kept `everyScreen=true` after
+the choice was switched back to one console from the second screen's
+console. `placeConsoles` now passes the choice on to every console that
+stays. Windows can be held and dragged in the switcher onto another
+workspace, and in the miniature to a place on either screen (KWin script,
+`windows.js`). A tile with `app:<id>` brings its program's open window
+forward instead of starting it again (Thunderbird did nothing). The
+Applications menu lies flush with the console's visible top edge.
+
+Checked on 245k (Wayland, two screens): the miniature shows both screens;
+dragging confirmed by the user; the menu measured on a screenshot (menu to
+y=1352, console from 1353, before ~17 px over the console); KWin reports
+Thunderbird's window as `net.thunderbird.Thunderbird`, the tile's id.
+`build.py`, `tests/verify.py` green. Not checked: X11, the VMs, upright
+console with the new menu stand-in.
