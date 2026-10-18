@@ -181,7 +181,27 @@ PlasmoidItem {
     function launch(slot, anchor) {
         if (slot.command === "@applications") openApplications(anchor);
         else if (slot.command === "@layouts") openLayouts(anchor);
+        else if (raiseRunning(slot.command)) return;
         else if (slot.command) run(Launch.resolve(slot.command, [], (text, arg) => arg === undefined ? i18nd("cde-copper", text) : i18nd("cde-copper", text, arg)));
+    }
+    // An application tile ("app:<desktop id>") whose program is open brings
+    // its window forward, on whichever workspace, instead of starting it
+    // again (Thunderbird, already running, did nothing at all). With more
+    // than one window each click brings the next.
+    function raiseRunning(command) {
+        if (String(command).indexOf("app:") !== 0) return false;
+        const id = command.substring(4).replace(/\.desktop$/, "").toLowerCase();
+        const rows = [];
+        for (let i = 0; i < runningWindows.count; i++) {
+            const idx = runningWindows.makeModelIndex(i);
+            const appId = String(runningWindows.data(idx, TaskManager.AbstractTasksModel.AppId) || "").replace(/\.desktop$/, "").toLowerCase();
+            const launcher = Launch.desktopId(String(runningWindows.data(idx, TaskManager.AbstractTasksModel.LauncherUrlWithoutIcon) || "")).toLowerCase();
+            if (appId === id || launcher === id) rows.push(idx);
+        }
+        if (!rows.length) return false;
+        const active = rows.findIndex(idx => runningWindows.data(idx, TaskManager.AbstractTasksModel.IsActive));
+        runningWindows.requestActivate(rows[(active + 1) % rows.length]);
+        return true;
     }
     function openSection(title, list, anchor) {
         if (popup.visible && activeSection === title) { popup.visible = false; return; }
@@ -333,13 +353,17 @@ PlasmoidItem {
     // One console, or one on every screen: consoles are added to screens
     // without one (as the panel this one sits in) or removed from all
     // screens but the first that has one. The choice goes to cdecopperrc,
-    // where the global theme's layout script reads it.
+    // where the global theme's layout script reads it. The consoles that
+    // stay are told the choice as well: set on the second screen's console,
+    // the first kept "every screen" and so drew only its own screen.
     function placeConsoles() {
         const every = Plasmoid.configuration.everyScreen;
         run("kwriteconfig6 --file cdecopperrc --group Console --key AllScreens " + (every ? "true" : "false"));
         const script = "var every = " + (every ? "true" : "false") + "; var have = {}; var proto = null; var keep = -1;"
             + " for (var p of panels()) for (var w of p.widgets()) if (w.type === 'org.cde.copper.frontpanel') {"
             + " have[p.screen] = true; if (!proto || p.screen < proto.screen) proto = p; if (keep < 0 || p.screen < keep) keep = p.screen; }"
+            + " for (var p of panels()) if (every || p.screen === keep) for (var w of p.widgets()) if (w.type === 'org.cde.copper.frontpanel' && w.id !== " + Plasmoid.id + ") {"
+            + " w.currentConfigGroup = ['General']; if (String(w.readConfig('everyScreen', false)) !== String(every)) w.writeConfig('everyScreen', every); }"
             + " if (proto && every) { for (var s = 0; s < screenCount; ++s) if (!have[s]) {"
             + " var n = new Panel; n.screen = s; n.location = proto.location; n.height = proto.height;"
             + " n.lengthMode = proto.lengthMode; n.floating = proto.floating; n.hiding = proto.hiding; n.alignment = 'center';"
@@ -667,6 +691,14 @@ PlasmoidItem {
         groupingWindowTasksThreshold: -1
         sortMode: TaskManager.TasksModel.SortVirtualDesktop
     }
+    // Every window of this activity, whatever the strip shows: an
+    // application tile looks here for its program's windows.
+    TaskManager.TasksModel {
+        id: runningWindows
+        activity: activities.currentActivity
+        filterByActivity: true
+        groupMode: TaskManager.TasksModel.GroupDisabled
+    }
     Timer { interval: 1000; running: true; repeat: true; onTriggered: root.now = new Date() }
 
     // Upright at the left or right screen edge, across at the top or bottom.
@@ -918,6 +950,7 @@ PlasmoidItem {
     AppMenu {
         id: appMenu
         appsModel: categoryApps
+        consoleItem: root.fullRepresentationItem
         onFindRequested: text => { applications.visualParent = root.fullRepresentationItem; applications.open(text); }
         onRunRequested: root.run(root.dbus + " org.kde.krunner /App org.kde.krunner.App.display")
     }

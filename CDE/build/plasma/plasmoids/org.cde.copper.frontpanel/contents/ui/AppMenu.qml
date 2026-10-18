@@ -38,14 +38,32 @@ Item {
     readonly property int fixedRows: 2
 
     property real anchorOffset: 0
+    // The console the tiles sit in (main.qml's full representation).
+    property Item consoleItem: null
     function open(anchor) {
         current = -1; subCurrent = -1;
-        categories.visualParent = anchor;
+        categories.visualParent = beside(anchor);
         categories.visible = true;
         // Upright, the dialog may be pushed against the screen edge; line the
         // list up with the tile wherever the dialog ended up.
         Qt.callLater(() => { anchorOffset = anchor.mapToGlobal(0, 0).y - categories.y; });
     }
+    // Plasma lays the menu against the tile it opens from, which put it
+    // over the console's frame, a few pixels below its outer edge. A
+    // stand-in as wide as the tile and as high as the console (upright: as
+    // high as the tile and as wide as the console) puts it flush with the
+    // console's visible edge.
+    function beside(anchor) {
+        const box = menu.consoleItem;
+        if (!anchor || !box || anchor === box) return anchor;
+        const at = anchor.mapToItem(box, 0, 0);
+        const upright = Plasmoid.location === PlasmaCore.Types.LeftEdge || Plasmoid.location === PlasmaCore.Types.RightEdge;
+        standIn.parent = box;
+        standIn.x = upright ? 0 : at.x; standIn.width = upright ? box.width : anchor.width;
+        standIn.y = upright ? at.y : 0; standIn.height = upright ? anchor.height : box.height;
+        return standIn;
+    }
+    Item { id: standIn }
     function close() {
         wantSub = false;
         subModel = null;
