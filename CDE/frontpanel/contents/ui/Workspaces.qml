@@ -6,9 +6,12 @@ import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager
 import "motif.js" as Motif
+import "windows.js" as Windows
 
 // The workspace switcher: a button per workspace, with the windows on it
 // as icons (WindowWell) or as a miniature pager (WindowMap) below it.
+// With dragWindows a window is held and dragged onto another workspace's
+// button or icons, or onto a place in a miniature, on either screen.
 Bevel {
     id: workspacesBlock
     // The console (main.qml) and its colours: given, never looked up.
@@ -95,6 +98,11 @@ Bevel {
                         // (the lightest looked chosen): a frame in the accent colour.
                         frame: selected && own ? workspacesBlock.colors.highlight : "transparent"
                         onClicked: workspacesBlock.root.run(workspacesBlock.root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
+                        // A window dropped on the button goes to its workspace.
+                        WindowDropSite {
+                            colors: workspacesBlock.colors
+                            onWindowDropped: ref => workspacesBlock.root.moveWindow(ref, workspaceCell.modelData, null)
+                        }
                     }
                     WindowWell {
                         root: workspacesBlock.root; colors: workspacesBlock.colors
@@ -135,6 +143,19 @@ Bevel {
         MouseArea {
             anchors.fill: parent
             onClicked: map.root.run(map.root.dbus + " org.kde.KWin /KWin setCurrentDesktop " + map.desktopNumber)
+        }
+        // A window dropped here goes to this workspace, to the place (and
+        // the screen) where it is let go.
+        WindowDropSite {
+            colors: map.colors
+            z: 3
+            onWindowDropped: (ref, x, y) => {
+                const row = map.root.windowRowOf(ref.id);
+                const frame = row >= 0 ? map.root.taskModel.data(map.root.taskModel.makeModelIndex(row), TaskManager.AbstractTasksModel.Geometry) : null;
+                const place = frame && frame.width > 0 && map.scale > 0
+                    ? Windows.droppedAt(ref, frame, map.area, map.scale, x - screens.x, y - screens.y) : null;
+                map.root.moveWindow(ref, map.desktop, place);
+            }
         }
         Item {
             id: screens
@@ -184,6 +205,10 @@ Bevel {
                     }
                     onClicked: {
                         if (selected) map.root.taskModel.requestToggleMinimized(idx); else map.root.taskModel.requestActivate(idx);
+                    }
+                    WindowDrag {
+                        active: Plasmoid.configuration.dragWindows
+                        windowId: (windowRect.revision, String(map.root.taskModel.data(windowRect.idx, TaskManager.AbstractTasksModel.WinIdList) || ""))
                     }
                     // The window menu. A MouseArea, not a TapHandler: it takes the
                     // press, so the panel's own context menu does not open as well;
@@ -269,6 +294,12 @@ Bevel {
         readonly property int perRow: Math.max(1, Math.floor((width - 4 + 1) / (side + 1)))
         readonly property int capacity: perRow * Math.max(1, Math.floor((height - 4 + 1) / (side + 1)))
         readonly property bool overflow: rows.length > capacity
+        // A window dropped on the well goes to this workspace.
+        WindowDropSite {
+            colors: iconWell.colors
+            z: 3
+            onWindowDropped: ref => iconWell.root.moveWindow(ref, iconWell.desktop, null)
+        }
         Flow {
             anchors.fill: parent; anchors.margins: 2
             spacing: 1
@@ -296,6 +327,10 @@ Bevel {
                     onClicked: {
                         if (selected) iconWell.root.taskModel.requestToggleMinimized(idx); else iconWell.root.taskModel.requestActivate(idx);
                     }
+                    WindowDrag {
+                        active: Plasmoid.configuration.dragWindows
+                        windowId: (windowIcon.revision, String(iconWell.root.taskModel.data(windowIcon.idx, TaskManager.AbstractTasksModel.WinIdList) || ""))
+                    }
                     // The window menu. A MouseArea, not a TapHandler: it takes the
                     // press, so the panel's own context menu does not open as well;
                     // the left button is not accepted and stays the button's.
@@ -314,6 +349,37 @@ Bevel {
                 font.family: iconWell.colors.font; font.pixelSize: iconWell.root.u(9)
                 horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
             }
+        }
+    }
+
+    // Where a dragged window can be let go (WindowDrag.qml), laid over a
+    // workspace's button, icons or miniature. Only windows are taken; while
+    // one is over it, it is framed in the selection colour.
+    component WindowDropSite: DropArea {
+        id: site
+        required property var colors
+        property bool hot: false
+        anchors.fill: parent
+        enabled: Plasmoid.configuration.dragWindows
+        signal windowDropped(var ref, real x, real y)
+        onEntered: drag => {
+            site.hot = drag.formats.indexOf(Windows.WINDOW_MIME) >= 0;
+            drag.accepted = site.hot;
+            if (site.hot) drag.accept(Qt.MoveAction);
+        }
+        onExited: site.hot = false
+        onDropped: drop => {
+            site.hot = false;
+            const ref = drop.formats.indexOf(Windows.WINDOW_MIME) >= 0 ? Windows.parseWindowRef(drop.getDataAsString(Windows.WINDOW_MIME)) : null;
+            if (!ref) return;
+            drop.accept(Qt.MoveAction);
+            site.windowDropped(ref, drop.x, drop.y);
+        }
+        Rectangle {
+            anchors.fill: parent
+            visible: site.hot
+            color: Qt.rgba(site.colors.highlight.r, site.colors.highlight.g, site.colors.highlight.b, 0.18)
+            border.color: site.colors.highlight; border.width: 2
         }
     }
 }

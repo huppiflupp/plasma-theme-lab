@@ -14,6 +14,7 @@ ConfigPage {
     property string cfg_windowDisplay: "strip"
     property alias cfg_groupWindows: groupWindows.checked
     property alias cfg_windowsOnThisScreen: thisScreen.checked
+    property alias cfg_dragWindows: dragWindows.checked
     // One label per workspace; an empty one shows the number.
     property var cfg_workspaceLabels: []
     function setLabel(index, text) {
@@ -22,6 +23,15 @@ ConfigPage {
         list[index] = text;
         cfg_workspaceLabels = list;
     }
+    // A short label on the control, the explanation below it in quiet type.
+    component Hint: Label {
+        Layout.fillWidth: true
+        Layout.maximumWidth: Kirigami.Units.gridUnit * 26
+        wrapMode: Text.WordWrap
+        font: Kirigami.Theme.smallFont
+        opacity: 0.7
+    }
+
     Kirigami.FormLayout {
         CheckBox {
             id: showWorkspaces
@@ -97,6 +107,13 @@ ConfigPage {
             id: thisScreen
             text: i18nd("cde-copper", "Only windows on this console's screen")
         }
+        CheckBox {
+            id: dragWindows
+            // Only the switcher's own views show windows to take.
+            enabled: windowView.currentIndex >= 3
+            text: i18nd("cde-copper", "Move windows by dragging (hold, then drag)")
+        }
+        Hint { text: i18nd("cde-copper", "Onto another workspace; in the miniatures also to a place on either screen.") }
         Item { Kirigami.FormData.isSection: true; Kirigami.FormData.label: i18nd("cde-copper", "Labels (empty: the number)") }
         Repeater {
             model: workspaceCount.value

@@ -11,6 +11,7 @@ KCM.SimpleKCM {
     property var cfg_topEdgeDefault
     property var cfg_edgeDefault
     property var cfg_windowsOnThisScreenDefault
+    property var cfg_dragWindowsDefault
     property var cfg_showWorkspacesDefault
     property var cfg_workspaceCountDefault
     property var cfg_workspaceButtonWidthDefault

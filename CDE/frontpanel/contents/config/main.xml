@@ -7,6 +7,8 @@
     <!-- 0 bottom, 1 top, 2 left, 3 right; -1 follows topEdge (0.2.0 settings) -->
     <entry name="edge" type="Int"><default>-1</default></entry>
     <entry name="windowsOnThisScreen" type="Bool"><default>true</default></entry>
+    <!-- Windows dragged in the workspace switcher after a press-and-hold (confirmed on a real desktop, 18.10.2026) -->
+    <entry name="dragWindows" type="Bool"><default>true</default></entry>
     <!-- The workspace switcher, and how many workspaces it keeps in KWin (1-8) -->
     <entry name="showWorkspaces" type="Bool"><default>true</default></entry>
     <entry name="workspaceCount" type="Int"><default>4</default></entry>

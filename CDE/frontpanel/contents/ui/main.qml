@@ -9,6 +9,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager
 import org.kde.plasma.private.kicker as Kicker
 import "launch.js" as Launch
+import "windows.js" as Windows
 import "motif.js" as Motif
 
 PlasmoidItem {
@@ -882,6 +883,25 @@ PlasmoidItem {
                 rows.push(i);
         }
         return rows;
+    }
+    // The model row of the window with this id (WinIdList as text), -1
+    // once it is gone.
+    function windowRowOf(id) {
+        for (let i = 0; i < tasks.count; i++)
+            if (String(tasks.data(tasks.makeModelIndex(i), TaskManager.AbstractTasksModel.WinIdList)) === id) return i;
+        return -1;
+    }
+    // A window dropped in the workspace switcher (Workspaces.qml): to the
+    // workspace, unless it is on all of them or there already, and with a
+    // place (from a miniature) moved there by a KWin script.
+    function moveWindow(ref, desktop, place) {
+        const row = windowRowOf(ref.id);
+        if (row < 0) return;
+        const idx = tasks.makeModelIndex(row);
+        if (desktop && !tasks.data(idx, TaskManager.AbstractTasksModel.IsOnAllVirtualDesktops)
+                && (tasks.data(idx, TaskManager.AbstractTasksModel.VirtualDesktops) || []).indexOf(desktop) < 0)
+            tasks.requestVirtualDesktops(idx, [desktop]);
+        if (place) run(Windows.kwinCommand(Windows.moveScript(ref.id, place.x, place.y), dbus, Launch.quote));
     }
     // The workspace a window is on, as its button shows it; "∗" on all of
     // them, nothing with a single workspace.

@@ -573,6 +573,15 @@ msgstr ""
 msgid "Only windows on this console's screen"
 msgstr ""
 
+#: frontpanel/contents/ui/configWorkspaces.qml
+msgid "Move windows by dragging (hold, then drag)"
+msgstr ""
+
+#: frontpanel/contents/ui/configWorkspaces.qml
+msgid ""
+"Onto another workspace; in the miniatures also to a place on either screen."
+msgstr ""
+
 #: frontpanel/contents/ui/configWorkspaces.qml:96
 msgid "Labels (empty: the number)"
 msgstr ""
