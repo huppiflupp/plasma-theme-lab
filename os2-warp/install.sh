@@ -50,6 +50,7 @@ for entry in "$HERE"/build/*; do
     [ "$(basename "$entry")" = config ] || cp -a --remove-destination "$entry" "$DATA/"
 done
 mkdir -p "$CONFIG" && cp -a --remove-destination "$HERE/build/config/." "$CONFIG/"
+sed -i "s|@SYNC@|$DATA/warp-legacy/warp-legacy-sync|" "$CONFIG/autostart/warp-legacy-sync.desktop"
 echo "Installed $(cat "$STATE/files" "$STATE/config-files" | wc -l) files"
 if ! command -v kvantummanager >/dev/null 2>&1; then
     echo "Note: Kvantum is not installed; programs keep their own style (package: kvantum)." >&2

@@ -1,0 +1,31 @@
+#!/bin/sh
+# Run at login (autostart): bring what a global theme cannot carry in line
+# with the Warp Legacy variant chosen in System Settings › Global Theme.
+# Plasma applies colours, icons and the window frame itself, but not the
+# Kvantum theme (its own file) nor the button order; chosen in System
+# Settings, Neon kept the classic Kvantum theme (VM, 20.10.2026). Programs
+# also kept Breeze's widget style and icons: they read kdeglobals, not the
+# global theme's kdedefaults, so those two are copied over (the global
+# theme settings clear them again on the next change of theme).
+# In the session XDG_CONFIG_DIRS starts with kdedefaults: kwriteconfig6
+# then sees the theme's value as already there and writes nothing (the
+# script worked from SSH, not at login). Without it, kdeglobals itself.
+XDG_CONFIG_DIRS=$(printf '%s' "${XDG_CONFIG_DIRS:-/etc/xdg}" | tr ':' '\n' | grep -v kdedefaults | paste -sd:)
+export XDG_CONFIG_DIRS
+lnf=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
+case "$lnf" in
+    org.warplegacy.neon.desktop) kvantum=WarpLegacyNeon ;;
+    org.warplegacy.desktop)      kvantum=WarpLegacy ;;
+    *) exit 0 ;;
+esac
+conf="${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/kvantum.kvconfig"
+[ "$(kreadconfig6 --file "$conf" --group General --key theme)" = "$kvantum" ] || \
+    kwriteconfig6 --file "$conf" --group General --key theme "$kvantum"
+defaults="${XDG_CONFIG_HOME:-$HOME/.config}/kdedefaults/kdeglobals"
+for pair in "KDE widgetStyle" "Icons Theme"; do
+    set -- $pair
+    value=$(kreadconfig6 --file "$defaults" --group "$1" --key "$2")
+    [ -n "$value" ] && kwriteconfig6 --file kdeglobals --group "$1" --key "$2" "$value"
+done
+kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft M
+kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight XIA

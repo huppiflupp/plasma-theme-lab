@@ -4,12 +4,18 @@ import QtQuick.Controls
 import QtCore
 import Qt.labs.folderlistmodel
 import org.kde.plasma.core as PlasmaCore
+import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.private.kicker as Kicker
+import "launch.js" as Launch
 
-// The Warp Bar's desktop menu (DESIGN.md §4): the objects on the desktop,
-// then home, the root file system and mounted media; every folder cascades
-// into its contents, down as far as the folders go, as the WarpCenter's
-// menu walks from "Drive C" into its directories.
+// The Warp menu (DESIGN.md §4), opened by the Warp Bar's desktop button and
+// the taskbar's Start button: Programs, cascading through the application
+// menu's categories (Plasma's own model, so it follows what is installed),
+// System Settings, then the objects on the desktop, home, the root file
+// system and mounted media; every folder cascades into its contents, down
+// as far as the folders go, as the WarpCenter's menu walks from "Drive C"
+// into its directories.
 //
 // All levels live in ONE dialog, side by side. A window per submenu was
 // what CDE Copper tried first for its applications menu: under Wayland,
@@ -24,7 +30,8 @@ PlasmaCore.Dialog {
     property var run: function(shell) {}
     readonly property int columnWidth: 240
     readonly property int rowHeight: 24
-    // Level 1 and deeper: {url, top}; level 0 is the desktop.
+    // Level 1 and deeper: {url, top} for a folder, {apps, top} for a part of
+    // the application menu; level 0 is the root.
     property var levels: []
     property var current: []          // the highlighted row per level
     property real anchorX: 0
@@ -47,22 +54,26 @@ PlasmaCore.Dialog {
         return s.indexOf("file://") === 0 ? decodeURIComponent(s.substring(7)) : s;
     }
     function quote(s) { return "'" + String(s).replace(/\x27/g, "'\\''") + "'"; }
-    // Hovering a folder opens it one level further; anything deeper closes.
-    function hover(level, row, url, isDir, top) {
+    // Hovering a folder or a category opens it one level further (next:
+    // {url} or {apps}); anything else closes what lies deeper.
+    function hover(level, row, next, top) {
         const c = current.slice(0, level); c[level] = row; current = c;
         // The Repeater rebuilds every box when levels changes: leave it be
         // while the pointer moves within what is already open.
-        const open = levels.length === level + 1 && String(levels[level].url) === String(url);
-        if ((isDir && open) || (!isDir && levels.length === level)) return;
+        const here = levels.length === level + 1 ? levels[level] : null;
+        const same = here && next && (next.apps ? here.apps === next.apps : String(here.url) === String(next.url));
+        if (same || (!next && levels.length === level)) return;
         const kept = levels.slice(0, level);
-        levels = isDir ? kept.concat([{url: url, top: top}]) : kept;
+        levels = next ? kept.concat([Object.assign({top: top}, next)]) : kept;
     }
     // A click opens: a folder in the file manager, a file with its program
-    // (kioclient also starts .desktop entries).
-    function activate(url, isDir) {
-        const path = localPath(url);
+    // (kioclient also starts .desktop entries), a command as a launcher does.
+    function activate(row) {
+        if (row.command) { close(); run(Launch.resolve(row.command, (text, ...args) => i18nd("warp-legacy", text, ...args))); return; }
+        if (!row.url || row.apps) return;
+        const path = localPath(row.url);
         close();
-        if (isDir)
+        if (row.isDir)
             run("xdg-open " + quote(path));
         else
             run("kioclient exec " + quote(path) + " 2>/dev/null || xdg-open " + quote(path));
@@ -88,9 +99,17 @@ PlasmaCore.Dialog {
     // as properties.
     readonly property FolderListModel desktopItems: FolderListModel { folder: menu.desktopUrl; showDirsFirst: true; showHidden: false }
     readonly property FolderListModel media: FolderListModel { folder: "file:///run/media/" + menu.user; showFiles: false }
-    // The desktop's objects, a separator, then the drives.
+    // The application menu's categories (as the Tab Launcher's tabs).
+    // appletInterface as the Tab Launcher has it: without, the model stayed
+    // empty and Programs opened nothing (VM, 20.10.2026).
+    readonly property var categories: Kicker.AppsModel { flat: false; sorted: true; autoPopulate: true; showSeparators: false; appletInterface: Plasmoid }
+    // Programs and System Settings, the desktop's objects, then the drives.
     readonly property var rootRows: {
-        const rows = [];
+        const rows = [
+            {name: i18nd("warp-legacy", "Programs"), apps: categories, icon: "applications-other"},
+            {name: i18nd("warp-legacy", "System Settings"), command: "@settings", icon: "preferences-system"},
+            {separator: true}
+        ];
         for (let i = 0; i < desktopItems.count; i++)
             rows.push({name: label(desktopItems.get(i, "fileName")), url: desktopItems.get(i, "fileUrl"),
                        isDir: desktopItems.get(i, "fileIsDir"),
@@ -125,16 +144,24 @@ PlasmaCore.Dialog {
             rows: menu.rootRows
             level: 0
         }
-        // Level 1 and deeper: one box per open folder, beside the previous.
+        // Level 1 and deeper: one box per open folder or category, beside
+        // the previous.
         Repeater {
             model: menu.levels
-            FolderBox {
+            Loader {
+                id: level
                 required property var modelData
                 required property int index
-                level: index + 1
-                url: modelData.url
-                x: Math.min(rootBox.x + (index + 1) * (menu.columnWidth - 2), frame.width - width)
-                rowTop: modelData.top
+                x: Math.min(rootBox.x + (index + 1) * (menu.columnWidth - 2), frame.width - menu.columnWidth)
+                sourceComponent: modelData.apps ? appsLevel : folderLevel
+                Component {
+                    id: folderLevel
+                    FolderBox { level: level.index + 1; url: level.modelData.url; rowTop: level.modelData.top }
+                }
+                Component {
+                    id: appsLevel
+                    AppsBox { level: level.index + 1; appsModel: level.modelData.apps; rowTop: level.modelData.top }
+                }
             }
         }
     }
@@ -162,10 +189,12 @@ PlasmaCore.Dialog {
                 separator: modelData.separator === true
                 text: modelData.name || ""
                 iconName: modelData.icon || ""
-                cascade: modelData.isDir === true
+                cascade: modelData.isDir === true || modelData.apps !== undefined
                 highlighted: menu.current[box.level] === index
-                onHovered: menu.hover(box.level, index, modelData.url, modelData.isDir, box.y + y - list.contentY)
-                onActivated: menu.activate(modelData.url, modelData.isDir)
+                onHovered: menu.hover(box.level, index,
+                                      modelData.apps ? {apps: modelData.apps} : modelData.isDir ? {url: modelData.url} : null,
+                                      box.y + y - list.contentY)
+                onActivated: menu.activate(modelData)
             }
         }
     }
@@ -189,6 +218,40 @@ PlasmaCore.Dialog {
         }
     }
 
+    // A part of the application menu: categories cascade, programs start.
+    component AppsBox: Bevel {
+        id: appsBox
+        property var appsModel: null
+        property int level: 1
+        property real rowTop: 0
+        kind: "frame"
+        y: Math.max(0, Math.min(rowTop, frame.height - height))
+        width: menu.columnWidth
+        height: Math.min(appsList.contentHeight + 6, frame.height - y)
+        MouseArea { anchors.fill: parent }
+        ListView {
+            id: appsList
+            anchors.fill: parent; anchors.margins: 3
+            clip: true
+            model: appsBox.appsModel
+            interactive: contentHeight > height
+            ScrollBar.vertical: ScrollBar { policy: appsList.interactive ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff }
+            delegate: MenuEntry {
+                required property var model
+                required property int index
+                width: appsList.width - (appsList.interactive ? 14 : 0)
+                text: model.display || ""
+                iconSource: model.decoration
+                cascade: model.hasChildren === true
+                highlighted: menu.current[appsBox.level] === index
+                onHovered: menu.hover(appsBox.level, index,
+                                      model.hasChildren ? {apps: appsBox.appsModel.modelForRow(index)} : null,
+                                      appsBox.y + y - appsList.contentY)
+                onActivated: if (!model.hasChildren) { appsBox.appsModel.trigger(index, "", null); menu.close(); }
+            }
+        }
+    }
+
     // One row: icon, name, ▸ for a folder; highlighted in the selection
     // colour (Warp 4: blue with white text).
     component MenuEntry: Item {
@@ -196,6 +259,7 @@ PlasmaCore.Dialog {
         property bool separator: false
         property string text
         property string iconName
+        property var iconSource: null     // a QIcon from the application menu
         property bool cascade: false
         property bool highlighted: false
         signal hovered()
@@ -211,10 +275,10 @@ PlasmaCore.Dialog {
             color: entry.highlighted ? Kirigami.Theme.highlightColor : "transparent"
         }
         Kirigami.Icon {
-            visible: !entry.separator && entry.iconName !== ""
+            visible: !entry.separator && (entry.iconName !== "" || entry.iconSource !== null)
             x: 4; anchors.verticalCenter: parent.verticalCenter
             width: 16; height: 16
-            source: entry.iconName
+            source: entry.iconSource !== null ? entry.iconSource : entry.iconName
         }
         Text {
             visible: !entry.separator

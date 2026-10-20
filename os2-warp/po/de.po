@@ -281,3 +281,6 @@ msgstr "In der Leiste:"
 
 msgid "Same spirit.\nNew possibilities."
 msgstr "Gleicher Geist.\nNeue Möglichkeiten."
+
+msgid "Programs"
+msgstr "Programme"

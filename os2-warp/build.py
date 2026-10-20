@@ -263,6 +263,20 @@ def fonts():
     shutil.copytree(ROOT / "fonts/IBMPlex", OUT / "fonts/WarpLegacy", dirs_exist_ok=True)
 
 
+def session():
+    """warp-legacy-sync at login (session/): the Kvantum theme and the
+    button order follow the variant chosen in System Settings."""
+    target = OUT / "warp-legacy/warp-legacy-sync"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT / "session/warp-legacy-sync", target)
+    write("config/autostart/warp-legacy-sync.desktop",
+          "[Desktop Entry]\nType=Application\nName=Warp Legacy\n"
+          # The path is put in by install.sh: autostart does not expand
+          # $HOME in Exec= (exit 127 in the VM).
+          "Exec=@SYNC@\n"
+          "X-KDE-autostart-phase=1\nNoDisplay=true\n")
+
+
 def plasmoids():
     """The panels: one plasmoid each, shared by both variants (they take
     their edge colours from the colour scheme's brightness). The pieces in
@@ -287,6 +301,13 @@ def lookandfeel(v):
     i = ids(v)
     base = f"plasma/look-and-feel/{i['lnf']}/"
     write(base + "metadata.json", json.dumps(metadata(i["lnf"], v["name"], v["description"], "Plasma/LookAndFeel"), indent=2))
+    # The pictures System Settings › Global Theme shows (previews/, VM
+    # screenshots of the variant with its layout).
+    key = v["key"] or "classic"
+    previews = OUT / base / "contents/previews"
+    previews.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT / f"previews/{key}.png", previews / "preview.png")
+    shutil.copy2(ROOT / f"previews/{key}-full.jpg", previews / "fullscreenpreview.jpg")
     # OS/2 puts close left of hide and maximize (DESIGN.md §3): X I A.
     # Plasma takes only library, theme and BorderSize from here; install.sh
     # writes the button order and the widget style itself.
@@ -340,6 +361,7 @@ def main():
     compile_translations(OUT)
     icons()
     fonts()
+    session()
     plasmoids()
     print(f"Warp Legacy {VERSION} ({', '.join(v['name'] for v in VARIANTS)}) built in {OUT}")
 
