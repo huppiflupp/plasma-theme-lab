@@ -27,11 +27,23 @@ Rectangle {
         return sunken ? [[ink, ink], [dark, light]] : [[ink, ink], [light, dark]];
     }
 
+    // Neon draws the outer line of a raised frame or button as the window
+    // frame does (NeonFrame.qml): cyan, pink in the right corners.
+    readonly property bool glowEdge: neon && !sunken && kind !== "field"
+    NeonFrame {
+        visible: root.glowEdge
+        anchors.fill: parent
+        anchors.margins: root.kind === "frame" ? 0 : 1
+        light: root.light; dark: root.dark; accent: "#ff4fd8"
+        z: 1
+    }
     Repeater {
         model: root.lines
         Item {
             required property var modelData
             required property int index
+            // The ring NeonFrame replaces stays out.
+            visible: !(root.glowEdge && index === (root.kind === "frame" ? 0 : 1))
             anchors.fill: parent
             anchors.margins: index
             Rectangle { width: parent.width - 1; height: 1; color: modelData[0] }

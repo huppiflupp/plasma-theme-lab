@@ -173,6 +173,8 @@ def decoration(v):
     name = ids(v)["decoration"]
     base = f"kwin/decorations/{name}/"
     shutil.copytree(ROOT / "decoration/contents", OUT / base / "contents", dirs_exist_ok=True)
+    # The Neon frame line is shared with the plasmoids (common/).
+    shutil.copy2(ROOT / "common/NeonFrame.qml", OUT / base / "contents/ui/NeonFrame.qml")
     s = v["style"]
     props = "\n".join(f'    readonly property color {k}: "{s[k]}"' for k in ("light", "dark", "ink", "glyph", "glow", "accent"))
     write(base + "contents/ui/Style.qml",
