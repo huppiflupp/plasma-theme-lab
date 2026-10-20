@@ -115,6 +115,10 @@ if [ -n "$APPLY" ]; then
     # The same for the icon theme: programs kept Breeze although kdedefaults
     # named Warp Legacy Neon's.
     kwriteconfig6 --file kdeglobals --group Icons --key Theme "$ICONS"
+    # Running programs only learn of it when told: a Dolphin left open kept
+    # the icons of a variant in between (VM, 21.10.2026). KIconLoader listens
+    # for iconChanged on /KIconLoader.
+    dbus-send --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:0 2>/dev/null || true
     # Konsole after the concept's command prompt (build.py, KONSOLE).
     kwriteconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile "$KONSOLE.profile"
     # The lock screen shows the neon tubes in both variants: OS/2's Lockup
