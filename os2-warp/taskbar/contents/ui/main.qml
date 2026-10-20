@@ -68,6 +68,7 @@ PlasmoidItem {
             TaskTab {
                 id: start
                 Component.onCompleted: root.startButton = start
+                accent: true
                 Layout.preferredHeight: bar.side
                 Layout.preferredWidth: startRow.implicitWidth + 24
                 active: menu.visible

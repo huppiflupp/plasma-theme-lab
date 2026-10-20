@@ -30,8 +30,9 @@ PlasmaCore.Dialog {
     property var run: function(shell) {}
     readonly property int columnWidth: 240
     readonly property int rowHeight: 24
-    // Level 1 and deeper: {url, top} for a folder, {apps, top} for a part of
-    // the application menu; level 0 is the root.
+    // Level 1 and deeper: {url, top, row} for a folder, {path, top, row}
+    // for a part of the application menu (the rows leading to it from
+    // categories); level 0 is the root.
     property var levels: []
     property var current: []          // the highlighted row per level
     property real anchorX: 0
@@ -54,17 +55,21 @@ PlasmaCore.Dialog {
         return s.indexOf("file://") === 0 ? decodeURIComponent(s.substring(7)) : s;
     }
     function quote(s) { return "'" + String(s).replace(/\x27/g, "'\\''") + "'"; }
-    // Hovering a folder or a category opens it one level further (next:
-    // {url} or {apps}); anything else closes what lies deeper.
+    // Hovering a folder or a category opens it one level further (next():
+    // {url} or {path}); anything else (next null) closes what lies deeper.
     function hover(level, row, next, top) {
         const c = current.slice(0, level); c[level] = row; current = c;
-        // The Repeater rebuilds every box when levels changes: leave it be
-        // while the pointer moves within what is already open.
-        const here = levels.length === level + 1 ? levels[level] : null;
-        const same = here && next && (next.apps ? here.apps === next.apps : String(here.url) === String(next.url));
-        if (same || (!next && levels.length === level)) return;
+        // The Repeater rebuilds every box when levels changes, and the row
+        // under the pointer reports a hover again: what this row opened
+        // stays as it is, matched by row.
+        const here = levels.length > level ? levels[level] : null;
+        if (next && here && here.row === row) {
+            if (levels.length > level + 1) levels = levels.slice(0, level + 1);
+            return;
+        }
+        if (!next && levels.length === level) return;
         const kept = levels.slice(0, level);
-        levels = next ? kept.concat([Object.assign({top: top}, next)]) : kept;
+        levels = next ? kept.concat([Object.assign({top: top, row: row}, next())]) : kept;
     }
     // A click opens: a folder in the file manager, a file with its program
     // (kioclient also starts .desktop entries), a command as a launcher does.
@@ -103,6 +108,22 @@ PlasmaCore.Dialog {
     // appletInterface as the Tab Launcher has it: without, the model stayed
     // empty and Programs opened nothing (VM, 20.10.2026).
     readonly property var categories: Kicker.AppsModel { flat: false; sorted: true; autoPopulate: true; showSeparators: false; appletInterface: Plasmoid }
+    // A part of the application menu is looked up by its path of rows, never
+    // kept: every refresh of categories (each change to the application
+    // database) deletes all its submodels. A kept submodel went dead under
+    // the open menu, its box shrank to a line and every click fell through
+    // and closed the menu (VM, 20.10.2026: two programs with different
+    // menu settings rebuilt the database every second).
+    property int appsGeneration: 0
+    readonly property var appsWatch: Connections {
+        target: menu.categories
+        function onModelReset() { menu.appsGeneration++; }
+    }
+    function appsAt(path) {
+        let m = categories;
+        for (let i = 0; m && i < path.length; i++) m = m.modelForRow(path[i]);
+        return m;
+    }
     // Programs and System Settings, the desktop's objects, then the drives.
     readonly property var rootRows: {
         const rows = [
@@ -139,7 +160,9 @@ PlasmaCore.Dialog {
         MenuBox {
             id: rootBox
             x: Math.min(menu.anchorX, frame.width - width)
-            y: 0
+            // Opened from a panel along the bottom (the taskbar), the menu
+            // stands on the panel and grows upwards.
+            y: menu.location === PlasmaCore.Types.BottomEdge ? frame.height - height : 0
             width: menu.columnWidth
             rows: menu.rootRows
             level: 0
@@ -153,14 +176,14 @@ PlasmaCore.Dialog {
                 required property var modelData
                 required property int index
                 x: Math.min(rootBox.x + (index + 1) * (menu.columnWidth - 2), frame.width - menu.columnWidth)
-                sourceComponent: modelData.apps ? appsLevel : folderLevel
+                sourceComponent: modelData.path ? appsLevel : folderLevel
                 Component {
                     id: folderLevel
                     FolderBox { level: level.index + 1; url: level.modelData.url; rowTop: level.modelData.top }
                 }
                 Component {
                     id: appsLevel
-                    AppsBox { level: level.index + 1; appsModel: level.modelData.apps; rowTop: level.modelData.top }
+                    AppsBox { level: level.index + 1; path: level.modelData.path; rowTop: level.modelData.top }
                 }
             }
         }
@@ -173,7 +196,11 @@ PlasmaCore.Dialog {
         property var rows: []
         property int level: 0
         kind: "frame"
-        height: Math.min(list.contentHeight + 6, frame.height - y)
+        // Standing on a bottom panel, y follows the height: the cap must
+        // not follow y back, or the box collapsed to a line.
+        // Deeper levels move up to fit (their y is clamped), so only the
+        // root box opening downwards is capped by where it starts.
+        height: Math.min(list.contentHeight + 6, level === 0 && menu.location !== PlasmaCore.Types.BottomEdge ? frame.height - y : frame.height)
         MouseArea { anchors.fill: parent }   // a click on the frame stays in the menu
         ListView {
             id: list
@@ -192,7 +219,7 @@ PlasmaCore.Dialog {
                 cascade: modelData.isDir === true || modelData.apps !== undefined
                 highlighted: menu.current[box.level] === index
                 onHovered: menu.hover(box.level, index,
-                                      modelData.apps ? {apps: modelData.apps} : modelData.isDir ? {url: modelData.url} : null,
+                                      modelData.apps ? () => ({path: []}) : modelData.isDir ? () => ({url: modelData.url}) : null,
                                       box.y + y - list.contentY)
                 onActivated: menu.activate(modelData)
             }
@@ -221,13 +248,14 @@ PlasmaCore.Dialog {
     // A part of the application menu: categories cascade, programs start.
     component AppsBox: Bevel {
         id: appsBox
-        property var appsModel: null
+        property var path: []
+        readonly property var appsModel: { menu.appsGeneration; return menu.appsAt(path); }
         property int level: 1
         property real rowTop: 0
         kind: "frame"
         y: Math.max(0, Math.min(rowTop, frame.height - height))
         width: menu.columnWidth
-        height: Math.min(appsList.contentHeight + 6, frame.height - y)
+        height: Math.min(appsList.contentHeight + 6, frame.height)
         MouseArea { anchors.fill: parent }
         ListView {
             id: appsList
@@ -245,7 +273,7 @@ PlasmaCore.Dialog {
                 cascade: model.hasChildren === true
                 highlighted: menu.current[appsBox.level] === index
                 onHovered: menu.hover(appsBox.level, index,
-                                      model.hasChildren ? {apps: appsBox.appsModel.modelForRow(index)} : null,
+                                      model.hasChildren ? () => ({path: appsBox.path.concat([index])}) : null,
                                       appsBox.y + y - appsList.contentY)
                 onActivated: if (!model.hasChildren) { appsBox.appsModel.trigger(index, "", null); menu.close(); }
             }

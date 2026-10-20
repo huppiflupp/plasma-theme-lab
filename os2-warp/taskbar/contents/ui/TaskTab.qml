@@ -10,6 +10,8 @@ Item {
     id: tab
     property bool active: false
     property bool filled: false
+    // Always lit, with the concept's violet glow (the Start button).
+    property bool accent: false
     property string tip: ""
     property string text: ""
     default property alias content: holder.data
@@ -36,14 +38,15 @@ Item {
     Item {
         anchors.fill: parent
         visible: tab.neon
-        // A soft glow behind the lit button.
+        readonly property bool lit: tab.active || tab.filled || tab.accent
+        // A soft glow behind the lit button: violet for Start, cyan else.
         Rectangle {
-            visible: tab.active || tab.filled
+            visible: parent.lit
             anchors.fill: parent; anchors.margins: -3
             radius: 4
             color: "transparent"
             border.width: 3
-            border.color: Qt.rgba(0.28, 0.81, 1, 0.18)
+            border.color: tab.accent ? Qt.rgba(0.48, 0.30, 1, 0.45) : Qt.rgba(0.28, 0.81, 1, 0.22)
         }
         Rectangle {
             anchors.fill: parent
@@ -53,7 +56,26 @@ Item {
                 GradientStop { position: 1.0; color: tab.filled ? "#1a52d6" : tab.active ? "#0c1d4a" : "#080f2a" }
             }
             border.width: 1
-            border.color: tab.active || tab.filled ? "#48cffe" : Qt.rgba(0.45, 0.58, 1, 0.32)
+            border.color: tab.active || tab.filled || tab.accent ? "#48cffe" : Qt.rgba(0.45, 0.58, 1, 0.32)
+        }
+        // The concept's violet-pink light in the right corners: strong on
+        // lit buttons, a hint on the others (lost when the buttons stopped
+        // using Bevel's NeonFrame, the user's remark 21.10.2026).
+        NeonFrame {
+            anchors.fill: parent
+            opacity: parent.lit ? 0.9 : 0.35
+            light: "#48cffe"; dark: "#7a4dff"; accent: "#ff4fd8"
+        }
+        // Start: a violet glow along the left edge, as in the concept.
+        Rectangle {
+            visible: tab.accent
+            anchors { left: parent.left; top: parent.top; bottom: parent.bottom; margins: 1 }
+            width: parent.width * 0.35
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: Qt.rgba(0.48, 0.30, 1, 0.40) }
+                GradientStop { position: 1.0; color: Qt.rgba(0.48, 0.30, 1, 0.0) }
+            }
         }
         // The concept's line of light under the active window.
         Rectangle {
