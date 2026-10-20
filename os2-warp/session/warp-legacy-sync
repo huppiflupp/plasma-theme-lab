@@ -14,8 +14,8 @@ XDG_CONFIG_DIRS=$(printf '%s' "${XDG_CONFIG_DIRS:-/etc/xdg}" | tr ':' '\n' | gre
 export XDG_CONFIG_DIRS
 lnf=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
 case "$lnf" in
-    org.warplegacy.neon.desktop) kvantum=WarpLegacyNeon ;;
-    org.warplegacy.desktop)      kvantum=WarpLegacy ;;
+    org.warplegacy.neon.desktop) kvantum=WarpLegacyNeon; konsole="Warp Legacy Neon" ;;
+    org.warplegacy.desktop)      kvantum=WarpLegacy; konsole="Warp Legacy" ;;
     *) exit 0 ;;
 esac
 conf="${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/kvantum.kvconfig"
@@ -27,5 +27,10 @@ for pair in "KDE widgetStyle" "Icons Theme"; do
     value=$(kreadconfig6 --file "$defaults" --group "$1" --key "$2")
     [ -n "$value" ] && kwriteconfig6 --file kdeglobals --group "$1" --key "$2" "$value"
 done
+# Konsole's profile of the variant, unless the user chose one of their own.
+case "$(kreadconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile)" in
+    ""|"Warp Legacy.profile"|"Warp Legacy Neon.profile")
+        kwriteconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile "$konsole.profile" ;;
+esac
 kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft M
 kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight XIA

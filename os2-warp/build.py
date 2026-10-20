@@ -263,6 +263,49 @@ def fonts():
     shutil.copytree(ROOT / "fonts/IBMPlex", OUT / "fonts/WarpLegacy", dirs_exist_ok=True)
 
 
+# Konsole after the concept's "Command Prompt" (reference/neon-2026.png):
+# near-black navy, cyan text, white for what stands out. Classic: OS/2's
+# command window, black with light grey. The 16 ANSI colours keep their
+# meaning (ls, git), shifted into each variant's world.
+KONSOLE = {
+    "": dict(name="Warp Legacy", background="#000000", foreground="#c0c0c0", intense="#ffffff",
+             colours=["#000000", "#a80000", "#00a800", "#a85400", "#2400a8", "#a800a8", "#00a8a8", "#c0c0c0",
+                      "#545454", "#fc5454", "#54fc54", "#fcfc54", "#5454fc", "#fc54fc", "#54fcfc", "#ffffff"]),
+    "neon": dict(name="Warp Legacy Neon", background="#02060f", foreground="#3ad0ff", intense="#e8f6ff",
+                 colours=["#02060f", "#ff5a7a", "#3ddc97", "#ffb347", "#3a7bff", "#c03aff", "#3ad0ff", "#9fd8ee",
+                          "#3a4a78", "#ff8aa2", "#7cf0bd", "#ffd08a", "#7aa6ff", "#ff4fd8", "#9fe9ff", "#e8f6ff"]),
+}
+
+
+def konsole(v):
+    k = KONSOLE[v["key"]]
+    scheme = ids(v)["scheme"]
+    lines = ["[General]", f"Description={k['name']}", "Opacity=1", "Blur=false", "Wallpaper=",
+             "", "[Background]", f"Color={rgb(k['background'])}", "", "[BackgroundIntense]", f"Color={rgb(k['background'])}",
+             "", "[Foreground]", f"Color={rgb(k['foreground'])}", "", "[ForegroundIntense]", f"Color={rgb(k['intense'])}"]
+    for i, c in enumerate(k["colours"][:8]):
+        lines += ["", f"[Color{i}]", f"Color={rgb(c)}", "", f"[Color{i}Intense]", f"Color={rgb(k['colours'][i + 8])}",
+                  "", f"[Color{i}Faint]", f"Color={rgb(c)}"]
+    write(f"konsole/{scheme}.colorscheme", "\n".join(lines) + "\n")
+    write(f"konsole/{k['name']}.profile", f"""[General]
+Name={k['name']}
+Parent=FALLBACK/
+TerminalMargin=8
+
+[Appearance]
+ColorScheme={scheme}
+Font={MONO_FONT.replace(',10,', ',11,')}
+UseFontLineChararacters=true
+
+[Cursor Options]
+CursorShape=2
+
+[Scrolling]
+HistoryMode=1
+HistorySize=10000
+""")
+
+
 def session():
     """warp-legacy-sync at login (session/): the Kvantum theme and the
     button order follow the variant chosen in System Settings."""
@@ -357,6 +400,7 @@ def main():
         kvantum(v)
         lookandfeel(v)
         layout(v)
+        konsole(v)
     pictures()
     from i18n import compile_translations
     compile_translations(OUT)

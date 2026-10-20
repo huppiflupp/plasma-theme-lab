@@ -70,6 +70,7 @@ kwinrc	org.kde.kdecoration2	theme
 kwinrc	org.kde.kdecoration2	ButtonsOnLeft
 kwinrc	org.kde.kdecoration2	ButtonsOnRight
 kwinrc	org.kde.kdecoration2	BorderSize
+konsolerc	Desktop Entry	DefaultProfile
 plasmarc	Theme	name
 kscreenlockerrc	Greeter	WallpaperPlugin
 kscreenlockerrc	Greeter>Wallpaper>org.kde.image>General	Image"
@@ -95,8 +96,8 @@ if [ -n "$APPLY" ]; then
         cp -a "$CONFIG/plasmashellrc" "$STATE/plasmashellrc.before" 2>/dev/null || true
     fi
     case "$VARIANT" in
-        "")   LNF=org.warplegacy.desktop;      KVANTUM=WarpLegacy;     ICONS=WarpLegacy ;;
-        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpLegacyNeon; ICONS=WarpLegacyNeon2026 ;;
+        "")   LNF=org.warplegacy.desktop;      KVANTUM=WarpLegacy;     ICONS=WarpLegacy;         KONSOLE="Warp Legacy" ;;
+        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpLegacyNeon; ICONS=WarpLegacyNeon2026; KONSOLE="Warp Legacy Neon" ;;
     esac
     plasma-apply-lookandfeel --apply "$LNF" $LAYOUT
     # The global theme only carries the decoration's library and theme into
@@ -114,6 +115,8 @@ if [ -n "$APPLY" ]; then
     # The same for the icon theme: programs kept Breeze although kdedefaults
     # named Warp Legacy Neon's.
     kwriteconfig6 --file kdeglobals --group Icons --key Theme "$ICONS"
+    # Konsole after the concept's command prompt (build.py, KONSOLE).
+    kwriteconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile "$KONSOLE.profile"
     # The lock screen shows the neon tubes in both variants: OS/2's Lockup
     # was the same neon picture whatever the desktop looked like.
     kwriteconfig6 --file kscreenlockerrc --group Greeter --key WallpaperPlugin org.kde.image
