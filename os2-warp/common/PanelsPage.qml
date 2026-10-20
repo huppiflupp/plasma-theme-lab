@@ -24,6 +24,8 @@ KCM.SimpleKCM {
     property var cfg_showWorkspacesDefault
     property var cfg_showGaugesDefault
     property var cfg_showClockDefault
+    property var cfg_layoutDefault
+    property var cfg_mottoDefault
 
     readonly property var panels: [
         {plugin: "org.warplegacy.warpbar", name: i18nd("warp-legacy", "Warp Bar"), where: i18nd("warp-legacy", "along the top: desktop menu, window list, tray, clock"),

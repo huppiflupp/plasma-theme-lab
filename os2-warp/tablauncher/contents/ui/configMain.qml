@@ -20,6 +20,8 @@ KCM.SimpleKCM {
     property var cfg_showWorkspacesDefault
     property var cfg_showGaugesDefault
     property var cfg_showClockDefault
+    property var cfg_layoutDefault
+    property var cfg_mottoDefault
     property string cfg_main
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing

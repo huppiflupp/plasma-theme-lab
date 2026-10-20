@@ -263,3 +263,21 @@ msgstr "Plasma konnte nicht gefragt werden, welche Leisten es gibt."
 
 msgid "Removing the panel whose settings are open closes this window. The whole layout again: System Settings › Global Theme, with “Use desktop layout from theme”."
 msgstr "Entfernt man die Leiste, deren Einstellungen gerade offen sind, schließt sich dieses Fenster. Das ganze Layout wieder: Systemeinstellungen › Globales Design, mit „Arbeitsflächen-Layout des Designs verwenden“."
+
+msgid "Layout"
+msgstr "Darstellung"
+
+msgid "Strip down the right edge (Object Desktop)"
+msgstr "Leiste am rechten Rand (Object Desktop)"
+
+msgid "Compact box at the top right (Neon concept)"
+msgstr "Kompakter Kasten oben rechts (Neon-Konzept)"
+
+msgid "Motto under the box (empty: none)"
+msgstr "Motto unter dem Kasten (leer: keins)"
+
+msgid "In the strip:"
+msgstr "In der Leiste:"
+
+msgid "Same spirit.\nNew possibilities."
+msgstr "Gleicher Geist.\nNeue Möglichkeiten."

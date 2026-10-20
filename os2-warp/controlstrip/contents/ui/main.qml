@@ -12,7 +12,8 @@ import "launch.js" as Launch
 // a panel on the right edge, top to bottom: the workspaces in miniature
 // (wallpaper and window outlines, the number bottom right, a red bar under
 // the current one), a launch list, gauges for swap and every mounted file
-// system, a seven-segment clock.
+// system, a seven-segment clock. Or, as layout "compact", the box of the
+// user's Neon concept (CompactBox.qml) at the top right.
 PlasmoidItem {
     id: root
     preferredRepresentation: fullRepresentation
@@ -39,6 +40,33 @@ PlasmoidItem {
     // Swap and the mounted file systems, every ten seconds; one row per
     // device (btrfs mounts the same one at / and /home).
     property var swap: ({total: 0, used: 0})
+    property var memory: ({total: 0, available: 0})
+    readonly property real memoryPart: memory.total ? 1 - memory.available / memory.total : 0
+    readonly property real rootPart: {
+        const d = disks.find(x => x.mount === "/");
+        return d && d.total ? 1 - d.free / d.total : 0;
+    }
+    // The processor's load from /proc/stat every two seconds, and the last
+    // minute of it for the compact box's curve.
+    property var cpuLast: null
+    property real cpu: 0
+    property var cpuHistory: []
+    P5Support.DataSource {
+        engine: "executable"
+        interval: 2000
+        connectedSources: root.compact ? ["head -1 /proc/stat"] : []
+        onNewData: function(sourceName, data) {
+            const f = String(data.stdout || "").trim().split(/\s+/).slice(1).map(Number);
+            if (f.length < 4) return;
+            const idle = f[3] + (f[4] || 0), total = f.reduce((a, b) => a + b, 0);
+            if (root.cpuLast) {
+                const dt = total - root.cpuLast.total;
+                root.cpu = dt > 0 ? Math.max(0, Math.min(1, 1 - (idle - root.cpuLast.idle) / dt)) : 0;
+                root.cpuHistory = root.cpuHistory.concat([root.cpu]).slice(-30);
+            }
+            root.cpuLast = {idle: idle, total: total};
+        }
+    }
     property var disks: []
     // The wallpaper of the desktop, for the workspace miniatures: a picture
     // path, or a package whose first image is taken. Until one is chosen
@@ -65,6 +93,11 @@ PlasmoidItem {
     function readGauges(text) {
         const parts = text.split("---");
         const swapLine = (parts[0] || "").split("\n").find(l => l.indexOf("Swap:") === 0);
+        const memLine = (parts[0] || "").split("\n").find(l => l.indexOf("Mem:") === 0);
+        if (memLine) {
+            const m = memLine.trim().split(/\s+/);
+            memory = {total: Number(m[1]) || 0, available: Number(m[6]) || 0};
+        }
         if (swapLine) {
             const f = swapLine.trim().split(/\s+/);
             swap = {total: Number(f[1]) || 0, used: Number(f[2]) || 0};
@@ -100,12 +133,41 @@ PlasmoidItem {
         sortMode: TaskManager.TasksModel.SortVirtualDesktop
     }
 
+    readonly property bool compact: Plasmoid.configuration.layout === "compact"
+    // The panel follows the layout: the strip fills the right edge, the
+    // compact box floats at its top, as long as its content.
+    onCompactChanged: shapePanel()
+    function shapePanel() {
+        const shape = compact
+            ? "p.lengthMode = 'fit'; p.alignment = 'left'; p.floating = true; p.height = 200;"
+            : "p.lengthMode = 'fill'; p.floating = false; p.height = 130;";
+        const script = "panels().forEach(function(p) { if (p.widgets().some(function(w) { return w.id == " + Plasmoid.id + "; })) { " + shape + " } });";
+        runner.connectSource("dbus-send --session --print-reply --type=method_call --dest=org.kde.plasmashell /PlasmaShell "
+            + "org.kde.PlasmaShell.evaluateScript string:" + Launch.quote(script));
+    }
+
     fullRepresentation: Item {
+        Layout.minimumWidth: root.compact ? 190 : 110
+        Layout.preferredWidth: root.compact ? 200 : 130
+        Layout.preferredHeight: root.compact ? box.implicitHeight : -1
+        Layout.fillHeight: !root.compact
+        CompactBox {
+            id: box
+            visible: root.compact
+            anchors.fill: parent
+            root: root
+        }
+        Loader {
+            anchors.fill: parent
+            active: !root.compact
+            sourceComponent: stripView
+        }
+    }
+    Component {
+        id: stripView
+    Item {
         id: strip
         readonly property int inner: width - 8
-        Layout.minimumWidth: 110
-        Layout.preferredWidth: 130
-        Layout.fillHeight: true
 
         ColumnLayout {
             anchors.fill: parent
@@ -272,4 +334,5 @@ PlasmoidItem {
             }
         }
     }
+}
 }

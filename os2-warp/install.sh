@@ -40,11 +40,16 @@ mkdir -p "$STATE"
 if [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ] && [ ! -f "$STATE/kvantum.kvconfig.before" ]; then
     cp -a "$CONFIG/Kvantum/kvantum.kvconfig" "$STATE/kvantum.kvconfig.before"
 fi
+# --remove-destination: an existing file is unlinked, not overwritten in
+# place. A running plasmashell has the translation catalogue mapped; cp
+# rewrote it under it and the next i18nd() crashed in gettext (SIGSEGV in
+# _nl_find_msg, VM, 20.10.2026). Unlinked, the running process keeps the old
+# copy until it lets go.
 mkdir -p "$DATA"
 for entry in "$HERE"/build/*; do
-    [ "$(basename "$entry")" = config ] || cp -a "$entry" "$DATA/"
+    [ "$(basename "$entry")" = config ] || cp -a --remove-destination "$entry" "$DATA/"
 done
-mkdir -p "$CONFIG" && cp -a "$HERE/build/config/." "$CONFIG/"
+mkdir -p "$CONFIG" && cp -a --remove-destination "$HERE/build/config/." "$CONFIG/"
 echo "Installed $(cat "$STATE/files" "$STATE/config-files" | wc -l) files"
 if ! command -v kvantummanager >/dev/null 2>&1; then
     echo "Note: Kvantum is not installed; programs keep their own style (package: kvantum)." >&2

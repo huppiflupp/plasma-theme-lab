@@ -12,5 +12,11 @@
     <entry name="showWorkspaces" type="Bool"><default>true</default></entry>
     <entry name="showGauges" type="Bool"><default>true</default></entry>
     <entry name="showClock" type="Bool"><default>true</default></entry>
+    <!-- "strip": Object Desktop's strip down the right edge; "compact": the
+         concept's box (reference/neon-2026.png) at the top right -->
+    <entry name="layout" type="String"><default>strip</default></entry>
+    <!-- the compact box's motto; empty: none -->
+    <entry name="motto" type="String"><default>Same spirit.
+New possibilities.</default></entry>
   </group>
 </kcfg>
