@@ -147,8 +147,9 @@ PlasmoidItem {
     }
 
     fullRepresentation: Item {
-        Layout.minimumWidth: root.compact ? 190 : 110
-        Layout.preferredWidth: root.compact ? 200 : 130
+        // The concept's box is about 165 px wide at 1280 px of screen.
+        Layout.minimumWidth: root.compact ? 160 : 110
+        Layout.preferredWidth: root.compact ? 168 : 130
         Layout.preferredHeight: root.compact ? box.implicitHeight : -1
         Layout.fillHeight: !root.compact
         CompactBox {

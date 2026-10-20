@@ -65,7 +65,7 @@ PlasmoidItem {
             anchors.margins: 4
             spacing: 6
 
-            PadButton {
+            TaskTab {
                 id: start
                 Component.onCompleted: root.startButton = start
                 Layout.preferredHeight: bar.side
@@ -88,22 +88,17 @@ PlasmoidItem {
                 spacing: 1
                 Repeater {
                     model: desktops.desktopIds
-                    PadButton {
+                    TaskTab {
                         id: ws
                         required property var modelData
                         required property int index
                         readonly property bool current: String(modelData) === String(desktops.currentDesktop)
                         width: bar.side; height: bar.side
-                        active: current
+                        filled: current
+                        active: current && !neon
                         text: String(index + 1)
                         tip: desktops.desktopNames[index] || ""
                         onClicked: root.run(Launch.DBUS + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
-                        Rectangle {
-                            visible: ws.current
-                            anchors.fill: parent; anchors.margins: 2
-                            color: Kirigami.Theme.highlightColor
-                            opacity: 0.55
-                        }
                     }
                 }
             }
@@ -119,7 +114,7 @@ PlasmoidItem {
                 interactive: false
                 model: tasks
                 readonly property real each: count ? Math.min(260, (width - (count - 1) * spacing) / count) : 0
-                delegate: PadButton {
+                delegate: TaskTab {
                     id: task
                     required property var model
                     required property int index
@@ -141,18 +136,9 @@ PlasmoidItem {
                             elide: Text.ElideRight
                             color: Kirigami.Theme.textColor
                             opacity: task.model.IsMinimized ? 0.6 : 1
-                            font: Kirigami.Theme.defaultFont
-                        }
-                    }
-                    // The concept's lit edge under the active window.
-                    Rectangle {
-                        visible: task.active
-                        anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: 2 }
-                        height: 2
-                        gradient: Gradient {
-                            orientation: Gradient.Horizontal
-                            GradientStop { position: 0.0; color: "#48cffe" }
-                            GradientStop { position: 1.0; color: "#ff4fd8" }
+                            font.family: Kirigami.Theme.defaultFont.family
+                            font.pointSize: Kirigami.Theme.defaultFont.pointSize
+                            font.bold: task.active
                         }
                     }
                 }

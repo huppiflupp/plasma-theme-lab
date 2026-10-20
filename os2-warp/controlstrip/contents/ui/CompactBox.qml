@@ -9,11 +9,16 @@ import org.kde.kirigami as Kirigami
 // memory and disk with thin bars, a curve of the processor's last minute,
 // a motto. Our mark is "Warp Legacy"; the concept's OS/2 word mark is
 // IBM's (DESIGN.md §1).
-Bevel {
+//
+// No frame of its own: the panel's background is the frame. Drawn as a
+// Bevel the box had a second frame inside the panel's (the user's remark,
+// compared with the concept, 21.10.2026).
+Item {
     id: box
     required property var root
-    kind: "frame"
-    implicitHeight: column.implicitHeight + 24
+    implicitHeight: column.implicitHeight + 16
+    readonly property bool neon: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
+    readonly property color dark: neon ? "#7a4dff" : "#808080"
     readonly property color bright: box.neon ? "#cfeeff" : Kirigami.Theme.textColor
     readonly property color cyan: box.neon ? "#3ad0ff" : Kirigami.Theme.linkColor
     readonly property color lavender: box.neon ? "#e2b8ff" : Kirigami.Theme.highlightColor
@@ -36,12 +41,12 @@ Bevel {
         property string name
         property real part
         spacing: 6
-        Text { text: meter.name; color: box.cyan; font.pixelSize: 15; Layout.preferredWidth: 40 }
+        Text { text: meter.name; color: box.cyan; font.pixelSize: 13; Layout.preferredWidth: 32 }
         Text {
             text: Math.round(meter.part * 100) + "%"
-            color: box.cyan; font.pixelSize: 15
+            color: box.cyan; font.pixelSize: 13
             horizontalAlignment: Text.AlignRight
-            Layout.preferredWidth: 44
+            Layout.preferredWidth: 36
         }
         Rectangle {
             Layout.fillWidth: true
@@ -59,16 +64,16 @@ Bevel {
 
     ColumnLayout {
         id: column
-        anchors { left: parent.left; right: parent.right; top: parent.top; margins: 12 }
-        spacing: 8
+        anchors { left: parent.left; right: parent.right; top: parent.top; margins: 8 }
+        spacing: 6
 
         // The mark: a globe behind "Warp" and the year.
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: 74
+            Layout.preferredHeight: 60
             Kirigami.Icon {
                 anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                width: 64; height: 64
+                width: 50; height: 50
                 source: "internet-web-browser"
                 opacity: 0.85
             }
@@ -77,7 +82,7 @@ Bevel {
                 y: 2
                 text: "WARP"
                 font.family: Kirigami.Theme.defaultFont.family
-                font.pixelSize: 34; font.bold: true; font.italic: true
+                font.pixelSize: 28; font.bold: true; font.italic: true
                 color: box.cyan
                 style: box.neon ? Text.Outline : Text.Normal
                 styleColor: Qt.rgba(0.16, 0.36, 1, 0.45)
@@ -87,10 +92,10 @@ Bevel {
             // Roman is not installed, which is the free one we rely on.
             Text {
                 anchors.top: word.bottom; anchors.topMargin: -8
-                x: 22
+                x: 18
                 text: "Legacy"
                 font.family: "Times New Roman"
-                font.pixelSize: 30; font.bold: true; font.italic: true
+                font.pixelSize: 24; font.bold: true; font.italic: true
                 color: box.lavender
             }
         }
@@ -98,12 +103,12 @@ Bevel {
         Text {
             text: Qt.formatTime(box.root.now, "hh:mm")
             color: box.bright
-            font.pixelSize: 36; font.weight: Font.Light
+            font.pixelSize: 30; font.weight: Font.Light
         }
         Text {
             Layout.topMargin: -6
             text: Qt.formatDate(box.root.now, "dd.MM.yyyy")
-            color: box.cyan; font.pixelSize: 17
+            color: box.cyan; font.pixelSize: 15
         }
         Text {
             Layout.topMargin: -6
@@ -144,7 +149,7 @@ Bevel {
             Layout.topMargin: 4
             text: box.root.tr(Plasmoid.configuration.motto)
             color: box.cyan
-            font.pixelSize: 17; font.italic: true
+            font.pixelSize: 14; font.italic: true
             wrapMode: Text.WordWrap
         }
     }
