@@ -214,6 +214,7 @@ Downloads/OS2): the same building blocks as the classic variant, at night.
 | Text | `#e8f0ff`, secondary `#9fb4e0` | |
 | Selection | `#1a6fe0`, text white | active workspace cell, active task |
 | Accent text, meters | `#3ad0ff` | clock, CPU/RAM bars |
+| Pink accent | `#ff4fd8` | bottom right corners of the frames, the streak under the title (Neon frame: top/left cyan, bottom/right cyan → violet → pink; the title line cyan → pink → violet, fading out) |
 
 So OS/2's rule (light top left, dark bottom right) stays: the "light" is
 cyan, the "dark" violet, and both glow. Buttons in the title bar are

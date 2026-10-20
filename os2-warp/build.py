@@ -61,7 +61,8 @@ NEON = dict(surface="#0c1438", window="#060b24", panel="#0a1232",
 # id suffix, display name, palette, decoration style, description
 VARIANTS = [
     dict(key="", name="Warp Legacy", P=CLASSIC,
-         style=dict(light="#ffffff", dark="#808080", ink="#000000", glyph="#000000", glow="#000000", glowWidth=0),
+         style=dict(light="#ffffff", dark="#808080", ink="#000000", glyph="#000000", glow="#000000",
+                    accent="#00000000", glowWidth=0),
          wallpaper=("org.warplegacy.teal", "Warp Teal", "Warp 3's plain teal desktop"),
          picture="warp4-wirbel-violett",
          # Named, not left out: a global theme only writes the keys it
@@ -69,7 +70,9 @@ VARIANTS = [
          icons="breeze",
          description="OS/2 Warp 4: grey 3D surfaces, blue title bars"),
     dict(key="neon", name="Warp Legacy Neon", P=NEON,
-         style=dict(light="#48cffe", dark="#7a4dff", ink="#020617", glyph="#ffffff", glow="#2a5cff", glowWidth=8),
+         style=dict(light="#48cffe", dark="#7a4dff", ink="#020617", glyph="#ffffff", glow="#2a5cff",
+                    # the pink towards the frames' bottom right corner (§9a)
+                    accent="#ff4fd8", glowWidth=8),
          wallpaper=("org.warplegacy.neon", "Warp Night", "Deep navy for the Neon variant"),
          picture="neon-horizont", icons="WarpLegacyNeon2026",
          description="OS/2 Warp at night: navy surfaces, cyan and violet glowing edges"),
@@ -171,7 +174,7 @@ def decoration(v):
     base = f"kwin/decorations/{name}/"
     shutil.copytree(ROOT / "decoration/contents", OUT / base / "contents", dirs_exist_ok=True)
     s = v["style"]
-    props = "\n".join(f'    readonly property color {k}: "{s[k]}"' for k in ("light", "dark", "ink", "glyph", "glow"))
+    props = "\n".join(f'    readonly property color {k}: "{s[k]}"' for k in ("light", "dark", "ink", "glyph", "glow", "accent"))
     write(base + "contents/ui/Style.qml",
           f"import QtQuick\n\n// Written by build.py for {v['name']}.\nQtObject {{\n{props}\n"
           f"    readonly property int glowWidth: {s['glowWidth']}\n}}\n")

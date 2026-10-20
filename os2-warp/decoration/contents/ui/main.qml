@@ -94,9 +94,24 @@ Decoration {
         anchors.fill: parent
         color: root.surface
     }
+    // Neon (an accent colour in Style.qml): gradient edges with pink towards
+    // the bottom right instead of OS/2's two flat colours.
+    readonly property bool neon: style.accent.a > 0
+    NeonFrame {
+        anchors.fill: parent
+        visible: area.neon && !root.maximized && root.edge > 0
+        light: style.light; dark: style.dark; accent: style.accent
+        NeonFrame {
+            x: root.edge - 1; y: root.edge - 1
+            width: parent.width - 2 * x; height: parent.height - 2 * y
+            visible: root.edge > 1
+            opacity: 0.6
+            light: style.light; dark: style.dark; accent: style.accent
+        }
+    }
     Bevel {
         anchors.fill: parent
-        visible: !root.maximized && root.edge > 0
+        visible: !area.neon && !root.maximized && root.edge > 0
         kind: "frame"
         light: style.light; dark: style.dark; ink: style.ink
         color: root.surface
@@ -178,11 +193,22 @@ Decoration {
         }
         Component.onCompleted: decoration.installTitleItem(titleRow)
     }
-    // The line between the title row and the window.
+    // The line between the title row and the window; in Neon a streak of
+    // light from cyan through pink, fading out to the right as the
+    // concept's (reference/neon-2026.png, "Workplace Shell - Desktop").
     Rectangle {
         x: titleRow.x; y: titleRow.y + titleRow.height
         width: titleRow.width; height: 1
         color: style.dark
+        gradient: area.neon ? streak : null
+        Gradient {
+            id: streak
+            orientation: Gradient.Horizontal
+            GradientStop { position: 0.0; color: style.light }
+            GradientStop { position: 0.35; color: style.accent }
+            GradientStop { position: 0.7; color: style.dark }
+            GradientStop { position: 1.0; color: Qt.rgba(style.dark.r, style.dark.g, style.dark.b, 0.25) }
+        }
     }
     }
 
