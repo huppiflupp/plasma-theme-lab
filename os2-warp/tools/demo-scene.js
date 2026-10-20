@@ -5,20 +5,29 @@
     // The concept's desktop is 1536 wide and 955 high (its taskbar below).
     var full = workspace.clientArea(KWin.FullScreenArea, workspace.activeScreen, workspace.currentDesktop);
     var work = workspace.clientArea(KWin.MaximizeArea, workspace.activeScreen, workspace.currentDesktop);
-    // The right panel (control strip) reserves a strut over the full
-    // height, so take the width from the screen, the height from the work area.
+    // The compact control strip reserves a strut over the full height,
+    // so take the width from the screen, the height from the work area;
+    // only a dock that really fills the right edge (the full strip) moves
+    // the right end in. The left end stays clear of the desktop objects.
     var top = work.y, height = work.y + work.height - top;
-    var sx = full.width / 1536, sy = height / 955;
+    var sy = height / 955;
     var gap = 8;
 
-    // Docks that do not span the screen (the control strip): keep clear.
+    // Docks that do not span the screen (the compact box): keep clear.
     var obstacles = [];
+    var right = full.x + full.width;
     var all = workspace.windowList();
     for (var i = 0; i < all.length; i++) {
-        var d = all[i];
-        if (d.dock && d.frameGeometry.width < full.width / 2 && d.frameGeometry.height < full.height / 2)
-            obstacles.push(d.frameGeometry);
+        var d = all[i], g = d.frameGeometry;
+        if (!d.dock) continue;
+        if (g.height >= full.height / 2 && g.width < full.width / 2 && g.x > full.x + full.width / 2)
+            right = Math.min(right, g.x - gap);
+        else if (g.width < full.width / 2 && g.height < full.height / 2)
+            obstacles.push(g);
     }
+    // The concept's windows run from x 125 to 1505 of its 1536.
+    var left = full.x + 125 * full.width / 1536;
+    var sx = (Math.min(right, full.x + 1505 * full.width / 1536) - left) / (1505 - 125);
 
     function cls(w) { return String(w.resourceClass).toLowerCase(); }
     function isDolphin(w) { return /dolphin/.test(cls(w)); }
@@ -57,7 +66,7 @@
             if (w.minimized) w.minimized = false;
             w.setMaximize(false, false);
             w.frameGeometry = avoid({
-                x: full.x + Math.round(pl[1] * sx), y: top + Math.round(pl[2] * sy),
+                x: Math.round(left + (pl[1] - 125) * sx), y: top + Math.round(pl[2] * sy),
                 width: Math.round(pl[3] * sx), height: Math.round(pl[4] * sy)
             });
             break;

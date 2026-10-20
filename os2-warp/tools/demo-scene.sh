@@ -4,12 +4,92 @@
 # folder, and the windows where the concept has them. Run inside the
 # Plasma session (the VM), after install.sh --apply. Adds files under the
 # desktop folder and ~/Projekte, sets the desktop's icon layout (restarts
-# plasmashell for that); the windows are ordinary ones.
+# plasmashell for that); the windows are ordinary ones. With --panels it
+# first replaces all panels by one arrangement of Warp Legacy's (a demo:
+# the old panels are not kept).
 #
 #   ./demo-scene.sh            objects and windows
 #   ./demo-scene.sh --objects  only the desktop objects
+#   ./demo-scene.sh --panels concept|classic|tabs [--objects]
+#       concept  the Neon concept: Warp Taskbar at the bottom (32 px),
+#                Control Strip as the compact box at the top right
+#       classic  OS/2 Warp 4 with Object Desktop: Warp Bar along the top
+#                (tray, clock), LaunchPad floating at the bottom centre,
+#                Control Strip as the full strip on the right
+#       tabs     as classic, plus the Tab Launcher at the bottom left
 set -euo pipefail
-mode=${1:-}
+mode= panels=
+while [ $# -gt 0 ]; do
+    case $1 in
+        --objects) mode=--objects ;;
+        --panels) panels=${2:-}; shift ;;
+        --panels=*) panels=${1#*=} ;;
+        *) echo "usage: $0 [--panels concept|classic|tabs] [--objects]" >&2; exit 2 ;;
+    esac
+    shift
+done
+case $panels in
+    ''|concept|classic|tabs) ;;
+    *) echo "unknown arrangement: $panels (concept, classic, tabs)" >&2; exit 2 ;;
+esac
+shell_up() {
+    for _ in $(seq 30); do
+        dbus-send --session --print-reply --dest=org.kde.plasmashell /PlasmaShell \
+            org.freedesktop.DBus.Peer.Ping >/dev/null 2>&1 && return 0
+        sleep 0.5
+    done
+    return 1
+}
+
+# The panels, as the page "Panels" of the plasmoids' settings adds them
+# (common/PanelsPage.qml); the concept's taskbar at the user's 32 px, its
+# compact box as the Control Strip shapes it itself (controlstrip main.qml).
+if [ -n "$panels" ]; then
+    js="panels().forEach(function(p) { p.remove(); });
+function strip(layout) {
+    var p = new Panel; p.screen = 0; p.location = 'right'; p.hiding = 'none';
+    var w = p.addWidget('org.warplegacy.controlstrip');
+    w.currentConfigGroup = ['General']; w.writeConfig('layout', layout);
+    if (layout == 'compact') { p.lengthMode = 'fit'; p.alignment = 'left'; p.floating = true; p.height = 200; }
+    else { p.lengthMode = 'fill'; p.floating = false; p.height = 130; }
+}
+function warpbar() {
+    var p = new Panel; p.screen = 0; p.location = 'top'; p.height = 28; p.hiding = 'none'; p.floating = false;
+    p.addWidget('org.warplegacy.warpbar'); p.addWidget('org.kde.plasma.panelspacer');
+    p.addWidget('org.kde.plasma.systemtray'); p.addWidget('org.kde.plasma.digitalclock');
+}
+function launchpad() {
+    var p = new Panel; p.screen = 0; p.location = 'bottom'; p.alignment = 'center'; p.lengthMode = 'fit';
+    p.height = 76; p.hiding = 'none'; p.floating = true; p.addWidget('org.warplegacy.launchpad');
+}
+// Next to the LaunchPad (about 560 px wide, centred) the Tab Launcher's
+// natural width (~790 px with all categories) runs under it; it gets the
+// room left of the LaunchPad, its tab row scrolls anyway.
+function tablauncher(beside) {
+    var p = new Panel; p.screen = 0; p.location = 'bottom'; p.alignment = 'left'; p.lengthMode = 'fit';
+    p.height = 112; p.hiding = 'none'; p.floating = true; p.addWidget('org.warplegacy.tablauncher');
+    if (beside) {
+        var room = Math.floor((screenGeometry(0).width - 600) / 2) - 24;
+        p.lengthMode = 'custom'; p.minimumLength = room; p.maximumLength = room;
+    }
+}
+function taskbar(height) {
+    var p = new Panel; p.screen = 0; p.location = 'bottom'; p.height = height; p.hiding = 'none'; p.floating = false;
+    p.addWidget('org.warplegacy.taskbar'); p.addWidget('org.kde.plasma.systemtray'); p.addWidget('org.kde.plasma.digitalclock');
+}
+"
+    case $panels in
+        concept) js="$js taskbar(32); strip('compact');" ;;
+        classic) js="$js warpbar(); launchpad(); strip('strip');" ;;
+        tabs)    js="$js warpbar(); tablauncher(true); launchpad(); strip('strip');" ;;
+    esac
+    systemctl --user is-active -q plasma-plasmashell.service \
+        || systemctl --user start plasma-plasmashell.service
+    shell_up || { echo "plasmashell does not answer" >&2; exit 1; }
+    dbus-send --session --print-reply --type=method_call --dest=org.kde.plasmashell /PlasmaShell \
+        org.kde.PlasmaShell.evaluateScript string:"$js" >/dev/null
+    sleep 3
+fi
 DESKTOP=$(xdg-user-dir DESKTOP)
 mkdir -p "$DESKTOP"
 
@@ -59,8 +139,15 @@ positions="{\"$res\":[$grid]}"
 # Largest icons that still fit all objects in one column: Plasma's cell
 # is icon + text lines * gridUnit (~18 px) + 12, below the 32 px taskbar.
 # 48 px with two lines needs ~1080 px; at 800 px only 32 px, one line.
+# The panels at the top and bottom edges take their height off; the
+# Tab Launcher sits on the column itself.
 count=$(echo "$files" | wc -l)
-avail=$(( ${res#*x} - 40 ))
+case $panels in
+    classic) taken=118 ;;       # Warp Bar 28, LaunchPad 76 + its float
+    tabs)    taken=158 ;;       # Warp Bar 28, Tab Launcher 112 + its float
+    *)       taken=40 ;;
+esac
+avail=$(( ${res#*x} - taken ))
 iconsize=1 textlines=1                          # 32 px
 for c in "2 2 96" "2 1 78"; do                  # 48 px, two / one line
     set -- $c
@@ -86,11 +173,7 @@ for id in $ids; do
 done
 if [ "$running" = 1 ]; then
     systemctl --user start plasma-plasmashell.service
-    for _ in $(seq 30); do
-        dbus-send --session --print-reply --dest=org.kde.plasmashell /PlasmaShell \
-            org.freedesktop.DBus.Peer.Ping >/dev/null 2>&1 && break
-        sleep 0.5
-    done
+    shell_up || true
     sleep 3
 fi
 
