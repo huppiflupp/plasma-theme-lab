@@ -284,3 +284,24 @@ msgstr "Gleicher Geist.\nNeue Möglichkeiten."
 
 msgid "Programs"
 msgstr "Programme"
+
+msgid "Warp Taskbar"
+msgstr "Warp-Taskleiste"
+
+msgid "along the bottom, instead of the Warp Bar: Start, workspaces, windows, tray, clock"
+msgstr "am unteren Rand, statt der Warp Bar: Start, Arbeitsflächen, Fenster, Ablage, Uhr"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Programs, settings, the desktop and the drives"
+msgstr "Programme, Einstellungen, Arbeitsfläche und Laufwerke"
+
+msgid "Taskbar"
+msgstr "Taskleiste"
+
+msgid "Workspace buttons"
+msgstr "Knöpfe für die Arbeitsflächen"
+
+msgid "Only the windows of the current workspace"
+msgstr "Nur die Fenster der aktuellen Arbeitsfläche"

@@ -26,6 +26,7 @@ KCM.SimpleKCM {
     property var cfg_showClockDefault
     property var cfg_layoutDefault
     property var cfg_mottoDefault
+    property var cfg_thisWorkspaceDefault
 
     readonly property var panels: [
         {plugin: "org.warplegacy.warpbar", name: i18nd("warp-legacy", "Warp Bar"), where: i18nd("warp-legacy", "along the top: desktop menu, window list, tray, clock"),
@@ -38,6 +39,9 @@ KCM.SimpleKCM {
         {plugin: "org.warplegacy.controlstrip", name: i18nd("warp-legacy", "Control Strip"), where: i18nd("warp-legacy", "on the right edge: workspaces, launch list, gauges, clock"),
          script: "var p = new Panel; p.location = 'right'; p.height = 130; p.hiding = 'none'; p.floating = false; "
                + "p.addWidget('org.warplegacy.controlstrip');"},
+        {plugin: "org.warplegacy.taskbar", name: i18nd("warp-legacy", "Warp Taskbar"), where: i18nd("warp-legacy", "along the bottom, instead of the Warp Bar: Start, workspaces, windows, tray, clock"),
+         script: "var p = new Panel; p.location = 'bottom'; p.height = 44; p.hiding = 'none'; p.floating = false; "
+               + "p.addWidget('org.warplegacy.taskbar'); p.addWidget('org.kde.plasma.systemtray'); p.addWidget('org.kde.plasma.digitalclock');"},
         {plugin: "org.warplegacy.tablauncher", name: i18nd("warp-legacy", "Tab Launcher"), where: i18nd("warp-legacy", "at the bottom left: windows, favourites, menu categories on tabs"),
          script: "var p = new Panel; p.location = 'bottom'; p.alignment = 'left'; p.lengthMode = 'fit'; p.height = 112; "
                + "p.hiding = 'none'; p.floating = true; p.addWidget('org.warplegacy.tablauncher');"}

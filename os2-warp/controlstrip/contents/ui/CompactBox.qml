@@ -7,8 +7,8 @@ import org.kde.kirigami as Kirigami
 // The Control Strip as the box of the user's Neon concept
 // (reference/neon-2026.png, top right): a mark, the time and date, CPU,
 // memory and disk with thin bars, a curve of the processor's last minute,
-// a motto. Our mark is the word "Warp" and the year; the concept's OS/2
-// word mark is IBM's (DESIGN.md §1).
+// a motto. Our mark is "Warp Legacy"; the concept's OS/2 word mark is
+// IBM's (DESIGN.md §1).
 Bevel {
     id: box
     required property var root
@@ -82,11 +82,15 @@ Bevel {
                 style: box.neon ? Text.Outline : Text.Normal
                 styleColor: Qt.rgba(0.16, 0.36, 1, 0.45)
             }
+            // "Legacy" in a bold italic Times, as the user asked; fontconfig
+            // gives the metric twin (Liberation Serif) where Times New
+            // Roman is not installed, which is the free one we rely on.
             Text {
-                anchors.top: word.bottom; anchors.topMargin: -6
-                x: 34
-                text: Qt.formatDate(box.root.now, "yyyy")
-                font.pixelSize: 26
+                anchors.top: word.bottom; anchors.topMargin: -8
+                x: 22
+                text: "Legacy"
+                font.family: "Times New Roman"
+                font.pixelSize: 30; font.bold: true; font.italic: true
                 color: box.lavender
             }
         }

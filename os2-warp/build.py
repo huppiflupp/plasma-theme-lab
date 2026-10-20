@@ -283,7 +283,8 @@ def plasmoids():
     common/ (edges, buttons, launching, the window list) go into each, as a
     plasmoid can only import files of its own package."""
     for source, id_ in (("launchpad", "org.warplegacy.launchpad"), ("warpbar", "org.warplegacy.warpbar"),
-                       ("controlstrip", "org.warplegacy.controlstrip"), ("tablauncher", "org.warplegacy.tablauncher")):
+                       ("controlstrip", "org.warplegacy.controlstrip"), ("tablauncher", "org.warplegacy.tablauncher"),
+                       ("taskbar", "org.warplegacy.taskbar")):
         target = OUT / f"plasma/plasmoids/{id_}"
         shutil.copytree(ROOT / source, target, dirs_exist_ok=True)
         shutil.copytree(ROOT / "common", target / "contents/ui", dirs_exist_ok=True)

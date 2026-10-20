@@ -22,6 +22,7 @@ KCM.SimpleKCM {
     property var cfg_showClockDefault
     property var cfg_layoutDefault
     property var cfg_mottoDefault
+    property var cfg_thisWorkspaceDefault
     property string cfg_launchers
     property bool cfg_showWorkspaces
     property bool cfg_showGauges
