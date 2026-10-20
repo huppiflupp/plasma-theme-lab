@@ -96,8 +96,8 @@ if [ -n "$APPLY" ]; then
         cp -a "$CONFIG/plasmashellrc" "$STATE/plasmashellrc.before" 2>/dev/null || true
     fi
     case "$VARIANT" in
-        "")   LNF=org.warplegacy.desktop;      KVANTUM=WarpLegacy;     ICONS=WarpLegacy;         KONSOLE="Warp Legacy" ;;
-        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpLegacyNeon; ICONS=WarpLegacyNeon2026; KONSOLE="Warp Legacy Neon" ;;
+        "")   LNF=org.warplegacy.desktop;      KVANTUM=WarpLegacy;     ICONS=WarpLegacy;         KONSOLE="Warp Legacy";      PICTURE=org.warplegacy.warp4-wirbel-violett ;;
+        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpLegacyNeon; ICONS=WarpLegacyNeon2026; KONSOLE="Warp Legacy Neon"; PICTURE=org.warplegacy.neon-bogen-horizont ;;
     esac
     plasma-apply-lookandfeel --apply "$LNF" $LAYOUT
     # The global theme only carries the decoration's library and theme into
@@ -136,6 +136,9 @@ if [ -n "$APPLY" ]; then
     done
     kwriteconfig6 --file kdeglobals --group General --key fixed "IBM Plex Mono,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
     kwriteconfig6 --file kdeglobals --group WM --key activeFont "IBM Plex Sans Condensed,10,-1,5,700,0,0,0,0,0,0,0,0,0,0,1"
+    # The variant's wallpaper (session/warp-wallpaper): without --layout the
+    # global theme left the other variant's picture in place.
+    [ -z "$LAYOUT" ] && sh "$DATA/warp-legacy/warp-wallpaper" "$PICTURE"
     # Four workspaces, as the Control Strip shows them; KWin ignores
     # [Desktops] Number from the global theme, so they are created here.
     count=$(dbus-send --session --print-reply --dest=org.kde.KWin /VirtualDesktopManager \

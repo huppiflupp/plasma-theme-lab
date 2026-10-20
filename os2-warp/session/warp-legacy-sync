@@ -14,8 +14,8 @@ XDG_CONFIG_DIRS=$(printf '%s' "${XDG_CONFIG_DIRS:-/etc/xdg}" | tr ':' '\n' | gre
 export XDG_CONFIG_DIRS
 lnf=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
 case "$lnf" in
-    org.warplegacy.neon.desktop) kvantum=WarpLegacyNeon; konsole="Warp Legacy Neon" ;;
-    org.warplegacy.desktop)      kvantum=WarpLegacy; konsole="Warp Legacy" ;;
+    org.warplegacy.neon.desktop) kvantum=WarpLegacyNeon; konsole="Warp Legacy Neon"; picture=org.warplegacy.neon-bogen-horizont ;;
+    org.warplegacy.desktop)      kvantum=WarpLegacy; konsole="Warp Legacy"; picture=org.warplegacy.warp4-wirbel-violett ;;
     *) exit 0 ;;
 esac
 conf="${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/kvantum.kvconfig"
@@ -34,3 +34,9 @@ case "$(kreadconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfi
 esac
 kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft M
 kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight XIA
+# The wallpaper, once plasmashell answers (autostart runs early).
+( for i in 1 2 3 4 5 6 7 8 9 10; do
+      dbus-send --session --print-reply --dest=org.kde.plasmashell /PlasmaShell org.freedesktop.DBus.Peer.Ping >/dev/null 2>&1 && break
+      sleep 2
+  done
+  sh "$(dirname "$0")/warp-wallpaper" "$picture" ) &

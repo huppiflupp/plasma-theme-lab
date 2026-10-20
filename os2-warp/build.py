@@ -312,6 +312,7 @@ def session():
     target = OUT / "warp-legacy/warp-legacy-sync"
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "session/warp-legacy-sync", target)
+    shutil.copy2(ROOT / "session/warp-wallpaper", target.parent / "warp-wallpaper")
     write("config/autostart/warp-legacy-sync.desktop",
           "[Desktop Entry]\nType=Application\nName=Warp Legacy\n"
           # The path is put in by install.sh: autostart does not expand
