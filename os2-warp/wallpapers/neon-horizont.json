@@ -1,0 +1,23 @@
+{
+  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
+  "steps": 8,
+  "cfg": 1,
+  "sampler": "res_multistep/simple",
+  "shift": 3,
+  "prompt": "Digital space art, the curved horizon of a dark planet seen from orbit in the lower right of the frame, a thin glowing cyan atmospheric rim of light along the arc, a small bright sunrise point where the sun just peeks over the edge, faint violet haze above the rim, a few fine thin light streaks across the sky, sparse tiny stars. Overall very dark and calm, deep navy blue background around hex 0a152e, glowing accents only in cyan hex 48cffe and electric violet hex 7a4dff, no pink, no orange. The upper left quarter of the frame stays dark, calm and empty. No text, no letters, no logos, no watermark.",
+  "seed": 4401,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 18.0,
+  "comfy_file": "warp_neon-horizont_zimage_4401_00001_.png",
+  "slug": "neon-horizont",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 26.0
+}

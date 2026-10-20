@@ -1,0 +1,17 @@
+{
+  "KPlugin": {
+    "Id": "org.warplegacy.controlstrip",
+    "Name": "Control Strip",
+    "Name[de]": "Kontrollleiste",
+    "Description": "A strip for the screen's right edge: workspaces in miniature, a launch list, swap and disk gauges, a digital clock",
+    "Description[de]": "Leiste für den rechten Bildschirmrand: Arbeitsflächen in Miniatur, Starterliste, Anzeigen für Auslagerung und Laufwerke, Digitaluhr",
+    "Icon": "computer",
+    "Version": "0.1.0",
+    "License": "GPL-2.0-or-later",
+    "Authors": [{"Name": "Warp Legacy contributors"}],
+    "Category": "System Information"
+  },
+  "KPackageStructure": "Plasma/Applet",
+  "X-Plasma-API-Minimum-Version": "6.0",
+  "X-Plasma-Provides": ["org.kde.plasma.virtualdesktops"]
+}

@@ -1,0 +1,139 @@
+# German translation of Warp Legacy.
+# This file is distributed under the same license as Warp Legacy (GPL-2.0-or-later).
+msgid ""
+msgstr ""
+"Project-Id-Version: warp-legacy 0.1.0\n"
+"PO-Revision-Date: 2026-10-20 22:50+0200\n"
+"Last-Translator: Warp Legacy contributors\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Swap: %1"
+msgstr "Swap: %1"
+
+msgid "Swap: %1 of %2 in use"
+msgstr "Auslagerung: %1 von %2 belegt"
+
+msgid "%1: %2 free of %3"
+msgstr "%1: %2 von %3 frei"
+
+msgid "Files"
+msgstr "Dateien"
+
+msgid "Terminal"
+msgstr "Terminal"
+
+msgid "Web"
+msgstr "Web"
+
+msgid "Text Editor"
+msgstr "Texteditor"
+
+msgid "System Settings"
+msgstr "Systemeinstellungen"
+
+msgid "Desktop"
+msgstr "Schreibtisch"
+
+msgid "&Lock"
+msgstr "S&perren"
+
+msgid "&Find…"
+msgstr "&Suchen…"
+
+msgid "&Shut down…"
+msgstr "System&abschluss…"
+
+msgid "&Window list"
+msgstr "&Fensterliste"
+
+msgid "More in %1"
+msgstr "Mehr in %1"
+
+msgid "Tab Launcher – %1"
+msgstr "Reiter-Starter – %1"
+
+msgid "No open windows"
+msgstr "Keine offenen Fenster"
+
+msgid "Nothing here"
+msgstr "Hier ist nichts"
+
+msgid "Find"
+msgstr "Suchen"
+
+msgid "Lock"
+msgstr "Sperren"
+
+msgid "Home"
+msgstr "Persönlicher Ordner"
+
+msgid "Root file system"
+msgstr "Wurzeldateisystem"
+
+msgid "(empty)"
+msgstr "(leer)"
+
+msgid "Window list"
+msgstr "Fensterliste"
+
+msgid "Shut down"
+msgstr "Systemabschluss"
+
+msgid "Tasks"
+msgstr "Aufgaben"
+
+msgid "Main"
+msgstr "Haupt"
+
+msgid "%1 is not installed"
+msgstr "%1 ist nicht installiert"
+
+msgid "Choose another program in the LaunchPad settings (right-click › Configure)."
+msgstr "Wählen Sie in den Einstellungen ein anderes Programm (Rechtsklick › Einrichten)."
+
+msgid "LaunchPad"
+msgstr "LaunchPad"
+
+msgid "The application %1"
+msgstr "Die Anwendung %1"
+
+msgid "Documents"
+msgstr "Dokumente"
+
+msgid "Downloads"
+msgstr "Downloads"
+
+msgid "Pictures"
+msgstr "Bilder"
+
+msgid "Mail"
+msgstr "E-Mail"
+
+msgid "Help"
+msgstr "Hilfe"
+
+msgid "Trash"
+msgstr "Papierkorb"
+
+msgid "A web browser"
+msgstr "Ein Webbrowser"
+
+msgid "A mail client"
+msgstr "Ein E-Mail-Programm"
+
+msgid "A file manager"
+msgstr "Eine Dateiverwaltung"
+
+msgid "A text editor"
+msgstr "Ein Texteditor"
+
+msgid "A terminal"
+msgstr "Ein Terminal"
+
+msgid "Help Center"
+msgstr "Das Hilfezentrum"

@@ -1,0 +1,23 @@
+{
+  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
+  "steps": 8,
+  "cfg": 1,
+  "sampler": "res_multistep/simple",
+  "shift": 3,
+  "prompt": "Abstract digital artwork, a wide soft swirl of translucent violet and cornflower blue smoke spiralling slowly inward toward a pale glowing white-lavender center in the lower right third, wisps of fine silk-like strands, smooth airbrushed gradients, dreamy and quiet, dark indigo corners fading to lighter periwinkle around the center, mid-1990s desktop background feeling. The upper left quarter of the frame stays calm and empty. No text, no letters, no logos, no watermark.",
+  "seed": 1101,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 16.0,
+  "comfy_file": "warp_wirbel-b_zimage_1101_00001_.png",
+  "slug": "warp4-wirbel-violett",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.1,
+  "seconds_total": 24.1
+}

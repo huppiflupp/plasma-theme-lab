@@ -1,0 +1,22 @@
+{
+  "model": "flux1-schnell-fp8 (Checkpoint)",
+  "steps": 4,
+  "cfg": 1,
+  "sampler": "euler/simple",
+  "prompt": "Digital space art, view from a starship travelling at warp speed, long thin stretched star streaks radiating softly from a vanishing point right of center, deep blue and violet nebula haze, calm and quiet mood, dark navy and indigo dominate, gentle bluish-white glow at the center, smooth and uncluttered. The upper left quarter of the frame stays calm and empty. No text, no letters, no logos, no watermark.",
+  "seed": 2202,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 10.0,
+  "comfy_file": "warp_warp_flux_2202_00001_.png",
+  "slug": "warp-antrieb",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 18.0
+}

@@ -1,0 +1,22 @@
+{
+  "model": "flux1-schnell-fp8 (Checkpoint)",
+  "steps": 4,
+  "cfg": 1,
+  "sampler": "euler/simple",
+  "prompt": "Abstract neon light art photographed in a completely dark room, three smooth glowing glass neon tubes, one pure red, one electric blue, one warm yellow, each bending in long gentle parallel S-curves and wide arcs across the right half of the frame, soft glow and faint reflections on a pure black background, purely abstract flowing lines, no characters, no letter shapes, no numbers, no symbols. The upper left quarter of the frame stays calm and empty. No text, no letters, no logos, no watermark.",
+  "seed": 3301,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 10.0,
+  "comfy_file": "warp_neon2_flux_3301_00001_.png",
+  "slug": "neon-roehren",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 18.0
+}

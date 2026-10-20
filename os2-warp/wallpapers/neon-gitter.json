@@ -1,0 +1,22 @@
+{
+  "model": "flux1-schnell-fp8 (Checkpoint)",
+  "steps": 4,
+  "cfg": 1,
+  "sampler": "euler/simple",
+  "prompt": "Retro synthwave digital artwork, a dark endless perspective grid of thin glowing lines on a flat plane receding toward a distant horizon, grid lines softly glowing cyan fading into violet toward the horizon, a faint violet glow along the horizon line, empty dark night sky above with very few stars, minimal and subtle, no sun disc, no mountains. Overall very dark and calm, deep navy blue background around hex 0a152e, glowing accents only in cyan hex 48cffe and electric violet hex 7a4dff, no pink, no orange. The upper left quarter of the frame stays dark, calm and empty. No text, no letters, no logos, no watermark.",
+  "seed": 4402,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 10.0,
+  "comfy_file": "warp_neon-gitter_flux_4402_00001_.png",
+  "slug": "neon-gitter",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 18.0
+}

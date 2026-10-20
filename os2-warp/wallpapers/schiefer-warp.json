@@ -1,0 +1,23 @@
+{
+  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
+  "steps": 8,
+  "cfg": 1,
+  "sampler": "res_multistep/simple",
+  "shift": 3,
+  "prompt": "Photograph of a large dark grey slate stone slab filling the whole frame, natural cleft slate texture with fine layered grain, raking light from the upper left creating soft shadows, the exact word \"Warp\" is deeply chiseled and engraved into the stone slightly right of center, elegant serif capital W followed by lowercase arp, the carved letters catch the light on their edges, calm, minimal and dark. No other text, no letters besides the word \"Warp\", no logos, no watermark.",
+  "seed": 5503,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 12.0,
+  "comfy_file": "warp_schiefer-warp_zimage_5503_00001_.png",
+  "slug": "schiefer-warp",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 20.0
+}

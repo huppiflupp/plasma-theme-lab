@@ -1,0 +1,16 @@
+{
+  "KPlugin": {
+    "Id": "org.warplegacy.launchpad",
+    "Name": "LaunchPad",
+    "Name[de]": "LaunchPad",
+    "Description": "OS/2-style launch pad: Lock, Find, Shut down, Window list and launchers with drawers",
+    "Description[de]": "Startleiste im Stil von OS/2: Sperren, Suchen, Systemabschluss, Fensterliste und Starter mit Schubladen",
+    "Icon": "start-here-kde",
+    "Version": "0.1.0",
+    "License": "GPL-2.0-or-later",
+    "Authors": [{"Name": "Warp Legacy contributors"}],
+    "Category": "Application Launchers"
+  },
+  "KPackageStructure": "Plasma/Applet",
+  "X-Plasma-API-Minimum-Version": "6.0"
+}

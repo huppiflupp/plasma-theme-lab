@@ -1,0 +1,16 @@
+{
+  "KPlugin": {
+    "Id": "org.warplegacy.tablauncher",
+    "Name": "Tab Launcher",
+    "Name[de]": "Reiter-Starter",
+    "Description": "Launchers on notebook tabs: open windows, your favourites, and every category of the application menu",
+    "Description[de]": "Starter auf Notizbuch-Reitern: offene Fenster, eigene Favoriten und alle Kategorien des Anwendungsmenüs",
+    "Icon": "applications-all",
+    "Version": "0.1.0",
+    "License": "GPL-2.0-or-later",
+    "Authors": [{"Name": "Warp Legacy contributors"}],
+    "Category": "Application Launchers"
+  },
+  "KPackageStructure": "Plasma/Applet",
+  "X-Plasma-API-Minimum-Version": "6.0"
+}

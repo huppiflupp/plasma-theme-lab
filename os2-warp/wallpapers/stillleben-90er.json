@@ -1,0 +1,23 @@
+{
+  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
+  "steps": 8,
+  "cfg": 1,
+  "sampler": "res_multistep/simple",
+  "shift": 3,
+  "prompt": "Gouache illustration, a calm 1990s office still life: a beige CRT computer monitor with a blank softly glowing blue screen, a beige keyboard, a small stack of colorful blank floppy disks without labels, a coffee mug and a potted plant on a wooden desk, warm afternoon light from a window, soft painterly brushwork, muted pastel colors with blue accents, objects placed in the right half, plain wall behind. The upper left quarter of the frame stays calm and empty. No text, no letters, no logos, no watermark.",
+  "seed": 1101,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 16.0,
+  "comfy_file": "warp_stillleben_zimage_1101_00001_.png",
+  "slug": "stillleben-90er",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 24.0
+}

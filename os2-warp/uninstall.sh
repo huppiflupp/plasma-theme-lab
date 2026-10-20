@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# Take Warp Legacy back out: first the desktop as it was (the settings
+# install.sh --apply recorded, the panels from before --layout, the global
+# theme in use before), then the files install.sh recorded. Without a
+# record the desktop falls back to Breeze, so it never points at deleted
+# packages (STRUCTURE.md, finding 5: the old NiceOS9 uninstaller left an
+# empty tray and a theme that no longer existed).
+set -euo pipefail
+DATA="${XDG_DATA_HOME:-$HOME/.local/share}"
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
+STATE="$DATA/warp-legacy-install"
+UNSET=$'\x01unset'
+[ -f "$STATE/files" ] || { echo "Warp Legacy is not installed." >&2; exit 1; }
+in_session() { [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; }
+
+current=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
+previous=
+if [ -f "$STATE/settings.before" ]; then
+    previous=$(awk -F'\t' '$1 == "kdeglobals" && $3 == "LookAndFeelPackage" {print $4}' "$STATE/settings.before")
+fi
+[ "$previous" = "$UNSET" ] && previous=
+case "$current" in
+    org.warplegacy.*)
+        target=${previous:-org.kde.breeze.desktop}
+        case "$target" in org.warplegacy.*) target=org.kde.breeze.desktop ;; esac
+        plasma-apply-lookandfeel --apply "$target" >/dev/null 2>&1 || true ;;
+esac
+
+# The recorded values, or the key removed where there was none.
+if [ -f "$STATE/settings.before" ]; then
+    while IFS=$'\t' read -r file groups key value; do
+        args=(); IFS='>' read -ra parts <<< "$groups"
+        for g in "${parts[@]}"; do args+=(--group "$g"); done
+        if [ "$value" = "$UNSET" ]; then
+            kwriteconfig6 --file "$file" "${args[@]}" --key "$key" --delete
+        else
+            kwriteconfig6 --file "$file" "${args[@]}" --key "$key" "$value"
+        fi
+    done < "$STATE/settings.before"
+else
+    # No record: at least nothing may name what is about to be deleted.
+    case "$(kreadconfig6 --file kdeglobals --group Icons --key Theme)" in WarpLegacy*) kwriteconfig6 --file kdeglobals --group Icons --key Theme --delete ;; esac
+    case "$(kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme)" in kwin4_decoration_qml_warplegacy*)
+        kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.breeze
+        kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme Breeze ;; esac
+    case "$(kreadconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image)" in *org.warplegacy.*)
+        kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image --delete ;; esac
+fi
+
+# The panels from before --layout: plasmashell writes its own on exit, so it
+# is stopped while the old file goes back.
+if [ -f "$STATE/appletsrc.before" ]; then
+    running=
+    if in_session && systemctl --user -q is-active plasma-plasmashell 2>/dev/null; then
+        running=1; systemctl --user stop plasma-plasmashell
+    fi
+    cp -a "$STATE/appletsrc.before" "$CONFIG/plasma-org.kde.plasma.desktop-appletsrc"
+    [ -f "$STATE/plasmashellrc.before" ] && cp -a "$STATE/plasmashellrc.before" "$CONFIG/plasmashellrc"
+    [ -n "$running" ] && systemctl --user start plasma-plasmashell
+fi
+
+if [ -f "$STATE/kvantum.kvconfig.before" ]; then
+    mkdir -p "$CONFIG/Kvantum"
+    cp -a "$STATE/kvantum.kvconfig.before" "$CONFIG/Kvantum/kvantum.kvconfig"
+elif [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ]; then
+    case "$(kreadconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme)" in
+        WarpLegacy*) kwriteconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme --delete ;;
+    esac
+fi
+# The workspaces install.sh added, the last ones first; KWin moves their
+# windows to the remaining ones.
+if [ -f "$STATE/desktops.before" ] && in_session; then
+    before=$(cat "$STATE/desktops.before")
+    number=$(kreadconfig6 --file kwinrc --group Desktops --key Number)
+    while [ -n "$number" ] && [ "$number" -gt "$before" ] && [ "$before" -ge 1 ]; do
+        id=$(kreadconfig6 --file kwinrc --group Desktops --key "Id_$number")
+        [ -n "$id" ] || break
+        dbus-send --session --type=method_call --dest=org.kde.KWin /VirtualDesktopManager \
+            org.kde.KWin.VirtualDesktopManager.removeDesktop string:"$id" 2>/dev/null || break
+        sleep 0.3
+        number=$((number - 1))
+    done
+fi
+in_session && dbus-send --session --type=method_call --dest=org.kde.KWin /KWin org.kde.KWin.reconfigure 2>/dev/null || true
+
+remove() {   # remove <base> <list>: the files, then directories left empty
+    while IFS= read -r f; do rm -f "$1/$f"; done < "$2"
+    sed 's|/[^/]*$||' "$2" | sort -ru | while IFS= read -r d; do
+        rmdir -p --ignore-fail-on-non-empty "$1/$d" 2>/dev/null || true
+    done
+}
+remove "$DATA" "$STATE/files"
+[ -f "$STATE/config-files" ] && remove "$CONFIG" "$STATE/config-files"
+rm -rf "$STATE"
+echo "Warp Legacy removed. Log out and back in for every part to take effect."

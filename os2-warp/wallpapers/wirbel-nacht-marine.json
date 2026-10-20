@@ -1,0 +1,23 @@
+{
+  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
+  "steps": 8,
+  "cfg": 1,
+  "sampler": "res_multistep/simple",
+  "shift": 3,
+  "prompt": "Abstract digital artwork, a soft luminous spiral vortex like flowing silk and gentle smoke swirling around a center placed right of the middle, dark overall but clearly visible, deep navy blue and dark indigo tones, the silky ribbons softly lit in muted cyan-blue and violet, a gently brighter center, smooth airbrushed gradients, calm and elegant mid-1990s desktop wallpaper feeling, dark corners. The upper left quarter of the frame stays dark, calm and empty. No text, no letters, no logos, no watermark.",
+  "seed": 4421,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 14.0,
+  "comfy_file": "warp_wirbel-nacht-marine_zimage_4421_00001_.png",
+  "slug": "wirbel-nacht-marine",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 22.0
+}
