@@ -65,9 +65,9 @@ VARIANTS = [
                     accent="#00000000", glowWidth=0),
          wallpaper=("org.warplegacy.teal", "Warp Teal", "Warp 3's plain teal desktop"),
          picture="warp4-wirbel-violett",
-         # Named, not left out: a global theme only writes the keys it
+         # Named in both variants: a global theme only writes the keys it
          # carries, and Neon's icons stayed after switching back.
-         icons="breeze",
+         icons="WarpLegacy",
          description="OS/2 Warp 4: grey 3D surfaces, blue title bars"),
     dict(key="neon", name="Warp Legacy Neon", P=NEON,
          style=dict(light="#48cffe", dark="#7a4dff", ink="#020617", glyph="#ffffff", glow="#2a5cff",
@@ -244,6 +244,10 @@ def icons():
     (icons_neon2026.py), taken one to one from the user's concept
     (reference/neon-2026.png) and inheriting the rest from the first set."""
     sys.path.insert(0, str(ROOT))
+    # The classic set (icons_classic.py): Warp 4's yellow folders and grey
+    # devices, fixed bitmaps in every size Dolphin offers.
+    from icons_classic import build_icons as build_classic
+    build_classic(OUT / "icons")
     from icons_neon2026 import build_icons as build_2026
     build_2026(OUT / "icons")
     # WARP_SKIP_ICONS=1: leave the first set out of a quick test build (it
