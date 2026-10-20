@@ -20,15 +20,7 @@ PlasmoidItem {
     preferredRepresentation: fullRepresentation
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
 
-    readonly property var defaultMain: [
-        {label: "Terminal", icon: "utilities-terminal", command: "@terminal"},
-        {label: "Files", icon: "system-file-manager", command: "@files"},
-        {label: "Find", icon: "system-search", command: "$(command -v qdbus6 || command -v qdbus) org.kde.krunner /App display"},
-        {label: "Lock", icon: "system-lock-screen", command: "$(command -v qdbus6 || command -v qdbus) org.freedesktop.ScreenSaver /ScreenSaver Lock"},
-        {label: "System Settings", icon: "preferences-system", command: "@settings"},
-        {label: "Web", icon: "internet-web-browser", command: "@browser"}
-    ]
-    readonly property var mainList: Launch.parse(Plasmoid.configuration.main, defaultMain)
+    readonly property var mainList: Launch.parse(Plasmoid.configuration.main, Launch.MAIN)
     property int tab: Plasmoid.configuration.currentTab
     onTabChanged: Plasmoid.configuration.currentTab = tab
     readonly property int unit: 40

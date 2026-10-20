@@ -28,6 +28,67 @@ const DEFAULTS = [
     {label: "Trash", icon: "user-trash", command: "@trash", drawer: []}
 ];
 
+// The Warp Bar's tray: what Warp 4's first tray held, in today's terms.
+const TRAY = [
+    {label: "Files", icon: "system-file-manager", command: "@files"},
+    {label: "Terminal", icon: "utilities-terminal", command: "@terminal"},
+    {label: "Web", icon: "internet-web-browser", command: "@browser"},
+    {label: "Text Editor", icon: "accessories-text-editor", command: "@editor"},
+    {label: "System Settings", icon: "preferences-system", command: "@settings"}
+];
+
+// The Control Strip's launch list.
+const STRIP = [
+    {label: "Files", icon: "system-file-manager", command: "@files"},
+    {label: "Terminal", icon: "utilities-terminal", command: "@terminal"},
+    {label: "Web", icon: "internet-web-browser", command: "@browser"},
+    {label: "Text Editor", icon: "accessories-text-editor", command: "@editor"},
+    {label: "System Settings", icon: "preferences-system", command: "@settings"},
+    {label: "Desktop", icon: "user-desktop", command: "@files xdg:DESKTOP"}
+];
+
+// The Tab Launcher's "Main" tab.
+const MAIN = [
+    {label: "Terminal", icon: "utilities-terminal", command: "@terminal"},
+    {label: "Files", icon: "system-file-manager", command: "@files"},
+    {label: "Find", icon: "system-search", command: "$(command -v qdbus6 || command -v qdbus) org.kde.krunner /App display"},
+    {label: "Lock", icon: "system-lock-screen", command: "$(command -v qdbus6 || command -v qdbus) org.freedesktop.ScreenSaver /ScreenSaver Lock"},
+    {label: "System Settings", icon: "preferences-system", command: "@settings"},
+    {label: "Web", icon: "internet-web-browser", command: "@browser"}
+];
+
+// The programs offered in the settings, in this order (from CDE Copper's
+// PRESETS, without its own tiles).
+const PRESETS = [
+    {text: "Default web browser", value: "@browser", icon: "internet-web-browser"},
+    {text: "Default mail client", value: "@mail", icon: "internet-mail"},
+    {text: "Default file manager", value: "@files", icon: "system-file-manager"},
+    {text: "Terminal", value: "@terminal", icon: "utilities-terminal"},
+    {text: "Default text editor", value: "@editor", icon: "accessories-text-editor"},
+    {text: "System Settings", value: "@settings", icon: "preferences-system"},
+    {text: "Trash", value: "@trash", icon: "user-trash"},
+    {text: "Help Center", value: "@help", icon: "help-browser"},
+    {text: "Installed application…", value: "app:", icon: "application-x-executable"},
+    {text: "Custom command…", value: "", icon: "system-run"}
+];
+
+// The preset a command belongs to: its token, "app:" for an installed
+// application, "" for a custom command (also "@files ~" is "@files").
+function presetFor(command) {
+    if (command.indexOf("app:") === 0)
+        return "app:";
+    const head = command.split(" ")[0];
+    return PRESETS.some(p => p.value === head && p.value !== "") ? head : "";
+}
+
+function serialize(list) {
+    return JSON.stringify(list.map(s => {
+        const out = {label: s.label, icon: s.icon, command: s.command};
+        if (s.drawer && s.drawer.length) out.drawer = s.drawer.map(d => ({label: d.label, icon: d.icon, command: d.command}));
+        return out;
+    }));
+}
+
 function entry(s) {
     return {label: String(s.label || ""), icon: String(s.icon || "application-x-executable"),
             command: String(s.command || "")};
@@ -157,7 +218,9 @@ function desktopId(url) {
 // Shipped labels, for translation.
 function I18N_NOOP(text) { return text; }
 const TRANSLATABLE_STRINGS = [
+    I18N_NOOP("Default web browser"), I18N_NOOP("Default mail client"), I18N_NOOP("Default file manager"),
+    I18N_NOOP("Default text editor"), I18N_NOOP("Installed application…"), I18N_NOOP("Custom command…"),
     I18N_NOOP("Files"), I18N_NOOP("Home"), I18N_NOOP("Documents"), I18N_NOOP("Downloads"), I18N_NOOP("Pictures"),
     I18N_NOOP("Terminal"), I18N_NOOP("Text Editor"), I18N_NOOP("System Settings"), I18N_NOOP("Web"),
-    I18N_NOOP("Mail"), I18N_NOOP("Help"), I18N_NOOP("Trash")
+    I18N_NOOP("Mail"), I18N_NOOP("Help"), I18N_NOOP("Trash"), I18N_NOOP("Desktop"), I18N_NOOP("Find"), I18N_NOOP("Lock")
 ];

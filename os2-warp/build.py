@@ -74,7 +74,8 @@ VARIANTS = [
                     # the pink towards the frames' bottom right corner (§9a)
                     accent="#ff4fd8", glowWidth=8),
          wallpaper=("org.warplegacy.neon", "Warp Night", "Deep navy for the Neon variant"),
-         picture="neon-horizont", icons="WarpLegacyNeon2026",
+         # Closest to the concept's background, without its glaring sun.
+         picture="neon-bogen-horizont", icons="WarpLegacyNeon2026",
          description="OS/2 Warp at night: navy surfaces, cyan and violet glowing edges"),
 ]
 
@@ -215,6 +216,13 @@ PICTURES = (
     ("neon-polarlicht", "Neon Aurora", "Neon-Polarlicht", "Cyan and violet bands of light on navy"),
     ("neon-glasfaser", "Neon Fibres", "Neon-Glasfaser", "A fan of glowing optical fibres"),
     ("schiefer-warp", "Warp in Slate", "Warp in Schiefer", "The word Warp chiselled into dark slate"),
+    ("neon-bogen-horizont", "Neon Arc Horizon", "Neon-Bogenhorizont", "Planet horizon with a violet-pink rim and soft arcs of light"),
+    ("neon-horizont-violett", "Neon Horizon Violet", "Neon-Horizont Violett", "Planet horizon in violet and pink, a soft glow instead of a sun"),
+    ("neon-orbit-pink", "Neon Orbits", "Neon-Bahnen", "Pink and violet orbits on navy"),
+    ("neon-polarlicht-magenta", "Neon Aurora Magenta", "Neon-Polarlicht Magenta", "Magenta and violet aurora over a dark horizon"),
+    ("neon-seide", "Neon Silk", "Neon-Seide", "Translucent pink and violet ribbons"),
+    ("neon-gitter-violett", "Neon Grid Violet", "Neon-Gitter Violett", "A quiet violet and pink perspective grid"),
+    ("neon-nebel", "Neon Mist", "Neon-Nebel", "A soft violet-pink bank of mist under a starry sky"),
 )
 
 

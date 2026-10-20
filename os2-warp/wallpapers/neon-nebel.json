@@ -1,0 +1,23 @@
+{
+  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
+  "steps": 8,
+  "cfg": 1,
+  "sampler": "res_multistep/simple",
+  "shift": 3,
+  "prompt": "Dreamy space artwork, soft luminous colored fog and hazy mist clouds in violet and magenta pink drifting horizontally through the right side and the lower part of the frame, like softly glowing smoke lit from within, smooth blurry cloud shapes, a handful of small faint stars scattered sparsely in dark navy space, quiet and gentle. Soft, low-contrast and calm overall, dark but with gently glowing mid-tones, deep navy blue background around hex 0a152e blending into dark indigo and purple, glowing accents in electric violet hex 7a4dff, magenta pink hex ff4fd8 and purple hex c03aff, with only a small touch of cyan hex 48cffe. All light sources are muted and diffuse, the brightest highlights are pale lavender and soft pink, never pure white, no glare, no lens flare, no bright sun. Smooth airbrushed gradients, elegant modern desktop wallpaper. The upper left quarter of the frame stays dark, calm and empty. No text, no letters, no logos, no watermark.",
+  "seed": 5521,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 16.0,
+  "comfy_file": "warp_neon-nebel3_zimage_5521_00001_.png",
+  "slug": "neon-nebel",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 24.0
+}

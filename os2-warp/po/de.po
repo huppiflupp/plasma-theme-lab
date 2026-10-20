@@ -136,4 +136,130 @@ msgid "A terminal"
 msgstr "Ein Terminal"
 
 msgid "Help Center"
-msgstr "Das Hilfezentrum"
+msgstr "Hilfezentrum"
+
+msgid "Add launcher"
+msgstr "Starter hinzufügen"
+
+msgid "Add to drawer"
+msgstr "Zur Schublade hinzufügen"
+
+msgid "Drawer (%1)"
+msgstr "Schublade (%1)"
+
+msgid "Choose an application"
+msgstr "Anwendung auswählen"
+
+msgid "Search"
+msgstr "Suchen"
+
+msgid "Choose icon"
+msgstr "Symbol auswählen"
+
+msgid "Label"
+msgstr "Beschriftung"
+
+msgid "Command, e.g. firefox --private-window"
+msgstr "Befehl, z. B. firefox --private-window"
+
+msgid "Move up"
+msgstr "Nach oben"
+
+msgid "Move down"
+msgstr "Nach unten"
+
+msgid "Remove"
+msgstr "Entfernen"
+
+msgid "\"Default …\" entries follow the programs chosen in System Settings › Default Applications. A custom command runs through the shell."
+msgstr "Einträge „Standard-…“ folgen den Programmen aus Systemeinstellungen › Standard-Anwendungen. Ein eigener Befehl läuft über die Shell."
+
+msgid "Default web browser"
+msgstr "Standard-Webbrowser"
+
+msgid "Default mail client"
+msgstr "Standard-E-Mail-Programm"
+
+msgid "Default file manager"
+msgstr "Standard-Dateiverwaltung"
+
+msgid "Default text editor"
+msgstr "Standard-Texteditor"
+
+msgid "Installed application…"
+msgstr "Installierte Anwendung …"
+
+msgid "Custom command…"
+msgstr "Eigener Befehl …"
+
+msgid "Launchers"
+msgstr "Starter"
+
+msgid "Panels"
+msgstr "Leisten"
+
+msgid "Tray"
+msgstr "Ablage"
+
+msgid "Control Strip"
+msgstr "Kontrollleiste"
+
+msgid "Main tab"
+msgstr "Haupt-Reiter"
+
+msgid "Lock, Find, Shut down and Window list beside the launchers"
+msgstr "Sperren, Suchen, Systemabschluss und Fensterliste neben den Startern"
+
+msgid "Launchers and their drawers"
+msgstr "Starter und ihre Schubladen"
+
+msgid "Restore the default launchers"
+msgstr "Vorgegebene Starter wiederherstellen"
+
+msgid "Launchers in the tray"
+msgstr "Starter in der Ablage"
+
+msgid "Workspaces in miniature"
+msgstr "Arbeitsflächen in Miniatur"
+
+msgid "Swap and disk gauges"
+msgstr "Anzeigen für Swap und Laufwerke"
+
+msgid "Digital clock"
+msgstr "Digitaluhr"
+
+msgid "Launch list"
+msgstr "Starterliste"
+
+msgid "The \"Main\" tab"
+msgstr "Der Reiter „Haupt“"
+
+msgid "The other tabs follow the application menu by themselves."
+msgstr "Die übrigen Reiter folgen von selbst dem Anwendungsmenü."
+
+msgid "Warp Bar"
+msgstr "Warp Bar"
+
+msgid "Tab Launcher"
+msgstr "Reiter-Starter"
+
+msgid "along the top: desktop menu, window list, tray, clock"
+msgstr "am oberen Rand: Desktop-Menü, Fensterliste, Ablage, Uhr"
+
+msgid "floating at the bottom centre: lock, find, shut down, launchers with drawers"
+msgstr "schwebend unten in der Mitte: Sperren, Suchen, Systemabschluss, Starter mit Schubladen"
+
+msgid "on the right edge: workspaces, launch list, gauges, clock"
+msgstr "am rechten Rand: Arbeitsflächen, Starterliste, Anzeigen, Uhr"
+
+msgid "at the bottom left: windows, favourites, menu categories on tabs"
+msgstr "unten links: Fenster, Favoriten, Menükategorien auf Reitern"
+
+msgid "Each panel can be shown or left out on its own. The change takes effect at once."
+msgstr "Jede Leiste lässt sich einzeln ein- oder ausschalten. Die Änderung wirkt sofort."
+
+msgid "Plasma could not be asked which panels exist."
+msgstr "Plasma konnte nicht gefragt werden, welche Leisten es gibt."
+
+msgid "Removing the panel whose settings are open closes this window. The whole layout again: System Settings › Global Theme, with “Use desktop layout from theme”."
+msgstr "Entfernt man die Leiste, deren Einstellungen gerade offen sind, schließt sich dieses Fenster. Das ganze Layout wieder: Systemeinstellungen › Globales Design, mit „Arbeitsflächen-Layout des Designs verwenden“."

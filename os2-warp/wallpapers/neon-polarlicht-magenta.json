@@ -1,0 +1,22 @@
+{
+  "model": "flux1-schnell-fp8 (Checkpoint)",
+  "steps": 4,
+  "cfg": 1,
+  "sampler": "euler/simple",
+  "prompt": "Digital night sky artwork, soft flowing curtains of aurora borealis in magenta, pink and violet rippling across the upper right and center of the sky above a very dark navy horizon line at the bottom, gentle vertical light rays, a few faint stars, dreamy and calm. Soft, low-contrast and calm overall, dark but with gently glowing mid-tones, deep navy blue background around hex 0a152e blending into dark indigo and purple, glowing accents in electric violet hex 7a4dff, magenta pink hex ff4fd8 and purple hex c03aff, with only a small touch of cyan hex 48cffe. All light sources are muted and diffuse, the brightest highlights are pale lavender and soft pink, never pure white, no glare, no lens flare, no bright sun. Smooth airbrushed gradients, elegant modern desktop wallpaper. The upper left quarter of the frame stays dark, calm and empty. No text, no letters, no logos, no watermark.",
+  "seed": 5501,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 12.0,
+  "comfy_file": "warp_neon-polarlicht-magenta_flux_5501_00001_.png",
+  "slug": "neon-polarlicht-magenta",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 20.0
+}

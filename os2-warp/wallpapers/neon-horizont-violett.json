@@ -1,0 +1,23 @@
+{
+  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
+  "steps": 8,
+  "cfg": 1,
+  "sampler": "res_multistep/simple",
+  "shift": 3,
+  "prompt": "Digital space art, the wide gently curved horizon of a dark planet seen from orbit across the lower part of the frame, a soft glowing atmospheric rim along the arc in violet and pink fading into magenta haze, a faint diffuse warm pink glow behind the horizon in the lower middle instead of a sun, soft veils of purple light above the rim, a few faint thin curved light streaks across the sky toward the upper right, sparse tiny stars. Soft, low-contrast and calm overall, dark but with gently glowing mid-tones, deep navy blue background around hex 0a152e blending into dark indigo and purple, glowing accents in electric violet hex 7a4dff, magenta pink hex ff4fd8 and purple hex c03aff, with only a small touch of cyan hex 48cffe. All light sources are muted and diffuse, the brightest highlights are pale lavender and soft pink, never pure white, no glare, no lens flare, no bright sun. Smooth airbrushed gradients, elegant modern desktop wallpaper. The upper left quarter of the frame stays dark, calm and empty. No text, no letters, no logos, no watermark.",
+  "seed": 5502,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 12.0,
+  "comfy_file": "warp_neon-horizont-violett_zimage_5502_00001_.png",
+  "slug": "neon-horizont-violett",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 10.0,
+  "seconds_total": 22.0
+}

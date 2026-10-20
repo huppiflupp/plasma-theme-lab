@@ -19,15 +19,7 @@ PlasmoidItem {
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
     Plasmoid.constraintHints: Plasmoid.CanFillArea
 
-    readonly property var defaultLaunchers: [
-        {label: "Files", icon: "system-file-manager", command: "@files"},
-        {label: "Terminal", icon: "utilities-terminal", command: "@terminal"},
-        {label: "Web", icon: "internet-web-browser", command: "@browser"},
-        {label: "Text Editor", icon: "accessories-text-editor", command: "@editor"},
-        {label: "System Settings", icon: "preferences-system", command: "@settings"},
-        {label: "Desktop", icon: "user-desktop", command: "@files xdg:DESKTOP"}
-    ]
-    readonly property var launchers: Launch.parse(Plasmoid.configuration.launchers, defaultLaunchers)
+    readonly property var launchers: Launch.parse(Plasmoid.configuration.launchers, Launch.STRIP)
     function tr(text, ...args) { return i18nd("warp-legacy", text, ...args); }
     property date now: new Date()
     Timer { interval: 1000; running: true; repeat: true; onTriggered: root.now = new Date() }

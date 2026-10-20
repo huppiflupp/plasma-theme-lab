@@ -19,15 +19,8 @@ PlasmoidItem {
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
     Plasmoid.constraintHints: Plasmoid.CanFillArea
 
-    // The tray of a fresh bar: what Warp 4's first tray held, in today's terms.
-    readonly property var defaultTray: [
-        {label: "Files", icon: "system-file-manager", command: "@files"},
-        {label: "Terminal", icon: "utilities-terminal", command: "@terminal"},
-        {label: "Web", icon: "internet-web-browser", command: "@browser"},
-        {label: "Text Editor", icon: "accessories-text-editor", command: "@editor"},
-        {label: "System Settings", icon: "preferences-system", command: "@settings"}
-    ]
-    readonly property var tray: Launch.parse(Plasmoid.configuration.tray, defaultTray)
+    // The tray's launchers (launch.js TRAY for a fresh bar).
+    readonly property var tray: Launch.parse(Plasmoid.configuration.tray, Launch.TRAY)
     readonly property int popupEdge: [PlasmaCore.Types.BottomEdge, PlasmaCore.Types.LeftEdge, PlasmaCore.Types.RightEdge]
         .indexOf(Plasmoid.location) >= 0 ? Plasmoid.location : PlasmaCore.Types.TopEdge
     function tr(text, ...args) { return i18nd("warp-legacy", text, ...args); }
