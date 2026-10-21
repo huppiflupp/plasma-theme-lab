@@ -50,8 +50,8 @@ KCM.SimpleKCM {
          script: "var p = new Panel; p.location = 'bottom'; p.alignment = 'center'; p.lengthMode = 'fit'; p.height = 76; "
                + "p.hiding = 'windowsgobelow'; p.floating = true; p.addWidget('org.warplegacy.launchpad');"},
         {plugin: "org.warplegacy.controlstrip", name: i18nd("warp-legacy", "Control Strip"), where: i18nd("warp-legacy", "on the right edge: workspaces, launch list, gauges, clock"),
-         script: "var p = new Panel; p.location = 'right'; p.height = 130; p.hiding = 'none'; p.floating = false; "
-               + "p.addWidget('org.warplegacy.controlstrip');"},
+         script: "var p = new Panel; p.location = 'right'; p.hiding = 'none'; p.lengthMode = 'fit'; p.alignment = 'left'; "
+               + "p.floating = true; p.height = 200; p.addWidget('org.warplegacy.controlstrip');"},
         {plugin: "org.warplegacy.taskbar", name: i18nd("warp-legacy", "Warp Taskbar"), where: i18nd("warp-legacy", "along the bottom, instead of the Warp Bar: Start, workspaces, windows, tray, clock"),
          script: "var p = new Panel; p.location = 'bottom'; p.height = 44; p.hiding = 'none'; p.floating = false; "
                + "p.addWidget('org.warplegacy.taskbar'); p.addWidget('org.kde.plasma.systemtray'); p.addWidget('org.kde.plasma.digitalclock');"},

@@ -1,7 +1,7 @@
 // Warp Legacy's desktop layout (DESIGN.md §4–§6), applied only when the
 // user asks for the global theme's layout. Since 21.10.2026 the Neon
 // concept's (reference/neon-2026.png): the Warp Taskbar along the bottom
-// with Plasma's system tray and clock, the Control Strip on the right edge,
+// with Plasma's system tray and clock, the Control Strip as a compact box at the top right,
 // the Tab Launcher as a drawer at the top left. The arrangement with the
 // Warp Bar along the top and the LaunchPad below (the one before, used for
 // the screenshots) is tools/demo-scene.sh --panels screenshots.
@@ -21,13 +21,19 @@ bar.addWidget('org.warplegacy.taskbar');
 bar.addWidget('org.kde.plasma.systemtray');
 bar.addWidget('org.kde.plasma.digitalclock');
 
+// The Control Strip as the concept's compact box at the top right (the
+// user's wish 21.10.2026; the full strip is its other layout).
 var strip = new Panel;
 strip.screen = 0;
 strip.location = 'right';
-strip.height = 130;
 strip.hiding = 'none';
-strip.floating = false;
-strip.addWidget('org.warplegacy.controlstrip');
+strip.lengthMode = 'fit';
+strip.alignment = 'left';
+strip.floating = true;
+strip.height = 200;
+var box = strip.addWidget('org.warplegacy.controlstrip');
+box.currentConfigGroup = ['General'];
+box.writeConfig('layout', 'compact');
 
 // The Tab Launcher's drawer (common/PanelsPage.qml adds it the same way):
 // its own panel, length "custom" from 10 px so it shrinks to its tab when

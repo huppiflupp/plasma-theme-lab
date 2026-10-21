@@ -263,6 +263,9 @@ PlasmoidItem {
     // The panel follows the layout: the strip fills the right edge, the
     // compact box floats at its top, as long as its content.
     onCompactChanged: shapePanel()
+    // Also at start: a strip from before the compact box became the default
+    // (no layout key written) would else show the box in a full-height panel.
+    Component.onCompleted: if (compact) shapePanel()
     function shapePanel() {
         const shape = compact
             ? "p.lengthMode = 'fit'; p.alignment = 'left'; p.floating = true; p.height = 200;"
