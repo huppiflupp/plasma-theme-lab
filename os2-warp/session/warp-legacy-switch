@@ -25,13 +25,22 @@ case "${1:-toggle}" in
         fi ;;
     *) echo "usage: $0 [neon|classic|toggle]" >&2; exit 2 ;;
 esac
+# Switching several times in a row ran into systemd's start limit: the shell
+# stayed stopped, no panels, no wallpaper (Fedora VM, 21.10.2026). Hence
+# reset-failed before each start, and a shell left failed by that is
+# started too.
 shell=
 if systemctl --user -q is-active plasma-plasmashell.service 2>/dev/null; then
     shell=1
     systemctl --user stop plasma-plasmashell.service
+elif systemctl --user -q is-failed plasma-plasmashell.service 2>/dev/null; then
+    shell=1
 fi
 plasma-apply-lookandfeel -a "$lnf" >/dev/null 2>&1 || echo "plasma-apply-lookandfeel failed" >&2
-[ -n "$shell" ] && systemctl --user start plasma-plasmashell.service
+if [ -n "$shell" ]; then
+    systemctl --user reset-failed plasma-plasmashell.service 2>/dev/null
+    systemctl --user start plasma-plasmashell.service
+fi
 sh "$here/warp-legacy-sync"
 case "$lnf" in
     *neon*) cursors=WarpLegacyNeonCursors ;;
@@ -40,6 +49,9 @@ esac
 command -v plasma-apply-cursortheme >/dev/null 2>&1 && plasma-apply-cursortheme "$cursors" >/dev/null 2>&1
 # KIconLoader in running programs listens for this (install.sh does the same).
 dbus-send --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:0 2>/dev/null
+# Once more a moment later: after switching back and forth quickly a Dolphin
+# window kept the previous set (VM, 21.10.2026), the second signal fixed it.
+(sleep 1; dbus-send --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:0 2>/dev/null) &
 dbus-send --session --type=method_call --dest=org.kde.KWin /KWin org.kde.KWin.reconfigure 2>/dev/null
 wait
 exit 0
