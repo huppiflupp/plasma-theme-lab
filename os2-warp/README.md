@@ -26,6 +26,11 @@ The panels, shared by both variants:
   the desktop's objects and the drives down into every folder; window list,
   lock, find, shut down; a tray of launchers. Plasma's system tray and
   clock sit at its right end.
+
+The Meta key opens the Warp menu (from the taskbar or the Warp Bar), and
+typing in it finds programs at once: the best match is highlighted, so
+Meta, `kon`, Return starts Konsole. Up and Down pick another match,
+Escape closes. Programs started this way move up next time.
 - **LaunchPad** (bottom centre): Lock, Find, Shut down, Window list, and
   launchers with drawers that open upwards.
 - **Control Strip** (right edge, after Object Desktop): the workspaces in

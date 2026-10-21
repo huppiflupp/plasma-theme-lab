@@ -460,3 +460,9 @@ msgstr "Ausfahren"
 
 msgid "a drawer at the bottom left that slides in and out: windows, favourites, menu categories on tabs"
 msgstr "Schublade unten links, ein- und ausfahrbar: Fenster, Favoriten, Menükategorien auf Reitern"
+
+msgid "Type to find a program"
+msgstr "Tippen, um ein Programm zu finden"
+
+msgid "No programs found"
+msgstr "Keine Programme gefunden"

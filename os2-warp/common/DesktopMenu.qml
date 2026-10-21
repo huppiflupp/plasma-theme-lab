@@ -24,6 +24,14 @@ import "launch.js" as Launch
 // it (CDE/frontpanel/contents/ui/AppMenu.qml). So the dialog is as large as
 // the screen below the bar, transparent where no level is, and a click
 // there closes the menu as a click beside any menu does.
+//
+// Typing finds programs (as CDE Copper's applications menu does, whose
+// FindPopup.qml this follows: Plasma's application search, the one KRunner
+// uses, through Kicker's RunnerModel with only "krunner_services"; written
+// anew here, nothing of CDE/ is referenced). The field sits at the root
+// box's edge nearest the panel and has the keyboard as soon as the menu
+// opens, so Meta, "kon", Return starts Konsole: the best match is
+// highlighted at once, Up/Down choose another, Escape closes.
 PlasmaCore.Dialog {
     id: menu
     required property rect screenRect
@@ -37,6 +45,111 @@ PlasmaCore.Dialog {
     property var levels: []
     property var current: []          // the highlighted row per level
     property real anchorX: 0
+    // The search: what is typed, the match highlighted (best first), and
+    // Return pressed before the matches arrived (they come asynchronously).
+    property string query: ""
+    property int hit: 0
+    property bool launchPending: false
+    readonly property bool fromBottom: menu.location === PlasmaCore.Types.BottomEdge
+    readonly property var search: Kicker.RunnerModel {
+        appletInterface: Plasmoid
+        runners: ["krunner_services"]
+        mergeResults: true
+        query: menu.query
+    }
+    readonly property var matches: search.count > 0 ? search.modelForRow(0) : null
+    // The matches in our order, as rows of the runner's model. Plasma's
+    // relevance put Kontact before Konsole for "kon" (VM, 21.10.2026), so
+    // the name decides first: the name itself, then names beginning with
+    // what was typed, then a word of the name beginning with it, then the
+    // rest (found by generic name or keywords) in the runner's order;
+    // within a class the program started more often from here first, then
+    // the shorter name, then the alphabet.
+    // How often each program was started from the search: the last 300
+    // starts, one name per line, in ~/.local/share/warp-legacy/launched
+    // (QML may not read or write files, so a shell does).
+    property var launches: ({})
+    readonly property string historyFile: "\"${XDG_DATA_HOME:-$HOME/.local/share}/warp-legacy/launched\""
+    readonly property var history: P5Support.DataSource {
+        engine: "executable"
+        connectedSources: []
+        onNewData: function(source, data) {
+            disconnectSource(source);
+            const counts = {};
+            String(data.stdout || "").split("\n").forEach(n => { if (n) counts[n] = (counts[n] || 0) + 1; });
+            menu.launches = counts;
+        }
+    }
+    function readHistory() { history.connectSource("sh -c " + quote("cat " + historyFile + " 2>/dev/null")); }
+    function remember(name) {
+        const f = historyFile;
+        history.connectSource("sh -c " + quote("mkdir -p \"$(dirname " + f + ")\" && printf '%s\\n' " + quote(name)
+            + " >> " + f + " && tail -n 300 " + f + " > " + f + ".new && mv " + f + ".new " + f + "; cat " + f));
+    }
+    property int matchesGeneration: 0
+    readonly property var matchesWatch: Connections {
+        target: menu.matches
+        function onModelReset() { menu.matchesGeneration++; }
+        function onRowsInserted() { menu.matchesGeneration++; }
+        function onRowsRemoved() { menu.matchesGeneration++; }
+        function onCountChanged() { menu.matchesGeneration++; }
+    }
+    function matchName(row) { return String(matches.data(matches.index(row, 0), Qt.DisplayRole) || ""); }
+    readonly property var order: {
+        matchesGeneration;
+        const m = matches, q = query.trim().toLowerCase();
+        if (!m || !q) return [];
+        const rows = [];
+        for (let i = 0; i < m.count; i++) {
+            const name = matchName(i), low = name.toLowerCase();
+            const rank = low === q ? 0 : low.indexOf(q) === 0 ? 1
+                       : low.split(/[\s\-–_.()]+/).some(w => w.indexOf(q) === 0) ? 2 : 3;
+            rows.push({row: i, rank: rank, name: low, used: launches[name] || 0});
+        }
+        rows.sort((a, b) => a.rank - b.rank || b.used - a.used
+                  || (a.rank < 3 ? a.name.length - b.name.length || a.name.localeCompare(b.name) : 0)
+                  || a.row - b.row);
+        return rows.map(r => r.row);
+    }
+    readonly property int matchCount: order.length
+    // The text the matches shown belong to: the runner starts after a short
+    // delay, so right after a key the list is still the previous text's.
+    property string matchedQuery: ""
+    onQueryChanged: {
+        hit = 0;
+        matchedQuery = "";
+        if (query !== "" && levels.length) { levels = []; current = []; }
+    }
+    onOrderChanged: {
+        hit = 0;
+        if (launchPending) Qt.callLater(launchHit);
+    }
+    readonly property var searchWatch: Connections {
+        target: menu.search
+        function onQueryingChanged() {
+            if (menu.search.querying) return;
+            menu.matchedQuery = menu.query;
+            if (menu.launchPending) Qt.callLater(menu.launchHit);
+        }
+    }
+    // Should the runner never report (nothing to do for this text), Return
+    // still starts what is there after a moment.
+    readonly property var pendingTimer: Timer {
+        interval: 1500
+        running: menu.launchPending
+        onTriggered: { menu.matchedQuery = menu.query; menu.launchHit(); }
+    }
+    // Start the highlighted match (Return); the best when nothing else is.
+    // Return before the matches for the whole text arrived waits for them.
+    function launchHit() {
+        if (query === "") return;
+        if (search.querying || matchedQuery !== query) { launchPending = true; return; }
+        if (matchCount === 0) { launchPending = false; return; }
+        launchPending = false;
+        remember(matchName(order[Math.max(0, Math.min(hit, matchCount - 1))]));
+        matches.trigger(order[Math.max(0, Math.min(hit, matchCount - 1))], "", null);
+        close();
+    }
 
     visible: false
     type: PlasmaCore.Dialog.PopupMenu
@@ -46,11 +159,17 @@ PlasmaCore.Dialog {
 
     function open(anchor) {
         levels = []; current = [];
+        query = ""; hit = 0; launchPending = false; finder.text = "";
+        readHistory();
         visualParent = anchor;
         visible = true;
-        Qt.callLater(() => { anchorX = Math.max(0, anchor.mapToGlobal(0, 0).x - menu.x); });
+        Qt.callLater(() => {
+            anchorX = Math.max(0, anchor.mapToGlobal(0, 0).x - menu.x);
+            finder.forceActiveFocus();
+        });
     }
-    function close() { visible = false; levels = []; }
+    function close() { visible = false; levels = []; query = ""; launchPending = false; }
+    onVisibleChanged: if (visible) finder.forceActiveFocus()
     function localPath(url) {
         const s = String(url);
         return s.indexOf("file://") === 0 ? decodeURIComponent(s.substring(7)) : s;
@@ -188,7 +307,7 @@ PlasmaCore.Dialog {
         return rows;
     }
 
-    mainItem: Item {
+    mainItem: FocusScope {
         id: frame
         width: menu.screenRect.width
         height: menu.screenRect.height - 40
@@ -207,6 +326,88 @@ PlasmaCore.Dialog {
             width: menu.columnWidth
             rows: menu.rootRows
             level: 0
+            readonly property bool searching: menu.query !== ""
+            readonly property real fieldSpace: finder.height + 3
+            rowsHidden: searching
+            headTop: menu.fromBottom ? 0 : fieldSpace
+            headBottom: menu.fromBottom ? fieldSpace : 0
+            bodyHeight: searching ? Math.max(menu.rowHeight, Math.min(results.contentHeight, 14 * menu.rowHeight)) : rowsHeight
+
+            // The search field: sunken, as OS/2's entry fields.
+            Bevel {
+                id: finderBox
+                kind: "field"
+                // An entry field's colours (the View set): white in Warp 4.
+                Kirigami.Theme.colorSet: Kirigami.Theme.View
+                Kirigami.Theme.inherit: false
+                x: 3; width: parent.width - 6; height: finder.height
+                y: menu.fromBottom ? parent.height - height - 3 : 3
+                Kirigami.Icon {
+                    x: 5; anchors.verticalCenter: parent.verticalCenter
+                    width: 16; height: 16
+                    source: "system-search"
+                }
+                TextInput {
+                    id: finder
+                    x: 26; width: parent.width - x - 6
+                    height: menu.rowHeight + 2
+                    verticalAlignment: TextInput.AlignVCenter
+                    clip: true
+                    focus: true
+                    font: Kirigami.Theme.defaultFont
+                    color: Kirigami.Theme.textColor
+                    selectionColor: Kirigami.Theme.highlightColor
+                    selectedTextColor: Kirigami.Theme.highlightedTextColor
+                    text: menu.query
+                    onTextEdited: menu.query = text
+                    Keys.onEscapePressed: menu.close()
+                    Keys.onReturnPressed: menu.launchHit()
+                    Keys.onEnterPressed: menu.launchHit()
+                    Keys.onUpPressed: if (menu.matchCount > 0) menu.hit = Math.max(0, menu.hit - 1)
+                    Keys.onDownPressed: if (menu.matchCount > 0) menu.hit = Math.min(menu.matchCount - 1, menu.hit + 1)
+                    Text {
+                        visible: finder.text === ""
+                        anchors.fill: parent
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
+                        text: i18nd("warp-legacy", "Type to find a program")
+                        font: Kirigami.Theme.defaultFont
+                        color: Kirigami.Theme.disabledTextColor
+                    }
+                }
+            }
+            // The matches, best first; the highlighted one starts on Return.
+            ListView {
+                id: results
+                visible: rootBox.searching
+                x: 3; width: parent.width - 6
+                y: menu.fromBottom ? 3 : rootBox.fieldSpace + 3
+                height: parent.height - rootBox.fieldSpace - 6
+                clip: true
+                model: menu.order
+                currentIndex: menu.hit
+                onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
+                interactive: contentHeight > height
+                delegate: MenuEntry {
+                    required property var modelData
+                    required property int index
+                    width: results.width
+                    text: { menu.matchesGeneration; return menu.matchName(modelData); }
+                    iconSource: { menu.matchesGeneration; return menu.matches ? menu.matches.data(menu.matches.index(modelData, 0), Qt.DecorationRole) : null; }
+                    highlighted: menu.hit === index
+                    onHovered: menu.hit = index
+                    onActivated: { menu.hit = index; menu.launchHit(); }
+                }
+            }
+            Text {
+                visible: rootBox.searching && menu.matchCount === 0 && !menu.search.querying
+                x: 30; y: results.y
+                height: menu.rowHeight
+                verticalAlignment: Text.AlignVCenter
+                text: i18nd("warp-legacy", "No programs found")
+                font: Kirigami.Theme.defaultFont
+                color: Kirigami.Theme.disabledTextColor
+            }
         }
         // Level 1 and deeper: one box per open folder or category, beside
         // the previous.
@@ -236,16 +437,25 @@ PlasmaCore.Dialog {
         id: box
         property var rows: []
         property int level: 0
+        // Room above or below the rows (the root box's search field), the
+        // height of what the box shows, and the rows hidden (searching).
+        property real headTop: 0
+        property real headBottom: 0
+        property bool rowsHidden: false
+        readonly property real rowsHeight: list.contentHeight
+        property real bodyHeight: rowsHeight
         kind: "frame"
         // Standing on a bottom panel, y follows the height: the cap must
         // not follow y back, or the box collapsed to a line.
         // Deeper levels move up to fit (their y is clamped), so only the
         // root box opening downwards is capped by where it starts.
-        height: Math.min(list.contentHeight + 6, level === 0 && menu.location !== PlasmaCore.Types.BottomEdge ? frame.height - y : frame.height)
+        height: Math.min(bodyHeight + headTop + headBottom + 6, level === 0 && menu.location !== PlasmaCore.Types.BottomEdge ? frame.height - y : frame.height)
         MouseArea { anchors.fill: parent }   // a click on the frame stays in the menu
         ListView {
             id: list
+            visible: !box.rowsHidden
             anchors.fill: parent; anchors.margins: 3
+            anchors.topMargin: 3 + box.headTop; anchors.bottomMargin: 3 + box.headBottom
             clip: true
             model: box.rows
             interactive: contentHeight > height
