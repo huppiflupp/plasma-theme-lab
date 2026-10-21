@@ -452,6 +452,9 @@ def main():
     icons()
     fonts()
     session()
+    # Firefox and Chrome themes with their apply script, to ~/.local/share/
+    # warp-legacy/browser (browser/README.md); never applied by install.sh.
+    load(ROOT / "browser/build_browser.py", "build_browser").build_browser(OUT / "warp-legacy/browser", VARIANTS, VERSION)
     plasmoids()
     print(f"Warp Legacy {VERSION} ({', '.join(v['name'] for v in VARIANTS)}) built in {OUT}")
 

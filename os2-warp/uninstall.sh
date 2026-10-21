@@ -95,6 +95,10 @@ remove() {   # remove <base> <list>: the files, then directories left empty
         rmdir -p --ignore-fail-on-non-empty "$1/$d" 2>/dev/null || true
     done
 }
+# Firefox profiles are the user's: firefox-apply.sh is never run here.
+if [ -x "$DATA/warp-legacy/browser/firefox-apply.sh" ] && "$DATA/warp-legacy/browser/firefox-apply.sh" status 2>/dev/null | grep -qi "applied\|neon\|classic"; then
+    echo "Note: Firefox still wears Warp Legacy; run '$DATA/warp-legacy/browser/firefox-apply.sh remove' first if you want it gone."
+fi
 remove "$DATA" "$STATE/files"
 [ -f "$STATE/config-files" ] && remove "$CONFIG" "$STATE/config-files"
 rm -rf "$STATE"
