@@ -27,6 +27,9 @@ Decoration {
     property int buttonStyle: 0
     // Neon: the glyphs plain white, as before 21.10.2026, not glowing.
     property bool whiteGlyphs: false
+    // Neon: the frame's colours drift slowly round the active window
+    // (NeonFlow.qml).
+    property bool flowFrame: true
     property int edge: 4
     readonly property int gap: 2
     readonly property bool maximized: decoration.client.maximized
@@ -70,6 +73,7 @@ Decoration {
         root.fixedTitleHeight = decoration.readConfig("titleHeight", 0);
         root.buttonStyle = decoration.readConfig("buttonStyle", 0);
         root.whiteGlyphs = decoration.readConfig("whiteGlyphs", false);
+        root.flowFrame = decoration.readConfig("flowFrame", true);
     }
     onTitleHeightChanged: readBorderSize()
     // The theme's settings dialog (config.ui) saves without telling KWin:
@@ -111,13 +115,29 @@ Decoration {
     readonly property bool neon: style.accent.a > 0
     NeonFrame {
         anchors.fill: parent
-        visible: area.neon && !root.maximized && root.edge > 0
+        visible: area.neon && !root.flowFrame && !root.maximized && root.edge > 0
         light: style.light; dark: style.dark; accent: style.accent
         NeonFrame {
             x: root.edge - 1; y: root.edge - 1
             width: parent.width - 2 * x; height: parent.height - 2 * y
             visible: root.edge > 1
             opacity: 0.6
+            light: style.light; dark: style.dark; accent: style.accent
+        }
+    }
+    NeonFlow {
+        id: flow
+        anchors.fill: parent
+        visible: area.neon && root.flowFrame && !root.maximized && root.edge > 0
+        running: decoration.client.active
+        light: style.light; dark: style.dark; accent: style.accent
+        // the inner line follows the outer one
+        NeonFlow {
+            x: root.edge - 1; y: root.edge - 1
+            width: parent.width - 2 * x; height: parent.height - 2 * y
+            visible: root.edge > 1
+            opacity: 0.6
+            phase: flow.phase
             light: style.light; dark: style.dark; accent: style.accent
         }
     }

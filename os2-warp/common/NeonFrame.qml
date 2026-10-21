@@ -10,12 +10,23 @@ Item {
     property color light
     property color dark
     property color accent
+    // Halfway from cyan to pink along the hue (violet-blue): straight from
+    // one to the other the line passed a pale, almost white lavender (the
+    // user's remark 21.10.2026).
+    readonly property color between: {
+        let d = accent.hsvHue - light.hsvHue;
+        if (d > 0.5) d -= 1;
+        if (d < -0.5) d += 1;
+        return Qt.hsva(((light.hsvHue + d / 2) % 1 + 1) % 1, (light.hsvSaturation + accent.hsvSaturation) / 2,
+                       (light.hsvValue + accent.hsvValue) / 2, 1);
+    }
     Rectangle {
         width: parent.width; height: 1
         gradient: Gradient {
             orientation: Gradient.Horizontal
             GradientStop { position: 0.0; color: frame.light }
             GradientStop { position: 0.78; color: frame.light }
+            GradientStop { position: 0.89; color: frame.between }
             GradientStop { position: 1.0; color: frame.accent }
         }
     }
