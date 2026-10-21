@@ -58,8 +58,9 @@ Colors (Extras › Optionen › LibreOffice › Anwendungsfarben), scheme
 
 Limits:
 
-- Switching the variant in System Settings › Global Theme does not switch
-  LibreOffice; run `libreoffice-apply` or choose the scheme in the options.
+- Switching the variant in System Settings › Global Theme switches
+  LibreOffice at the next login (`warp-legacy-sync`, with `--if-default`),
+  and only if LibreOffice is closed then; at once: `libreoffice-apply`.
 - Only the native packages' profile (`~/.config/libreoffice/4/user`) is
   handled, not the Flatpak or Snap one; there, install `warp-legacy.oxt`
   through Tools › Extensions and choose the scheme in the options.

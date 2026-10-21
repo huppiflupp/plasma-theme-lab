@@ -14,8 +14,8 @@ XDG_CONFIG_DIRS=$(printf '%s' "${XDG_CONFIG_DIRS:-/etc/xdg}" | tr ':' '\n' | gre
 export XDG_CONFIG_DIRS
 lnf=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
 case "$lnf" in
-    org.warplegacy.neon.desktop) kvantum=WarpNeon; konsole="Warp Legacy Neon (transparent)"; picture=org.warplegacy.dunkel-lichtbogen-rechts ;;
-    org.warplegacy.desktop)      kvantum=Warp; konsole="Warp Legacy"; picture=org.warplegacy.warp4-wirbel-violett ;;
+    org.warplegacy.neon.desktop) variant=neon; kvantum=WarpNeon; konsole="Warp Legacy Neon (transparent)"; picture=org.warplegacy.dunkel-lichtbogen-rechts ;;
+    org.warplegacy.desktop)      variant=classic; kvantum=Warp; konsole="Warp Legacy"; picture=org.warplegacy.warp4-wirbel-violett ;;
     *) exit 0 ;;
 esac
 conf="${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/kvantum.kvconfig"
@@ -29,9 +29,13 @@ for pair in "KDE widgetStyle" "Icons Theme"; do
 done
 # Konsole's profile of the variant, unless the user chose one of their own.
 case "$(kreadconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile)" in
-    ""|"Warp Legacy.profile"|"Warp Legacy Neon.profile")
+    ""|"Warp Legacy.profile"|"Warp Legacy Neon.profile"|"Warp Legacy Neon (transparent).profile")
         kwriteconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile "$konsole.profile" ;;
 esac
+# LibreOffice's application colours (libreoffice/README.md), unless the
+# user chose a scheme of their own; skipped while LibreOffice runs.
+lo="$(dirname "$0")/libreoffice/libreoffice-apply"
+[ -f "$lo" ] && command -v python3 >/dev/null 2>&1 && python3 "$lo" "$variant" --if-default >/dev/null 2>&1
 # The System Monitor's chart colours (warp-legacy-sysmon): its stored
 # colours do not follow a change of colour scheme.
 command -v python3 >/dev/null 2>&1 && python3 "$(dirname "$0")/warp-legacy-sysmon" "$lnf"
