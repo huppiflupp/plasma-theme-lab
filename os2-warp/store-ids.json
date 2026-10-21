@@ -1,0 +1,16 @@
+{
+  "_comment": "Content ids of the KDE Store entries (the number in https://store.kde.org/p/<id>/), filled in after uploading; see dist/store/<version>/UPLOAD.md. Then: python3 store.py --ids store-ids.json",
+  "warpbar": "",
+  "launchpad": "",
+  "controlstrip": "",
+  "tablauncher": "",
+  "taskbar": "",
+  "plasma": "",
+  "plasma-neon": "",
+  "frame": "",
+  "colors": "",
+  "icons": "",
+  "icons-neon": "",
+  "cursors": "",
+  "wallpapers": ""
+}

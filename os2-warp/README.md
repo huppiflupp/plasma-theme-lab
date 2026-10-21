@@ -125,6 +125,13 @@ CLAUDE.md).
 into `dist/warp-legacy-<version>.tar.xz` (no build needed to install from
 it). RELEASE-CHECKLIST.md is the test plan, TESTING.md the log.
 
+`python3 store.py` (after a full build) makes the KDE Store edition in
+`dist/store/<version>/`: one archive per store entry, the global themes
+fetching the rest as dependencies. It uses Breeze widgets and an SVG
+version of the frame, and leaves out what only `install.sh` does
+(warp-legacy-sync, the button order, Kvantum, Konsole, LibreOffice,
+Firefox, IBM Plex, the lock screen picture); see STORE.md.
+
 ## Licence
 
 GPL-2.0-or-later (LICENSE); the IBM Plex fonts under the SIL Open Font
