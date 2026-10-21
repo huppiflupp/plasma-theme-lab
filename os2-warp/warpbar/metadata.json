@@ -5,7 +5,7 @@
     "Description": "OS/2 WarpCenter-style bar: cascading desktop menu, window list, lock, find, shut down and a tray of launchers",
     "Description[de]": "Leiste im Stil des WarpCenter: kaskadierendes Desktop-Menü, Fensterliste, Sperren, Suchen, Systemabschluss und eine Ablage mit Startern",
     "Icon": "start-here-kde",
-    "Version": "0.4.1",
+    "Version": "0.4.2",
     "License": "GPL-2.0-or-later",
     "Authors": [{"Name": "Warp Legacy contributors"}],
     "Category": "Application Launchers"
