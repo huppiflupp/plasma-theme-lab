@@ -16,6 +16,7 @@ use before is kept in ~/.local/share/warp-legacy-install/libreoffice.before
 and put back by "remove" (uninstall.sh runs it), unless the user has
 chosen yet another scheme meanwhile.
 """
+import hashlib
 import os
 import re
 import shutil
@@ -35,6 +36,8 @@ DATA = Path(os.environ.get("XDG_DATA_HOME") or HOME / ".local/share")
 PROFILE = CONFIG / "libreoffice/4/user"
 REGISTRY = PROFILE / "registrymodifications.xcu"
 STATE = DATA / "warp-legacy-install/libreoffice.before"
+# the installed extension's checksum: added again only when it changed
+STAMP = DATA / "warp-legacy-install/libreoffice.oxt.sha256"
 ITEM = re.compile(r'<item oor:path="/org.openoffice.Office.UI/ColorScheme">'
                   r'<prop oor:name="CurrentColorScheme"[^>]*><value>([^<]*)</value></prop></item>\n?')
 HEAD = ('<?xml version="1.0" encoding="UTF-8"?>\n<oor:items xmlns:oor="http://openoffice.org/2001/registry" '
@@ -96,11 +99,17 @@ def apply(variant, if_default):
         die("LibreOffice is running; close it first (it would write its old colours back)", 3)
     oxt = HERE / "warp-legacy.oxt"
     oxt.exists() or die(f"{oxt} missing; build Warp Legacy first")
-    # The extension brings both schemes; it is replaced if it is there.
-    result = subprocess.run([tool, "add", "--force", "--suppress-license", str(oxt)],
-                            capture_output=True, text=True)
-    if result.returncode != 0:
-        die(f"unopkg add failed: {result.stderr.strip() or result.stdout.strip()}")
+    # The extension brings both schemes. Added again only when it changed:
+    # every unopkg add left another copy under extensions/tmp, and
+    # warp-legacy-sync runs this at each login (Fedora VM, 21.10.2026).
+    digest = hashlib.sha256(oxt.read_bytes()).hexdigest()
+    if not (installed(tool) and STAMP.exists() and STAMP.read_text().strip() == digest):
+        result = subprocess.run([tool, "add", "--force", "--suppress-license", str(oxt)],
+                                capture_output=True, text=True)
+        if result.returncode != 0:
+            die(f"unopkg add failed: {result.stderr.strip() or result.stdout.strip()}")
+        STAMP.parent.mkdir(parents=True, exist_ok=True)
+        STAMP.write_text(digest + "\n")
     before = current()
     ours = set(SCHEMES.values())
     if if_default and before not in (None, DEFAULT, *ours):
@@ -126,7 +135,14 @@ def remove():
     if tool and installed(tool):
         subprocess.run([tool, "remove", EXTENSION_ID], capture_output=True)
         print("LibreOffice: extension Warp Legacy colours removed.")
+    # unopkg leaves the unpacked copies behind; only ours go.
+    for cache in (PROFILE / "extensions/tmp/extensions", PROFILE / "uno_packages/cache/uno_packages"):
+        if cache.is_dir():
+            for entry in cache.iterdir():
+                if (entry / "warp-legacy.oxt").exists():
+                    shutil.rmtree(entry, ignore_errors=True)
     STATE.unlink(missing_ok=True)
+    STAMP.unlink(missing_ok=True)
 
 
 def status():

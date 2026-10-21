@@ -75,6 +75,12 @@ elif [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ]; then
     case "$(kreadconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme)" in
         WarpLegacy*|Warp|WarpNeon) kwriteconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme --delete ;;
     esac
+    # install.sh made the file when there was none: an empty one goes again.
+    # (nothing in it but group headers and blank lines)
+    if ! grep -qvE '^[[:space:]]*(\[.*\])?[[:space:]]*$' "$CONFIG/Kvantum/kvantum.kvconfig"; then
+        rm -f "$CONFIG/Kvantum/kvantum.kvconfig"
+        rmdir "$CONFIG/Kvantum" 2>/dev/null || true
+    fi
 fi
 # The workspaces install.sh added, the last ones first; KWin moves their
 # windows to the remaining ones.
@@ -112,5 +118,9 @@ fi
 [ -x "$LO_APPLY" ] && command -v python3 >/dev/null 2>&1 && { "$LO_APPLY" remove || true; }
 remove "$DATA" "$STATE/files"
 [ -f "$STATE/config-files" ] && remove "$CONFIG" "$STATE/config-files"
+# What the Warp menu wrote while in use (common/DesktopMenu.qml): the
+# programs started from its search; not in the file list.
+rm -f "$DATA/warp-legacy/launched"
+rmdir "$DATA/warp-legacy" 2>/dev/null || true
 rm -rf "$STATE"
 echo "Warp Legacy removed. Log out and back in for every part to take effect."

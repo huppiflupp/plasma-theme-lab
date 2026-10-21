@@ -66,5 +66,8 @@ Limits:
   through Tools › Extensions and choose the scheme in the options.
 - With the gtk3 plugin (`SAL_USE_VCLPLUGIN=gtk3`) the document colours
   still apply, but the window around them follows GTK, not Kvantum.
+- LibreOffice's profile (`~/.config/libreoffice`) is made by `unopkg` if
+  there was none; uninstalling removes the extension and its unpacked
+  copies, not the profile.
 - The page colour is a screen colour only: printing and PDF export keep the
   document's own colours (white unless the document sets one).

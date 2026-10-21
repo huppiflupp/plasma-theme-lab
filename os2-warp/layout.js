@@ -42,7 +42,11 @@ drawer.floating = false;
 drawer.lengthMode = 'custom';
 drawer.minimumLength = 10;
 drawer.maximumLength = screenGeometry(0).width;
-drawer.addWidget('org.warplegacy.tablauncher');
+var tabs = drawer.addWidget('org.warplegacy.tablauncher');
+// Slid in at first: open, the drawer lay over the title bars of new
+// windows (Fedora VM at 1280x800, 21.10.2026); its tab opens it.
+tabs.currentConfigGroup = ['General'];
+tabs.writeConfig('collapsed', true);
 
 // userDataPath() alone is the home folder (VM, 20.10.2026); 'data' is
 // ~/.local/share, where install.sh puts the wallpaper packages.
