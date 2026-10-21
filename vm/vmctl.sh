@@ -63,6 +63,25 @@ wait_ssh() {
     return 1
 }
 
+# No screen lock, no dimming, no display off, no suspend: in a test VM they
+# only give black screenshots or the lock screen (provision.sh sets the same;
+# older snapshots such as 'clean' predate it, so it is set again after every
+# start and revert). The running session picks it up at once.
+lab_quiet() {
+    local ip
+    ip=$(vm_ip) || return 0
+    ssh $SSH_OPTS "$VM_USER@$ip" 'export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+        kwriteconfig6 --file kscreenlockerrc --group Daemon --key Autolock false
+        kwriteconfig6 --file kscreenlockerrc --group Daemon --key LockOnResume false
+        for p in AC Battery LowBattery; do
+            kwriteconfig6 --file powerdevilrc --group $p --group Display --key DimDisplayWhenIdle false
+            kwriteconfig6 --file powerdevilrc --group $p --group Display --key TurnOffDisplayWhenIdle false
+            kwriteconfig6 --file powerdevilrc --group $p --group SuspendAndShutdown --key AutoSuspendAction 0
+        done
+        dbus-send --session --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.kde.screensaver.configure 2>/dev/null
+        systemctl --user try-restart plasma-powerdevil.service 2>/dev/null' >/dev/null 2>&1 || true
+}
+
 cmd="${1:-status}"
 shift || true
 
@@ -71,6 +90,7 @@ case "$cmd" in
   start)
       V domstate "$VM_NAME" 2>/dev/null | grep -qE 'laufend|running' || V start "$VM_NAME"
       wait_ssh "${1:-300}" >/dev/null
+      lab_quiet
       echo "VM is running."
       ;;
 
@@ -199,6 +219,7 @@ export XDG_CURRENT_DESKTOP=KDE
               V destroy "$VM_NAME" &>/dev/null || true
               V snapshot-revert "$VM_NAME" "$name" --running
               wait_ssh 300 >/dev/null
+              lab_quiet
               echo "Reverted to '$name', VM is running."
               ;;
           rm)     V snapshot-delete "$VM_NAME" "${1:?name missing}" ;;

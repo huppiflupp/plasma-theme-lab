@@ -83,13 +83,12 @@ sudo -u tester bash <<'USERCFG'
 kwriteconfig6 --file kscreenlockerrc --group Daemon --key Autolock false
 kwriteconfig6 --file kscreenlockerrc --group Daemon --key LockOnResume false
 kwriteconfig6 --file kscreenlockerrc --group Daemon --key Timeout 0
+# Plasma 6 reads powerdevilrc, no longer powermanagementprofilesrc (the
+# VM dimmed and locked anyway until 21.10.2026).
 for p in AC Battery LowBattery; do
-    kwriteconfig6 --file powermanagementprofilesrc --group "$p" \
-        --group DPMSControl --key idleTime 0
-    kwriteconfig6 --file powermanagementprofilesrc --group "$p" \
-        --group DimDisplay --key idleTime 0
-    kwriteconfig6 --file powermanagementprofilesrc --group "$p" \
-        --group SuspendSession --key idleTime 0
+    kwriteconfig6 --file powerdevilrc --group "$p" --group Display --key DimDisplayWhenIdle false
+    kwriteconfig6 --file powerdevilrc --group "$p" --group Display --key TurnOffDisplayWhenIdle false
+    kwriteconfig6 --file powerdevilrc --group "$p" --group SuspendAndShutdown --key AutoSuspendAction 0
 done
 USERCFG
 
