@@ -3,7 +3,7 @@
 # for screenshots: the column of desktop objects on the left, a project
 # folder, and the windows where the concept has them. Run inside the
 # Plasma session (the VM), after install.sh --apply. Adds files under the
-# desktop folder and ~/Projekte, sets the desktop's icon layout (restarts
+# desktop folder and ~/Projekte (~/Projects in an English session), sets the desktop's icon layout (restarts
 # plasmashell for that); the windows are ordinary ones. With --panels it
 # first replaces all panels by one arrangement of Warp Legacy's (a demo:
 # the old panels are not kept).
@@ -113,35 +113,39 @@ DESKTOP=$(xdg-user-dir DESKTOP)
 mkdir -p "$DESKTOP"
 
 # The concept's column, top to bottom (numbered files keep the order).
-entry() {   # entry <file> <name> <icon> <exec>
+# Names in English with the German beside them (Name[de]): the
+# screenshots are taken in an English session (the user's wish 21.10.2026).
+entry() {   # entry <file> <name> <German name> <icon> <exec>
     cat > "$DESKTOP/$1.desktop" <<EOF
 [Desktop Entry]
 Type=Application
 Name=$2
-Icon=$3
-Exec=$4
+Name[de]=$3
+Icon=$4
+Exec=$5
 EOF
     chmod +x "$DESKTOP/$1.desktop"
 }
-link() {    # link <file> <name> <icon> <url>
+link() {    # link <file> <name> <German name> <icon> <url>
     cat > "$DESKTOP/$1.desktop" <<EOF
 [Desktop Entry]
 Type=Link
 Name=$2
-Icon=$3
-URL=$4
+Name[de]=$3
+Icon=$4
+URL=$5
 EOF
 }
-link  01-arbeitsplatz  "Arbeitsplatz"   user-desktop          "file://$DESKTOP"
-link  02-computer      "Computer"       computer              "file:///"
-link  03-netzwerk      "Netzwerk"       network-workgroup     "remote:/"
-entry 04-internet      "Internet"       internet-web-browser  "firefox"
-link  05-dateien       "Dateien"        folder                "file://$HOME"
-entry 06-anwendungen   "Anwendungen"    applications-other    "krunner"
-link  07-vorlagen      "Vorlagen"       folder-templates      "file://$(xdg-user-dir TEMPLATES)"
-entry 08-einstellungen "Einstellungen"  preferences-system    "systemsettings"
-entry 09-spiele        "Spiele"         applications-games    "kpat"
-entry 10-herunterfahren "Herunterfahren" system-shutdown      "dbus-send --session --type=method_call --dest=org.kde.LogoutPrompt /LogoutPrompt org.kde.LogoutPrompt.promptShutDown"
+link  01-arbeitsplatz  "Workplace"    "Arbeitsplatz"   user-desktop          "file://$DESKTOP"
+link  02-computer      "My Computer"  "Computer"       computer              "file:///"
+link  03-netzwerk      "Network"      "Netzwerk"       network-workgroup     "remote:/"
+entry 04-internet      "Internet"     "Internet"       internet-web-browser  "firefox"
+link  05-dateien       "Files"        "Dateien"        folder                "file://$HOME"
+entry 06-anwendungen   "Applications" "Anwendungen"    applications-other    "krunner"
+link  07-vorlagen      "Templates"    "Vorlagen"       folder-templates      "file://$(xdg-user-dir TEMPLATES)"
+entry 08-einstellungen "Settings"     "Einstellungen"  preferences-system    "systemsettings"
+entry 09-spiele        "Games"        "Spiele"         applications-games    "kpat"
+entry 10-herunterfahren "Shut Down..." "Herunterfahren" system-shutdown      "dbus-send --session --type=method_call --dest=org.kde.LogoutPrompt /LogoutPrompt org.kde.LogoutPrompt.promptShutDown"
 
 # One column in this order. The folder view reads "positions" only at
 # start and writes its own grid back on exit, so stop plasmashell, write
@@ -204,8 +208,14 @@ if [ "$running" = 1 ]; then
 fi
 
 # The concept's C:\Projects.
-mkdir -p ~/Projekte/{Dokumente,Finanzen,Privat,Temp}
-[ -f ~/Projekte/TODO.txt ] || printf 'Warp Legacy\n- Sperrbildschirm\n- Store-Paket\n' > ~/Projekte/TODO.txt
+# In the session's language: German or English.
+case "${LANGUAGE:-${LANG:-}}" in
+    de*) projects=~/Projekte; mkdir -p "$projects"/{Dokumente,Finanzen,Privat,Temp}
+         todo='Warp Legacy\n- Sperrbildschirm\n- Store-Paket\n' ;;
+    *)   projects=~/Projects; mkdir -p "$projects"/{Documents,Finance,Private,Temp}
+         todo='Warp Legacy\n- lock screen\n- store package\n' ;;
+esac
+[ -f "$projects/TODO.txt" ] || printf "$todo" > "$projects/TODO.txt"
 
 [ "${mode:-}" = "--objects" ] && exit 0
 
@@ -246,7 +256,7 @@ launch() { (setsid "$@" >/dev/null 2>&1 &); }
 launch dolphin --new-window "$DESKTOP"
 launch konsole --workdir "$HOME" --hold -e sh -c 'uname -srm; echo; lscpu | grep -E "^(Model name|CPU\(s\))"; free -h | head -2; echo; exec bash'
 launch firefox --new-window about:blank
-launch dolphin --new-window ~/Projekte
+launch dolphin --new-window "$projects"
 launch systemsettings
 sleep 8
 

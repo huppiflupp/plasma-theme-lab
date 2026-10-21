@@ -40,7 +40,7 @@
 
     function cls(w) { return String(w.resourceClass).toLowerCase(); }
     function isDolphin(w) { return /dolphin/.test(cls(w)); }
-    function isProjects(w) { return /Projekte/.test(String(w.caption)); }
+    function isProjects(w) { return /Projekte|Projects/.test(String(w.caption)); }
     // match, x, y, width, height in the concept's pixels
     var places = [
         [function (w) { return isDolphin(w) && !isProjects(w); }, 125, 70, 585, 345],

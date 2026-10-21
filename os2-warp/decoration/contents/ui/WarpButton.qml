@@ -147,8 +147,16 @@ DecorationButton {
             if (set === "warp") {
                 if (kind === "close") cross(Math.round(s * 0.25), Math.max(2, Math.round(s / 9)));
                 else if (kind === "min") {
-                    const w = Math.max(4, Math.round(s * 0.3));
-                    box(Math.round((s - w) / 2), Math.round((s - w) / 2), w, w, 2);
+                    if (button.neon) {
+                        // Neon: a bar at the bottom as in the concept's Command
+                        // Prompt; beside the smaller maximize square two
+                        // squares were too alike (the user, 21.10.2026).
+                        const w = Math.max(6, Math.round(s * 0.44)), t = Math.max(2, Math.round(s / 10));
+                        c.fillRect(Math.round((s - w) / 2), Math.round((s + w) / 2) - t, w, t);
+                    } else {
+                        const w = Math.max(4, Math.round(s * 0.3));
+                        box(Math.round((s - w) / 2), Math.round((s - w) / 2), w, w, 2);
+                    }
                 } else if (kind === "max") {
                     // Neon: the concept's Command Prompt has a smaller square
                     // drawn with a thick line all round (the user's remark
