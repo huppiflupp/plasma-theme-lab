@@ -69,6 +69,11 @@ Decoration {
         root.buttonStyle = decoration.readConfig("buttonStyle", 0);
     }
     onTitleHeightChanged: readBorderSize()
+    // The theme's settings dialog (config.ui) saves without telling KWin:
+    // open windows kept their old buttons, only new ones took the change
+    // (VM, 21.10.2026). Read again now and then; nothing redraws unless a
+    // value changed.
+    Timer { interval: 2000; running: true; repeat: true; onTriggered: root.readConfig() }
 
     // ---- glow ------------------------------------------------------------
     // Rings fading outwards, strongest at the frame: neon light on the desktop.
