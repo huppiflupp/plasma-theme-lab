@@ -73,6 +73,7 @@ kwinrc	org.kde.kdecoration2	ButtonsOnLeft
 kwinrc	org.kde.kdecoration2	ButtonsOnRight
 kwinrc	org.kde.kdecoration2	BorderSize
 konsolerc	Desktop Entry	DefaultProfile
+kcminputrc	Mouse	cursorTheme
 plasmarc	Theme	name
 kscreenlockerrc	Greeter	WallpaperPlugin
 kscreenlockerrc	Greeter>Wallpaper>org.kde.image>General	Image"
@@ -91,15 +92,25 @@ record() {
         printf '%s\t%s\t%s\t%s\n' "$file" "$groups" "$key" "$value"
     done <<< "$SETTINGS" > "$STATE/settings.before"
 }
+# A record from an older install lacks the keys added since: the cursor
+# theme (21.10.2026). Recorded now, unless it is already Warp Legacy's.
+complete_record() {
+    [ -f "$STATE/settings.before" ] || return
+    grep -q $'^kcminputrc\tMouse\tcursorTheme\t' "$STATE/settings.before" && return
+    value=$(kreadconfig6 --file kcminputrc --group Mouse --key cursorTheme --default "$UNSET")
+    case "$value" in WarpLegacy*) value=$UNSET ;; esac
+    printf '%s\t%s\t%s\t%s\n' kcminputrc Mouse cursorTheme "$value" >> "$STATE/settings.before"
+}
 if [ -n "$APPLY" ]; then
     record
+    complete_record
     if [ -n "$LAYOUT" ] && [ ! -f "$STATE/appletsrc.before" ] && [ -f "$STATE/settings.before" ]; then
         cp -a "$CONFIG/plasma-org.kde.plasma.desktop-appletsrc" "$STATE/appletsrc.before" 2>/dev/null || true
         cp -a "$CONFIG/plasmashellrc" "$STATE/plasmashellrc.before" 2>/dev/null || true
     fi
     case "$VARIANT" in
         "")   LNF=org.warplegacy.desktop;      KVANTUM=Warp;           ICONS=WarpLegacy;         KONSOLE="Warp Legacy";      PICTURE=org.warplegacy.warp4-wirbel-violett ;;
-        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpNeon;       ICONS=WarpLegacyNeon2026Violett; KONSOLE="Warp Legacy Neon"; PICTURE=org.warplegacy.dunkel-lichtbogen-rechts ;;
+        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpNeon;       ICONS=WarpLegacyNeon2026Violett; KONSOLE="Warp Legacy Neon (transparent)"; PICTURE=org.warplegacy.dunkel-lichtbogen-rechts ;;
     esac
     plasma-apply-lookandfeel --apply "$LNF" $LAYOUT
     # The global theme only carries the decoration's library and theme into
@@ -117,6 +128,15 @@ if [ -n "$APPLY" ]; then
     # The same for the icon theme: programs kept Breeze although kdedefaults
     # named Warp Legacy Neon's.
     kwriteconfig6 --file kdeglobals --group Icons --key Theme "$ICONS"
+    # The cursors (Neon: cursors_neon.py), at once for the running session.
+    case "$VARIANT" in neon) CURSORS=WarpLegacyNeonCursors ;; *) CURSORS=breeze_cursors ;; esac
+    if [ -d "$DATA/icons/$CURSORS" ] || [ -d "/usr/share/icons/$CURSORS" ]; then
+        if command -v plasma-apply-cursortheme >/dev/null 2>&1; then
+            plasma-apply-cursortheme "$CURSORS" >/dev/null 2>&1 || kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme "$CURSORS"
+        else
+            kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme "$CURSORS"
+        fi
+    fi
     # Running programs only learn of it when told: a Dolphin left open kept
     # the icons of a variant in between (VM, 21.10.2026). KIconLoader listens
     # for iconChanged on /KIconLoader.

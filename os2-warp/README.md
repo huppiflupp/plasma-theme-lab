@@ -19,6 +19,8 @@ wallpapers and panels are drawn and written anew (DESIGN.md §1).
 | Plasma style, colours | Warp 4's grey and blue | navy, cyan, violet |
 | Icons | Breeze (a set of its own is planned) | Warp Legacy Neon, glowing |
 | Wallpaper | violet swirl (16 pictures to choose from) | planet horizon |
+| Mouse cursors | Breeze | Breeze's, the rim in the frames' light (made at build time from the Breeze cursors) |
+| Konsole | Warp Legacy profile | dark profile, 80 % transparent by default |
 
 The panels, shared by both variants:
 

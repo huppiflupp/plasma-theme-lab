@@ -40,6 +40,7 @@ if [ -f "$STATE/settings.before" ]; then
 else
     # No record: at least nothing may name what is about to be deleted.
     case "$(kreadconfig6 --file kdeglobals --group Icons --key Theme)" in WarpLegacy*) kwriteconfig6 --file kdeglobals --group Icons --key Theme --delete ;; esac
+    case "$(kreadconfig6 --file kcminputrc --group Mouse --key cursorTheme)" in WarpLegacy*) kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme --delete ;; esac
     case "$(kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme)" in kwin4_decoration_qml_warplegacy*)
         kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.breeze
         kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme Breeze ;; esac

@@ -315,10 +315,11 @@ KONSOLE = {
 def konsole(v):
     k = KONSOLE[v["key"]]
     konsole_files(k, ids(v)["scheme"], k["name"], opacity=1)
-    # Neon also as a see-through profile over the desktop (the user's
-    # setting: fully transparent, no blur).
+    # Neon also as a see-through profile over the desktop, Neon's default
+    # (install.sh): 80 % transparency, as Konsole's slider calls it, no blur
+    # (the user's wish 21.10.2026; fully transparent before).
     if v["key"] == "neon":
-        konsole_files(k, ids(v)["scheme"] + "Transparent", k["name"] + " (transparent)", opacity=0)
+        konsole_files(k, ids(v)["scheme"] + "Transparent", k["name"] + " (transparent)", opacity=0.2)
 
 
 def konsole_files(k, scheme, name, opacity):
@@ -346,6 +347,13 @@ CursorShape=2
 HistoryMode=1
 HistorySize=10000
 """)
+
+
+def cursors():
+    """Neon's mouse cursors: Breeze's with the rim in Neon's light
+    (cursors_neon.py), made from the Breeze cursors on this machine."""
+    from cursors_neon import build_cursors
+    build_cursors(OUT)
 
 
 def session():
@@ -404,6 +412,9 @@ def lookandfeel(v):
     # Plasma takes only library, theme and BorderSize from here; install.sh
     # writes the button order and the widget style itself.
     icons = f"[kdeglobals][Icons]\nTheme={v['icons']}\n" if v.get("icons") else ""
+    # Neon's cursors with the frames' light; classic names Breeze's, so a
+    # switch back from Neon takes them away again.
+    icons += f"[kcminputrc][Mouse]\ncursorTheme={'WarpLegacyNeonCursors' if v['key'] == 'neon' else 'breeze_cursors'}\n"
     write(base + "contents/defaults", f"""[kdeglobals][General]
 ColorScheme={i['scheme']}
 font={UI_FONT}
@@ -453,6 +464,7 @@ def main():
     from i18n import compile_translations
     compile_translations(OUT)
     icons()
+    cursors()
     fonts()
     session()
     # Firefox and Chrome themes with their apply script, to ~/.local/share/

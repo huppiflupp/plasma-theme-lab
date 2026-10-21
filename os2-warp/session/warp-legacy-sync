@@ -14,7 +14,7 @@ XDG_CONFIG_DIRS=$(printf '%s' "${XDG_CONFIG_DIRS:-/etc/xdg}" | tr ':' '\n' | gre
 export XDG_CONFIG_DIRS
 lnf=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
 case "$lnf" in
-    org.warplegacy.neon.desktop) kvantum=WarpNeon; konsole="Warp Legacy Neon"; picture=org.warplegacy.dunkel-lichtbogen-rechts ;;
+    org.warplegacy.neon.desktop) kvantum=WarpNeon; konsole="Warp Legacy Neon (transparent)"; picture=org.warplegacy.dunkel-lichtbogen-rechts ;;
     org.warplegacy.desktop)      kvantum=Warp; konsole="Warp Legacy"; picture=org.warplegacy.warp4-wirbel-violett ;;
     *) exit 0 ;;
 esac
