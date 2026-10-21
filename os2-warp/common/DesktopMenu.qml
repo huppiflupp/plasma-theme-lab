@@ -169,6 +169,9 @@ PlasmaCore.Dialog {
         });
     }
     function close() { visible = false; levels = []; query = ""; launchPending = false; }
+    function stepHit(step) {
+        if (matchCount > 0) hit = Math.max(0, Math.min(matchCount - 1, hit + step));
+    }
 
     // The keys with the search field empty: up and down move through the
     // rows of the level in use (separators skipped), right opens a folder
@@ -432,13 +435,16 @@ PlasmaCore.Dialog {
                     Keys.onEscapePressed: menu.close()
                     Keys.onReturnPressed: menu.query === "" ? menu.keyActivate() : menu.launchHit()
                     Keys.onEnterPressed: menu.query === "" ? menu.keyActivate() : menu.launchHit()
+                    // The best match stands next to the field; a step away
+                    // from the field is the next match (up from a bottom
+                    // panel), as with the rows when nothing is typed.
                     Keys.onUpPressed: {
                         if (menu.query === "") menu.keyStep(-1);
-                        else if (menu.matchCount > 0) menu.hit = Math.max(0, menu.hit - 1);
+                        else menu.stepHit(menu.fromBottom ? 1 : -1);
                     }
                     Keys.onDownPressed: {
                         if (menu.query === "") menu.keyStep(1);
-                        else if (menu.matchCount > 0) menu.hit = Math.min(menu.matchCount - 1, menu.hit + 1);
+                        else menu.stepHit(menu.fromBottom ? -1 : 1);
                     }
                     Keys.onRightPressed: event => { event.accepted = menu.query === "" && menu.keyOpen(); }
                     Keys.onLeftPressed: event => {
@@ -465,6 +471,9 @@ PlasmaCore.Dialog {
                 height: parent.height - rootBox.fieldSpace - 6
                 clip: true
                 model: menu.order
+                // best first, starting at the field: from the bottom upwards
+                // when the menu stands on a bottom panel
+                verticalLayoutDirection: menu.fromBottom ? ListView.BottomToTop : ListView.TopToBottom
                 currentIndex: menu.hit
                 onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Contain)
                 interactive: contentHeight > height
