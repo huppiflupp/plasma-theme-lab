@@ -22,6 +22,7 @@ Rectangle {
     color: Kirigami.Theme.backgroundColor
 
     readonly property var lines: {
+        if (kind === "none") return [];        // the surface alone, no edge
         if (kind === "frame") return sunken ? [[dark, light]] : [[light, dark]];
         if (kind === "field") return [[dark, light], [ink, color]];
         return sunken ? [[ink, ink], [dark, light]] : [[ink, ink], [light, dark]];
@@ -29,7 +30,7 @@ Rectangle {
 
     // Neon draws the outer line of a raised frame or button as the window
     // frame does (NeonFrame.qml): cyan, pink in the right corners.
-    readonly property bool glowEdge: neon && !sunken && kind !== "field"
+    readonly property bool glowEdge: neon && !sunken && kind !== "field" && kind !== "none"
     NeonFrame {
         visible: root.glowEdge
         anchors.fill: parent

@@ -126,9 +126,11 @@ PlasmoidItem {
         height: parent.height
         clip: true
 
+        // No outer frame (the user's wish): the page's frame and the tabs
+        // carry the shape.
         Bevel {
             id: pad
-            kind: "frame"
+            kind: "none"
             width: drawer.padWidth
             height: parent.height
             x: drawer.open ? 0 : -width
@@ -136,7 +138,7 @@ PlasmoidItem {
 
             ColumnLayout {
                 id: column
-                anchors.fill: parent; anchors.margins: 4
+                anchors.fill: parent; anchors.margins: 2
                 spacing: 0
 
                 // No title bar of its own (the user's wish): the tabs say
