@@ -21,6 +21,7 @@ wallpapers and panels are drawn and written anew (DESIGN.md §1).
 | Wallpaper | violet swirl (16 pictures to choose from) | planet horizon |
 | Mouse cursors | Breeze | Breeze's, the rim in the frames' light (made at build time from the Breeze cursors) |
 | Konsole | Warp Legacy profile | dark profile, 80 % transparent by default |
+| LibreOffice (application colours) | white page on Warp grey, Warp blue marks | navy page on near black, violet text boundaries, pink spelling marks ([libreoffice/README.md](libreoffice/README.md)) |
 
 The panels, shared by both variants. The global theme's layout (taken
 with "Use desktop layout from theme", or `install.sh --layout`) has the
@@ -79,7 +80,10 @@ take effect in a new session.
 puts back what `--apply` changed (colour scheme, styles, icon theme,
 window frame and button order, lock screen picture, the number of
 workspaces), the panels from before `--layout`, and the global theme in
-use before, then removes the files. Tested on a clean Fedora 44 VM: the
+use before, then removes the files. LibreOffice's colours
+(`--apply` switches them only while LibreOffice is closed and only from
+its "Automatic" scheme) go back the same way; `uninstall.sh` asks to
+close LibreOffice first. Tested on a clean Fedora 44 VM: the
 panel afterwards is pixel for pixel the one before.
 
 ## Building
@@ -100,6 +104,7 @@ translations, global themes). `install.sh` builds when `build/` is missing.
 | `launchpad/`, `warpbar/`, `controlstrip/`, `tablauncher/` | the panels |
 | `layout.js` | the global themes' panel layout |
 | `wallpapers/` | the pictures (generated locally, prompts and seeds in the JSON beside each) |
+| `libreoffice/` | LibreOffice's application colours: extension and `libreoffice-apply` |
 | `po/` | translations (German) |
 | `fetch-reference.sh` | the reference screenshots DESIGN.md is measured from (not in the repository) |
 

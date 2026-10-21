@@ -179,6 +179,14 @@ if [ -n "$APPLY" ]; then
         count=$((count + 1))
     done
     dbus-send --session --type=method_call --dest=org.kde.KWin /KWin org.kde.KWin.reconfigure 2>/dev/null || true
+    # LibreOffice's application colours (libreoffice/README.md): the
+    # extension with both schemes, and the variant's chosen unless the user
+    # picked colours of their own. Needs LibreOffice closed.
+    LO_APPLY="$DATA/warp-legacy/libreoffice/libreoffice-apply"
+    if [ -x "$LO_APPLY" ] && command -v soffice >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
+        "$LO_APPLY" "${VARIANT:-classic}" --if-default \
+            || echo "Note: LibreOffice colours not set; later: $LO_APPLY ${VARIANT:-classic}" >&2
+    fi
     echo "Applied. Log out and back in for every part to take effect."
     echo "Firefox (optional): $DATA/warp-legacy/browser/firefox-apply.sh ${VARIANT:-classic}"
 fi

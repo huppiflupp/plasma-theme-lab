@@ -12,6 +12,14 @@ STATE="$DATA/warp-legacy-install"
 UNSET=$'\x01unset'
 [ -f "$STATE/files" ] || { echo "Warp Legacy is not installed." >&2; exit 1; }
 in_session() { [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; }
+# LibreOffice's colours come out only while it is closed (it writes its
+# configuration back on exit), so nothing is touched before that.
+LO_APPLY="$DATA/warp-legacy/libreoffice/libreoffice-apply"
+if [ -x "$LO_APPLY" ] && pgrep -u "$(id -u)" -x soffice.bin >/dev/null 2>&1 \
+   && "$LO_APPLY" status 2>/dev/null | grep -q "^extension: installed"; then
+    echo "LibreOffice is running; close it first, Warp Legacy's colours have to come out of it." >&2
+    exit 1
+fi
 
 current=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
 previous=
@@ -100,6 +108,8 @@ remove() {   # remove <base> <list>: the files, then directories left empty
 if [ -x "$DATA/warp-legacy/browser/firefox-apply.sh" ] && "$DATA/warp-legacy/browser/firefox-apply.sh" status --all 2>/dev/null | grep -qE "^(neon|classic)"; then
     echo "Note: Firefox still wears Warp Legacy; run '$DATA/warp-legacy/browser/firefox-apply.sh remove' first if you want it gone."
 fi
+# LibreOffice: the colours chosen before, the extension out.
+[ -x "$LO_APPLY" ] && command -v python3 >/dev/null 2>&1 && { "$LO_APPLY" remove || true; }
 remove "$DATA" "$STATE/files"
 [ -f "$STATE/config-files" ] && remove "$CONFIG" "$STATE/config-files"
 rm -rf "$STATE"

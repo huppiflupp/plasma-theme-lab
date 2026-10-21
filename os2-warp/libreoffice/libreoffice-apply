@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+"""Warp Legacy's colours for LibreOffice: install, choose, take back.
+
+    libreoffice-apply neon|classic      install warp-legacy.oxt (beside this
+                                        script) and make the variant's scheme
+                                        LibreOffice's application colours
+    libreoffice-apply neon --if-default the same, but only switch if the
+                                        user has not chosen colours of their
+                                        own (install.sh --apply uses this)
+    libreoffice-apply remove            the colours chosen before, extension out
+    libreoffice-apply status
+
+LibreOffice must be closed: it writes its whole configuration back when it
+exits, and unopkg does not install into a running instance. The scheme in
+use before is kept in ~/.local/share/warp-legacy-install/libreoffice.before
+and put back by "remove" (uninstall.sh runs it), unless the user has
+chosen yet another scheme meanwhile.
+"""
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from xml.sax.saxutils import escape, unescape
+
+HERE = Path(__file__).resolve().parent
+EXTENSION_ID = "org.warplegacy.libreoffice"
+SCHEMES = {"classic": "Warp Legacy", "neon": "Warp Legacy Neon"}
+DEFAULT = "COLOR_SCHEME_LIBREOFFICE_AUTOMATIC"
+UNSET = "\x01unset"
+HOME = Path.home()
+CONFIG = Path(os.environ.get("XDG_CONFIG_HOME") or HOME / ".config")
+DATA = Path(os.environ.get("XDG_DATA_HOME") or HOME / ".local/share")
+PROFILE = CONFIG / "libreoffice/4/user"
+REGISTRY = PROFILE / "registrymodifications.xcu"
+STATE = DATA / "warp-legacy-install/libreoffice.before"
+ITEM = re.compile(r'<item oor:path="/org.openoffice.Office.UI/ColorScheme">'
+                  r'<prop oor:name="CurrentColorScheme"[^>]*><value>([^<]*)</value></prop></item>\n?')
+HEAD = ('<?xml version="1.0" encoding="UTF-8"?>\n<oor:items xmlns:oor="http://openoffice.org/2001/registry" '
+        'xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n'
+        '</oor:items>\n')
+
+
+def die(message, code=1):
+    print(f"libreoffice-apply: {message}", file=sys.stderr)
+    sys.exit(code)
+
+
+def unopkg():
+    for path in (shutil.which("unopkg"), "/usr/lib64/libreoffice/program/unopkg",
+                 "/usr/lib/libreoffice/program/unopkg", "/opt/libreoffice/program/unopkg"):
+        if path and os.access(path, os.X_OK):
+            return path
+    return None
+
+
+def running():
+    return subprocess.run(["pgrep", "-u", str(os.getuid()), "-x", "soffice.bin"],
+                          stdout=subprocess.DEVNULL).returncode == 0
+
+
+def installed(tool):
+    result = subprocess.run([tool, "list", EXTENSION_ID], capture_output=True, text=True)
+    return result.returncode == 0 and EXTENSION_ID in result.stdout
+
+
+def current():
+    """The scheme the user layer names, or None (LibreOffice's default)."""
+    if not REGISTRY.exists():
+        return None
+    match = ITEM.search(REGISTRY.read_text(encoding="utf-8"))
+    return unescape(match.group(1)) if match else None
+
+
+def set_current(name):
+    """Write CurrentColorScheme into the user layer; None deletes it."""
+    text = REGISTRY.read_text(encoding="utf-8") if REGISTRY.exists() else HEAD
+    text = ITEM.sub("", text)
+    if name is not None:
+        line = ('<item oor:path="/org.openoffice.Office.UI/ColorScheme"><prop oor:name="CurrentColorScheme" '
+                f'oor:op="fuse"><value>{escape(name)}</value></prop></item>\n')
+        end = text.rfind("</oor:items>")
+        if end < 0:
+            die(f"{REGISTRY} does not look like LibreOffice's configuration; left as it is")
+        text = text[:end] + line + text[end:]
+    REGISTRY.parent.mkdir(parents=True, exist_ok=True)
+    tmp = REGISTRY.with_suffix(".xcu.warp-legacy")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(REGISTRY)
+
+
+def apply(variant, if_default):
+    tool = unopkg() or die("LibreOffice (unopkg) not found", 2)
+    if running():
+        die("LibreOffice is running; close it first (it would write its old colours back)", 3)
+    oxt = HERE / "warp-legacy.oxt"
+    oxt.exists() or die(f"{oxt} missing; build Warp Legacy first")
+    # The extension brings both schemes; it is replaced if it is there.
+    result = subprocess.run([tool, "add", "--force", "--suppress-license", str(oxt)],
+                            capture_output=True, text=True)
+    if result.returncode != 0:
+        die(f"unopkg add failed: {result.stderr.strip() or result.stdout.strip()}")
+    before = current()
+    ours = set(SCHEMES.values())
+    if if_default and before not in (None, DEFAULT, *ours):
+        print(f"LibreOffice: Warp Legacy's colours installed; your scheme '{before}' stays "
+              "(Tools > Options > LibreOffice > Application Colors to switch).")
+        return
+    if not STATE.exists() and before not in ours:
+        STATE.parent.mkdir(parents=True, exist_ok=True)
+        STATE.write_text((before if before is not None else UNSET) + "\n", encoding="utf-8")
+    set_current(SCHEMES[variant])
+    print(f"LibreOffice: application colours '{SCHEMES[variant]}'.")
+
+
+def remove():
+    if running():
+        die("LibreOffice is running; close it first", 3)
+    now = current()
+    if now in SCHEMES.values():
+        before = STATE.read_text(encoding="utf-8").rstrip("\n") if STATE.exists() else UNSET
+        set_current(None if before == UNSET else before)
+        print(f"LibreOffice: application colours back to '{before if before != UNSET else 'Automatic'}'.")
+    tool = unopkg()
+    if tool and installed(tool):
+        subprocess.run([tool, "remove", EXTENSION_ID], capture_output=True)
+        print("LibreOffice: extension Warp Legacy colours removed.")
+    STATE.unlink(missing_ok=True)
+
+
+def status():
+    tool = unopkg()
+    print(f"profile:   {PROFILE}")
+    print(f"extension: {'installed' if tool and installed(tool) else 'not installed'}")
+    now = current()
+    print(f"colours:   {now or 'Automatic (LibreOffice default)'}")
+    if STATE.exists():
+        before = STATE.read_text(encoding="utf-8").rstrip("\n")
+        print(f"before:    {'Automatic' if before == UNSET else before}")
+
+
+def main(argv):
+    args = [a for a in argv if not a.startswith("--")]
+    flags = {a for a in argv if a.startswith("--")}
+    if not args or len(args) > 1 or flags - {"--if-default"}:
+        print(__doc__.strip())
+        sys.exit(2)
+    command = args[0]
+    if command in SCHEMES:
+        apply(command, "--if-default" in flags)
+    elif command == "remove":
+        remove()
+    elif command == "status":
+        status()
+    else:
+        print(__doc__.strip())
+        sys.exit(2)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
