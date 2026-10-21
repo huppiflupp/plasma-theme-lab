@@ -14,9 +14,12 @@ RAW = HERE.parent / "wallpaper" / "warp-legacy"
 OUT = HERE / "wallpapers"
 
 
-def main():
+def main(names=None):
+    """names: the stems to take (the user's choice); none: every picture."""
     OUT.mkdir(exist_ok=True)
     for png in sorted(RAW.glob("*.png")):
+        if names and png.stem not in names:
+            continue
         if png.name == "uebersicht.png":
             continue
         image = Image.open(png).convert("RGB")
@@ -30,4 +33,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

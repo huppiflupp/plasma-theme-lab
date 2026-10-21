@@ -1,0 +1,31 @@
+{
+  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
+  "steps": 8,
+  "cfg": 1,
+  "sampler": "res_multistep/simple",
+  "shift": 3,
+  "prompt": "Abstract art, folds of dark navy silk fabric flowing diagonally, with a soft violet and magenta sheen on the edges of the folds in the lower right part. Dark overall: almost the entire frame is a deep, richly saturated royal navy blue around hex 040c4a to 0a1a78, with a very soft faint blue haze, dark like a night sky but clearly blue, never grey, never black. Light appears only as a thin sheen on fold edges in the lower right. The upper left area and the large center of the frame stay dark, calm and empty. Accents in electric violet hex 7a4dff, magenta pink hex ff4fd8 and cyan hex 48cffe are thin and luminous against the darkness. No white areas, no glare, no lens flare, no sun. Smooth, clean, elegant modern desktop wallpaper. No text, no letters, no logos, no watermark.",
+  "seed": 7202,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 12.0,
+  "comfy_file": "warp_dunkel-seide-violett_zimage_7202_00001_.png",
+  "slug": "dunkel-seide-violett",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 20.0,
+  "helligkeit": {
+    "mittel": 0.079,
+    "p50": 0.074,
+    "p99": 0.314,
+    "mitte_70proz": 0.082,
+    "oben_links": 0.076,
+    "hinweis": "Rec.709-Luminanz 0..1; Ziel Konzept-Hintergrund Mittel 0.046/P50 0.039/P99 0.172"
+  }
+}

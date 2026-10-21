@@ -5,7 +5,7 @@
 # Legacy picture is replaced (the user's remark, 21.10.2026): a global theme
 # applied without its layout leaves the wallpaper as it was.
 want=$1
-neon_pictures="neon-|wirbel-nacht-|warp-antrieb|schiefer-warp"
+neon_pictures="neon-|dunkel-|wirbel-nacht-|warp-antrieb|schiefer-warp"
 config="${XDG_CONFIG_HOME:-$HOME/.config}/plasma-org.kde.plasma.desktop-appletsrc"
 current=$(grep -m1 '^Image=' "$config" 2>/dev/null | cut -d= -f2-)
 case "$current" in
@@ -14,7 +14,7 @@ case "$current" in
 esac
 # Within Warp Legacy, keep a picture that already fits the variant.
 if [ -n "$current" ]; then
-    case "$want" in *neon*|*bogen*) is_neon=1 ;; *) is_neon= ;; esac
+    case "$want" in *neon*|*dunkel*) is_neon=1 ;; *) is_neon= ;; esac
     if printf '%s' "$current" | grep -Eq "$neon_pictures"; then fits=$is_neon; else fits=$([ -z "$is_neon" ] && echo 1); fi
     [ -n "$fits" ] && exit 0
 fi

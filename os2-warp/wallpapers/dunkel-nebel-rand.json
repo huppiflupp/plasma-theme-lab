@@ -1,0 +1,31 @@
+{
+  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
+  "steps": 8,
+  "cfg": 1,
+  "sampler": "res_multistep/simple",
+  "shift": 3,
+  "prompt": "Deep space art, dark cosmic dust clouds, with faint pink and violet glowing gas only at the right edge and bottom edge of the frame, sparse dim stars. Very dark overall: almost the entire frame is deep, nearly black navy blue around hex 040a24 to 0a1238, rich and saturated, never grey. Light appears only at the right and bottom edges. The upper left area and the large center of the frame stay dark, calm and empty. Accents in electric violet hex 7a4dff, magenta pink hex ff4fd8 and cyan hex 48cffe are thin and luminous against the darkness. No white areas, no glare, no lens flare, no sun. Smooth, clean, elegant modern desktop wallpaper. No text, no letters, no logos, no watermark.",
+  "seed": 7101,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 14.0,
+  "comfy_file": "warp_dunkel-nebel-rand_zimage_7101_00001_.png",
+  "slug": "dunkel-nebel-rand",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 22.0,
+  "helligkeit": {
+    "mittel": 0.056,
+    "p50": 0.044,
+    "p99": 0.212,
+    "mitte_70proz": 0.062,
+    "oben_links": 0.035,
+    "hinweis": "Rec.709-Luminanz 0..1; Ziel Konzept-Hintergrund Mittel 0.046/P50 0.039/P99 0.172"
+  }
+}

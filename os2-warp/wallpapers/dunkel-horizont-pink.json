@@ -1,0 +1,31 @@
+{
+  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
+  "steps": 8,
+  "cfg": 1,
+  "sampler": "res_multistep/simple",
+  "shift": 3,
+  "prompt": "Digital space art, the very edge of a dark planet seen from orbit, its curved horizon running along the very bottom of the frame, with a thin glowing atmospheric rim in magenta pink and violet. Very dark overall: almost the entire frame is deep, nearly black navy blue around hex 040a24 to 0a1238, rich and saturated, never grey. Light appears only along the thin horizon rim at the bottom edge and as a faint pink haze just above it. The upper left area and the large center of the frame stay dark, calm and empty. Accents in electric violet hex 7a4dff, magenta pink hex ff4fd8 and cyan hex 48cffe are thin and luminous against the darkness. No white areas, no glare, no lens flare, no sun. Smooth, clean, elegant modern desktop wallpaper. No text, no letters, no logos, no watermark.",
+  "seed": 7101,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 18.1,
+  "comfy_file": "warp_dunkel-horizont-pink_zimage_7101_00001_.png",
+  "slug": "dunkel-horizont-pink",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 10.0,
+  "seconds_total": 28.1,
+  "helligkeit": {
+    "mittel": 0.072,
+    "p50": 0.056,
+    "p99": 0.483,
+    "mitte_70proz": 0.084,
+    "oben_links": 0.053,
+    "hinweis": "Rec.709-Luminanz 0..1; Ziel Konzept-Hintergrund Mittel 0.046/P50 0.039/P99 0.172"
+  }
+}

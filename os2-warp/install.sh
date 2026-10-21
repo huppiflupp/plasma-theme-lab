@@ -97,7 +97,7 @@ if [ -n "$APPLY" ]; then
     fi
     case "$VARIANT" in
         "")   LNF=org.warplegacy.desktop;      KVANTUM=WarpLegacy;     ICONS=WarpLegacy;         KONSOLE="Warp Legacy";      PICTURE=org.warplegacy.warp4-wirbel-violett ;;
-        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpLegacyNeon; ICONS=WarpLegacyNeon2026; KONSOLE="Warp Legacy Neon"; PICTURE=org.warplegacy.neon-bogen-horizont ;;
+        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpLegacyNeon; ICONS=WarpLegacyNeon2026; KONSOLE="Warp Legacy Neon"; PICTURE=org.warplegacy.dunkel-lichtbogen-rechts ;;
     esac
     plasma-apply-lookandfeel --apply "$LNF" $LAYOUT
     # The global theme only carries the decoration's library and theme into

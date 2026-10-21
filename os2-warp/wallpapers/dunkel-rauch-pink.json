@@ -1,0 +1,31 @@
+{
+  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
+  "steps": 8,
+  "cfg": 1,
+  "sampler": "res_multistep/simple",
+  "shift": 3,
+  "prompt": "Abstract art, slow dark smoke drifting in a deep navy void, back-lit with a faint magenta pink and violet rim light only from the lower right. Dark overall: almost the entire frame is a deep, richly saturated royal navy blue around hex 040c4a to 0a1a78, with a very soft faint blue haze, dark like a night sky but clearly blue, never grey, never black. Light appears only on the smoke edges in the lower right. The upper left area and the large center of the frame stay dark, calm and empty. Accents in electric violet hex 7a4dff, magenta pink hex ff4fd8 and cyan hex 48cffe are thin and luminous against the darkness. No white areas, no glare, no lens flare, no sun. Smooth, clean, elegant modern desktop wallpaper. No text, no letters, no logos, no watermark.",
+  "seed": 7201,
+  "base_size": [
+    1920,
+    1088
+  ],
+  "seconds_base": 12.1,
+  "comfy_file": "warp_dunkel-rauch-pink_zimage_7201_00001_.png",
+  "slug": "dunkel-rauch-pink",
+  "final_size": [
+    3840,
+    2160
+  ],
+  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
+  "seconds_upscale": 8.0,
+  "seconds_total": 20.1,
+  "helligkeit": {
+    "mittel": 0.078,
+    "p50": 0.061,
+    "p99": 0.298,
+    "mitte_70proz": 0.086,
+    "oben_links": 0.049,
+    "hinweis": "Rec.709-Luminanz 0..1; Ziel Konzept-Hintergrund Mittel 0.046/P50 0.039/P99 0.172"
+  }
+}

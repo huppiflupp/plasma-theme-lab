@@ -74,8 +74,9 @@ VARIANTS = [
                     # the pink towards the frames' bottom right corner (§9a)
                     accent="#ff4fd8", glowWidth=8),
          wallpaper=("org.warplegacy.neon", "Warp Night", "Deep navy for the Neon variant"),
-         # Closest to the concept's background, without its glaring sun.
-         picture="neon-bogen-horizont", icons="WarpLegacyNeon2026",
+         # Closest to the concept's background: dark blue, streaks of light
+         # at the top right only (the brighter neon-bogen-horizont before).
+         picture="dunkel-lichtbogen-rechts", icons="WarpLegacyNeon2026",
          description="OS/2 Warp at night: navy surfaces, cyan and violet glowing edges"),
 ]
 
@@ -223,6 +224,23 @@ PICTURES = (
     ("neon-seide", "Neon Silk", "Neon-Seide", "Translucent pink and violet ribbons"),
     ("neon-gitter-violett", "Neon Grid Violet", "Neon-Gitter Violett", "A quiet violet and pink perspective grid"),
     ("neon-nebel", "Neon Mist", "Neon-Nebel", "A soft violet-pink bank of mist under a starry sky"),
+    # Darker, after the concept's background (measured mean luminance 0.046):
+    # the window edges stand out against them.
+    ("dunkel-lichtbogen-rechts", "Dark Light Streaks", "Dunkle Lichtstreifen", "Diagonal streaks of light at the top right, deep blue"),
+    ("dunkel-horizont-boegen", "Dark Horizon Arcs", "Dunkler Horizont mit Bögen", "Horizon and arcs of light in the lower right corner"),
+    ("dunkel-wirbel-neon", "Dark Neon Swirl", "Dunkler Neon-Wirbel", "Fine arcs in cyan, violet and pink"),
+    ("dunkel-horizont-pink", "Dark Horizon Pink", "Dunkler Horizont Pink", "A planet's rim with a pink line of light"),
+    ("dunkel-wellen-cyan", "Dark Waves Cyan", "Dunkle Wellen Cyan", "A band of glassy waves along the bottom"),
+    ("dunkel-polarlicht-cyan", "Dark Aurora Cyan", "Dunkles Polarlicht Cyan", "Cyan aurora rising from the bottom edge"),
+    ("dunkel-horizont-cyan", "Dark Horizon Cyan", "Dunkler Horizont Cyan", "A flat horizon with a cyan atmosphere"),
+    ("dunkel-nebel-indigo", "Dark Nebula Indigo", "Dunkler Nebel Indigo", "Indigo nebula across a field of stars"),
+    ("dunkel-nebel-rand", "Dark Nebula Edge", "Dunkler Nebelrand", "A swirl of gas in the lower right"),
+    ("dunkel-orbit-cyan", "Dark Orbit Cyan", "Dunkler Orbit Cyan", "A single cyan arc on black"),
+    ("dunkel-orbit-violett", "Dark Orbit Violet", "Dunkler Orbit Violett", "Violet arcs of orbits, almost black"),
+    ("dunkel-rauch-pink", "Dark Smoke Pink", "Dunkler Rauch Pink", "A plume of smoke lit in pink"),
+    ("dunkel-schiefer-neon", "Dark Slate Neon", "Dunkler Schiefer Neon", "Slate with a neon line along the floor"),
+    ("dunkel-seide-violett", "Dark Silk Violet", "Dunkle Seide Violett", "Dark silk with a violet sheen"),
+    ("dunkel-wellen-schwarz", "Dark Lines", "Dunkle Linien", "Thin lines of light on black"),
 )
 
 
