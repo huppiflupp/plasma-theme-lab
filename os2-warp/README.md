@@ -22,25 +22,34 @@ wallpapers and panels are drawn and written anew (DESIGN.md §1).
 | Mouse cursors | Breeze | Breeze's, the rim in the frames' light (made at build time from the Breeze cursors) |
 | Konsole | Warp Legacy profile | dark profile, 80 % transparent by default |
 
-The panels, shared by both variants:
+The panels, shared by both variants. The global theme's layout (taken
+with "Use desktop layout from theme", or `install.sh --layout`) has the
+taskbar along the bottom, the Control Strip on the right and the Tab
+Launcher's drawer at the top left; the screenshots show the Warp Bar along
+the top with the LaunchPad below (`tools/demo-scene.sh --panels
+screenshots`). The plasmoids' settings page "Panels" adds or removes each.
 
+- **Warp Taskbar** (bottom, after the Neon concept): Start opens the Warp
+  menu, then the workspaces and a button per window; Plasma's system tray
+  and clock beside it.
 - **Warp Bar** (top, after the WarpCenter): the desktop menu cascades from
   the desktop's objects and the drives down into every folder; window list,
   lock, find, shut down; a tray of launchers. Plasma's system tray and
   clock sit at its right end.
-
-The Meta key opens the Warp menu (from the taskbar or the Warp Bar), and
-typing in it finds programs at once: the best match is highlighted, so
-Meta, `kon`, Return starts Konsole. Up and Down pick another match,
-Escape closes. Programs started this way move up next time.
 - **LaunchPad** (bottom centre): Lock, Find, Shut down, Window list, and
   launchers with drawers that open upwards.
 - **Control Strip** (right edge, after Object Desktop): the workspaces in
   miniature, a launch list, swap and disk gauges, a seven-segment clock.
-- **Tab Launcher** (not in the default layout): notebook tabs with the open
-  windows, your favourites and the application menu's categories, in a
-  drawer at the bottom left that slides into the screen edge like Mac OS 9's
-  Control Strip.
+- **Tab Launcher**: notebook tabs with the open windows, your favourites
+  and the application menu's categories, in a drawer that slides into the
+  screen edge like Mac OS 9's Control Strip.
+
+The Meta key opens the Warp menu (from the taskbar or the Warp Bar), and
+typing in it finds programs at once: the best match is highlighted, next
+to the field, so Meta, `kon`, Return starts Konsole. A step away from the
+field picks the next match, Escape closes; programs started this way move
+up next time. With nothing typed the arrow keys walk the menu: right opens
+a folder or category, left goes back.
 
 The lock screen shows the neon tubes of OS/2's Lockup in both variants.
 

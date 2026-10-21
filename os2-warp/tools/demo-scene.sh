@@ -10,7 +10,7 @@
 #
 #   ./demo-scene.sh            objects and windows
 #   ./demo-scene.sh --objects  only the desktop objects
-#   ./demo-scene.sh --panels concept|classic|tabs [--objects]
+#   ./demo-scene.sh --panels concept|classic|tabs|screenshots [--objects]
 #       concept  the Neon concept: Warp Taskbar at the bottom (32 px),
 #                Control Strip as the compact box at the top right
 #       classic  OS/2 Warp 4 with Object Desktop: Warp Bar along the top
@@ -29,13 +29,13 @@ while [ $# -gt 0 ]; do
         --drawer) drawer=1 ;;
         --panels) panels=${2:-}; shift ;;
         --panels=*) panels=${1#*=} ;;
-        *) echo "usage: $0 [--panels concept|classic|tabs] [--drawer] [--objects]" >&2; exit 2 ;;
+        *) echo "usage: $0 [--panels concept|classic|tabs|screenshots] [--drawer] [--objects]" >&2; exit 2 ;;
     esac
     shift
 done
 case $panels in
-    ''|concept|classic|tabs) ;;
-    *) echo "unknown arrangement: $panels (concept, classic, tabs)" >&2; exit 2 ;;
+    ''|concept|classic|tabs|screenshots) ;;
+    *) echo "unknown arrangement: $panels (concept, classic, tabs, screenshots)" >&2; exit 2 ;;
 esac
 shell_up() {
     for _ in $(seq 30); do
@@ -63,9 +63,9 @@ function warpbar() {
     p.addWidget('org.warplegacy.warpbar'); p.addWidget('org.kde.plasma.panelspacer');
     p.addWidget('org.kde.plasma.systemtray'); p.addWidget('org.kde.plasma.digitalclock');
 }
-function launchpad() {
+function launchpad(hiding) {
     var p = new Panel; p.screen = 0; p.location = 'bottom'; p.alignment = 'center'; p.lengthMode = 'fit';
-    p.height = 76; p.hiding = 'windowsgobelow'; p.floating = true; p.addWidget('org.warplegacy.launchpad');
+    p.height = 76; p.hiding = hiding || 'windowsgobelow'; p.floating = true; p.addWidget('org.warplegacy.launchpad');
 }
 // The Tab Launcher as the drawer the page "Panels" adds (PanelsPage.qml):
 // its own panel at the bottom left, above the windows, length "custom"
@@ -91,6 +91,10 @@ function taskbar(height) {
         concept) js="$js taskbar(32); strip('compact');" ;;
         classic) js="$js warpbar(); launchpad(); strip('strip');" ;;
         tabs)    js="$js warpbar(); tablauncher(true); launchpad(); strip('strip');" ;;
+        # The screenshots' arrangement (the user's, 21.10.2026): the Warp
+        # Bar along the top, the LaunchPad below it reserving its edge, no
+        # Control Strip.
+        screenshots) js="$js warpbar(); launchpad('none');" ;;
     esac
     if [ -n "$drawer" ]; then
         case $panels in
@@ -159,6 +163,7 @@ positions="{\"$res\":[$grid]}"
 count=$(echo "$files" | wc -l)
 case $panels in
     classic) taken=118 ;;       # Warp Bar 28, LaunchPad 76 + its float
+    screenshots) taken=118 ;;   # the same panels
     tabs)    taken=122 ;;       # Warp Bar 28, Tab Launcher 94
     *)       taken=40 ;;
 esac
