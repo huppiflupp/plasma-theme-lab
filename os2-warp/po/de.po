@@ -466,3 +466,9 @@ msgstr "Tippen, um ein Programm zu finden"
 
 msgid "No programs found"
 msgstr "Keine Programme gefunden"
+
+msgid "Switch to Warp Legacy"
+msgstr "Zu Warp Legacy wechseln"
+
+msgid "Switch to Warp Legacy Neon"
+msgstr "Zu Warp Legacy Neon wechseln"

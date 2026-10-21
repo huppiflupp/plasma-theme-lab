@@ -1,0 +1,45 @@
+#!/bin/sh
+# Switch between Warp Legacy and Warp Legacy Neon at once, without logging
+# out: the global theme (panels stay as they are), then what
+# warp-legacy-sync brings in line at login (Kvantum, widget style, icons,
+# Konsole, LibreOffice, System Monitor, button order, wallpaper), then the
+# running session is told: icons, cursors, the window frame.
+# Plasma's shell is stopped meanwhile and started again: changing the colours
+# under a running plasmashell crashed it in Kirigami's PlasmaTheme::syncColors
+# (Fedora VM, Plasma 6.7.4, 21.10.2026); started afresh it loads colours,
+# icons and the wallpaper as at login.
+#
+#   warp-legacy-switch [neon|classic|toggle]      (toggle when left out)
+#
+# Programs already open keep their Kvantum style and Konsole profile until
+# they are started again; LibreOffice switches only while it is closed.
+here=$(dirname "$0")
+case "${1:-toggle}" in
+    neon) lnf=org.warplegacy.neon.desktop ;;
+    classic) lnf=org.warplegacy.desktop ;;
+    toggle)
+        if [ "$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)" = org.warplegacy.neon.desktop ]; then
+            lnf=org.warplegacy.desktop
+        else
+            lnf=org.warplegacy.neon.desktop
+        fi ;;
+    *) echo "usage: $0 [neon|classic|toggle]" >&2; exit 2 ;;
+esac
+shell=
+if systemctl --user -q is-active plasma-plasmashell.service 2>/dev/null; then
+    shell=1
+    systemctl --user stop plasma-plasmashell.service
+fi
+plasma-apply-lookandfeel -a "$lnf" >/dev/null 2>&1 || echo "plasma-apply-lookandfeel failed" >&2
+[ -n "$shell" ] && systemctl --user start plasma-plasmashell.service
+sh "$here/warp-legacy-sync"
+case "$lnf" in
+    *neon*) cursors=WarpLegacyNeonCursors ;;
+    *) cursors=breeze_cursors ;;
+esac
+command -v plasma-apply-cursortheme >/dev/null 2>&1 && plasma-apply-cursortheme "$cursors" >/dev/null 2>&1
+# KIconLoader in running programs listens for this (install.sh does the same).
+dbus-send --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:0 2>/dev/null
+dbus-send --session --type=method_call --dest=org.kde.KWin /KWin org.kde.KWin.reconfigure 2>/dev/null
+wait
+exit 0

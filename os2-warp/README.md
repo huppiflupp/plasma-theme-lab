@@ -52,6 +52,13 @@ field picks the next match, Escape closes; programs started this way move
 up next time. With nothing typed the arrow keys walk the menu: right opens
 a folder or category, left goes back.
 
+**Switching variants:** the Warp menu's "Switch to Warp Legacy Neon" (or
+back) changes everything at once without logging out: the global theme,
+Kvantum, icons, cursors, Konsole, LibreOffice, the wallpaper; the panels
+stay. Plasma's shell restarts for it; programs already open take the new
+style when started again. From a terminal:
+`~/.local/share/warp-legacy/warp-legacy-switch [neon|classic|toggle]`.
+
 The lock screen shows the neon tubes of OS/2's Lockup in both variants.
 
 The window buttons come in six looks (System Settings › Colours & Themes ›

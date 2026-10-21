@@ -360,10 +360,16 @@ PlasmaCore.Dialog {
         return m;
     }
     // Programs and System Settings, the desktop's objects, then the drives.
+    readonly property bool neon: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
     readonly property var rootRows: {
         const rows = [
             {name: i18nd("warp-legacy", "Programs"), apps: categories, icon: "applications-other"},
             {name: i18nd("warp-legacy", "System Settings"), command: "@settings", icon: "preferences-system"},
+            // Classic and Neon at once, without logging out
+            // (session/warp-legacy-switch).
+            {name: neon ? i18nd("warp-legacy", "Switch to Warp Legacy") : i18nd("warp-legacy", "Switch to Warp Legacy Neon"),
+             command: "sh \"${XDG_DATA_HOME:-$HOME/.local/share}/warp-legacy/warp-legacy-switch\" toggle",
+             icon: "preferences-desktop-theme-global"},
             {separator: true}
         ];
         for (let i = 0; i < desktopItems.count; i++)

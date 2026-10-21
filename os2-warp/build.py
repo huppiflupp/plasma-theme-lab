@@ -365,6 +365,7 @@ def session():
     shutil.copy2(ROOT / "session/warp-legacy-sync", target)
     shutil.copy2(ROOT / "session/warp-wallpaper", target.parent / "warp-wallpaper")
     shutil.copy2(ROOT / "session/warp-legacy-sysmon", target.parent / "warp-legacy-sysmon")
+    shutil.copy2(ROOT / "session/warp-legacy-switch", target.parent / "warp-legacy-switch")
     # One line per variant: the look-and-feel id, then the chart colours.
     write("warp-legacy/sysmon-colors",
           "".join(f"{ids(v)['lnf']} {' '.join(v['sysmon'])}\n" for v in VARIANTS))
