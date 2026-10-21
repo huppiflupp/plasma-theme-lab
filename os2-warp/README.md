@@ -9,6 +9,10 @@ Blue**, the same night in blue, closest to the concept
 ![Warp Legacy Neon](screenshots/warp-neon-2026-10.png)
 ![Warp Legacy Neon Blue](screenshots/warp-neon-blue-2026-10.png)
 
+More in the [gallery](screenshots/gallery/README.md): the taskbar with the
+compact box or the full Control Strip, other wallpapers and window buttons,
+Neon on dark pictures.
+
 Not affiliated with IBM, Arca Noae or Stardock. "OS/2" and "Warp" are
 trademarks of IBM; nothing of IBM's or Stardock's is included: the icons,
 wallpapers and panels are drawn and written anew (DESIGN.md §1).
