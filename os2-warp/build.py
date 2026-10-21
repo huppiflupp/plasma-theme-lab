@@ -50,7 +50,11 @@ NEON = dict(surface="#0c1438", window="#060b24", panel="#0a1232",
             text="#e8f0ff", text2="#9fb4e0", inactive_text="#5a6a9a",
             title_active="#06123f", title_active_text="#ffffff",
             title_inactive="#0b1430", title_inactive_text="#7f8fbf",
-            active="#1a6fe0", selection="#1a6fe0", selection_text="#ffffff",
+            active="#1a6fe0", selection_text="#ffffff",
+            # Neon's violet for selections and focus (Dolphin, System Settings,
+            # Kirigami): the blue stood apart from Kvantum's violet-pink
+            # selection (the user, 21.10.2026). White on it: 5.5:1.
+            selection="#5a4dff",
             hover="#16245c", link="#3ad0ff", visited="#b48cff",
             warning="#ffb347", error="#ff5a7a", positive="#3ddc97",
             desktop="#0a152e", panel_text="#e8f0ff",
