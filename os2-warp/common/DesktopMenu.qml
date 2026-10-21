@@ -158,7 +158,7 @@ PlasmaCore.Dialog {
     backgroundHints: PlasmaCore.Types.NoBackground
 
     function open(anchor) {
-        levels = []; current = [];
+        levels = []; current = []; keyLevel = 0;
         query = ""; hit = 0; launchPending = false; finder.text = "";
         readHistory();
         visualParent = anchor;
@@ -169,6 +169,74 @@ PlasmaCore.Dialog {
         });
     }
     function close() { visible = false; levels = []; query = ""; launchPending = false; }
+
+    // The keys with the search field empty: up and down move through the
+    // rows of the level in use (separators skipped), right opens a folder
+    // or category one level further, left goes back, Return starts or
+    // opens. The field keeps the focus, so typing searches at any time.
+    property int keyLevel: 0
+    function keyView(level) {
+        const box = level === 0 ? rootBox : (levelRepeater.itemAt(level - 1) ? levelRepeater.itemAt(level - 1).item : null);
+        return box ? box.view : null;
+    }
+    function keyEntry(level, row) {
+        const view = keyView(level);
+        if (!view || row < 0 || row >= view.count) return null;
+        view.positionViewAtIndex(row, ListView.Contain);
+        return view.itemAtIndex(row);
+    }
+    function keySelect(level, row) {
+        const c = current.slice(0, level); c[level] = row; current = c;
+        if (levels.length > level) levels = levels.slice(0, level);
+        keyLevel = level;
+    }
+    function keyStep(step) {
+        const level = keyLevel, view = keyView(level);
+        if (!view || !view.count) return;
+        const at = current[level];
+        // nothing highlighted yet: start at the end next to the field
+        let row = at === undefined ? (step > 0 ? -1 : view.count) : at;
+        for (let n = 0; n < view.count; n++) {
+            row += step;
+            if (row < 0 || row >= view.count) return;
+            const e = keyEntry(level, row);
+            if (e && !e.separator && e.text !== "") { keySelect(level, row); return; }
+        }
+    }
+    function keyOpen() {
+        const level = keyLevel, row = current[level];
+        const e = row === undefined ? null : keyEntry(level, row);
+        if (!e || !e.cascade) return false;
+        e.open();
+        // The new box is made by the Repeater; a folder's rows come a moment
+        // later still (FolderListModel reads in the background): step into
+        // the box once it has rows.
+        keyInto.level = level + 1; keyInto.tries = 0; keyInto.restart();
+        return true;
+    }
+    readonly property var keyInto: Timer {
+        property int level: 0
+        property int tries: 0
+        interval: 30
+        onTriggered: {
+            if (menu.levels.length < level) return;          // closed again
+            const view = menu.keyView(level);
+            if (view && view.count > 0) { menu.keyLevel = level; menu.keyStep(1); }
+            else if (++tries < 30) restart();
+        }
+    }
+    function keyBack() {
+        if (keyLevel === 0) return;
+        const level = keyLevel - 1;
+        levels = levels.slice(0, level);
+        current = current.slice(0, level + 1);
+        keyLevel = level;
+    }
+    function keyActivate() {
+        const row = current[keyLevel];
+        const e = row === undefined ? null : keyEntry(keyLevel, row);
+        if (e && !keyOpen()) e.activated();
+    }
     onVisibleChanged: if (visible) finder.forceActiveFocus()
     function localPath(url) {
         const s = String(url);
@@ -178,6 +246,7 @@ PlasmaCore.Dialog {
     // Hovering a folder or a category opens it one level further (next():
     // {url} or {path}); anything else (next null) closes what lies deeper.
     function hover(level, row, next, top) {
+        keyLevel = level;
         const c = current.slice(0, level); c[level] = row; current = c;
         // The Repeater rebuilds every box when levels changes, and the row
         // under the pointer reports a hover again: what this row opened
@@ -361,10 +430,21 @@ PlasmaCore.Dialog {
                     text: menu.query
                     onTextEdited: menu.query = text
                     Keys.onEscapePressed: menu.close()
-                    Keys.onReturnPressed: menu.launchHit()
-                    Keys.onEnterPressed: menu.launchHit()
-                    Keys.onUpPressed: if (menu.matchCount > 0) menu.hit = Math.max(0, menu.hit - 1)
-                    Keys.onDownPressed: if (menu.matchCount > 0) menu.hit = Math.min(menu.matchCount - 1, menu.hit + 1)
+                    Keys.onReturnPressed: menu.query === "" ? menu.keyActivate() : menu.launchHit()
+                    Keys.onEnterPressed: menu.query === "" ? menu.keyActivate() : menu.launchHit()
+                    Keys.onUpPressed: {
+                        if (menu.query === "") menu.keyStep(-1);
+                        else if (menu.matchCount > 0) menu.hit = Math.max(0, menu.hit - 1);
+                    }
+                    Keys.onDownPressed: {
+                        if (menu.query === "") menu.keyStep(1);
+                        else if (menu.matchCount > 0) menu.hit = Math.min(menu.matchCount - 1, menu.hit + 1);
+                    }
+                    Keys.onRightPressed: event => { event.accepted = menu.query === "" && menu.keyOpen(); }
+                    Keys.onLeftPressed: event => {
+                        event.accepted = menu.query === "" && menu.keyLevel > 0;
+                        if (event.accepted) menu.keyBack();
+                    }
                     Text {
                         visible: finder.text === ""
                         anchors.fill: parent
@@ -412,6 +492,7 @@ PlasmaCore.Dialog {
         // Level 1 and deeper: one box per open folder or category, beside
         // the previous.
         Repeater {
+            id: levelRepeater
             model: menu.levels
             Loader {
                 id: level
@@ -443,6 +524,7 @@ PlasmaCore.Dialog {
         property real headBottom: 0
         property bool rowsHidden: false
         readonly property real rowsHeight: list.contentHeight
+        readonly property ListView view: list
         property real bodyHeight: rowsHeight
         kind: "frame"
         // Standing on a bottom panel, y follows the height: the cap must
@@ -472,6 +554,7 @@ PlasmaCore.Dialog {
                 onHovered: menu.hover(box.level, index,
                                       modelData.apps ? () => ({path: []}) : modelData.isDir ? () => ({url: modelData.url}) : null,
                                       box.y + y - list.contentY)
+                onOpened: hovered()
                 onActivated: menu.activate(modelData)
             }
         }
@@ -507,6 +590,7 @@ PlasmaCore.Dialog {
         y: Math.max(0, Math.min(rowTop, frame.height - height))
         width: menu.columnWidth
         height: Math.min(appsList.contentHeight + 6, frame.height)
+        readonly property ListView view: appsList
         MouseArea { anchors.fill: parent }
         ListView {
             id: appsList
@@ -526,6 +610,7 @@ PlasmaCore.Dialog {
                 onHovered: menu.hover(appsBox.level, index,
                                       model.hasChildren ? () => ({path: appsBox.path.concat([index])}) : null,
                                       appsBox.y + y - appsList.contentY)
+                onOpened: hovered()
                 onActivated: if (!model.hasChildren) { appsBox.appsModel.trigger(index, "", null); menu.close(); }
             }
         }
@@ -543,6 +628,9 @@ PlasmaCore.Dialog {
         property bool highlighted: false
         signal hovered()
         signal activated()
+        // the keys' right arrow: open what this row cascades to
+        signal opened()
+        function open() { opened(); }
         height: separator ? 8 : menu.rowHeight
         Rectangle {
             visible: entry.separator
