@@ -55,6 +55,8 @@ NEON = dict(surface="#0c1438", window="#060b24", panel="#0a1232",
             warning="#ffb347", error="#ff5a7a", positive="#3ddc97",
             desktop="#0a152e", panel_text="#e8f0ff",
             complementary="#060b24", complementary_text="#e8f0ff",
+            # Kvantum: list and menu selection see-through, cyan-violet-pink
+            selection_glow=("#3ad0ff", "#7a4dff", "#ff4fd8"),
             window_text="#e8f0ff", alt_window="#0a1230", button_hover="#16245c",
             button_pressed="#0a1232", groove="#0a1232")
 

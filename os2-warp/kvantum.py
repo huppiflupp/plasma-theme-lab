@@ -30,6 +30,7 @@ class Sheet:
 
     def __init__(self):
         self.objects = []
+        self.defs = []
         self.x = GAP
         self.y = GAP
         self.row_height = 0
@@ -64,7 +65,17 @@ class Sheet:
     def svg(self):
         height = self.y + self.row_height + GAP
         return ('<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="%d" viewBox="0 0 1600 %d" '
-                'shape-rendering="crispEdges">' % (height, height) + "".join(self.objects) + "</svg>")
+                'shape-rendering="crispEdges">' % (height, height)
+                + ("<defs>" + "".join(self.defs) + "</defs>" if self.defs else "")
+                + "".join(self.objects) + "</svg>")
+
+    def gradient(self, name, stops):
+        """A left-to-right gradient, (offset, colour, opacity) stops. Used as a
+        fill "url(#name)"; per object bounding box, so a stretched nine-patch
+        part shows the whole run."""
+        body = "".join(f'<stop offset="{o}" stop-color="{c}" stop-opacity="{a}"/>' for o, c, a in stops)
+        self.defs.append(f'<linearGradient id="{name}" x1="0" y1="0" x2="1" y2="0">{body}</linearGradient>')
+        return f"url(#{name})"
 
 
 def runs(pixels, w, h):
@@ -212,13 +223,31 @@ def build_kvantum(out, P, name="WarpLegacy", comment="OS/2 Warp 4 controls: grey
     nine_patch(s, "tab-toggled", raised, face)
     # Item views: hover is a light wash, selection is grey (lists), blue in menus.
     nine_patch(s, "itemview-normal", [(None, None), (None, None)], None)
-    nine_patch(s, "itemview-focused", [(hover_face, hover_face), (hover_face, hover_face)], hover_face)
-    nine_patch(s, "itemview-pressed", [(select, select), (select, select)], select)
-    nine_patch(s, "itemview-toggled", [(select, select), (select, select)], select)
+    glow = P.get("selection_glow")
+    if glow:
+        # Neon: the selection see-through, cyan into violet into pink with a
+        # brighter edge of the same run, so the window shows through it (the
+        # user's wish, 21.10.2026). Text on it stays the scheme's white.
+        cyan, violet, pink = glow
+        fill = s.gradient("sel-fill", [(0, cyan, 0.42), (0.55, violet, 0.52), (1, pink, 0.42)])
+        edge = s.gradient("sel-edge", [(0, cyan, 0.95), (0.55, violet, 0.95), (1, pink, 0.85)])
+        hover = s.gradient("sel-hover", [(0, cyan, 0.13), (0.55, violet, 0.16), (1, pink, 0.12)])
+        hover_edge = s.gradient("sel-hover-edge", [(0, cyan, 0.45), (1, violet, 0.40)])
+        # Stronger in menus: over the menu's navy the lighter run was hardly
+        # visible (VM, 21.10.2026).
+        menu = s.gradient("sel-menu", [(0, cyan, 0.75), (0.55, violet, 0.85), (1, pink, 0.75)])
+        nine_patch(s, "itemview-focused", [(hover_edge, hover_edge), (hover, hover)], hover)
+        nine_patch(s, "itemview-pressed", [(edge, edge), (fill, fill)], fill)
+        nine_patch(s, "itemview-toggled", [(edge, edge), (fill, fill)], fill)
+    else:
+        nine_patch(s, "itemview-focused", [(hover_face, hover_face), (hover_face, hover_face)], hover_face)
+        nine_patch(s, "itemview-pressed", [(select, select), (select, select)], select)
+        nine_patch(s, "itemview-toggled", [(select, select), (select, select)], select)
+        menu = blue
     # Menus and menu bars.
     nine_patch(s, "menu-normal", raised, face)
-    s.add("menuitem-pressed", CELL, CELL, [(0, 0, CELL, CELL, blue)])
-    s.add("menuitem-toggled", CELL, CELL, [(0, 0, CELL, CELL, blue)])
+    s.add("menuitem-pressed", CELL, CELL, [(0, 0, CELL, CELL, menu)])
+    s.add("menuitem-toggled", CELL, CELL, [(0, 0, CELL, CELL, menu)])
     s.add("menuitem-separator", 16, 8, [(0, 3, 16, 1, dark), (0, 4, 16, 1, light)])
     for st in ("normal", "focused"):
         s.add(f"menuitem-tearoff-{st}", 20, 8, [(u, 3, 4, 1, dark) for u in (0, 8, 16)] + [(u, 4, 4, 1, light) for u in (0, 8, 16)])
