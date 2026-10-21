@@ -43,7 +43,33 @@ PlasmoidItem {
         }
     }
     function run(shell) { runner.connectSource(Launch.detached(shell)); }
-    function launch(entry) { if (entry.command) run(Launch.resolve(entry.command, root.tr)); }
+    // A tray launcher whose program is open brings its window forward, each
+    // click the next one (as the LaunchPad's), and is marked as running.
+    property int windowRevision: 0
+    Connections {
+        target: windows
+        function onCountChanged() { root.windowRevision++; }
+        function onDataChanged() { root.windowRevision++; }
+    }
+    function windowsOf(entry) {
+        const rows = [];
+        for (let i = 0; i < windows.count; i++) {
+            const idx = windows.makeModelIndex(i);
+            const appId = String(windows.data(idx, TaskManager.AbstractTasksModel.AppId) || "");
+            const launcher = Launch.desktopId(String(windows.data(idx, TaskManager.AbstractTasksModel.LauncherUrlWithoutIcon) || ""));
+            if (Launch.belongsTo(appId, entry.command) || Launch.belongsTo(launcher, entry.command)) rows.push(idx);
+        }
+        return rows;
+    }
+    function launch(entry) {
+        const rows = windowsOf(entry);
+        if (rows.length) {
+            const active = rows.findIndex(idx => windows.data(idx, TaskManager.AbstractTasksModel.IsActive));
+            windows.requestActivate(rows[(active + 1) % rows.length]);
+            return;
+        }
+        if (entry.command) run(Launch.resolve(entry.command, root.tr));
+    }
 
     TaskManager.ActivityInfo { id: activities }
     TaskManager.TasksModel {
@@ -68,8 +94,8 @@ PlasmoidItem {
             x: 2
             spacing: 2
 
-            // The desktop button: our own mark, "Warp" beside a small
-            // swirl, where the WarpCenter had IBM's OS/2 Warp logo.
+            // The desktop button: the word "Warp" where the WarpCenter had
+            // IBM's OS/2 Warp logo.
             PadButton {
                 id: desktop
                 Component.onCompleted: root.desktopButton = desktop
@@ -84,11 +110,12 @@ PlasmoidItem {
                     anchors.horizontalCenterOffset: desktop.down ? 1 : 0
                     anchors.verticalCenterOffset: desktop.down ? 1 : 0
                     spacing: 3
-                    Kirigami.Icon { source: "start-here-kde"; Layout.preferredWidth: bar.side - 8; Layout.preferredHeight: bar.side - 8 }
+                    // The word alone (the user's wish): beside an icon it was
+                    // too small for the 28 px bar.
                     Text {
                         text: "Warp"
                         font.family: Kirigami.Theme.defaultFont.family
-                        font.pixelSize: bar.side - 9
+                        font.pixelSize: Math.round(bar.side * 0.68)
                         font.bold: true; font.italic: true
                         color: Kirigami.Theme.linkColor
                     }
@@ -131,11 +158,25 @@ PlasmoidItem {
                     Repeater {
                         model: root.tray
                         PadButton {
+                            id: trayButton
                             required property var modelData
+                            readonly property int open: (root.windowRevision, root.windowsOf(modelData).length)
                             Layout.preferredWidth: bar.side - 4; Layout.preferredHeight: bar.side - 4
                             iconName: modelData.icon; iconSize: bar.side - 10
-                            tip: root.tr(modelData.label)
+                            tip: open ? root.tr("%1 (open)", root.tr(modelData.label)) : root.tr(modelData.label)
                             onClicked: root.launch(modelData)
+                            // Open: a lit bar along the bottom, as a taskbar marks
+                            // running programs; cyan-pink in Neon, Warp blue else.
+                            Rectangle {
+                                visible: trayButton.open > 0
+                                anchors { left: parent.left; right: parent.right; bottom: parent.bottom; leftMargin: 4; rightMargin: 4; bottomMargin: 3 }
+                                height: 3; radius: 1
+                                gradient: Gradient {
+                                    orientation: Gradient.Horizontal
+                                    GradientStop { position: 0.0; color: trayButton.neon ? "#48cffe" : Kirigami.Theme.highlightColor }
+                                    GradientStop { position: 1.0; color: trayButton.neon ? "#ff4fd8" : Kirigami.Theme.highlightColor }
+                                }
+                            }
                         }
                     }
                 }

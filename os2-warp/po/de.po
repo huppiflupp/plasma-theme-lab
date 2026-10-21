@@ -445,3 +445,9 @@ msgstr "Ein Systemmonitor"
 
 msgid "A disk usage viewer"
 msgstr "Ein Programm für die Plattenbelegung"
+
+msgid "%1 (open)"
+msgstr "%1 (geöffnet)"
+
+msgid "on the desktop, to place anywhere: windows, favourites, menu categories on tabs"
+msgstr "auf der Arbeitsfläche, frei verschiebbar: Fenster, Favoriten, Menükategorien auf Reitern"

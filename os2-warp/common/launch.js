@@ -186,6 +186,33 @@ function chain(token, args, translate) {
     return shell + "else " + missing(translate(spec.what), translate) + "; fi";
 }
 
+// Words in the app id of a window that belongs to a launcher: an installed
+// application by its desktop id, a token by the programs it may start. For
+// marking launchers whose program is open (Warp Bar) and bringing it
+// forward instead of starting it again.
+const TOKEN_APPS = {
+    "@files": ["dolphin", "pcmanfm", "nautilus", "thunar", "nemo"],
+    "@trash": ["dolphin"],
+    "@terminal": ["konsole", "xterm", "gnome-terminal", "ptyxis", "kitty", "alacritty", "foot"],
+    "@browser": ["firefox", "chromium", "chrome", "falkon", "konqueror", "brave"],
+    "@mail": ["kmail", "thunderbird", "evolution"],
+    "@editor": ["kate", "kwrite", "texteditor", "gedit", "mousepad", "featherpad"],
+    "@settings": ["systemsettings"],
+    "@help": ["khelpcenter"],
+    "@calendar": ["merkuro", "korganizer", "calendar"],
+    "@sysmon": ["systemmonitor"]
+};
+function appWords(command) {
+    const token = String(command || "").trim().split(/\s+/)[0] || "";
+    if (token.indexOf("app:") === 0) return [token.substring(4).replace(/\.desktop$/, "").toLowerCase()];
+    return TOKEN_APPS[token] || [];
+}
+function belongsTo(appId, command) {
+    const id = String(appId || "").replace(/\.desktop$/, "").toLowerCase();
+    if (!id) return false;
+    return appWords(command).some(w => id === w || id.indexOf(w) >= 0);
+}
+
 // The D-Bus caller under the names distributions give it.
 const DBUS = "$(command -v qdbus6 || command -v qdbus-qt6 || command -v qdbus)";
 

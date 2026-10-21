@@ -53,9 +53,12 @@ KCM.SimpleKCM {
         {plugin: "org.warplegacy.taskbar", name: i18nd("warp-legacy", "Warp Taskbar"), where: i18nd("warp-legacy", "along the bottom, instead of the Warp Bar: Start, workspaces, windows, tray, clock"),
          script: "var p = new Panel; p.location = 'bottom'; p.height = 44; p.hiding = 'none'; p.floating = false; "
                + "p.addWidget('org.warplegacy.taskbar'); p.addWidget('org.kde.plasma.systemtray'); p.addWidget('org.kde.plasma.digitalclock');"},
-        {plugin: "org.warplegacy.tablauncher", name: i18nd("warp-legacy", "Tab Launcher"), where: i18nd("warp-legacy", "at the bottom left: windows, favourites, menu categories on tabs"),
-         script: "var p = new Panel; p.location = 'bottom'; p.alignment = 'left'; p.lengthMode = 'fit'; p.height = 112; "
-               + "p.hiding = 'windowsgobelow'; p.floating = true; p.addWidget('org.warplegacy.tablauncher');"}
+        // On the desktop, not in a panel: there it can be dragged anywhere,
+        // as Object Desktop's Tab LaunchPad was a window of its own (a panel
+        // only sits along an edge).
+        {plugin: "org.warplegacy.tablauncher", name: i18nd("warp-legacy", "Tab Launcher"), where: i18nd("warp-legacy", "on the desktop, to place anywhere: windows, favourites, menu categories on tabs"),
+         script: "var d = desktops()[0]; var g = screenGeometry(d.screen); "
+               + "d.addWidget('org.warplegacy.tablauncher', 140, g.height - 260, 640, 112);"}
     ]
     property var present: []
     property bool known: false
@@ -67,7 +70,7 @@ KCM.SimpleKCM {
         return "dbus-send --session --print-reply --type=method_call --dest=org.kde.plasmashell /PlasmaShell "
             + "org.kde.PlasmaShell.evaluateScript string:" + quote(script);
     }
-    readonly property string query: evaluate("var t = []; panels().forEach(function(p) { p.widgets().forEach(function(w) { t.push(w.type); }); }); print(t.join(','));")
+    readonly property string query: evaluate("var t = []; panels().concat(desktops()).forEach(function(p) { p.widgets().forEach(function(w) { t.push(w.type); }); }); print(t.join(','));")
     P5Support.DataSource {
         id: shell
         engine: "executable"
@@ -86,7 +89,8 @@ KCM.SimpleKCM {
     function refresh() { shell.connectSource(query); }
     function toggle(panel, on) {
         const script = on ? panel.script
-            : "panels().forEach(function(p) { if (p.widgets().some(function(w) { return w.type == '" + panel.plugin + "'; })) p.remove(); });";
+            : "panels().forEach(function(p) { if (p.widgets().some(function(w) { return w.type == '" + panel.plugin + "'; })) p.remove(); });"
+              + " desktops().forEach(function(d) { d.widgets().forEach(function(w) { if (w.type == '" + panel.plugin + "') w.remove(); }); });";
         shell.connectSource(evaluate(script));
     }
     Component.onCompleted: refresh()
