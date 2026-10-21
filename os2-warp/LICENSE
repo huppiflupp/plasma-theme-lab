@@ -1,0 +1,27 @@
+SPDX-License-Identifier: GPL-2.0-or-later
+
+Warp Legacy source code, generated artwork (icons, cursors, wallpapers,
+window frames, panels) and build scripts
+Copyright (C) 2026 Warp Legacy contributors.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+The full license is at https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
+
+Included works under their own licences:
+- IBM Plex Sans Condensed and IBM Plex Mono (fonts/IBMPlex): SIL Open Font
+  License 1.1, see fonts/IBMPlex/LICENSE-OFL.txt.
+- The Neon mouse cursors are made at build time from KDE's Breeze cursors
+  (GPL-2.0-or-later), recoloured (cursors_neon.py).
+
+Not affiliated with IBM, Arca Noae or Stardock. "OS/2" and "Warp" are
+trademarks of IBM. The design-reference images (reference/) are supplied
+references, not distributed theme assets.

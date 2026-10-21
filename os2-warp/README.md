@@ -112,6 +112,13 @@ Parts taken from CDE Copper are copies, each with a note of where it came
 from; Warp Legacy and CDE Copper share no files (see the repository's
 CLAUDE.md).
 
+## Release
+
+`python3 package.py` makes a full build and packs it with the installer
+into `dist/warp-legacy-<version>.tar.xz` (no build needed to install from
+it). RELEASE-CHECKLIST.md is the test plan, TESTING.md the log.
+
 ## Licence
 
-GPL-2.0-or-later.
+GPL-2.0-or-later (LICENSE); the IBM Plex fonts under the SIL Open Font
+License 1.1.
