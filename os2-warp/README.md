@@ -34,8 +34,9 @@ cursors running cyan, blue, pink.
 
 The panels, shared by both variants. The global theme's layout (taken
 with "Use desktop layout from theme", or `install.sh --layout`) has the
-taskbar along the bottom, the Control Strip as a compact box at the top right and the Tab
-Launcher's drawer at the top left; the screenshots show the Warp Bar along
+taskbar along the bottom (without a clock: the box has it), the Control
+Strip as a compact box at the top right with the weather on top, and the
+Tab Launcher's drawer at the top left; the screenshots show the Warp Bar along
 the top with the LaunchPad below (`tools/demo-scene.sh --panels
 screenshots`). The plasmoids' settings page "Panels" adds or removes each.
 
@@ -49,8 +50,8 @@ screenshots`). The plasmoids' settings page "Panels" adds or removes each.
 - **LaunchPad** (bottom centre): Lock, Find, Shut down, Window list, and
   launchers with drawers that open upwards.
 - **Control Strip** (right edge): by default the Neon concept's compact
-  box at the top right (clock, date, CPU, RAM, disk, appointments or a
-  saying); in its settings also the full strip after Object Desktop, with
+  box at the top right (clock, date, CPU, RAM, disk, appointments, the
+  weather from wttr.in or a saying); in its settings also the full strip after Object Desktop, with
   the workspaces in miniature, a launch list, gauges, a seven-segment clock.
 - **Tab Launcher**: notebook tabs with the open windows, your favourites
   and the application menu's categories, in a drawer that slides into the

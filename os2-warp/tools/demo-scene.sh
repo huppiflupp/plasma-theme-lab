@@ -10,9 +10,12 @@
 #
 #   ./demo-scene.sh            objects and windows
 #   ./demo-scene.sh --objects  only the desktop objects
-#   ./demo-scene.sh --panels concept|classic|tabs|screenshots [--objects]
+#   ./demo-scene.sh --panels concept|bottom|classic|tabs|screenshots [--objects]
 #       concept  the Neon concept: Warp Taskbar at the bottom (32 px),
-#                Control Strip as the compact box at the top right
+#                Control Strip as the compact box with the weather at
+#                the top right, no clock in the taskbar
+#       bottom   the concept's taskbar with the full Control Strip down
+#                the right edge
 #       classic  OS/2 Warp 4 with Object Desktop: Warp Bar along the top
 #                (tray, clock), LaunchPad floating at the bottom centre,
 #                Control Strip as the full strip on the right
@@ -29,13 +32,13 @@ while [ $# -gt 0 ]; do
         --drawer) drawer=1 ;;
         --panels) panels=${2:-}; shift ;;
         --panels=*) panels=${1#*=} ;;
-        *) echo "usage: $0 [--panels concept|classic|tabs|screenshots] [--drawer] [--objects]" >&2; exit 2 ;;
+        *) echo "usage: $0 [--panels concept|bottom|classic|tabs|screenshots] [--drawer] [--objects]" >&2; exit 2 ;;
     esac
     shift
 done
 case $panels in
-    ''|concept|classic|tabs|screenshots) ;;
-    *) echo "unknown arrangement: $panels (concept, classic, tabs, screenshots)" >&2; exit 2 ;;
+    ''|concept|bottom|classic|tabs|screenshots) ;;
+    *) echo "unknown arrangement: $panels (concept, bottom, classic, tabs, screenshots)" >&2; exit 2 ;;
 esac
 shell_up() {
     for _ in $(seq 30); do
@@ -55,6 +58,9 @@ function strip(layout) {
     var p = new Panel; p.screen = 0; p.location = 'right'; p.hiding = 'none';
     var w = p.addWidget('org.warplegacy.controlstrip');
     w.currentConfigGroup = ['General']; w.writeConfig('layout', layout);
+    // The weather for a fixed place: from the IP, published screenshots
+    // would show where they were taken.
+    if (layout == 'compact') { w.writeConfig('compactTop', 'weather'); w.writeConfig('weatherPlace', 'Austin'); }
     if (layout == 'compact') { p.lengthMode = 'fit'; p.alignment = 'left'; p.floating = true; p.height = 200; }
     else { p.lengthMode = 'fill'; p.floating = false; p.height = 130; }
 }
@@ -82,13 +88,17 @@ function tablauncher(beside, edge) {
         w.writeConfig('drawerWidth', Math.floor((screenGeometry(0).width - 600) / 2) - 40);
     }
 }
-function taskbar(height) {
+// Without a clock beside the Control Strip, which has its own (the user's
+// remark 21.10.2026).
+function taskbar(height, clock) {
     var p = new Panel; p.screen = 0; p.location = 'bottom'; p.height = height; p.hiding = 'none'; p.floating = false;
-    p.addWidget('org.warplegacy.taskbar'); p.addWidget('org.kde.plasma.systemtray'); p.addWidget('org.kde.plasma.digitalclock');
+    p.addWidget('org.warplegacy.taskbar'); p.addWidget('org.kde.plasma.systemtray');
+    if (clock) p.addWidget('org.kde.plasma.digitalclock');
 }
 "
     case $panels in
         concept) js="$js taskbar(32); strip('compact');" ;;
+        bottom)  js="$js taskbar(32); strip('strip');" ;;
         classic) js="$js warpbar(); launchpad(); strip('strip');" ;;
         tabs)    js="$js warpbar(); tablauncher(true); launchpad(); strip('strip');" ;;
         # The screenshots' arrangement (the user's, 21.10.2026): the Warp

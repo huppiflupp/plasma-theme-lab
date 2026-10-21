@@ -43,7 +43,11 @@ function parseWeather(json, lang, fahrenheit) {
     const text = (local && local[0] && local[0].value) || (now.weatherDesc && now.weatherDesc[0] && now.weatherDesc[0].value) || "";
     const area = data.nearest_area && data.nearest_area[0];
     const place = (area && area.areaName && area.areaName[0] && area.areaName[0].value) || "";
-    const hour = Number(String(now.localObsDateTime || "").replace(/.* (\d+):\d+ (AM|PM)$/, (m, h, p) => (Number(h) % 12) + (p === "PM" ? 12 : 0)));
+    // The place's own time; wttr.in has stopped sending it at times, and the
+    // empty text came out as hour 0: a moon over Austin in the afternoon
+    // (VM, 21.10.2026). Without it, day.
+    const clock = /(\d+):\d+ (AM|PM)$/.exec(String(now.localObsDateTime || ""));
+    const hour = clock ? Number(clock[1]) % 12 + (clock[2] === "PM" ? 12 : 0) : NaN;
     const night = !isNaN(hour) && (hour < 6 || hour >= 20);
     const temp = fahrenheit ? now.temp_F : now.temp_C;
     if (temp === undefined) return null;
