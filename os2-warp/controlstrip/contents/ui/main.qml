@@ -276,7 +276,7 @@ PlasmoidItem {
             // used, the drives grey with what is used, the free part teal.
             Repeater {
                 model: Plasmoid.configuration.showGauges
-                       ? [{label: root.tr("Swap: %1", root.size(root.swap.used)), part: root.swap.total ? root.swap.used / root.swap.total : 0, swap: true,
+                       ? [{label: root.tr("Swap: %1", root.size(root.swap.used)), part: root.swap.total ? root.swap.used / root.swap.total : 0, swap: true, none: !root.swap.total,
                            tip: root.tr("Swap: %1 of %2 in use", root.size(root.swap.used), root.size(root.swap.total))}]
                          .concat(root.disks.map(d => ({label: root.mountLabel(d.mount) + " " + root.size(d.free), part: d.total ? 1 - d.free / d.total : 0, swap: false,
                                                      tip: root.tr("%1: %2 free of %3", d.mount, root.size(d.free), root.size(d.total))})))
@@ -299,7 +299,9 @@ PlasmoidItem {
                         kind: "field"
                         x: parent.width * 0.52; width: parent.width - x - 4
                         height: 12; anchors.verticalCenter: parent.verticalCenter
-                        color: gauge.modelData.swap ? "#008080" : "#008080"
+                        // Object Desktop: teal is free, red (swap) or grey (drive)
+                        // in use; no swap at all shows grey, not "all free".
+                        color: gauge.modelData.none ? "#808080" : "#008080"
                         Rectangle {
                             x: 2; y: 2; height: parent.height - 4
                             width: Math.round((parent.width - 4) * Math.max(0, Math.min(1, gauge.modelData.part)))

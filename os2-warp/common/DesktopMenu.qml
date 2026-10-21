@@ -5,6 +5,7 @@ import QtCore
 import Qt.labs.folderlistmodel
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasmoid
+import org.kde.plasma.plasma5support as P5Support
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.private.kicker as Kicker
 import "launch.js" as Launch
@@ -96,6 +97,47 @@ PlasmaCore.Dialog {
         return "unknown";
     }
     function label(name) { return String(name).replace(/\.desktop$/, ""); }
+    // A .desktop entry shows its Name= and Icon= (in the user's language),
+    // not its file name: "01-arbeitsplatz" with a generic icon before.
+    // Read per folder with one shell call and kept; QML may not read files.
+    property var entryInfo: ({})          // path -> {name, icon}
+    property var asked: ({})              // folder path -> true
+    readonly property var reader: P5Support.DataSource {
+        engine: "executable"
+        connectedSources: []
+        onNewData: function(source, data) {
+            disconnectSource(source);
+            const info = Object.assign({}, menu.entryInfo);
+            String(data.stdout || "").split("\n").forEach(line => {
+                const f = line.split("\t");
+                if (f.length === 3) info[f[0]] = {name: f[1], icon: f[2]};
+            });
+            menu.entryInfo = info;
+        }
+    }
+    function readEntries(folderUrl) {
+        const dir = localPath(folderUrl).replace(/\/$/, "");
+        if (!dir || asked[dir]) return;
+        const a = Object.assign({}, asked); a[dir] = true; asked = a;
+        const lang = Qt.locale().name;                 // de_DE
+        const short = lang.split("_")[0];
+        const field = k => "sed -n " + quote("/^\\[Desktop Entry\\]/,/^\\[/{s/^" + k + "=//p}") + " \"$f\" | head -n1";
+        reader.connectSource("sh -c " + quote("for f in " + quote(dir) + "/*.desktop; do [ -f \"$f\" ] || continue; "
+            + "n=$(" + field("Name\\[" + lang + "\\]") + "); [ -n \"$n\" ] || n=$(" + field("Name\\[" + short + "\\]") + "); "
+            + "[ -n \"$n\" ] || n=$(" + field("Name") + "); i=$(" + field("Icon") + "); "
+            + "printf '%s\\t%s\\t%s\\n' \"$f\" \"$n\" \"$i\"; done"));
+    }
+    // Name and icon of a row: from the entry when it is a .desktop file.
+    function rowFor(fileName, fileUrl, isDir, folderUrl) {
+        const path = localPath(fileUrl);
+        const desktop = !isDir && /\.desktop$/.test(fileName);
+        // Later, not inside the binding that builds the rows: reading
+        // marks the folder as asked, which re-ran that binding (a loop).
+        if (desktop) Qt.callLater(readEntries, folderUrl);
+        const info = desktop ? entryInfo[path] : null;
+        return {name: info && info.name ? info.name : label(fileName), url: fileUrl, isDir: isDir,
+                icon: info && info.icon ? info.icon : iconFor(fileName, isDir)};
+    }
 
     readonly property url desktopUrl: StandardPaths.writableLocation(StandardPaths.DesktopLocation)
     readonly property url homeUrl: StandardPaths.writableLocation(StandardPaths.HomeLocation)
@@ -132,9 +174,8 @@ PlasmaCore.Dialog {
             {separator: true}
         ];
         for (let i = 0; i < desktopItems.count; i++)
-            rows.push({name: label(desktopItems.get(i, "fileName")), url: desktopItems.get(i, "fileUrl"),
-                       isDir: desktopItems.get(i, "fileIsDir"),
-                       icon: iconFor(desktopItems.get(i, "fileName"), desktopItems.get(i, "fileIsDir"))});
+            rows.push(rowFor(desktopItems.get(i, "fileName"), desktopItems.get(i, "fileUrl"),
+                             desktopItems.get(i, "fileIsDir"), desktopUrl));
         rows.push({separator: true});
         rows.push({name: i18nd("warp-legacy", "Home"), url: homeUrl, isDir: true, icon: "user-home"});
         rows.push({name: i18nd("warp-legacy", "Root file system"), url: "file:///", isDir: true, icon: "drive-harddisk"});
@@ -237,8 +278,8 @@ PlasmaCore.Dialog {
         rows: {
             const r = [];
             for (let i = 0; i < entries.count; i++)
-                r.push({name: menu.label(entries.get(i, "fileName")), url: entries.get(i, "fileUrl"),
-                        isDir: entries.get(i, "fileIsDir"), icon: menu.iconFor(entries.get(i, "fileName"), entries.get(i, "fileIsDir"))});
+                r.push(menu.rowFor(entries.get(i, "fileName"), entries.get(i, "fileUrl"),
+                                   entries.get(i, "fileIsDir"), folderBox.url));
             if (!r.length && entries.status === FolderListModel.Ready)
                 r.push({name: i18nd("warp-legacy", "(empty)"), url: "", isDir: false, icon: ""});
             return r;

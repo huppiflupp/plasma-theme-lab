@@ -87,13 +87,26 @@ PlasmoidItem {
                 }
             }
             // The notebook tabs: the current one higher, bold, joined to the
-            // page below (no line under it).
+            // page below (no line under it). More tabs than room: arrows at
+            // the right turn them as on an OS/2 notebook, and so does the
+            // wheel; the last one was simply cut off before.
             Item {
+                id: tabStrip
                 Layout.fillWidth: true; Layout.preferredHeight: 26; Layout.topMargin: 4
-                clip: true
+                readonly property bool overflow: tabRow.implicitWidth + 4 > width
+                readonly property real room: width - (overflow ? arrows.width + 4 : 0)
+                property real shift: 0
+                function turn(step) {
+                    shift = Math.max(0, Math.min(tabRow.implicitWidth + 4 - room, shift + step));
+                }
+                onWidthChanged: turn(0)
+                WheelHandler { onWheel: event => tabStrip.turn(event.angleDelta.y < 0 || event.angleDelta.x < 0 ? 80 : -80) }
+                Item {
+                    width: tabStrip.room; height: parent.height
+                    clip: true
                 Row {
                     id: tabRow
-                    x: 2; anchors.bottom: parent.bottom
+                    x: 2 - tabStrip.shift; anchors.bottom: parent.bottom
                     spacing: -1
                     Repeater {
                         model: root.tabs
@@ -127,6 +140,15 @@ PlasmoidItem {
                             MouseArea { anchors.fill: parent; onClicked: root.tab = tabItem.index }
                         }
                     }
+                }
+                }
+                Row {
+                    id: arrows
+                    visible: tabStrip.overflow
+                    anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.bottomMargin: 1
+                    spacing: 1
+                    PadButton { width: 20; height: 20; text: "◂"; enabled: tabStrip.shift > 0; onClicked: tabStrip.turn(-120) }
+                    PadButton { width: 20; height: 20; text: "▸"; enabled: tabStrip.shift < tabRow.implicitWidth + 4 - tabStrip.room; onClicked: tabStrip.turn(120) }
                 }
             }
             // The page: the tab's launchers in a row.
