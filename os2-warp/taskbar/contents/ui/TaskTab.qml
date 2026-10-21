@@ -52,18 +52,22 @@ Item {
             anchors.fill: parent
             radius: 2
             gradient: Gradient {
-                // The current workspace: the concept's glossy blue, light at
-                // the top running into deep royal blue (measured on its "1").
-                GradientStop { position: 0.0; color: tab.filled ? "#4aa8ff" : tab.active ? "#12306e" : "#0c1a40" }
-                GradientStop { position: 0.45; color: tab.filled ? "#1f78f0" : tab.active ? "#0f2760" : "#0a1636" }
-                GradientStop { position: 1.0; color: tab.filled ? "#0b4cc6" : tab.active ? "#0c1d4a" : "#08112c" }
+                // The current workspace: the concept's blue, lit from the
+                // left and running into deep royal blue on the right
+                // (measured on its "1"; top to bottom before, the user's
+                // remark 21.10.2026).
+                orientation: tab.filled ? Gradient.Horizontal : Gradient.Vertical
+                GradientStop { position: 0.0; color: tab.filled ? "#1a9cff" : tab.active ? "#12306e" : "#0c1a40" }
+                GradientStop { position: 0.3; color: tab.filled ? "#0a62f2" : tab.active ? "#0f2760" : "#0a1636" }
+                GradientStop { position: 1.0; color: tab.filled ? "#002c96" : tab.active ? "#0c1d4a" : "#08112c" }
             }
             border.width: 1
             border.color: tab.active || tab.filled || tab.accent ? "#48cffe" : Qt.rgba(0.45, 0.58, 1, 0.32)
         }
-        // A sheen over the upper half of the lit workspace button.
+        // A sheen over the upper half of the lit workspace button: off, the
+        // concept's has none (its light comes from the left).
         Rectangle {
-            visible: tab.filled
+            visible: false
             anchors { left: parent.left; right: parent.right; top: parent.top; margins: 1 }
             height: parent.height * 0.45
             radius: 2
