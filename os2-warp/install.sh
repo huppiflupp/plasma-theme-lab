@@ -37,8 +37,19 @@ mkdir -p "$STATE"
     | sort -u > "$STATE/files.new" && mv "$STATE/files.new" "$STATE/files"
 { cat "$STATE/config-files" 2>/dev/null; (cd "$HERE/build/config" && find . ! -type d | sed 's|^\./||'); } \
     | sort -u > "$STATE/config-files.new" && mv "$STATE/config-files.new" "$STATE/config-files"
-if [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ] && [ ! -f "$STATE/kvantum.kvconfig.before" ]; then
-    cp -a "$CONFIG/Kvantum/kvantum.kvconfig" "$STATE/kvantum.kvconfig.before"
+# Kvantum's file as it was before Warp Legacy, once: a second install saved
+# the one the first had written (theme=WarpNeon), and uninstall.sh put
+# that back (Kubuntu VM, 21.10.2026). No file: a marker, so uninstall.sh
+# knows there was none.
+if [ ! -f "$STATE/kvantum.kvconfig.before" ] && [ ! -f "$STATE/kvantum.none" ]; then
+    if [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ]; then
+        case "$(kreadconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme)" in
+            WarpLegacy*|Warp|WarpNeon) : ;;     # already ours: an install from before the record
+            *) cp -a "$CONFIG/Kvantum/kvantum.kvconfig" "$STATE/kvantum.kvconfig.before" ;;
+        esac
+    else
+        : > "$STATE/kvantum.none"
+    fi
 fi
 # --remove-destination: an existing file is unlinked, not overwritten in
 # place. A running plasmashell has the translation catalogue mapped; cp

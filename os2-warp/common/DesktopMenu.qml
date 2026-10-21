@@ -311,10 +311,12 @@ PlasmaCore.Dialog {
         if (!dir || asked[dir]) return;
         const a = Object.assign({}, asked); a[dir] = true; asked = a;
         const lang = Qt.locale().name;                 // de_DE
-        const short = lang.split("_")[0];
+        // not "short": a reserved word to Qt 6.10, the whole menu failed to load
+        // (Kubuntu 26.04, 21.10.2026)
+        const langShort = lang.split("_")[0];
         const field = k => "sed -n " + quote("/^\\[Desktop Entry\\]/,/^\\[/{s/^" + k + "=//p}") + " \"$f\" | head -n1";
         reader.connectSource("sh -c " + quote("for f in " + quote(dir) + "/*.desktop; do [ -f \"$f\" ] || continue; "
-            + "n=$(" + field("Name\\[" + lang + "\\]") + "); [ -n \"$n\" ] || n=$(" + field("Name\\[" + short + "\\]") + "); "
+            + "n=$(" + field("Name\\[" + lang + "\\]") + "); [ -n \"$n\" ] || n=$(" + field("Name\\[" + langShort + "\\]") + "); "
             + "[ -n \"$n\" ] || n=$(" + field("Name") + "); i=$(" + field("Icon") + "); "
             + "printf '%s\\t%s\\t%s\\n' \"$f\" \"$n\" \"$i\"; done"));
     }

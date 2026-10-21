@@ -120,6 +120,8 @@ remove "$DATA" "$STATE/files"
 [ -f "$STATE/config-files" ] && remove "$CONFIG" "$STATE/config-files"
 # What the Warp menu wrote while in use (common/DesktopMenu.qml): the
 # programs started from its search; not in the file list.
+# Plasma's cache of the Plasma style.
+rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/plasma_theme_warp-legacy*.kcache
 rm -f "$DATA/warp-legacy/launched"
 rmdir "$DATA/warp-legacy" 2>/dev/null || true
 rm -rf "$STATE"

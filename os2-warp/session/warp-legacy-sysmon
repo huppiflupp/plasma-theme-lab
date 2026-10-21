@@ -275,6 +275,11 @@ def reset():
         seed.unlink()
     if SEEDS.is_dir():
         SEEDS.rmdir()
+    # apply() made the folder; empty, it goes again
+    try:
+        LOCAL.rmdir()
+    except OSError:
+        pass
 
 
 if __name__ == "__main__":

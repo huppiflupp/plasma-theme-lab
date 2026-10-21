@@ -6,7 +6,7 @@
     "Description": "Launchers on notebook tabs: open windows, your favourites, and every category of the application menu",
     "Description[de]": "Starter auf Notizbuch-Reitern: offene Fenster, eigene Favoriten und alle Kategorien des Anwendungsmenüs",
     "Icon": "applications-all",
-    "Version": "0.4.0",
+    "Version": "0.4.1",
     "License": "GPL-2.0-or-later",
     "Authors": [{"Name": "Warp Legacy contributors"}],
     "Category": "Application Launchers"
