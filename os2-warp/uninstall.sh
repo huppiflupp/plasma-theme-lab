@@ -20,6 +20,19 @@ if [ -x "$LO_APPLY" ] && pgrep -u "$(id -u)" -x soffice.bin >/dev/null 2>&1 \
     echo "LibreOffice is running; close it first, Warp Legacy's colours have to come out of it." >&2
     exit 1
 fi
+# Firefox profiles are the user's: firefox-apply.sh is never run here. But
+# the script goes with the rest, so a profile still wearing Warp Legacy
+# stops the uninstall while the script to take it off is still there (the
+# note pointed at a deleted file, Kubuntu VM, 21.10.2026).
+# --keep-firefox: leave the profile as it is and go on.
+FIREFOX_APPLY="$DATA/warp-legacy/browser/firefox-apply.sh"
+if [ "${1:-}" != "--keep-firefox" ] && [ -x "$FIREFOX_APPLY" ] \
+   && "$FIREFOX_APPLY" status --all 2>/dev/null | grep -qE "^(neon|classic)"; then
+    echo "Firefox still wears Warp Legacy. Take it off first (with Firefox closed):" >&2
+    echo "    $FIREFOX_APPLY remove" >&2
+    echo "or keep it: $0 --keep-firefox" >&2
+    exit 1
+fi
 
 current=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
 previous=
@@ -110,18 +123,14 @@ remove() {   # remove <base> <list>: the files, then directories left empty
         rmdir -p --ignore-fail-on-non-empty "$1/$d" 2>/dev/null || true
     done
 }
-# Firefox profiles are the user's: firefox-apply.sh is never run here.
-if [ -x "$DATA/warp-legacy/browser/firefox-apply.sh" ] && "$DATA/warp-legacy/browser/firefox-apply.sh" status --all 2>/dev/null | grep -qE "^(neon|classic)"; then
-    echo "Note: Firefox still wears Warp Legacy; run '$DATA/warp-legacy/browser/firefox-apply.sh remove' first if you want it gone."
-fi
 # LibreOffice: the colours chosen before, the extension out.
 [ -x "$LO_APPLY" ] && command -v python3 >/dev/null 2>&1 && { "$LO_APPLY" remove || true; }
 remove "$DATA" "$STATE/files"
 [ -f "$STATE/config-files" ] && remove "$CONFIG" "$STATE/config-files"
-# What the Warp menu wrote while in use (common/DesktopMenu.qml): the
-# programs started from its search; not in the file list.
 # Plasma's cache of the Plasma style.
 rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/plasma_theme_warp-legacy*.kcache
+# What the Warp menu wrote while in use (common/DesktopMenu.qml): the
+# programs started from its search; not in the file list.
 rm -f "$DATA/warp-legacy/launched"
 rmdir "$DATA/warp-legacy" 2>/dev/null || true
 rm -rf "$STATE"

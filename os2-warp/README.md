@@ -59,7 +59,8 @@ stay. Plasma's shell restarts for it; programs already open take the new
 style when started again. From a terminal:
 `~/.local/share/warp-legacy/warp-legacy-switch [neon|classic|toggle]`.
 
-The lock screen shows the neon tubes of OS/2's Lockup in both variants.
+The lock screen shows the neon tubes of OS/2's Lockup: on black in Neon, on
+OS/2's grey in classic.
 
 The window buttons come in six looks (System Settings › Colours & Themes ›
 Window Decorations › the frame's settings): Warp 4's raised squares, the
@@ -82,7 +83,11 @@ take effect in a new session.
 
 ```bash
 ./uninstall.sh
+./uninstall.sh --keep-firefox   # leave Firefox's Warp Legacy look in place
 ```
+
+It stops while LibreOffice runs, and while Firefox still wears the theme
+(`firefox-apply.sh remove` first, or `--keep-firefox`).
 
 puts back what `--apply` changed (colour scheme, styles, icon theme,
 window frame and button order, lock screen picture, the number of

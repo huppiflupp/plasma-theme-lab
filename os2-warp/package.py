@@ -29,6 +29,18 @@ env = dict(os.environ)
 env.pop("WARP_SKIP_ICONS", None)
 subprocess.run([sys.executable, str(ROOT / "build.py")], check=True, env=env)
 
+# A build interrupted by another one running at the same time packed
+# without an icon set and still reported success (21.10.2026): the parts
+# every release has must be there.
+NEEDED = ["icons/WarpLegacy", "icons/WarpLegacyNeon", "icons/WarpLegacyNeon2026", "icons/WarpLegacyNeon2026Violett",
+          "icons/WarpLegacyNeonCursors/cursors", "plasma/look-and-feel/org.warplegacy.desktop",
+          "plasma/look-and-feel/org.warplegacy.neon.desktop", "wallpapers/org.warplegacy.neon-roehren",
+          "wallpapers/org.warplegacy.neon-roehren-hell", "warp-legacy/libreoffice/warp-legacy.oxt",
+          "warp-legacy/warp-legacy-switch"]
+missing = [n for n in NEEDED if not (ROOT / "build" / n).exists()]
+if missing:
+    sys.exit("build/ is incomplete, not packed: " + ", ".join(missing))
+
 DIST = ROOT / "dist"
 DIST.mkdir(exist_ok=True)
 NAME = f"warp-legacy-{VERSION}"

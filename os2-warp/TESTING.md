@@ -2,6 +2,30 @@
 
 Newest first. What was tested where, and what was not.
 
+## After 0.4.1 — 21.10.2026, open points
+
+**Kubuntu 26.04** (`ubuntu-lab`), archive 0.4.1:
+
+- Without LibreOffice (purged offline): `install.sh --apply neon --layout`,
+  `warp-legacy-switch classic`, `uninstall.sh` all exit 0, no tracebacks;
+  warp-legacy-sync runs clean at login.
+- Firefox 157 (Snap): `firefox-apply.sh` finds the Snap profile, refuses
+  while Firefox runs; Neon and classic look right, `remove` cleans up.
+  Chrome/Chromium: not in the VM, not installable offline: not tested.
+- Lock screen locked for real: Neon readable. Classic was not: the greeter
+  takes its clock colour from the Plasma style's button text (black in
+  classic), on the black tubes. Classic now locks on the tubes on OS/2
+  grey (`neon-roehren-hell`); checked on Fedora 44 (plasma-lab): readable.
+- Found: uninstall.sh's Firefox note pointed at the script it deleted next;
+  it now stops while Firefox wears the theme (`--keep-firefox` to go on).
+  A build disturbed by a parallel one packed without an icon set:
+  package.py now refuses an incomplete build/.
+
+**Fedora 44** (`plasma-lab`): the Warp menu's switch, Neon → classic →
+Neon three times, no crash (a first version without restarting
+plasmashell crashed it in Kirigami's PlasmaTheme::syncColors). Neon's
+violet selection in System Settings.
+
 ## 0.4.1 — 21.10.2026, release archive
 
 **Kubuntu 26.04.1** (`ubuntu-lab`, Plasma 6.6.6, Qt 6.10.2, Wayland, no

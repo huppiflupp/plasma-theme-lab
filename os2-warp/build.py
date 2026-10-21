@@ -222,6 +222,7 @@ PICTURES = (
     ("warp3-tuerkis", "Warp Teal Felt", "Warp Türkisfilz", "Warp 3's teal as a quiet felt texture"),
     ("warp-antrieb", "Warp Drive", "Warp-Antrieb", "Star streaks at warp speed, deep blue"),
     ("neon-roehren", "Neon Tubes", "Neonröhren", "Red, blue and yellow neon tube on black"),
+    ("neon-roehren-hell", "Neon Tubes on Grey", "Neonröhren auf Grau", "The neon tubes on OS/2's grey (the classic lock screen)"),
     ("raytracing-chrom", "Chrome Spheres", "Chromkugeln", "Ray-traced chrome spheres on a chessboard, 1990s style"),
     ("marmorpapier", "Marbled Paper", "Marmorpapier", "Grey-blue marbled paper"),
     ("stillleben-90er", "Desk, 1996", "Schreibtisch 1996", "Gouache of a 1990s desk with a CRT monitor"),

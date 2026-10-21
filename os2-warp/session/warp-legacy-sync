@@ -14,8 +14,8 @@ XDG_CONFIG_DIRS=$(printf '%s' "${XDG_CONFIG_DIRS:-/etc/xdg}" | tr ':' '\n' | gre
 export XDG_CONFIG_DIRS
 lnf=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
 case "$lnf" in
-    org.warplegacy.neon.desktop) variant=neon; kvantum=WarpNeon; konsole="Warp Legacy Neon (transparent)"; picture=org.warplegacy.dunkel-lichtbogen-rechts ;;
-    org.warplegacy.desktop)      variant=classic; kvantum=Warp; konsole="Warp Legacy"; picture=org.warplegacy.warp4-wirbel-violett ;;
+    org.warplegacy.neon.desktop) variant=neon; lock=neon-roehren; kvantum=WarpNeon; konsole="Warp Legacy Neon (transparent)"; picture=org.warplegacy.dunkel-lichtbogen-rechts ;;
+    org.warplegacy.desktop)      variant=classic; lock=neon-roehren-hell; kvantum=Warp; konsole="Warp Legacy"; picture=org.warplegacy.warp4-wirbel-violett ;;
     *) exit 0 ;;
 esac
 conf="${XDG_CONFIG_HOME:-$HOME/.config}/Kvantum/kvantum.kvconfig"
@@ -31,6 +31,12 @@ done
 case "$(kreadconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile)" in
     ""|"Warp Legacy.profile"|"Warp Legacy Neon.profile"|"Warp Legacy Neon (transparent).profile")
         kwriteconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile "$konsole.profile" ;;
+esac
+# The lock screen's picture of the variant, if it is one of ours (install.sh).
+case "$(kreadconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image)" in
+    *org.warplegacy.neon-roehren*)
+        kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General \
+            --key Image "file://${XDG_DATA_HOME:-$HOME/.local/share}/wallpapers/org.warplegacy.$lock/" ;;
 esac
 # LibreOffice's application colours (libreoffice/README.md), unless the
 # user chose a scheme of their own; skipped while LibreOffice runs.

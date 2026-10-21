@@ -1,0 +1,6 @@
+{
+  "made_from": "neon-roehren.jpg",
+  "method": "PIL ImageChops.screen with #bebec8 (OS/2 grey): the tubes stay, the black turns light",
+  "why": "the classic variant's lock screen: the greeter draws its clock in the Plasma style's dark button text, unreadable on the black tubes (Kubuntu 26.04 and Fedora 44, 21.10.2026)",
+  "final_size": [3840, 2160]
+}

@@ -160,11 +160,14 @@ if [ -n "$APPLY" ]; then
     if command -v python3 >/dev/null 2>&1; then
         python3 "$DATA/warp-legacy/warp-legacy-sysmon" "$LNF" || echo "Note: System Monitor colours not set." >&2
     fi
-    # The lock screen shows the neon tubes in both variants: OS/2's Lockup
-    # was the same neon picture whatever the desktop looked like.
+    # The lock screen shows OS/2 Lockup's neon tubes: on black in Neon, on
+    # OS/2's grey in classic. The greeter draws its clock in the Plasma
+    # style's button text, black in classic: unreadable on the black tubes
+    # (Kubuntu and Fedora VMs, 21.10.2026).
+    case "$VARIANT" in neon) LOCK=neon-roehren ;; *) LOCK=neon-roehren-hell ;; esac
     kwriteconfig6 --file kscreenlockerrc --group Greeter --key WallpaperPlugin org.kde.image
     kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General \
-        --key Image "file://$DATA/wallpapers/org.warplegacy.neon-roehren/"
+        --key Image "file://$DATA/wallpapers/org.warplegacy.$LOCK/"
     # IBM Plex Sans Condensed (fonts/), bold titles. Written here as well:
     # like the widget style, the global theme's fonts did not reach every
     # program from kdedefaults alone.
