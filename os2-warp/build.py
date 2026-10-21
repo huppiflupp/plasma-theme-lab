@@ -289,7 +289,9 @@ KONSOLE = {
     "": dict(name="Warp Legacy", background="#000000", foreground="#c0c0c0", intense="#ffffff",
              colours=["#000000", "#a80000", "#00a800", "#a85400", "#2400a8", "#a800a8", "#00a8a8", "#c0c0c0",
                       "#545454", "#fc5454", "#54fc54", "#fcfc54", "#5454fc", "#fc54fc", "#54fcfc", "#ffffff"]),
-    "neon": dict(name="Warp Legacy Neon", background="#02060f", foreground="#3ad0ff", intense="#e8f6ff",
+    # Black, not navy, behind the cyan: the most contrast for the text (the
+    # user's choice, set in the VM 21.10.2026).
+    "neon": dict(name="Warp Legacy Neon", background="#000000", foreground="#3ad0ff", intense="#e8f6ff",
                  colours=["#02060f", "#ff5a7a", "#3ddc97", "#ffb347", "#3a7bff", "#c03aff", "#3ad0ff", "#9fd8ee",
                           "#3a4a78", "#ff8aa2", "#7cf0bd", "#ffd08a", "#7aa6ff", "#ff4fd8", "#9fe9ff", "#e8f6ff"]),
 }
@@ -297,16 +299,23 @@ KONSOLE = {
 
 def konsole(v):
     k = KONSOLE[v["key"]]
-    scheme = ids(v)["scheme"]
-    lines = ["[General]", f"Description={k['name']}", "Opacity=1", "Blur=false", "Wallpaper=",
+    konsole_files(k, ids(v)["scheme"], k["name"], opacity=1)
+    # Neon also as a see-through profile over the desktop (the user's
+    # setting: fully transparent, no blur).
+    if v["key"] == "neon":
+        konsole_files(k, ids(v)["scheme"] + "Transparent", k["name"] + " (transparent)", opacity=0)
+
+
+def konsole_files(k, scheme, name, opacity):
+    lines = ["[General]", f"Description={name}", f"Opacity={opacity}", "Blur=false", "Wallpaper=",
              "", "[Background]", f"Color={rgb(k['background'])}", "", "[BackgroundIntense]", f"Color={rgb(k['background'])}",
              "", "[Foreground]", f"Color={rgb(k['foreground'])}", "", "[ForegroundIntense]", f"Color={rgb(k['intense'])}"]
     for i, c in enumerate(k["colours"][:8]):
         lines += ["", f"[Color{i}]", f"Color={rgb(c)}", "", f"[Color{i}Intense]", f"Color={rgb(k['colours'][i + 8])}",
                   "", f"[Color{i}Faint]", f"Color={rgb(c)}"]
     write(f"konsole/{scheme}.colorscheme", "\n".join(lines) + "\n")
-    write(f"konsole/{k['name']}.profile", f"""[General]
-Name={k['name']}
+    write(f"konsole/{name}.profile", f"""[General]
+Name={name}
 Parent=FALLBACK/
 TerminalMargin=8
 
