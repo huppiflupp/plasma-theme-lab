@@ -25,6 +25,8 @@ Decoration {
     // The buttons' look (WarpButton.qml): 0 Warp 4, 1 glyphs only, 2 diamond,
     // 3 window corners, 4 neon tube, 5 tile.
     property int buttonStyle: 0
+    // Neon: the glyphs plain white, as before 21.10.2026, not glowing.
+    property bool whiteGlyphs: false
     property int edge: 4
     readonly property int gap: 2
     readonly property bool maximized: decoration.client.maximized
@@ -67,6 +69,7 @@ Decoration {
     function readConfig() {
         root.fixedTitleHeight = decoration.readConfig("titleHeight", 0);
         root.buttonStyle = decoration.readConfig("buttonStyle", 0);
+        root.whiteGlyphs = decoration.readConfig("whiteGlyphs", false);
     }
     onTitleHeightChanged: readBorderSize()
     // The theme's settings dialog (config.ui) saves without telling KWin:

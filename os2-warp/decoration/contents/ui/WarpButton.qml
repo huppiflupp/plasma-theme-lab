@@ -13,7 +13,7 @@ import org.kde.kirigami as Kirigami
 //  4 neon tube:     Neon: glowing glyphs, no body; classic: a flat frame
 //  5 tile:          as the taskbar's buttons: a tile with an outline
 // Neon draws the glyphs in every look as tube 4 does: cyan with a glow,
-// close in pink.
+// close in pink; or plain white (setting whiteGlyphs).
 DecorationButton {
     id: button
     property real size
@@ -26,7 +26,8 @@ DecorationButton {
         : buttonType === DecorationOptions.DecorationButtonMinimize ? "min"
         : buttonType === DecorationOptions.DecorationButtonMaximizeRestore ? (maximized ? "restore" : "max")
         : ""
-    readonly property color ink: neon ? (kind === "close" ? root.style.accent : root.style.light) : root.style.glyph
+    readonly property bool glow: neon && !root.whiteGlyphs
+    readonly property color ink: glow ? (kind === "close" ? root.style.accent : root.style.light) : root.style.glyph
     width: visible ? size : 0
     height: size
 
@@ -56,7 +57,7 @@ DecorationButton {
             GradientStop { position: 1; color: button.neon ? (button.down ? "#12306e" : "#08112c") : root.surface }
         }
         border.width: 1
-        border.color: button.neon ? button.ink : root.style.ink
+        border.color: button.glow ? button.ink : button.neon ? root.style.light : root.style.ink
     }
     // Diamond: OS/2's raised edges along the four slanted sides.
     Canvas {
@@ -104,10 +105,10 @@ DecorationButton {
         anchors.leftMargin: button.down ? 1 : 0
         anchors.topMargin: button.down ? 1 : 0
         opacity: button.enabled ? 1 : 0.4
-        readonly property var state: [button.kind, button.look, button.size, button.ink, root.surface, button.neon, button.down]
+        readonly property var state: [button.kind, button.look, button.size, button.ink, root.surface, button.neon, button.down, button.glow]
         onStateChanged: requestPaint()
         // Neon: the tube's glow around the glyph.
-        layer.enabled: button.neon
+        layer.enabled: button.glow
         layer.effect: MultiEffect {
             shadowEnabled: true
             shadowColor: button.ink

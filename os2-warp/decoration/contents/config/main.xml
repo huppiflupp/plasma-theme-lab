@@ -18,5 +18,9 @@
       <min>0</min>
       <max>5</max>
     </entry>
+    <!-- Neon: plain white glyphs instead of the glowing cyan and pink -->
+    <entry name="whiteGlyphs" type="Bool">
+      <default>false</default>
+    </entry>
   </group>
 </kcfg>

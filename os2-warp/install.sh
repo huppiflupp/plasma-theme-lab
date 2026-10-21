@@ -49,6 +49,8 @@ mkdir -p "$DATA"
 for entry in "$HERE"/build/*; do
     [ "$(basename "$entry")" = config ] || cp -a --remove-destination "$entry" "$DATA/"
 done
+# The Kvantum themes' names before 21.10.2026 (now Warp, WarpNeon).
+rm -rf "$CONFIG/Kvantum/WarpLegacy" "$CONFIG/Kvantum/WarpLegacyNeon"
 mkdir -p "$CONFIG" && cp -a --remove-destination "$HERE/build/config/." "$CONFIG/"
 sed -i "s|@SYNC@|$DATA/warp-legacy/warp-legacy-sync|" "$CONFIG/autostart/warp-legacy-sync.desktop"
 echo "Installed $(cat "$STATE/files" "$STATE/config-files" | wc -l) files"
@@ -96,8 +98,8 @@ if [ -n "$APPLY" ]; then
         cp -a "$CONFIG/plasmashellrc" "$STATE/plasmashellrc.before" 2>/dev/null || true
     fi
     case "$VARIANT" in
-        "")   LNF=org.warplegacy.desktop;      KVANTUM=WarpLegacy;     ICONS=WarpLegacy;         KONSOLE="Warp Legacy";      PICTURE=org.warplegacy.warp4-wirbel-violett ;;
-        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpLegacyNeon; ICONS=WarpLegacyNeon2026Violett; KONSOLE="Warp Legacy Neon"; PICTURE=org.warplegacy.dunkel-lichtbogen-rechts ;;
+        "")   LNF=org.warplegacy.desktop;      KVANTUM=Warp;           ICONS=WarpLegacy;         KONSOLE="Warp Legacy";      PICTURE=org.warplegacy.warp4-wirbel-violett ;;
+        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpNeon;       ICONS=WarpLegacyNeon2026Violett; KONSOLE="Warp Legacy Neon"; PICTURE=org.warplegacy.dunkel-lichtbogen-rechts ;;
     esac
     plasma-apply-lookandfeel --apply "$LNF" $LAYOUT
     # The global theme only carries the decoration's library and theme into

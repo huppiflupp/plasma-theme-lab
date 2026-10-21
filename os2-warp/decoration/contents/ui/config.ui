@@ -23,6 +23,13 @@
      <item><property name="text"><string>Tile</string></property></item>
     </widget>
    </item>
+   <item row="1" column="1">
+    <widget class="QCheckBox" name="kcfg_whiteGlyphs">
+     <property name="text">
+      <string>White glyphs (Neon)</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>

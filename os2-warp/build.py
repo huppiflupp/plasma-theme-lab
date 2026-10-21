@@ -94,6 +94,9 @@ def ids(v):
     """Package and file names of a variant: WarpLegacy / WarpLegacyNeon …"""
     k = v["key"]
     return dict(scheme="WarpLegacy" + k.capitalize(),
+                # Kvantum lists its themes by folder name: "Warp", "WarpNeon"
+                # (the user's wish 21.10.2026; WarpLegacy* before).
+                kvantum="Warp" + k.capitalize(),
                 theme="warp-legacy" + (f"-{k}" if k else ""),
                 lnf="org.warplegacy" + (f".{k}" if k else "") + ".desktop",
                 decoration="kwin4_decoration_qml_warplegacy" + k)
@@ -383,7 +386,7 @@ def kvantum(v):
     built beside the data tree, in build/config. install.sh chooses it."""
     sys.path.insert(0, str(ROOT))
     from kvantum import build_kvantum
-    build_kvantum(OUT / "config", v["P"], name=ids(v)["scheme"], comment=v["description"])
+    build_kvantum(OUT / "config", v["P"], name=ids(v)["kvantum"], comment=v["description"])
 
 
 def lookandfeel(v):

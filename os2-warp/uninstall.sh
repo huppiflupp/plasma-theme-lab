@@ -64,7 +64,7 @@ if [ -f "$STATE/kvantum.kvconfig.before" ]; then
     cp -a "$STATE/kvantum.kvconfig.before" "$CONFIG/Kvantum/kvantum.kvconfig"
 elif [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ]; then
     case "$(kreadconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme)" in
-        WarpLegacy*) kwriteconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme --delete ;;
+        WarpLegacy*|Warp|WarpNeon) kwriteconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme --delete ;;
     esac
 fi
 # The workspaces install.sh added, the last ones first; KWin moves their
