@@ -11,6 +11,11 @@ Brand-like icons of the concept (Nextcloud, Teams, Office) are left out.
 
 Anything not in the concept is inherited from WarpLegacyNeon.
 
+Two exceptions to "master as is": the Internet globe (internet-web-browser,
+applications-internet) is drawn per size from icons-neon2026/globe-body.png
+with its own orbit ring (globe()), and the folder bodies are lifted to the
+lighter azure of the concept's folders at build time (lighten_folder()).
+
 Violet variant: icons-neon2026/masters-violett/<name>.png holds violet
 versions of the icons that are mostly cyan in the concept (hue-shifted rims
 and glow toward violet-magenta at the lower right, then a light img2img pass;
@@ -30,6 +35,7 @@ import shutil
 import sys
 import time
 
+import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -150,8 +156,142 @@ def master(name, violet=False):
     return MASTERS / f"{name}.png"
 
 
+# --- Internet globe: drawn per size ------------------------------------------
+# The concept's thin orbit vanished below 48 px and the Browser master had no
+# violet at all. The sphere comes from icons-neon2026/globe-body.png (the
+# "Internet" desktop globe with its orbit inpainted away, see
+# _work/globe_body.py); ring, magenta rim light and glow are drawn here, the
+# ring at least ~1.6 px wide at every size. Both globe names share it.
+GLOBE_BODY = HERE / "icons-neon2026" / "globe-body.png"
+GLOBES = ("internet-web-browser", "applications-internet")
+_GLOBE_SPHERE = (129, 128, 77)                  # centre x, y, radius in globe-body.png
+_GLOBE_ORBIT = (127, 122.5, 96, 25, -27.5)      # centre x, y, semi-axes, tilt (same frame)
+_GLOBE_SCALE = 1.15     # body and orbit enlarged about the tile centre: the
+                        # concept's orbit is ~1.25x the sphere wide, not 1.4x
+# ring colour along the major axis (-1 = left end, +1 = right end):
+# cyan at the left, magenta in front of the globe, violet at the right
+_GLOBE_FRONT = {False: [(-1, (70, 232, 255)), (-0.25, (90, 205, 255)),
+                        (0.3, (255, 84, 222)), (1, (156, 96, 255))],
+                True: [(-1, (150, 130, 255)), (-0.2, (215, 96, 255)),
+                       (0.3, (255, 84, 210)), (1, (168, 88, 255))]}
+_GLOBE_BACK = {False: [(-1, (70, 232, 255)), (0.4, (64, 176, 255)), (1, (156, 96, 255))],
+               True: [(-1, (150, 130, 255)), (0.4, (128, 104, 255)), (1, (168, 88, 255))]}
+_GLOBE_GLOW = {False: (40, 112, 255), True: (124, 72, 255)}
+
+
+def _ramp(stops, t):
+    """Colour stops [(t, rgb), ...] -> float array (h, w, 3) for t (h, w)."""
+    ts = [p for p, _ in stops]
+    return np.dstack([np.interp(t, ts, [c[i] for _, c in stops]) for i in range(3)])
+
+
+def globe(s, violet=False):
+    """The Internet globe at s px: sphere, orbit in front/behind, glow."""
+    C = 512
+    k = C / 256
+    w = max(0.042 * s, 1.6) * C / s           # ring width on the canvas
+    # small sizes: less room needed for the glow, a more open ring
+    small = min(max((48 - s) / 26, 0), 1)       # 0 at >= 48 px, 1 at <= 22 px
+    f = _GLOBE_SCALE + 0.1 * small
+    ecx, ecy, ea, eb, eang = _GLOBE_ORBIT
+    ecx, ecy, ea, eb = (128 + (ecx - 128) * f, 128 + (ecy - 128) * f, ea * f,
+                        eb * f * (1 + 0.2 * small))
+    yy, xx = np.mgrid[0:C, 0:C] + 0.5
+    # orbit in its own frame: u along the major axis, v across
+    t = math.radians(eang)
+    dx, dy = xx - ecx * k, yy - ecy * k
+    u = (dx * math.cos(t) + dy * math.sin(t)) / (ea * k)
+    v = (-dx * math.sin(t) + dy * math.cos(t)) / (eb * k)
+    r = np.hypot(u, v)
+    # distance to the ellipse, approximated by the radial error times the
+    # local scale (|grad r|^-1); fine for a ring this flat
+    gx = (u * math.cos(t) / (ea * k) - v * math.sin(t) / (eb * k)) / np.maximum(r, 1e-6)
+    gy = (u * math.sin(t) / (ea * k) + v * math.cos(t) / (eb * k)) / np.maximum(r, 1e-6)
+    dist = np.abs(r - 1) / np.maximum(np.hypot(gx, gy), 1e-9)
+    ring = np.clip(w / 2 + 0.5 - dist, 0, 1)
+    core = np.clip(w * 0.22 + 0.5 - dist, 0, 1)
+    tu = np.clip(u / np.maximum(r, 1e-6), -1, 1)
+    front = v > 0                               # lower half passes in front
+
+    def layer(rgb, a):
+        return Image.fromarray(np.dstack([rgb, a * 255]).clip(0, 255).astype(np.uint8))
+
+    def ring_layer(stops, mask, strength):
+        rgb = _ramp(stops, tu)
+        rgb = rgb + (255 - rgb) * (core * 0.6)[..., None]   # bright neon core
+        return layer(rgb, ring * mask * strength)
+
+    sx, sy, sr = _GLOBE_SPHERE
+    sx, sy, sr = (128 + (sx - 128) * f) * k, (128 + (sy - 128) * f) * k, sr * f * k
+    sd = np.hypot(xx - sx, yy - sy)
+    disk = np.clip(sr + 0.5 - sd, 0, 1)
+    glow_col = np.broadcast_to(np.array(_GLOBE_GLOW[violet], float), (C, C, 3))
+    out = Image.new("RGBA", (C, C), (0, 0, 0, 0))
+    # glow of sphere and ring
+    ga = Image.fromarray((np.maximum(disk, ring) * 255).astype(np.uint8))
+    ga = np.asarray(ga.filter(ImageFilter.GaussianBlur(10 + w * 0.8)), float) / 255
+    out.alpha_composite(layer(glow_col, ga * 0.75))
+    out.alpha_composite(ring_layer(_GLOBE_BACK[violet], ~front, 0.85))
+    bs = round(C * f)
+    body = Image.open(GLOBE_BODY).convert("RGBA").resize((bs, bs), Image.LANCZOS)
+    out.alpha_composite(body.crop(((bs - C) // 2, (bs - C) // 2,
+                                   (bs - C) // 2 + C, (bs - C) // 2 + C)))
+    # magenta rim light on the lower right of the sphere, like the concept
+    ang = np.degrees(np.arctan2(yy - sy, xx - sx))   # 0 = right, 90 = down
+    arc = np.clip(1 - np.abs(ang - 55) / 60, 0, 1) ** 0.7
+    rw = max(0.03 * s, 1.0) * C / s
+    rim = np.clip(rw / 2 + 0.5 - np.abs(sd - (sr - rw / 2)), 0, 1) * arc
+    out.alpha_composite(layer(_ramp(_GLOBE_FRONT[violet], np.full((C, C), 0.45)),
+                              rim * (0.95 if violet else 0.8)))
+    # ring glow, then the front half of the ring over the sphere
+    rg = Image.fromarray((ring * front * 255).astype(np.uint8))
+    rg = np.asarray(rg.filter(ImageFilter.GaussianBlur(w * 0.9 + 3)), float) / 255
+    out.alpha_composite(layer(_ramp(_GLOBE_FRONT[violet], tu), rg * 0.7))
+    out.alpha_composite(ring_layer(_GLOBE_FRONT[violet], front, 1.0))
+    return _premul_resize(out, s)
+
+
+# --- Folder body: lighter azure ----------------------------------------------
+# The masters' folder bodies came out a dark royal blue (mean ~#2257a8); the
+# folders of the concept's "C:\Projects" window are a bright azure (~#0a64e9,
+# glossy toward #04a0ff). Saturated blue pixels are lifted toward that, while
+# pale emblem strokes (low saturation), dark emblem lines and the golden edges
+# stay as they are, so the special folders keep their contrast.
+LIGHT_FOLDERS = ("folder", "folder-applications", "folder-development",
+                 "folder-documents", "folder-download", "folder-pictures",
+                 "folder-videos", "folder-temp", "user-home")
+
+
+def _smooth(x, a, b):
+    t = np.clip((x - a) / (b - a), 0, 1)
+    return t * t * (3 - 2 * t)
+
+
+def lighten_folder(img):
+    a = np.asarray(img.convert("RGBA"), float) / 255
+    rgb = a[..., :3]
+    mx, mn = rgb.max(-1), rgb.min(-1)
+    sat = (mx - mn) / np.maximum(mx, 1e-6)
+    hue = np.asarray(img.convert("RGB").convert("HSV"), float)[..., 0] * 360 / 255
+    wt = (_smooth(hue, 195, 205) * (1 - _smooth(hue, 238, 250))   # blue only
+          * _smooth(sat, 0.72, 0.88)                              # not the pale emblems
+          * _smooth(mx, 0.22, 0.38))                              # not dark lines
+    v2 = 1 - (1 - mx) ** 2.8                    # 0.55 -> 0.89, 0.8 -> 0.99
+    gain = np.where(mx > 1e-6, v2 / np.maximum(mx, 1e-6), 1)
+    lifted = rgb * gain[..., None]
+    lifted[..., 1] = np.minimum(lifted[..., 1] * 1.08 + 0.02, 1)  # a touch toward azure
+    rgb = rgb + (lifted - rgb) * wt[..., None]
+    out = np.dstack([rgb, a[..., 3]])
+    return Image.fromarray((out * 255 + 0.5).clip(0, 255).astype(np.uint8))
+
+
 def render(name, s, violet=False):
-    return _premul_resize(Image.open(master(name, violet)).convert("RGBA"), s)
+    if name in GLOBES:
+        return globe(s, violet)
+    img = Image.open(master(name, violet)).convert("RGBA")
+    if name in LIGHT_FOLDERS:
+        img = lighten_folder(img)
+    return _premul_resize(img, s)
 
 
 def build_icons(out, name="WarpLegacyNeon2026", violet=False):
@@ -168,7 +308,7 @@ def build_icons(out, name="WarpLegacyNeon2026", violet=False):
     dirs = set()
     missing = []
     for n, (ctx, _src, _box) in ICONS.items():
-        if not (MASTERS / f"{n}.png").exists():
+        if n not in GLOBES and not (MASTERS / f"{n}.png").exists():
             missing.append(n)
             continue
         for s in SIZES:
@@ -259,17 +399,16 @@ def comparison(root, dest, zoom=128):
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
         crop = concept.crop((round(cx - tile / 2), round(cy - tile / 2),
                              round(cx - tile / 2) + tile, round(cy - tile / 2) + tile))
-        own = Image.open(MASTERS / f"{n}.png").convert("RGBA")
         bx, by = (i % cols) * cell_w + 8, (i // cols) * cell_h + 4
         # 1:1 size as in the concept
         sheet.paste(crop, (bx, by + (zoom - tile) // 2))
         small = Image.new("RGBA", (tile, tile), BG + (255,))
-        small.alpha_composite(_premul_resize(own, tile))
+        small.alpha_composite(render(n, tile))
         sheet.paste(small, (bx + 72 + 8, by + (zoom - tile) // 2))
         # enlarged
         sheet.paste(crop.resize((zoom, zoom), Image.LANCZOS), (bx + 2 * 72 + 16, by))
         big = Image.new("RGBA", (zoom, zoom), BG + (255,))
-        big.alpha_composite(_premul_resize(own, zoom))
+        big.alpha_composite(render(n, zoom))
         sheet.paste(big, (bx + 2 * 72 + zoom + 24, by))
         dr.text((bx, by + zoom + 4), f"{n}  <-  {src}", fill=(0xe8, 0xf0, 0xff), font=font)
     sheet.convert("RGB").save(dest)
@@ -293,7 +432,7 @@ VIOLET_REFS = {
 def violet_comparison(dest, zoom=128):
     """Per violet icon: concept crop(s) | cyan master | violet master, on navy."""
     concept = Image.open(CONCEPT).convert("RGB")
-    names = [n for n in ICONS if (MASTERS_VIOLET / f"{n}.png").exists()]
+    names = [n for n in ICONS if n in GLOBES or (MASTERS_VIOLET / f"{n}.png").exists()]
     cols = 2
     cell_w, cell_h = 4 * zoom + 5 * 8, zoom + 30
     rows = math.ceil(len(names) / cols)
@@ -317,7 +456,7 @@ def violet_comparison(dest, zoom=128):
             x += zoom + 8
         for v in (False, True):
             t = Image.new("RGBA", (zoom, zoom), BG + (255,))
-            t.alpha_composite(_premul_resize(Image.open(master(n, v)).convert("RGBA"), zoom))
+            t.alpha_composite(render(n, zoom, v))
             sheet.paste(t, (x, by))
             x += zoom + 8
         dr.text((bx, by + zoom + 4), f"{n}  <-  {label}  |  cyan  |  violett",
