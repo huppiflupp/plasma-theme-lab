@@ -60,14 +60,14 @@ function warpbar() {
 }
 function launchpad() {
     var p = new Panel; p.screen = 0; p.location = 'bottom'; p.alignment = 'center'; p.lengthMode = 'fit';
-    p.height = 76; p.hiding = 'none'; p.floating = true; p.addWidget('org.warplegacy.launchpad');
+    p.height = 76; p.hiding = 'windowsgobelow'; p.floating = true; p.addWidget('org.warplegacy.launchpad');
 }
 // Next to the LaunchPad (about 560 px wide, centred) the Tab Launcher's
 // natural width (~790 px with all categories) runs under it; it gets the
 // room left of the LaunchPad, its tab row scrolls anyway.
 function tablauncher(beside) {
     var p = new Panel; p.screen = 0; p.location = 'bottom'; p.alignment = 'left'; p.lengthMode = 'fit';
-    p.height = 112; p.hiding = 'none'; p.floating = true; p.addWidget('org.warplegacy.tablauncher');
+    p.height = 112; p.hiding = 'windowsgobelow'; p.floating = true; p.addWidget('org.warplegacy.tablauncher');
     if (beside) {
         var room = Math.floor((screenGeometry(0).width - 600) / 2) - 24;
         p.lengthMode = 'custom'; p.minimumLength = room; p.maximumLength = room;

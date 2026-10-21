@@ -59,6 +59,40 @@ PlasmoidItem {
         Layout.minimumWidth: 400
         Layout.fillWidth: true
         Layout.preferredHeight: 44
+        readonly property bool neon: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
+
+        // Neon: the concept's bar (reference/neon-2026.png, bottom edge,
+        // measured): navy, lighter at the top, a line of light along the top
+        // edge that starts violet at the left and turns cyan-blue. Drawn by
+        // the bar itself over the panel's background (CanFillArea: edge to
+        // edge). Classic keeps the Plasma style's grey panel.
+        Rectangle {
+            visible: bar.neon
+            anchors.fill: parent
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: "#0b1d4a" }
+                GradientStop { position: 0.45; color: "#071437" }
+                GradientStop { position: 1.0; color: "#040b26" }
+            }
+            Rectangle {
+                width: parent.width; height: 2
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0; color: "#b44dff" }
+                    GradientStop { position: 0.12; color: "#5a6dff" }
+                    GradientStop { position: 0.35; color: "#2dbbfb" }
+                    GradientStop { position: 1.0; color: "#1a5ee0" }
+                }
+            }
+            // The glow under the line.
+            Rectangle {
+                y: 2; width: parent.width; height: 6
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: Qt.rgba(0.18, 0.55, 1, 0.30) }
+                    GradientStop { position: 1.0; color: Qt.rgba(0.18, 0.55, 1, 0.0) }
+                }
+            }
+        }
 
         RowLayout {
             anchors.fill: parent
@@ -83,9 +117,26 @@ PlasmoidItem {
                 }
             }
 
-            // Workspaces 1-4 as the concept's buttons, the current one lit.
-            Row {
+            // Workspaces 1-4 as the concept's buttons, the current one lit,
+            // in Neon set into a darker well with a faint light along its
+            // bottom, as in the concept.
+            Rectangle {
                 visible: Plasmoid.configuration.showWorkspaces
+                Layout.preferredWidth: wsRow.implicitWidth + (bar.neon ? 6 : 0)
+                Layout.preferredHeight: bar.side + (bar.neon ? 6 : 0)
+                color: bar.neon ? "#050c26" : "transparent"
+                border.width: bar.neon ? 1 : 0
+                border.color: Qt.rgba(0.35, 0.5, 1, 0.25)
+                radius: 2
+                Rectangle {
+                    visible: bar.neon
+                    anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: 2 }
+                    height: 1
+                    color: Qt.rgba(0.28, 0.75, 1, 0.45)
+                }
+            Row {
+                id: wsRow
+                anchors.centerIn: parent
                 spacing: 1
                 Repeater {
                     model: desktops.desktopIds
@@ -102,6 +153,8 @@ PlasmoidItem {
                         onClicked: root.run(Launch.DBUS + " org.kde.KWin /KWin setCurrentDesktop " + (index + 1))
                     }
                 }
+            }
+
             }
 
             // A button per window.

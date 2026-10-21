@@ -34,7 +34,10 @@ pad.location = 'bottom';
 pad.alignment = 'center';
 pad.lengthMode = 'fit';
 pad.height = 76;
-pad.hiding = 'none';
+// Windows may go below the LaunchPad, as below OS/2's floating LaunchPad
+// window: reserving the bottom edge cut the Control Strip short above it
+// (Plasma reserves the full width for a bottom panel).
+pad.hiding = 'windowsgobelow';
 pad.floating = true;
 pad.addWidget('org.warplegacy.launchpad');
 

@@ -35,7 +35,7 @@ KCM.SimpleKCM {
                + "p.addWidget('org.kde.plasma.systemtray'); p.addWidget('org.kde.plasma.digitalclock');"},
         {plugin: "org.warplegacy.launchpad", name: i18nd("warp-legacy", "LaunchPad"), where: i18nd("warp-legacy", "floating at the bottom centre: lock, find, shut down, launchers with drawers"),
          script: "var p = new Panel; p.location = 'bottom'; p.alignment = 'center'; p.lengthMode = 'fit'; p.height = 76; "
-               + "p.hiding = 'none'; p.floating = true; p.addWidget('org.warplegacy.launchpad');"},
+               + "p.hiding = 'windowsgobelow'; p.floating = true; p.addWidget('org.warplegacy.launchpad');"},
         {plugin: "org.warplegacy.controlstrip", name: i18nd("warp-legacy", "Control Strip"), where: i18nd("warp-legacy", "on the right edge: workspaces, launch list, gauges, clock"),
          script: "var p = new Panel; p.location = 'right'; p.height = 130; p.hiding = 'none'; p.floating = false; "
                + "p.addWidget('org.warplegacy.controlstrip');"},
@@ -44,7 +44,7 @@ KCM.SimpleKCM {
                + "p.addWidget('org.warplegacy.taskbar'); p.addWidget('org.kde.plasma.systemtray'); p.addWidget('org.kde.plasma.digitalclock');"},
         {plugin: "org.warplegacy.tablauncher", name: i18nd("warp-legacy", "Tab Launcher"), where: i18nd("warp-legacy", "at the bottom left: windows, favourites, menu categories on tabs"),
          script: "var p = new Panel; p.location = 'bottom'; p.alignment = 'left'; p.lengthMode = 'fit'; p.height = 112; "
-               + "p.hiding = 'none'; p.floating = true; p.addWidget('org.warplegacy.tablauncher');"}
+               + "p.hiding = 'windowsgobelow'; p.floating = true; p.addWidget('org.warplegacy.tablauncher');"}
     ]
     property var present: []
     property bool known: false

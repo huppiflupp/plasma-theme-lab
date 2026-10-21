@@ -9,9 +9,18 @@
     // so take the width from the screen, the height from the work area;
     // only a dock that really fills the right edge (the full strip) moves
     // the right end in. The left end stays clear of the desktop objects.
-    var top = work.y, height = work.y + work.height - top;
-    var sy = height / 955;
     var gap = 8;
+    // Docks along the bottom that windows may go below (LaunchPad, Tab
+    // Launcher: no strut): the scene keeps clear of them itself.
+    var bottom = work.y + work.height;
+    var docks = workspace.windowList();
+    for (var k = 0; k < docks.length; k++) {
+        var dg = docks[k].frameGeometry;
+        if (docks[k].dock && dg.y > full.y + full.height / 2 && dg.width < full.width * 0.9 && dg.y - gap < bottom)
+            bottom = dg.y - gap;
+    }
+    var top = work.y, height = bottom - top;
+    var sy = height / 955;
 
     // Docks that do not span the screen (the compact box): keep clear.
     var obstacles = [];
