@@ -23,6 +23,7 @@ KCM.SimpleKCM {
     property var cfg_layoutDefault
     property var cfg_mottoDefault
     property var cfg_thisWorkspaceDefault
+    property var cfg_startLabelDefault
     property string cfg_launchers
     property bool cfg_textButtons
     ColumnLayout {

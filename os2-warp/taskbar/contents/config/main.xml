@@ -8,5 +8,7 @@
     <entry name="showWorkspaces" type="Bool"><default>true</default></entry>
     <!-- only the windows of the current workspace -->
     <entry name="thisWorkspace" type="Bool"><default>true</default></entry>
+    <!-- the Start button's word: "start" or "warp" -->
+    <entry name="startLabel" type="String"><default>start</default></entry>
   </group>
 </kcfg>

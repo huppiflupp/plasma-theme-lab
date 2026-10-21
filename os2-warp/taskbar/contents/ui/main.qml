@@ -108,12 +108,17 @@ PlasmoidItem {
                 active: menu.visible
                 tip: root.tr("Programs, settings, the desktop and the drives")
                 onClicked: menu.visible ? menu.close() : menu.open(start)
-                RowLayout {
+                // Text only, "Start" or "Warp" (setting startLabel): with an
+                // icon beside it the word shrank to 10 px in a 32 px panel.
+                Text {
                     id: startRow
                     anchors.centerIn: parent
-                    spacing: 6
-                    Kirigami.Icon { source: "start-here-kde"; Layout.preferredWidth: bar.side - 10; Layout.preferredHeight: bar.side - 10 }
-                    Text { text: root.tr("Start"); color: Kirigami.Theme.linkColor; font.pixelSize: bar.side - 14; font.bold: true }
+                    text: Plasmoid.configuration.startLabel === "warp" ? "Warp" : root.tr("Start")
+                    color: Kirigami.Theme.linkColor
+                    font.family: Kirigami.Theme.defaultFont.family
+                    font.pixelSize: Math.round(bar.side * 0.6)
+                    font.bold: true
+                    font.italic: Plasmoid.configuration.startLabel === "warp"
                 }
             }
 
