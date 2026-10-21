@@ -130,9 +130,9 @@ DecorationButton {
             const o = look === 2 ? 2 : 0, g = s - 2 * o;
             c.fillStyle = ink;
             c.strokeStyle = ink;
-            const box = (x, y, w, h, top) => {
-                c.fillRect(x, y, w, top); c.fillRect(x, y + h - 1, w, 1);
-                c.fillRect(x, y, 1, h); c.fillRect(x + w - 1, y, 1, h);
+            const box = (x, y, w, h, top, side = 1) => {
+                c.fillRect(x, y, w, top); c.fillRect(x, y + h - side, w, side);
+                c.fillRect(x, y, side, h); c.fillRect(x + w - side, y, side, h);
             };
             const cross = (r, lw) => {
                 c.lineWidth = lw;
@@ -150,8 +150,12 @@ DecorationButton {
                     const w = Math.max(4, Math.round(s * 0.3));
                     box(Math.round((s - w) / 2), Math.round((s - w) / 2), w, w, 2);
                 } else if (kind === "max") {
-                    const w = Math.round(s * 0.6);
-                    box(Math.round((s - w) / 2), Math.round((s - w) / 2), w, w, 2);
+                    // Neon: the concept's Command Prompt has a smaller square
+                    // drawn with a thick line all round (the user's remark
+                    // 21.10.2026); classic keeps Warp 4's large one.
+                    const w = button.neon ? Math.max(6, Math.round(s * 0.44)) : Math.round(s * 0.6);
+                    const t = button.neon ? Math.max(2, Math.round(s / 10)) : 1;
+                    box(Math.round((s - w) / 2), Math.round((s - w) / 2), w, w, 2, t);
                 } else {
                     const w = Math.round(s * 0.42), x = Math.round((s - w) / 2);
                     box(x + 2, x - 2, w, w, 2);
