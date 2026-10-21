@@ -256,8 +256,12 @@ launch() { (setsid "$@" >/dev/null 2>&1 &); }
 launch dolphin --new-window "$DESKTOP"
 launch konsole --workdir "$HOME" --hold -e sh -c 'uname -srm; echo; lscpu | grep -E "^(Model name|CPU\(s\))"; free -h | head -2; echo; exec bash'
 # A real page in the browser (the user's wish 21.10.2026): OS/2's article,
-# or WARP_DEMO_URL.
-launch firefox --new-window "${WARP_DEMO_URL:-https://en.wikipedia.org/wiki/OS/2}"
+# dark under both Neons, or WARP_DEMO_URL.
+url=https://en.wikipedia.org/wiki/OS/2
+case "$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)" in
+    *neon*) url="$url?vectornightmode=1" ;;
+esac
+launch firefox --new-window "${WARP_DEMO_URL:-$url}"
 launch dolphin --new-window "$projects"
 launch systemsettings
 sleep 8
