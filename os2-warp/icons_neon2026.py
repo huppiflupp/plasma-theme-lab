@@ -11,9 +11,17 @@ Brand-like icons of the concept (Nextcloud, Teams, Office) are left out.
 
 Anything not in the concept is inherited from WarpLegacyNeon.
 
+Violet variant: icons-neon2026/masters-violett/<name>.png holds violet
+versions of the icons that are mostly cyan in the concept (hue-shifted rims
+and glow toward violet-magenta at the lower right, then a light img2img pass;
+or a violet twin of the motif elsewhere in the concept). Icons without a
+violet master use the normal one.
+
     build_icons(out_dir)     -> out_dir/WarpLegacyNeon2026/{index.theme, NxN/...}
+    build_icons(out_dir, "WarpLegacyNeon2026Violett", violet=True)
     python3 icons_neon2026.py -> build-icons-preview-2026/ + uebersicht.png
                                  + vergleich.png (concept left, icon right)
+                                 + violett-vergleich.png (concept, cyan, violet)
 """
 import math
 import os
@@ -26,6 +34,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 HERE = pathlib.Path(__file__).resolve().parent
 MASTERS = HERE / "icons-neon2026" / "masters"
+MASTERS_VIOLET = HERE / "icons-neon2026" / "masters-violett"
 CONCEPT = HERE / "reference" / "neon-2026.png"
 # Every size Dolphin offers: KIconLoader takes fixed directories only
 # (see icons_neon.py), a missing 96 would be scaled from another size.
@@ -134,14 +143,23 @@ def _premul_resize(img, s):
     return out.convert("RGBA")
 
 
-def render(name, s):
-    return _premul_resize(Image.open(MASTERS / f"{name}.png").convert("RGBA"), s)
+def master(name, violet=False):
+    """Path of the master for an icon (violet one if asked for and present)."""
+    if violet and (MASTERS_VIOLET / f"{name}.png").exists():
+        return MASTERS_VIOLET / f"{name}.png"
+    return MASTERS / f"{name}.png"
 
 
-def build_icons(out, name="WarpLegacyNeon2026"):
+def render(name, s, violet=False):
+    return _premul_resize(Image.open(master(name, violet)).convert("RGBA"), s)
+
+
+def build_icons(out, name="WarpLegacyNeon2026", violet=False):
     """Write a complete freedesktop icon theme to out/<name>/.
 
-    Returns the theme directory. Existing content of out/<name> is replaced.
+    violet=True: "Warp Legacy Neon 2026 Violett", violet masters where they
+    exist, inheriting from the cyan set. Returns the theme directory.
+    Existing content of out/<name> is replaced.
     """
     out = pathlib.Path(out)
     root = out / name
@@ -157,7 +175,7 @@ def build_icons(out, name="WarpLegacyNeon2026"):
             d = root / f"{s}x{s}" / ctx
             d.mkdir(parents=True, exist_ok=True)
             dirs.add((s, ctx))
-            render(n, s).save(d / f"{n}.png", optimize=True)
+            render(n, s, violet).save(d / f"{n}.png", optimize=True)
     for (ctx, alias), target in ALIASES.items():
         if target in missing:
             continue
@@ -174,9 +192,15 @@ def build_icons(out, name="WarpLegacyNeon2026"):
                 link.unlink()
             os.symlink(rel, link)
     order = sorted(dirs)
-    lines = ["[Icon Theme]", "Name=Warp Legacy Neon 2026",
-             "Comment=The icons of the Warp 2026 neon concept, glow included",
-             "Inherits=WarpLegacyNeon,breeze-dark,hicolor", "Example=folder",
+    if violet:
+        head = ["Name=Warp Legacy Neon 2026 Violett",
+                "Comment=The Warp 2026 neon concept icons with violet-magenta rim light",
+                "Inherits=WarpLegacyNeon2026,WarpLegacyNeon,breeze-dark,hicolor"]
+    else:
+        head = ["Name=Warp Legacy Neon 2026",
+                "Comment=The icons of the Warp 2026 neon concept, glow included",
+                "Inherits=WarpLegacyNeon,breeze-dark,hicolor"]
+    lines = ["[Icon Theme]"] + head + ["Example=folder",
              "DisplayDepth=32",
              "Directories=" + ",".join(f"{s}x{s}/{c}" for s, c in order), ""]
     for s, c in order:
@@ -251,6 +275,56 @@ def comparison(root, dest, zoom=128):
     sheet.convert("RGB").save(dest)
 
 
+def _concept_tile(concept, box):
+    """Concept crop framed like the masters (core = 204/256 of the tile)."""
+    x0, y0, x1, y1 = box
+    tile = round(max(x1 - x0, y1 - y0) * 256 / 204)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    l, t = round(cx - tile / 2), round(cy - tile / 2)
+    return concept.crop((l, t, l + tile, t + tile))
+
+
+# violet twins of a motif elsewhere in the concept (shown next to the own crop)
+VIOLET_REFS = {
+    "office-calendar": ("Date/Time (Control Panel)", (1320, 854, 1355, 893)),
+}
+
+
+def violet_comparison(dest, zoom=128):
+    """Per violet icon: concept crop(s) | cyan master | violet master, on navy."""
+    concept = Image.open(CONCEPT).convert("RGB")
+    names = [n for n in ICONS if (MASTERS_VIOLET / f"{n}.png").exists()]
+    cols = 2
+    cell_w, cell_h = 4 * zoom + 5 * 8, zoom + 30
+    rows = math.ceil(len(names) / cols)
+    sheet = Image.new("RGBA", (cols * cell_w, rows * cell_h), BG + (255,))
+    dr = ImageDraw.Draw(sheet)
+    font = _font(11)
+    for i, n in enumerate(names):
+        _ctx, src, box = ICONS[n]
+        bx, by = (i % cols) * cell_w + 8, (i // cols) * cell_h + 4
+        crops = [_concept_tile(concept, box)]
+        label = src
+        if n in VIOLET_REFS:
+            crops.append(_concept_tile(concept, VIOLET_REFS[n][1]))
+            label += " + " + VIOLET_REFS[n][0]
+        else:
+            crops.append(None)
+        x = bx
+        for c in crops:
+            if c is not None:
+                sheet.paste(c.resize((zoom, zoom), Image.LANCZOS), (x, by))
+            x += zoom + 8
+        for v in (False, True):
+            t = Image.new("RGBA", (zoom, zoom), BG + (255,))
+            t.alpha_composite(_premul_resize(Image.open(master(n, v)).convert("RGBA"), zoom))
+            sheet.paste(t, (x, by))
+            x += zoom + 8
+        dr.text((bx, by + zoom + 4), f"{n}  <-  {label}  |  cyan  |  violett",
+                fill=(0xe8, 0xf0, 0xff), font=font)
+    sheet.convert("RGB").save(dest)
+
+
 if __name__ == "__main__":
     prev = HERE / "build-icons-preview-2026"
     prev.mkdir(exist_ok=True)
@@ -258,5 +332,9 @@ if __name__ == "__main__":
     root = build_icons(prev)
     contact_sheet(root, prev / "uebersicht.png")
     comparison(root, prev / "vergleich.png")
+    vroot = build_icons(prev, "WarpLegacyNeon2026Violett", violet=True)
+    contact_sheet(vroot, prev / "uebersicht-violett.png")
+    violet_comparison(prev / "violett-vergleich.png")
     print(f"{len(ICONS)} icons, {len(ALIASES)} aliases, {len(SIZES)} sizes -> {root} "
-          f"({time.time() - t:.1f} s)")
+          f"({time.time() - t:.1f} s); violet masters: "
+          f"{len(list(MASTERS_VIOLET.glob('*.png')))} -> {vroot}")

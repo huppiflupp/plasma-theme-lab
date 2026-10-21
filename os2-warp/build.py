@@ -268,6 +268,9 @@ def icons():
     build_classic(OUT / "icons")
     from icons_neon2026 import build_icons as build_2026
     build_2026(OUT / "icons")
+    # The same with violet light edges where the concept's icons were cyan
+    # (icons-neon2026/masters-violett), to choose in System Settings.
+    build_2026(OUT / "icons", name="WarpLegacyNeon2026Violett", violet=True)
     # WARP_SKIP_ICONS=1: leave the first set out of a quick test build (it
     # takes a while, and is reworked on its own).
     if os.environ.get("WARP_SKIP_ICONS"):
