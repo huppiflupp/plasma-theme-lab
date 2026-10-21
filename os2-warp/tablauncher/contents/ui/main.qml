@@ -73,6 +73,16 @@ PlasmoidItem {
     readonly property bool alone: Plasmoid.formFactor === PlasmaCore.Types.Horizontal
         && Plasmoid.containment && (Plasmoid.containment.applets || []).length === 1
     onAloneChanged: if (alone) Plasmoid.containment.backgroundHints = PlasmaCore.Types.NoBackground
+    // Without a background the panel's input mask is not redrawn when the
+    // panel changes length (Panel.qml takes it from an empty FrameSvgItem):
+    // after sliding out, only the narrow strip of the slid-in drawer took
+    // clicks (VM, 21.10.2026). Setting the hints once more, through a
+    // background, draws the mask anew at the panel's present size.
+    function refreshMask() {
+        if (!alone) return;
+        Plasmoid.containment.backgroundHints = PlasmaCore.Types.DefaultBackground;
+        Plasmoid.containment.backgroundHints = PlasmaCore.Types.NoBackground;
+    }
     Component.onCompleted: if (alone) Plasmoid.containment.backgroundHints = PlasmaCore.Types.NoBackground
     // No panel margins: the drawer's frame is the strip's edge.
     Plasmoid.constraintHints: Plasmoid.CanFillArea
@@ -117,7 +127,9 @@ PlasmoidItem {
             Plasmoid.configuration.collapsed = open;
             slideDone.restart();
         }
-        Timer { id: slideDone; interval: 260; onTriggered: root.sliding = false }
+        Timer { id: slideDone; interval: 260; onTriggered: { root.sliding = false; remask.restart(); } }
+        // once the panel has its new length
+        Timer { id: remask; interval: 150; onTriggered: root.refreshMask() }
 
     Item {
         id: strip
@@ -253,9 +265,8 @@ PlasmoidItem {
         }
 
         // The tab, as on Mac OS 9's Control Strip: flat where it joins the
-        // drawer, rounded at its free end, a solid arrow and a grip of short
-        // ridges. Neon edges in the strip's light run, classic in OS/2's
-        // white and grey.
+        // drawer, rounded at its free end, a solid arrow. Neon edges in the
+        // strip's light run, classic in OS/2's white and grey.
         Canvas {
             id: tabHandle
             x: pad.x + pad.width
@@ -271,7 +282,8 @@ PlasmoidItem {
             onPaint: {
                 const ctx = getContext("2d");
                 ctx.reset();
-                const w = width - 1.5, top = 4.5, bottom = height - 4.5, r = Math.min(9, w - 2);
+                // top and bottom on the lines of the tab row and the page
+                const w = width - 1.5, top = 10.5, bottom = height - 6.5, r = Math.min(9, w - 2);
                 const shape = () => {
                     ctx.beginPath();
                     ctx.moveTo(0, top);
@@ -295,7 +307,7 @@ PlasmoidItem {
                 ctx.fill();
                 // the edge, open towards the drawer
                 shape();
-                ctx.lineWidth = 1.5;
+                ctx.lineWidth = 1;
                 if (neon) {
                     const edge = ctx.createLinearGradient(0, top, 0, bottom);
                     edge.addColorStop(0, "#48cffe");
@@ -307,21 +319,13 @@ PlasmoidItem {
                 }
                 ctx.stroke();
                 // the arrow: pointing where the drawer will go
-                const cx = w / 2, cy = height / 2 - 8, s = 5;
+                const cx = w / 2, cy = (top + bottom) / 2, s = 5;
                 ctx.beginPath();
                 if (open) { ctx.moveTo(cx + s * 0.6, cy - s); ctx.lineTo(cx - s * 0.8, cy); ctx.lineTo(cx + s * 0.6, cy + s); }
                 else { ctx.moveTo(cx - s * 0.6, cy - s); ctx.lineTo(cx + s * 0.8, cy); ctx.lineTo(cx - s * 0.6, cy + s); }
                 ctx.closePath();
                 ctx.fillStyle = neon ? (hot ? "#bff0ff" : "#48cffe") : (hot ? "#2400a8" : "#202020");
                 ctx.fill();
-                // the grip: three short ridges below the arrow
-                for (let i = 0; i < 3; i++) {
-                    const y = cy + 14 + i * 4;
-                    ctx.fillStyle = neon ? Qt.rgba(0.28, 0.81, 1, 0.55) : "#ffffff";
-                    ctx.fillRect(cx - 4, y, 8, 1);
-                    ctx.fillStyle = neon ? Qt.rgba(0.48, 0.30, 1, 0.55) : "#808080";
-                    ctx.fillRect(cx - 4, y + 1, 8, 1);
-                }
             }
             MouseArea { id: tabMouse; anchors.fill: parent; hoverEnabled: true; onClicked: drawer.toggle() }
             PlasmaCore.ToolTipArea { anchors.fill: parent; mainText: drawer.open ? root.tr("Slide in") : root.tr("Slide out") }
