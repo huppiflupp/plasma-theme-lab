@@ -139,29 +139,15 @@ PlasmoidItem {
                 anchors.fill: parent; anchors.margins: 4
                 spacing: 0
 
-                // The title bar, as an inactive window's.
-                Rectangle {
-                    Layout.fillWidth: true; Layout.preferredHeight: 20
-                    color: pad.titleColor
-                    RowLayout {
-                        anchors.fill: parent; anchors.leftMargin: 3; anchors.rightMargin: 6
-                        Kirigami.Icon { source: "start-here-kde"; Layout.preferredWidth: 16; Layout.preferredHeight: 16 }
-                        Text {
-                            Layout.fillWidth: true
-                            text: root.tr("Tab Launcher – %1", root.tabs[root.tab] || "")
-                            color: pad.titleText
-                            font: Kirigami.Theme.defaultFont
-                            elide: Text.ElideRight
-                        }
-                    }
-                }
+                // No title bar of its own (the user's wish): the tabs say
+                // what it is, and the drawer is lower without it.
                 // The notebook tabs: the current one higher, bold, joined to the
                 // page below (no line under it). More tabs than room: arrows at
                 // the right turn them as on an OS/2 notebook, and so does the
                 // wheel; the last one was simply cut off before.
                 Item {
                     id: tabStrip
-                    Layout.fillWidth: true; Layout.preferredHeight: 26; Layout.topMargin: 4
+                    Layout.fillWidth: true; Layout.preferredHeight: 26; Layout.topMargin: 2
                     readonly property bool overflow: tabRow.implicitWidth + 4 > width
                     readonly property real room: width - (overflow ? arrows.width + 4 : 0)
                     property real shift: 0

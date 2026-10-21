@@ -73,7 +73,7 @@ function launchpad() {
 // (about 560 px wide, centred) the open drawer gets the room left of it,
 // its tab row scrolls.
 function tablauncher(beside, edge) {
-    var p = new Panel; p.screen = 0; p.location = edge || 'bottom'; p.alignment = 'left'; p.height = 116;
+    var p = new Panel; p.screen = 0; p.location = edge || 'bottom'; p.alignment = 'left'; p.height = 94;
     p.hiding = 'windowsgobelow'; p.floating = false; p.lengthMode = 'custom';
     p.minimumLength = 10; p.maximumLength = screenGeometry(0).width;
     var w = p.addWidget('org.warplegacy.tablauncher');
@@ -159,13 +159,13 @@ positions="{\"$res\":[$grid]}"
 count=$(echo "$files" | wc -l)
 case $panels in
     classic) taken=118 ;;       # Warp Bar 28, LaunchPad 76 + its float
-    tabs)    taken=144 ;;       # Warp Bar 28, Tab Launcher 116
+    tabs)    taken=122 ;;       # Warp Bar 28, Tab Launcher 94
     *)       taken=40 ;;
 esac
-if [ -n "$drawer" ]; then                       # the drawer's 116 px
+if [ -n "$drawer" ]; then                       # the drawer's 94 px
     case $panels in
-        concept) taken=156 ;;   # at the top, the taskbar at the bottom
-        classic) taken=144 ;;   # beside the LaunchPad: Plasma counts the thicker
+        concept) taken=134 ;;   # at the top, the taskbar at the bottom
+        classic) taken=122 ;;   # beside the LaunchPad: Plasma counts the thicker
     esac
 fi
 avail=$(( ${res#*x} - taken ))

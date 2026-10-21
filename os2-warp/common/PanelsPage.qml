@@ -67,7 +67,7 @@ KCM.SimpleKCM {
         // whole edge behind it and moved the desktop icons aside.
         {plugin: "org.warplegacy.tablauncher", name: i18nd("warp-legacy", "Tab Launcher"), where: i18nd("warp-legacy", "a drawer at the bottom left that slides in and out: windows, favourites, menu categories on tabs"),
          script: "var taken = panels().some(function(o) { return o.location == 'bottom' && o.lengthMode == 'fill'; }); "
-               + "var p = new Panel; p.location = taken ? 'top' : 'bottom'; p.alignment = 'left'; p.height = 116; "
+               + "var p = new Panel; p.location = taken ? 'top' : 'bottom'; p.alignment = 'left'; p.height = 94; "
                + "p.hiding = 'windowsgobelow'; p.floating = false; p.lengthMode = 'custom'; p.minimumLength = 10; "
                + "p.maximumLength = screenGeometry(p.screen).width; p.addWidget('org.warplegacy.tablauncher');"}
     ]
