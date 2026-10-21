@@ -1617,6 +1617,75 @@ def i_application_certificate(d):
 
 
 # --------------------------------------------------------------------------
+# Program motifs that no generic icon covered (bug report, chat, emoji
+# picker, disk usage). Generic on purpose: no program's logo.
+
+def i_tools_report_bug(d):
+    """A beetle: crash reporters, debug settings."""
+    legs = ("M86,118 L42,98 M80,154 L34,156 M88,190 L48,218 "
+            "M170,118 L214,98 M176,154 L222,156 M168,190 L208,218")
+    if not d.small:
+        legs += " M114,60 Q104,34 80,28 M142,60 Q152,34 176,28"
+    w = d.b(12) if d.small else 12
+    out = path(legs, fill="none", stroke=INK, stroke_width=w + 8,
+               stroke_linecap="round", stroke_linejoin="round")
+    out += path(legs, fill="none", stroke="#8fe6ff", stroke_width=w,
+                stroke_linecap="round", stroke_linejoin="round")
+    out += solid(lambda **a: circle(128, 80, 32, **a), "body", d)
+    out += solid(lambda **a: ellipse(128, 156, 64, 78, **a), "violet", d)
+    out += line(128, 84, 128, 230, INK, d.w(5))
+    if not d.small:
+        for x, y, r in ((100, 132, 12), (156, 132, 12), (104, 184, 10), (152, 184, 10)):
+            out += circle(x, y, r, fill="url(#orange)", stroke=INK, stroke_width=3)
+    return out
+
+
+def _bubble(x, y, w, h, r, t1, t2, tip):
+    """Rounded speech bubble; the tail leaves the bottom edge between
+    t1 < t2 and ends at tip."""
+    return (f"M{x + r},{y} H{x + w - r} Q{x + w},{y} {x + w},{y + r} "
+            f"V{y + h - r} Q{x + w},{y + h} {x + w - r},{y + h} H{t2} "
+            f"L{tip[0]},{tip[1]} L{t1},{y + h} H{x + r} Q{x},{y + h} {x},{y + h - r} "
+            f"V{y + r} Q{x},{y} {x + r},{y} Z")
+
+
+def i_internet_chat(d):
+    """Two speech bubbles: messengers, IRC, Matrix, SMS."""
+    back = _bubble(98, 30, 136, 100, 26, 184, 210, (226, 168))
+    front = _bubble(22, 86, 156, 112, 28, 54, 86, (40, 230))
+    out = solid(lambda **a: path(back, **a), "violet", d)
+    out += solid(lambda **a: path(front, **a), "paper", d, rw=4)
+    for x in (62, 100, 138):
+        out += circle(x, 142, d.b(13) if d.small else 13, fill="url(#body)")
+    return out
+
+
+def i_preferences_desktop_emoticons(d):
+    """A smiling face: the emoji picker."""
+    out = solid(lambda **a: circle(128, 128, 100, **a), "yellow", d)
+    out += ellipse(94, 100, 13, 20, fill=INK) + ellipse(162, 100, 13, 20, fill=INK)
+    out += path("M70,148 Q128,212 186,148", fill="none", stroke=INK,
+                stroke_width=d.b(14) if d.small else 14, stroke_linecap="round")
+    return out
+
+
+def i_office_chart_pie(d):
+    """A pie with one slice pulled out: disk usage, statistics."""
+    cx, cy, r = 116, 140, 92
+    p30 = (cx + r * math.cos(math.radians(30)), cy + r * math.sin(math.radians(30)))
+    p150 = (cx + r * math.cos(math.radians(150)), cy + r * math.sin(math.radians(150)))
+    rest = f"M{cx},{cy} L{p30[0]:.1f},{p30[1]:.1f} A{r},{r} 0 1 1 {cx},{cy - r} Z"
+    part = f"M{cx},{cy} L{p150[0]:.1f},{p150[1]:.1f} A{r},{r} 0 0 1 {cx},{cy - r} Z"
+    sx, sy = cx + 16, cy - 10
+    q30 = (sx + r * math.cos(math.radians(30)), sy + r * math.sin(math.radians(30)))
+    slice_ = f"M{sx},{sy} L{sx},{sy - r} A{r},{r} 0 0 1 {q30[0]:.1f},{q30[1]:.1f} Z"
+    out = solid(lambda **a: path(rest, **a), "body", d)
+    out += solid(lambda **a: path(part, **a), "cyan", d, gloss=False, rw=4)
+    out += solid(lambda **a: path(slice_, **a), "orange", d)
+    return out
+
+
+# --------------------------------------------------------------------------
 # Tube icons (status, actions): one glowing line in cyan, accents orange/red.
 # Drawn on the same 256 grid; d.t is the tube width for the target size.
 
@@ -2016,7 +2085,9 @@ ICON_CONTEXT = {
              "preferences-desktop-accessibility", "preferences-desktop-effects",
              "preferences-desktop-virtual", "preferences-security",
              "preferences-system-bluetooth", "preferences-system-time",
-             "preferences-system-windows"],
+             "preferences-system-windows",
+             "tools-report-bug", "internet-chat", "preferences-desktop-emoticons",
+             "office-chart-pie"],
     "mimetypes": ["text-plain", "text-html", "text-x-script", "text-x-csrc",
                   "text-markdown", "x-office-document", "x-office-spreadsheet",
                   "x-office-presentation", "x-office-drawing",
@@ -2269,6 +2340,220 @@ for _n in (0, 20, 40, 60, 80, 100):
     for _s in ("locked", "limited"):
         _A["status"][f"network-wireless-{_n}-{_s}"] = f"network-wireless-{_n}"
 
+# Program icons: the Icon= names of the .desktop files the menus and the tab
+# launcher show (Fedora KDE as installed in the lab VM, plus the KDE/GNOME
+# programs Breeze carries an apps/ icon for), each on the drawn motif of its
+# kind. Brand programs (Firefox, Thunderbird, LibreOffice, GIMP, ...) get the
+# generic motif, never a traced logo. "+name" stands for name and
+# org.kde.name. Existing entries above win (setdefault).
+_PROGRAMS = {
+    "internet-web-browser":
+        "firefox org.mozilla.firefox firefox-esr +falkon qupzilla rekonq konqueror "
+        "+konqueror +angelfish chromium chromium-browser org.chromium.Chromium "
+        "google-chrome com.google.Chrome brave-browser com.brave.Browser "
+        "microsoft-edge vivaldi opera epiphany org.gnome.Epiphany "
+        "librewolf io.gitlab.librewolf-community plasma-browser-integration",
+    "internet-mail":
+        "kmail kmail2 org.kde.kmail2 +kontact thunderbird org.mozilla.Thunderbird "
+        "net.thunderbird.Thunderbird evolution org.gnome.Evolution geary "
+        "org.gnome.Geary kube-mail ktnef +ktnef sieveeditor +sieveeditor "
+        "kontact-import-wizard +akonadiimportwizard +pimdataexporter akonadiconsole "
+        "+headerthemeeditor trojita claws-mail mail-notification",
+    "applications-internet":
+        "+akregator +alligator liferea rssguard +ktrip itinerary +itinerary "
+        "+kweather +kongress",
+    "internet-chat":
+        "+konversation +neochat +kopete telepathy-kde internet-telephony im-user "
+        "kde-im-log-viewer choqok +tokodon polari org.gnome.Polari pidgin hexchat "
+        "org.kde.kdeconnect.sms",
+    "smartphone":
+        "kdeconnect +kdeconnect org.kde.kdeconnect.app org.kde.kdeconnect.nonplasma "
+        "kdeconnectindicator kdeconnectindicatordark plasma-mobile-phone",
+    "computer":
+        "+krdc remmina org.remmina.Remmina org.gnome.Connections gnome-connections "
+        "vinagre virt-manager org.virt_manager.virt-manager gnome-boxes "
+        "org.gnome.Boxes virtualbox VirtualBox qemu",
+    "network-workgroup":
+        "+krfb smb4k +smb4k network-manager nm-connection-editor "
+        "preferences-system-network-share",
+    "folder-remote": "knetattach +knetattach",
+    "folder-download":
+        "+ktorrent +kget transmission transmission-qt transmission-gtk "
+        "com.transmissionbt.Transmission qbittorrent org.qbittorrent.qBittorrent "
+        "deluge",
+    "x-office-address-book":
+        "kaddressbook +kaddressbook office-address-book contacts org.gnome.Contacts "
+        "+contactthemeeditor +contactprintthemeeditor",
+    "office-calendar":
+        "korganizer +korganizer korgac korg-todo +merkuro org.kde.merkuro.calendar "
+        "calindori +calindori zanshin +zanshin +kalarm org.gnome.Calendar "
+        "gnome-calendar plan planwork planner calligraplan calligraplanwork kplato "
+        "+plan",
+    "preferences-system-time":
+        "+ktimer +kteatime +kronometer +ktimetracker +kclock org.gnome.clocks "
+        "gnome-clocks alarm-clock",
+    "x-office-document":
+        "libreoffice-writer org.libreoffice.LibreOffice.writer calligrawords words "
+        "kword libreoffice-math org.libreoffice.LibreOffice.math abiword",
+    "x-office-spreadsheet":
+        "libreoffice-calc org.libreoffice.LibreOffice.calc calligrasheets sheets "
+        "kspread kchart +kmymoney +skrooge skrooge homebank gnucash org.gnucash.GnuCash "
+        "gnumeric",
+    "x-office-presentation":
+        "libreoffice-impress org.libreoffice.LibreOffice.impress calligrastage "
+        "stage kpresenter",
+    "x-office-drawing":
+        "libreoffice-draw org.libreoffice.LibreOffice.draw karbon calligrakarbon "
+        "inkscape org.inkscape.Inkscape",
+    "application-x-sqlite3":
+        "libreoffice-base org.libreoffice.LibreOffice.base kexi calligrakexi "
+        "sqlitebrowser org.sqlitebrowser.sqlitebrowser",
+    "applications-office":
+        "libreoffice-startcenter libreoffice-main org.libreoffice.LibreOffice "
+        "onlyoffice-desktopeditors calligra",
+    "document-viewer":
+        "graphics-viewer-document evince org.gnome.Evince org.gnome.Papers atril "
+        "zathura qpdfview",
+    "accessories-text-editor":
+        "kwrite +kwrite gedit org.gnome.gedit org.gnome.TextEditor "
+        "gnome-text-editor mousepad org.xfce.mousepad featherpad +kile kile "
+        "+knotes knotes +kjots kjots +marknote",
+    "accessories-calculator":
+        "kcalc gnome-calculator org.gnome.Calculator galculator qalculate-qt "
+        "+kalk",
+    "preferences-desktop-font":
+        "accessories-character-map kcharselect +kcharselect kfontview +kfontview "
+        "org.gnome.font-viewer gnome-font-viewer gucharmap",
+    "accessories-screenshot":
+        "accessories-screenshot-tool ksnapshot org.xfce.screenshooter "
+        "org.gnome.Screenshot gnome-screenshot flameshot",
+    "application-x-archive":
+        "file-roller org.gnome.FileRoller xarchiver engrampa",
+    "user-trash": "sweeper +sweeper bleachbit",
+    "office-chart-pie":
+        "filelight +filelight baobab org.gnome.baobab disk-usage-analyzer "
+        "qdirstat kdf +kdf",
+    "drive-harddisk":
+        "partitionmanager +partitionmanager gparted org.gnome.DiskUtility "
+        "gnome-disks kfloppy +kfloppy ntfs-config kup +kup deja-dup "
+        "org.gnome.DejaDup timeshift backintime",
+    "drive-removable-media":
+        "usb-creator-kde org.fedoraproject.MediaWriter mediawriter "
+        "+isoimagewriter isoimagewriter",
+    "system-search":
+        "kfind +kfind catfish baloo kmag +kmag org.gnome.Characters",
+    "folder-locked":
+        "kwalletmanager kwalletmanager2 org.kde.kwalletmanager5 "
+        "+kwalletmanager plasmavault seahorse org.gnome.seahorse.Application "
+        "keepassxc org.keepassxc.KeePassXC",
+    "application-certificate":
+        "+kleopatra kgpg +kgpg +kwatchgnupg kwatchgnupg gpa",
+    "preferences-security":
+        "firewall-config firewall-applet setroubleshoot_icon setroubleshoot "
+        "selinux fingerprint-gui",
+    "system-users": "kuser +kuser",
+    "utilities-system-monitor":
+        "ksysguardd gnome-system-monitor org.gnome.SystemMonitor htop btop "
+        "utilities-energy-monitor",
+    "help-browser":
+        "hwinfo kinfocenter khelpcenter +khelpcenter system-help ktip assistant",
+    "text-plain":
+        "utilities-log-viewer ksystemlog +ksystemlog +kjournaldbrowser "
+        "org.gnome.Logs gnome-logs",
+    "tools-report-bug":
+        "debug-run +kdebugsettings org.freedesktop.GnomeAbrt abrt drkonqi "
+        "+drkonqi tools-report-bug-symbolic",
+    "system-software-install":
+        "muondiscover muon apper org.gnome.Software gnome-software dnfdragora "
+        "calamares ubiquity-kde anaconda liveinst",
+    "utilities-terminal":
+        "konsole yakuake +yakuake xterm org.gnome.Terminal gnome-terminal "
+        "org.gnome.Console kgx foot kitty Alacritty xfce4-terminal",
+    "system-file-manager":
+        "dolphin krusader_user krusader_root +krusader org.gnome.Nautilus "
+        "nautilus thunar org.xfce.thunar pcmanfm-qt pcmanfm",
+    "applications-multimedia":
+        "+elisa elisa +juk juk +amarok amarok +vvave vvave rhythmbox "
+        "org.gnome.Rhythmbox3 audacious strawberry clementine lollypop +kasts kasts "
+        "kwave +kwave audacity org.audacityteam.Audacity +minuet",
+    "video-x-generic":
+        "dragonplayer +dragonplayer +haruna haruna vlc org.videolan.VLC mpv smplayer "
+        "totem org.gnome.Totem celluloid io.github.celluloid_player.Celluloid "
+        "kaffeine +kaffeine kmplayer +kmplayer plasma-media-center "
+        "org.gnome.Showtime parole +kdenlive kdenlive shotcut org.shotcut.Shotcut "
+        "openshot org.openshot.OpenShot pitivi subtitlecomposer +subtitlecomposer "
+        "obs com.obsproject.Studio",
+    "multimedia-volume-control":
+        "kmix +kmix pavucontrol org.pulseaudio.pavucontrol phonon-gstreamer "
+        "easyeffects com.github.wwmm.easyeffects",
+    "camera-photo":
+        "kamoso +kamoso cheese org.gnome.Cheese org.gnome.Snapshot guvcview "
+        "qrca +qrca digikam +digikam kphotoalbum +kphotoalbum shotwell "
+        "org.gnome.Shotwell photolayoutseditor",
+    "media-optical":
+        "k3b +k3b gcdmaster brasero org.gnome.Brasero xfburn",
+    "scanner":
+        "skanpage +skanpage skanlite +skanlite simple-scan org.gnome.SimpleScan "
+        "xsane",
+    "image-viewer":
+        "showfoto +showfoto eog org.gnome.eog org.gnome.Loupe loupe ristretto "
+        "nomacs +koko koko photoqt",
+    "applications-graphics":
+        "+kolourpaint kolourpaint krita +krita gimp org.gimp.GIMP pinta mypaint "
+        "+kxstitch kxstitch kimagemapeditor symboleditor +kcolorchooser "
+        "kcolorchooser blender org.blender.Blender +kontrast",
+    "applications-utilities":
+        "+kruler kruler +krename krename +kbackup",
+    "input-mouse": "kmousetool +kmousetool",
+    "input-keyboard": "+ktouch ktouch",
+    "preferences-desktop-accessibility":
+        "kmouth +kmouth orca org.gnome.Orca",
+    "preferences-desktop-locale":
+        "im-chooser crow-translate org.kde.CrowTranslate +kiten kiten "
+        "system-config-language",
+    "preferences-desktop-theme-global":
+        "kvantum kvantummanager breeze-settings qt5ct qt6ct",
+    "preferences-desktop": "latte-dock plank",
+    "preferences-desktop-emoticons": "+plasma.emojier",
+    "application-x-desktop": "kmenuedit +kmenuedit alacarte",
+    "start-here-kde":
+        "start-here-kde-plasma +plasma-welcome kde kdeapp kde-frameworks planetkde",
+    "printer": "system-config-printer +print-manager printer-settings",
+    "applications-other": "+iconexplorer cuttlefish +Ikona",
+    "applications-games":
+        " ".join("+" + n for n in (
+            "kmahjongg kmines kpat ksudoku knights kreversi kblocks kbounce "
+            "kbreakout kdiamond kfourinline kapman katomic kblackbox bomber bovo "
+            "granatier kiriki kjumpingcube klines kolf kshisen ksirk kspaceduel "
+            "ksquares ktuberling kubrick lskat palapeli picmi killbots kgoldrunner "
+            "klickety knavalbattle knetwalk kollision konquest ksnakeduel "
+            "skladnik kajongg fifteenpuzzle").split()) +
+        " kpatience org.gnome.Mines gnome-mines aisleriot sol gnome-chess "
+        "org.gnome.Chess steam com.valvesoftware.Steam lutris net.lutris.Lutris "
+        "heroic com.heroicgameslauncher.hgl",
+    "applications-science":
+        "+kalzium kalzium +kstars kstars +step step +kmplot kmplot +kalgebra "
+        "kalgebra +kig kig +rocs rocs +cantor cantor +labplot2 labplot2 labplot "
+        "+labplot octave",
+    "applications-education":
+        "+kgeography kgeography +kbruch kbruch +kturtle kturtle +kwordquiz "
+        "+parley parley +khangman khangman +kanagram kanagram +artikulate "
+        "artikulate +blinken blinken gcompris gcompris-qt +klettres +marble marble",
+    "applications-development":
+        "+kdevelop kdevelop kapptemplate +umbrello umbrello kompare +kompare "
+        "kdiff3 +kdiff3 meld org.gnome.Meld cervisia kdesvn +lokalize lokalize "
+        "+okteta okteta kcachegrind +kcachegrind massif-visualizer "
+        "+massif-visualizer kuiviewer +kuiviewer designer qtcreator "
+        "org.qt-project.qtcreator code com.visualstudio.code codium gitg "
+        "kdesrc-build kde-builder +heaptrack linguist kirigami-gallery "
+        "+kirigami2.gallery",
+}
+for _pt, _pns in _PROGRAMS.items():
+    for _pn in _pns.split():
+        for _pa in ((_pn[1:], "org.kde." + _pn[1:]) if _pn.startswith("+") else (_pn,)):
+            if _pa != _pt:
+                _A["apps"].setdefault(_pa, _pt)
+
 
 def _mime_target(n):
     """Map a mimetype icon name onto one of the drawn generic ones."""
@@ -2382,7 +2667,8 @@ def all_aliases():
 FIT = {"input-gaming": 0.88, "memory": 0.9, "audio-input-microphone": 0.92,
        "smartphone": 0.92, "accessories-screenshot": 0.92,
        "system-software-install": 0.92, "applications-education": 0.9,
-       "x-office-presentation": 0.92, "view-visible": 0.9, "view-hidden": 0.9}
+       "x-office-presentation": 0.92, "view-visible": 0.9, "view-hidden": 0.9,
+       "tools-report-bug": 0.9, "internet-chat": 0.92, "office-chart-pie": 0.92}
 
 
 def icon_fn(name):

@@ -1243,6 +1243,54 @@ def i_help_browser(p):
     p.glyph(q, YELLOW, olw=1)
 
 
+def i_tools_report_bug(p):
+    """A ladybird-red beetle: crash reporters, debug settings."""
+    m = p.empty()
+    for a, b in (((10, 13), (3, 10)), ((9, 18), (2, 18)), ((10, 23), (4, 28)),
+                 ((22, 13), (29, 10)), ((23, 18), (30, 18)), ((22, 23), (28, 28))):
+        m |= p.seg(*a, *b, wpx=1) if p.small else p.seg(*a, *b, w=1.8)
+    if not p.small:
+        m |= p.lines([(14, 5), (12, 2), (9, 1)], w=1.3) | p.lines([(18, 5), (20, 2), (23, 1)], w=1.3)
+    p.fill(m, BLACK)
+    p.solid(p.circle(16, 8, 4.5), CHAR, light=DGREY, dark=BLACK)
+    body = p.solid(p.ellipse(8, 10, 24, 31), RED)
+    p.fill(p.rect(15.5, 11, 16.5, 31) & body, BLACK)
+    if not p.small:
+        for x, y in ((12, 17), (20, 17), (12.5, 24), (19.5, 24)):
+            p.fill(p.circle(x, y, 1.8) & body, BLACK)
+
+
+def i_internet_chat(p):
+    """Two speech bubbles: messengers, IRC, Matrix, SMS."""
+    p.solid(p.rect(11, 2, 31, 17) | p.poly([(23, 16), (28, 16), (30, 22)]), TEAL)
+    inner = p.solid(p.rect(1, 9, 23, 25) | p.poly([(4, 24), (10, 24), (3, 31)]), WHITE,
+                    bev=False)
+    for x in (6.5, 12, 17.5):
+        p.fill(p.rect(x - 1.5, 15.5, x + 1.5, 18.5) & inner, BLUE)
+
+
+def i_preferences_desktop_emoticons(p):
+    """A smiling face: the emoji picker."""
+    face = p.solid(p.circle(16, 16, 14.5), YELLOW)
+    p.fill((p.ellipse(10, 8.5, 13.5, 14) | p.ellipse(18.5, 8.5, 22, 14)) & face, BLACK)
+    mouth = p.arc(16, 16, 9, 25, 155, wpx=1) if p.small else p.arc(16, 16, 9, 25, 155, w=2)
+    p.fill(mouth & face, BLACK)
+
+
+def _sector(p, cx, cy, r, a0, a1):
+    n = max(8, int(abs(a1 - a0) / 8))
+    return p.poly([(cx, cy)] + [(cx + r * math.cos(math.radians(a0 + (a1 - a0) * i / n)),
+                                 cy + r * math.sin(math.radians(a0 + (a1 - a0) * i / n)))
+                                for i in range(n + 1)], snap=False)
+
+
+def i_office_chart_pie(p):
+    """A pie with one slice pulled out: disk usage, statistics."""
+    p.solid(_sector(p, 14.5, 17.5, 13, 30, 150), BLUE)
+    p.solid(_sector(p, 14.5, 17.5, 13, 150, 270), GREEN)
+    p.solid(_sector(p, 17.5, 14.5, 13, -90, 30), RED)
+
+
 def i_applications_games(p):
     """Joystick (the Games object)."""
     p.solid(p.poly([(4, 22), (28, 22), (30, 29), (2, 29)]), DGREY, light=SILVER, dark=CHAR)
