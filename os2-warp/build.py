@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / "build"
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 # IBM Plex Sans Condensed (SIL OFL 1.1, fonts/IBMPlex, copied from CDE
 # Copper's): IBM's typeface of today, narrow as Warp 4's WarpSans, which is
 # IBM's and not free. Bold titles, as Warp 4's. Qt 6 font strings.
