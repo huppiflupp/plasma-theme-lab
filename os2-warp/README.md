@@ -3,8 +3,8 @@
 OS/2 Warp 4 for KDE Plasma 6, in two variants: the classic Warp 4 grey,
 and **Neon**, OS/2 at night with cyan and violet glowing edges.
 
-![Warp Legacy](screenshots/stufe9-layout-klassisch.png)
-![Warp Legacy Neon](screenshots/stufe6-neon-icons.png)
+![Warp Legacy](screenshots/warp-classic-2026-10.png)
+![Warp Legacy Neon](screenshots/warp-neon-2026-10.png)
 
 Not affiliated with IBM, Arca Noae or Stardock. "OS/2" and "Warp" are
 trademarks of IBM; nothing of IBM's or Stardock's is included: the icons,
