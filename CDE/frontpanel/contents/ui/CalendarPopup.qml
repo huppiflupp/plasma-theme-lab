@@ -19,13 +19,12 @@ PlasmaCore.Dialog {
     mainItem: CalendarPanel {
         // A Dialog takes no children of its own: its helpers live in here.
         Keeper { id: calendarKeeper; root: calendar.root; dialog: calendar; segment: calendar.visualParent; inside: calendarHover.hovered }
+        // enabledPlugins loads the plugins; populateEnabledPluginsList only
+        // ticks them in a settings list (plasma-workspace,
+        // eventpluginsmanager.cpp), so no event ever showed here.
         PlasmaCalendar.EventPluginsManager {
             id: eventPlugins
-            Component.onCompleted: populateEnabledPluginsList(Plasmoid.configuration.enabledCalendarPlugins)
-        }
-        Connections {
-            target: Plasmoid.configuration
-            function onEnabledCalendarPluginsChanged() { eventPlugins.populateEnabledPluginsList(Plasmoid.configuration.enabledCalendarPlugins); }
+            enabledPlugins: Plasmoid.configuration.enabledCalendarPlugins
         }
         HoverHandler { id: calendarHover }
         Keys.onPressed: calendarKeeper.keyboard = true
