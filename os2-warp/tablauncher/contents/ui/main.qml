@@ -252,28 +252,78 @@ PlasmoidItem {
             }
         }
 
-        // The tab: a narrow raised strip with an arrow, always at the drawer's
-        // right end.
-        Bevel {
+        // The tab, as on Mac OS 9's Control Strip: flat where it joins the
+        // drawer, rounded at its free end, a solid arrow and a grip of short
+        // ridges. Neon edges in the strip's light run, classic in OS/2's
+        // white and grey.
+        Canvas {
             id: tabHandle
-            kind: "frame"
             x: pad.x + pad.width
             width: drawer.handle
             height: parent.height
-            Text {
-                anchors.centerIn: parent
-                text: drawer.open ? "◂" : "▸"
-                color: Kirigami.Theme.textColor
-                font.pixelSize: 14
+            readonly property bool neon: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
+            readonly property bool hot: tabMouse.containsMouse
+            readonly property bool open: drawer.open
+            onHotChanged: requestPaint()
+            onOpenChanged: requestPaint()
+            onNeonChanged: requestPaint()
+            onHeightChanged: requestPaint()
+            onPaint: {
+                const ctx = getContext("2d");
+                ctx.reset();
+                const w = width - 1.5, top = 4.5, bottom = height - 4.5, r = Math.min(9, w - 2);
+                const shape = () => {
+                    ctx.beginPath();
+                    ctx.moveTo(0, top);
+                    ctx.lineTo(w - r, top);
+                    ctx.arcTo(w, top, w, top + r, r);
+                    ctx.lineTo(w, bottom - r);
+                    ctx.arcTo(w, bottom, w - r, bottom, r);
+                    ctx.lineTo(0, bottom);
+                };
+                shape();
+                ctx.closePath();
+                const fill = ctx.createLinearGradient(0, top, 0, bottom);
+                if (neon) {
+                    fill.addColorStop(0, hot ? "#1c3478" : "#14275e");
+                    fill.addColorStop(1, hot ? "#101c4a" : "#0a1438");
+                } else {
+                    fill.addColorStop(0, hot ? "#e4e4e4" : "#d8d8d8");
+                    fill.addColorStop(1, "#b8b8b8");
+                }
+                ctx.fillStyle = fill;
+                ctx.fill();
+                // the edge, open towards the drawer
+                shape();
+                ctx.lineWidth = 1.5;
+                if (neon) {
+                    const edge = ctx.createLinearGradient(0, top, 0, bottom);
+                    edge.addColorStop(0, "#48cffe");
+                    edge.addColorStop(0.55, "#7a4dff");
+                    edge.addColorStop(1, "#ff4fd8");
+                    ctx.strokeStyle = edge;
+                } else {
+                    ctx.strokeStyle = "#404040";
+                }
+                ctx.stroke();
+                // the arrow: pointing where the drawer will go
+                const cx = w / 2, cy = height / 2 - 8, s = 5;
+                ctx.beginPath();
+                if (open) { ctx.moveTo(cx + s * 0.6, cy - s); ctx.lineTo(cx - s * 0.8, cy); ctx.lineTo(cx + s * 0.6, cy + s); }
+                else { ctx.moveTo(cx - s * 0.6, cy - s); ctx.lineTo(cx + s * 0.8, cy); ctx.lineTo(cx - s * 0.6, cy + s); }
+                ctx.closePath();
+                ctx.fillStyle = neon ? (hot ? "#bff0ff" : "#48cffe") : (hot ? "#2400a8" : "#202020");
+                ctx.fill();
+                // the grip: three short ridges below the arrow
+                for (let i = 0; i < 3; i++) {
+                    const y = cy + 14 + i * 4;
+                    ctx.fillStyle = neon ? Qt.rgba(0.28, 0.81, 1, 0.55) : "#ffffff";
+                    ctx.fillRect(cx - 4, y, 8, 1);
+                    ctx.fillStyle = neon ? Qt.rgba(0.48, 0.30, 1, 0.55) : "#808080";
+                    ctx.fillRect(cx - 4, y + 1, 8, 1);
+                }
             }
-            // grip lines, as on the Mac OS 9 strip's tab
-            Column {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.bottom; anchors.bottomMargin: 8
-                spacing: 2
-                Repeater { model: 3; Rectangle { width: 8; height: 1; color: Kirigami.Theme.disabledTextColor } }
-            }
-            MouseArea { anchors.fill: parent; onClicked: drawer.toggle() }
+            MouseArea { id: tabMouse; anchors.fill: parent; hoverEnabled: true; onClicked: drawer.toggle() }
             PlasmaCore.ToolTipArea { anchors.fill: parent; mainText: drawer.open ? root.tr("Slide in") : root.tr("Slide out") }
         }
     }
