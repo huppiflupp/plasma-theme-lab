@@ -16,15 +16,20 @@
 #       classic  OS/2 Warp 4 with Object Desktop: Warp Bar along the top
 #                (tray, clock), LaunchPad floating at the bottom centre,
 #                Control Strip as the full strip on the right
-#       tabs     as classic, plus the Tab Launcher at the bottom left
+#       tabs     as classic, plus the Tab Launcher as a drawer at the
+#                bottom left
+#   ./demo-scene.sh --panels concept --drawer
+#       adds the Tab Launcher's drawer to concept or classic; with the
+#       concept's taskbar along the bottom it sits at the top left
 set -euo pipefail
-mode= panels=
+mode= panels= drawer=
 while [ $# -gt 0 ]; do
     case $1 in
         --objects) mode=--objects ;;
+        --drawer) drawer=1 ;;
         --panels) panels=${2:-}; shift ;;
         --panels=*) panels=${1#*=} ;;
-        *) echo "usage: $0 [--panels concept|classic|tabs] [--objects]" >&2; exit 2 ;;
+        *) echo "usage: $0 [--panels concept|classic|tabs] [--drawer] [--objects]" >&2; exit 2 ;;
     esac
     shift
 done
@@ -62,15 +67,19 @@ function launchpad() {
     var p = new Panel; p.screen = 0; p.location = 'bottom'; p.alignment = 'center'; p.lengthMode = 'fit';
     p.height = 76; p.hiding = 'windowsgobelow'; p.floating = true; p.addWidget('org.warplegacy.launchpad');
 }
-// Next to the LaunchPad (about 560 px wide, centred) the Tab Launcher's
-// natural width (~790 px with all categories) runs under it; it gets the
-// room left of the LaunchPad, its tab row scrolls anyway.
-function tablauncher(beside) {
-    var p = new Panel; p.screen = 0; p.location = 'bottom'; p.alignment = 'left'; p.lengthMode = 'fit';
-    p.height = 112; p.hiding = 'windowsgobelow'; p.floating = true; p.addWidget('org.warplegacy.tablauncher');
+// The Tab Launcher as the drawer the page "Panels" adds (PanelsPage.qml):
+// its own panel at the bottom left, above the windows, length "custom"
+// from 10 px so it shrinks to its tab when closed. Next to the LaunchPad
+// (about 560 px wide, centred) the open drawer gets the room left of it,
+// its tab row scrolls.
+function tablauncher(beside, edge) {
+    var p = new Panel; p.screen = 0; p.location = edge || 'bottom'; p.alignment = 'left'; p.height = 116;
+    p.hiding = 'windowsgobelow'; p.floating = false; p.lengthMode = 'custom';
+    p.minimumLength = 10; p.maximumLength = screenGeometry(0).width;
+    var w = p.addWidget('org.warplegacy.tablauncher');
     if (beside) {
-        var room = Math.floor((screenGeometry(0).width - 600) / 2) - 24;
-        p.lengthMode = 'custom'; p.minimumLength = room; p.maximumLength = room;
+        w.currentConfigGroup = ['General'];
+        w.writeConfig('drawerWidth', Math.floor((screenGeometry(0).width - 600) / 2) - 40);
     }
 }
 function taskbar(height) {
@@ -83,6 +92,12 @@ function taskbar(height) {
         classic) js="$js warpbar(); launchpad(); strip('strip');" ;;
         tabs)    js="$js warpbar(); tablauncher(true); launchpad(); strip('strip');" ;;
     esac
+    if [ -n "$drawer" ]; then
+        case $panels in
+            concept) js="$js tablauncher(false, 'top');" ;;
+            classic) js="$js tablauncher(true);" ;;
+        esac
+    fi
     systemctl --user is-active -q plasma-plasmashell.service \
         || systemctl --user start plasma-plasmashell.service
     shell_up || { echo "plasmashell does not answer" >&2; exit 1; }
@@ -139,14 +154,20 @@ positions="{\"$res\":[$grid]}"
 # Largest icons that still fit all objects in one column: Plasma's cell
 # is icon + text lines * gridUnit (~18 px) + 12, below the 32 px taskbar.
 # 48 px with two lines needs ~1080 px; at 800 px only 32 px, one line.
-# The panels at the top and bottom edges take their height off; the
-# Tab Launcher sits on the column itself.
+# The panels at the top and bottom edges take their height off, the Tab
+# Launcher's drawer too (Plasma counts every panel that does not hide).
 count=$(echo "$files" | wc -l)
 case $panels in
     classic) taken=118 ;;       # Warp Bar 28, LaunchPad 76 + its float
-    tabs)    taken=158 ;;       # Warp Bar 28, Tab Launcher 112 + its float
+    tabs)    taken=144 ;;       # Warp Bar 28, Tab Launcher 116
     *)       taken=40 ;;
 esac
+if [ -n "$drawer" ]; then                       # the drawer's 116 px
+    case $panels in
+        concept) taken=156 ;;   # at the top, the taskbar at the bottom
+        classic) taken=144 ;;   # beside the LaunchPad: Plasma counts the thicker
+    esac
+fi
 avail=$(( ${res#*x} - taken ))
 iconsize=1 textlines=1                          # 32 px
 for c in "2 2 96" "2 1 78"; do                  # 48 px, two / one line

@@ -178,6 +178,12 @@ From the Warp 4 reference with Object Desktop:
   open windows instead of launchers.
 - Natural mapping: tabs = categories of the application menu, plus "Main"
   for the user's favourites and "Tasks" for the windows.
+- A **drawer**, after Mac OS 9's Control Strip: a tab at its right end
+  slides it out of the screen to the left and back, closed only the tab
+  shows; the state is kept (`collapsed`). It is a panel of its own at the
+  bottom left (top left when a taskbar runs along the bottom), above the
+  windows without taking room from them, without panel background, its
+  length following the drawer (length mode "custom" from 10 px).
 
 ## 8. What comes from CDE Copper
 

@@ -451,3 +451,12 @@ msgstr "%1 (geöffnet)"
 
 msgid "on the desktop, to place anywhere: windows, favourites, menu categories on tabs"
 msgstr "auf der Arbeitsfläche, frei verschiebbar: Fenster, Favoriten, Menükategorien auf Reitern"
+
+msgid "Slide in"
+msgstr "Einfahren"
+
+msgid "Slide out"
+msgstr "Ausfahren"
+
+msgid "a drawer at the bottom left that slides in and out: windows, favourites, menu categories on tabs"
+msgstr "Schublade unten links, ein- und ausfahrbar: Fenster, Favoriten, Menükategorien auf Reitern"

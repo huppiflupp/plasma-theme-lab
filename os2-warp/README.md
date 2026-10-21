@@ -31,7 +31,9 @@ The panels, shared by both variants:
 - **Control Strip** (right edge, after Object Desktop): the workspaces in
   miniature, a launch list, swap and disk gauges, a seven-segment clock.
 - **Tab Launcher** (not in the default layout): notebook tabs with the open
-  windows, your favourites and the application menu's categories.
+  windows, your favourites and the application menu's categories, in a
+  drawer at the bottom left that slides into the screen edge like Mac OS 9's
+  Control Strip.
 
 The lock screen shows the neon tubes of OS/2's Lockup in both variants.
 

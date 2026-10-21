@@ -22,6 +22,8 @@ KCM.SimpleKCM {
     property var cfg_showClockDefault
     property var cfg_layoutDefault
     property var cfg_mottoDefault
+    property var cfg_collapsedDefault
+    property var cfg_drawerWidthDefault
     property var cfg_compactTopDefault
     property var cfg_compactBottomDefault
     property var cfg_sayingMinutesDefault

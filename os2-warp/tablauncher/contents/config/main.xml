@@ -9,5 +9,9 @@
     <entry name="main" type="String"><default></default></entry>
     <!-- the tab shown at start: 0 Tasks, 1 Main, 2… the menu's categories -->
     <entry name="currentTab" type="Int"><default>1</default></entry>
+    <!-- slid into the screen edge, only the tab showing -->
+    <entry name="collapsed" type="Bool"><default>false</default></entry>
+    <!-- the open drawer's width in px; 0: as wide as all its tabs -->
+    <entry name="drawerWidth" type="Int"><default>0</default></entry>
   </group>
 </kcfg>

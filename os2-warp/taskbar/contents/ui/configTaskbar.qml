@@ -22,6 +22,8 @@ KCM.SimpleKCM {
     property var cfg_showClockDefault
     property var cfg_layoutDefault
     property var cfg_mottoDefault
+    property var cfg_collapsedDefault
+    property var cfg_drawerWidthDefault
     ColumnLayout {
         RowLayout {
             Label { text: i18nd("warp-legacy", "Start button:") }

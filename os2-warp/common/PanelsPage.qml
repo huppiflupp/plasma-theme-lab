@@ -26,6 +26,8 @@ KCM.SimpleKCM {
     property var cfg_showClockDefault
     property var cfg_layoutDefault
     property var cfg_mottoDefault
+    property var cfg_collapsedDefault
+    property var cfg_drawerWidthDefault
     property var cfg_compactTopDefault
     property var cfg_compactBottomDefault
     property var cfg_sayingMinutesDefault
@@ -53,12 +55,21 @@ KCM.SimpleKCM {
         {plugin: "org.warplegacy.taskbar", name: i18nd("warp-legacy", "Warp Taskbar"), where: i18nd("warp-legacy", "along the bottom, instead of the Warp Bar: Start, workspaces, windows, tray, clock"),
          script: "var p = new Panel; p.location = 'bottom'; p.height = 44; p.hiding = 'none'; p.floating = false; "
                + "p.addWidget('org.warplegacy.taskbar'); p.addWidget('org.kde.plasma.systemtray'); p.addWidget('org.kde.plasma.digitalclock');"},
-        // On the desktop, not in a panel: there it can be dragged anywhere,
-        // as Object Desktop's Tab LaunchPad was a window of its own (a panel
-        // only sits along an edge).
-        {plugin: "org.warplegacy.tablauncher", name: i18nd("warp-legacy", "Tab Launcher"), where: i18nd("warp-legacy", "on the desktop, to place anywhere: windows, favourites, menu categories on tabs"),
-         script: "var d = desktops()[0]; var g = screenGeometry(d.screen); "
-               + "d.addWidget('org.warplegacy.tablauncher', 140, g.height - 260, 640, 112);"}
+        // A drawer at the bottom left, as Mac OS 9's Control Strip: its tab
+        // slides it out of the screen and back. A panel of its own, above
+        // the windows without taking room from them ("windowsgobelow"), its
+        // length "custom" from 10 px so the panel shrinks to the tab (see
+        // tablauncher main.qml). With a full-length panel at the bottom
+        // (Warp Taskbar) it goes to the top left instead, as panels on one
+        // edge overlap. Not on the desktop: there it lay under the windows,
+        // and its widget kept its full size when closed, a blind patch over
+        // the desktop; not at the left edge: Plasma drew a panel down the
+        // whole edge behind it and moved the desktop icons aside.
+        {plugin: "org.warplegacy.tablauncher", name: i18nd("warp-legacy", "Tab Launcher"), where: i18nd("warp-legacy", "a drawer at the bottom left that slides in and out: windows, favourites, menu categories on tabs"),
+         script: "var taken = panels().some(function(o) { return o.location == 'bottom' && o.lengthMode == 'fill'; }); "
+               + "var p = new Panel; p.location = taken ? 'top' : 'bottom'; p.alignment = 'left'; p.height = 116; "
+               + "p.hiding = 'windowsgobelow'; p.floating = false; p.lengthMode = 'custom'; p.minimumLength = 10; "
+               + "p.maximumLength = screenGeometry(p.screen).width; p.addWidget('org.warplegacy.tablauncher');"}
     ]
     property var present: []
     property bool known: false
