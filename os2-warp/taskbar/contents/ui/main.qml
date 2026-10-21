@@ -66,9 +66,28 @@ PlasmoidItem {
         // edge that starts violet at the left and turns cyan-blue. Drawn by
         // the bar itself over the panel's background (CanFillArea: edge to
         // edge). Classic keeps the Plasma style's grey panel.
+        // It runs the panel's whole length, under the system tray and the
+        // clock beside the bar too: ending with the bar, it left them
+        // without the line (the user's remark 21.10.2026).
+        property real panelLeft: 0
+        property real panelRight: 0
+        function measure() {
+            const w = Window.window;
+            if (!w) return;
+            const left = Math.max(0, Math.round(mapToItem(null, 0, 0).x));
+            panelLeft = left;
+            panelRight = Math.max(0, Math.round(w.width - left - width));
+        }
+        Timer { id: remeasure; interval: 50; onTriggered: bar.measure() }
+        onWidthChanged: remeasure.restart()
+        onXChanged: remeasure.restart()
+        Connections { target: bar.Window.window; function onWidthChanged() { remeasure.restart(); } }
+        Component.onCompleted: remeasure.restart()
         Rectangle {
             visible: bar.neon
-            anchors.fill: parent
+            x: -bar.panelLeft
+            width: bar.width + bar.panelLeft + bar.panelRight
+            height: parent.height
             gradient: Gradient {
                 GradientStop { position: 0.0; color: "#0b1d4a" }
                 GradientStop { position: 0.45; color: "#071437" }
