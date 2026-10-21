@@ -37,6 +37,11 @@ The panels, shared by both variants:
 
 The lock screen shows the neon tubes of OS/2's Lockup in both variants.
 
+The window buttons come in six looks (System Settings › Colours & Themes ›
+Window Decorations › the frame's settings): Warp 4's raised squares, the
+glyphs only, diamonds, window corners, neon tubes and tiles. Neon draws the
+glyphs glowing cyan in every look, close in pink.
+
 ## Install
 
 Needs Plasma 6 and, for the program style, Kvantum (`kvantum` package).

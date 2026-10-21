@@ -11,5 +11,12 @@
       <min>0</min>
       <max>64</max>
     </entry>
+    <!-- the buttons' look: 0 Warp 4, 1 glyphs only, 2 diamond,
+         3 window corners, 4 neon tube, 5 tile -->
+    <entry name="buttonStyle" type="Int">
+      <default>0</default>
+      <min>0</min>
+      <max>5</max>
+    </entry>
   </group>
 </kcfg>
