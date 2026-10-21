@@ -1,0 +1,6 @@
+{
+  "made_from": "dunkel-lichtbogen-rechts.jpg",
+  "method": "hue shift (matplotlib HSV): violet and magenta (245..350 degrees) moved towards electric blue and cyan, the navy kept",
+  "why": "the wallpaper of Warp Legacy Neon Blue, closer to the concept (reference/neon-2026.png): blue light instead of violet and pink",
+  "final_size": [3840, 2160]
+}

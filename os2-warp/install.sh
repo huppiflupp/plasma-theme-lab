@@ -4,9 +4,10 @@
 # uninstall.sh removes exactly those. A Kvantum choice made before is kept
 # aside and restored by uninstall.sh.
 #
-#   ./install.sh                 install both variants
+#   ./install.sh                 install all three variants
 #   ./install.sh --apply         … and switch to Warp Legacy
 #   ./install.sh --apply neon    … and switch to Warp Legacy Neon
+#   ./install.sh --apply neon-blue  … and to Warp Legacy Neon Blue
 #   … --layout                   also replace the panels with Warp Legacy's
 #                                (Warp Bar, LaunchPad, Control Strip)
 #
@@ -21,7 +22,7 @@ for arg in "$@"; do
     case "$arg" in
         --apply) APPLY=1 ;;
         --layout) LAYOUT=--resetLayout ;;
-        neon) VARIANT=neon ;;
+        neon|neon-blue) VARIANT=$arg ;;
         *) echo "Unknown argument: $arg (see the head of $0)" >&2; exit 2 ;;
     esac
 done
@@ -44,7 +45,7 @@ mkdir -p "$STATE"
 if [ ! -f "$STATE/kvantum.kvconfig.before" ] && [ ! -f "$STATE/kvantum.none" ]; then
     if [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ]; then
         case "$(kreadconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme)" in
-            WarpLegacy*|Warp|WarpNeon) : ;;     # already ours: an install from before the record
+            WarpLegacy*|Warp|WarpNeon|WarpNeonBlue) : ;;     # already ours: an install from before the record
             *) cp -a "$CONFIG/Kvantum/kvantum.kvconfig" "$STATE/kvantum.kvconfig.before" ;;
         esac
     else
@@ -122,6 +123,7 @@ if [ -n "$APPLY" ]; then
     case "$VARIANT" in
         "")   LNF=org.warplegacy.desktop;      KVANTUM=Warp;           ICONS=WarpLegacy;         KONSOLE="Warp Legacy";      PICTURE=org.warplegacy.warp4-wirbel-violett ;;
         neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpNeon;       ICONS=WarpLegacyNeon2026Violett; KONSOLE="Warp Legacy Neon (transparent)"; PICTURE=org.warplegacy.dunkel-lichtbogen-rechts ;;
+        neon-blue) LNF=org.warplegacy.neon-blue.desktop; KVANTUM=WarpNeonBlue; ICONS=WarpLegacyNeon2026; KONSOLE="Warp Legacy Neon Blue (transparent)"; PICTURE=org.warplegacy.dunkel-lichtbogen-blau ;;
     esac
     plasma-apply-lookandfeel --apply "$LNF" $LAYOUT
     # The global theme only carries the decoration's library and theme into
@@ -140,7 +142,7 @@ if [ -n "$APPLY" ]; then
     # named Warp Legacy Neon's.
     kwriteconfig6 --file kdeglobals --group Icons --key Theme "$ICONS"
     # The cursors (Neon: cursors_neon.py), at once for the running session.
-    case "$VARIANT" in neon) CURSORS=WarpLegacyNeonCursors ;; *) CURSORS=breeze_cursors ;; esac
+    case "$VARIANT" in neon) CURSORS=WarpLegacyNeonCursors ;; neon-blue) CURSORS=WarpLegacyNeonBlueCursors ;; *) CURSORS=breeze_cursors ;; esac
     if [ -d "$DATA/icons/$CURSORS" ] || [ -d "/usr/share/icons/$CURSORS" ]; then
         if command -v plasma-apply-cursortheme >/dev/null 2>&1; then
             plasma-apply-cursortheme "$CURSORS" >/dev/null 2>&1 || kwriteconfig6 --file kcminputrc --group Mouse --key cursorTheme "$CURSORS"
@@ -164,7 +166,7 @@ if [ -n "$APPLY" ]; then
     # OS/2's grey in classic. The greeter draws its clock in the Plasma
     # style's button text, black in classic: unreadable on the black tubes
     # (Kubuntu and Fedora VMs, 21.10.2026).
-    case "$VARIANT" in neon) LOCK=neon-roehren ;; *) LOCK=neon-roehren-hell ;; esac
+    case "$VARIANT" in neon*) LOCK=neon-roehren ;; *) LOCK=neon-roehren-hell ;; esac
     kwriteconfig6 --file kscreenlockerrc --group Greeter --key WallpaperPlugin org.kde.image
     kwriteconfig6 --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General \
         --key Image "file://$DATA/wallpapers/org.warplegacy.$LOCK/"

@@ -26,7 +26,7 @@ Item {
     required property var root
     implicitHeight: column.implicitHeight + 16
     readonly property bool neon: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
-    readonly property color dark: neon ? "#7a4dff" : "#808080"
+    readonly property color dark: neon ? Kirigami.Theme.hoverColor : "#808080"
     readonly property color bright: box.neon ? "#cfeeff" : Kirigami.Theme.textColor
     readonly property color cyan: box.neon ? "#3ad0ff" : Kirigami.Theme.linkColor
     readonly property color lavender: box.neon ? "#e2b8ff" : Kirigami.Theme.highlightColor

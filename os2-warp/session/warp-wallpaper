@@ -12,7 +12,13 @@ case "$current" in
     ""|*org.warplegacy.*) ;;
     *) exit 0 ;;
 esac
-# Within Warp Legacy, keep a picture that already fits the variant.
+# Within Warp Legacy, keep a picture that already fits the variant, but
+# not another variant's default: from Neon to Neon Blue the violet streaks
+# stayed (VM, 21.10.2026).
+case "$current" in
+    *"$want"*) exit 0 ;;
+    *org.warplegacy.dunkel-lichtbogen-rechts*|*org.warplegacy.dunkel-lichtbogen-blau*|*org.warplegacy.warp4-wirbel-violett*) current= ;;
+esac
 if [ -n "$current" ]; then
     case "$want" in *neon*|*dunkel*) is_neon=1 ;; *) is_neon= ;; esac
     if printf '%s' "$current" | grep -Eq "$neon_pictures"; then fits=$is_neon; else fits=$([ -z "$is_neon" ] && echo 1); fi

@@ -311,7 +311,7 @@ PlasmoidItem {
                 if (neon) {
                     const edge = ctx.createLinearGradient(0, top, 0, bottom);
                     edge.addColorStop(0, "#48cffe");
-                    edge.addColorStop(0.55, "#7a4dff");
+                    edge.addColorStop(0.55, Kirigami.Theme.hoverColor.toString());
                     edge.addColorStop(1, "#ff4fd8");
                     ctx.strokeStyle = edge;
                 } else {

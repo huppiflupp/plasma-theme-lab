@@ -13,7 +13,8 @@ Rectangle {
     property bool sunken: false
     readonly property bool neon: Kirigami.ColorUtils.brightnessForColor(Kirigami.Theme.backgroundColor) === Kirigami.ColorUtils.Dark
     property color light: neon ? "#48cffe" : "#ffffff"
-    property color dark: neon ? "#7a4dff" : "#808080"
+    // Neon's violet edge, Neon Blue's blue: the scheme's DecorationHover (build.py).
+    property color dark: neon ? Kirigami.Theme.hoverColor : "#808080"
     property color ink: neon ? "#020617" : "#000000"
     // An inactive title bar (the Tab Launcher's): Warp 4's mid grey with
     // light grey text, Neon's navy with muted blue (build.py's palettes).

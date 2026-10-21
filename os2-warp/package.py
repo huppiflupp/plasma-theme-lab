@@ -6,7 +6,7 @@ the two themes share no files).
 
 The archive holds the built theme (build/, every icon set, the cursors,
 wallpaper packages, plasmoids, the LibreOffice extension) with install.sh
-and uninstall.sh: unpacked, `./install.sh --apply [neon]` needs neither
+and uninstall.sh: unpacked, `./install.sh --apply [neon|neon-blue]` needs neither
 Python nor a build. The sources too heavy for it (the icon masters,
 icons-neon2026/, 170 MB; the wallpaper sources) stay in the repository,
 which is where a rebuild starts.
@@ -33,8 +33,9 @@ subprocess.run([sys.executable, str(ROOT / "build.py")], check=True, env=env)
 # without an icon set and still reported success (21.10.2026): the parts
 # every release has must be there.
 NEEDED = ["icons/WarpLegacy", "icons/WarpLegacyNeon", "icons/WarpLegacyNeon2026", "icons/WarpLegacyNeon2026Violett",
-          "icons/WarpLegacyNeonCursors/cursors", "plasma/look-and-feel/org.warplegacy.desktop",
-          "plasma/look-and-feel/org.warplegacy.neon.desktop", "wallpapers/org.warplegacy.neon-roehren",
+          "icons/WarpLegacyNeonCursors/cursors", "icons/WarpLegacyNeonBlueCursors/cursors", "plasma/look-and-feel/org.warplegacy.desktop",
+          "plasma/look-and-feel/org.warplegacy.neon.desktop", "plasma/look-and-feel/org.warplegacy.neon-blue.desktop",
+          "wallpapers/org.warplegacy.neon-roehren", "wallpapers/org.warplegacy.dunkel-lichtbogen-blau",
           "wallpapers/org.warplegacy.neon-roehren-hell", "warp-legacy/libreoffice/warp-legacy.oxt",
           "warp-legacy/warp-legacy-switch"]
 missing = [n for n in NEEDED if not (ROOT / "build" / n).exists()]

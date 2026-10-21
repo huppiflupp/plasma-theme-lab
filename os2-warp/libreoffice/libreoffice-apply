@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Warp Legacy's colours for LibreOffice: install, choose, take back.
 
-    libreoffice-apply neon|classic      install warp-legacy.oxt (beside this
+    libreoffice-apply neon|neon-blue|classic      install warp-legacy.oxt (beside this
                                         script) and make the variant's scheme
                                         LibreOffice's application colours
     libreoffice-apply neon --if-default the same, but only switch if the
@@ -27,7 +27,7 @@ from xml.sax.saxutils import escape, unescape
 
 HERE = Path(__file__).resolve().parent
 EXTENSION_ID = "org.warplegacy.libreoffice"
-SCHEMES = {"classic": "Warp Legacy", "neon": "Warp Legacy Neon"}
+SCHEMES = {"classic": "Warp Legacy", "neon": "Warp Legacy Neon", "neon-blue": "Warp Legacy Neon Blue"}
 DEFAULT = "COLOR_SCHEME_LIBREOFFICE_AUTOMATIC"
 UNSET = "\x01unset"
 HOME = Path.home()

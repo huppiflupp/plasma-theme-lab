@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Give Firefox the Warp Legacy look without a signed add-on, per profile:
 #
-#   firefox-apply.sh neon|classic [--profile DIR | --all] [--system-titlebar]
+#   firefox-apply.sh neon|neon-blue|classic [--profile DIR | --all] [--system-titlebar]
 #   firefox-apply.sh remove       [--profile DIR | --all]
 #   firefox-apply.sh status
 #
@@ -29,7 +29,7 @@ die() { echo "firefox-apply: $*" >&2; exit 1; }
 usage() { sed -n '2,7p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 
 action="${1:-}"; shift || true
-case "$action" in neon|classic|remove|status) ;; -h|--help|"") usage 0 ;; *) usage 1 ;; esac
+case "$action" in neon|neon-blue|classic|remove|status) ;; -h|--help|"") usage 0 ;; *) usage 1 ;; esac
 profiles=() all=0 titlebar=0
 while [ $# -gt 0 ]; do
     case "$1" in

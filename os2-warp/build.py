@@ -64,6 +64,14 @@ NEON = dict(surface="#0c1438", window="#060b24", panel="#0a1232",
             window_text="#e8f0ff", alt_window="#0a1230", button_hover="#16245c",
             button_pressed="#0a1232", groove="#0a1232")
 
+# Neon Blue (the user's wish 21.10.2026): closer to the concept, whose light
+# is mostly blue with pink only as an accent. Neon's violet edge becomes
+# electric blue, selections blue, the Kvantum glow cyan-blue; the panels
+# read that dark edge from the scheme's DecorationHover (common/Bevel.qml).
+NEON_BLUE = dict(NEON, dark="#2a6cff", selection="#1f5fe0", hover="#12306e",
+                 visited="#8fb4ff", checker="#14306e", button_hover="#12306e",
+                 selection_glow=("#3ad0ff", "#2a6cff", "#48cffe"))
+
 # id suffix, display name, palette, decoration style, description
 VARIANTS = [
     dict(key="", name="Warp Legacy", P=CLASSIC,
@@ -91,19 +99,31 @@ VARIANTS = [
          # concept's neon tubes, alternating warm and cold.
          sysmon=["#3ad0ff", "#ff4fd8", "#1a6fe0", "#b48cff", "#3ddc97", "#ffb347"],
          description="OS/2 Warp at night: navy surfaces, cyan and violet glowing edges"),
+    dict(key="neon-blue", name="Warp Legacy Neon Blue", P=NEON_BLUE,
+         style=dict(light="#48cffe", dark="#2a6cff", ink="#020617", glyph="#ffffff", glow="#2a6cff",
+                    accent="#ff4fd8", glowWidth=10),
+         wallpaper=("org.warplegacy.neon-blue", "Warp Night Blue", "Deep navy for the Neon Blue variant"),
+         # dunkel-lichtbogen-rechts with its streaks turned blue
+         picture="dunkel-lichtbogen-blau",
+         # the concept's colourful icons, not the violet set
+         icons="WarpLegacyNeon2026",
+         sysmon=["#3ad0ff", "#2a6cff", "#ff4fd8", "#9fe9ff", "#3ddc97", "#ffb347"],
+         description="OS/2 Warp at night in blue: navy surfaces, cyan and blue glowing edges, pink accents"),
 ]
 
 
 def ids(v):
     """Package and file names of a variant: WarpLegacy / WarpLegacyNeon …"""
+    # "neon-blue" gives WarpLegacyNeonBlue, warp-legacy-neon-blue …
     k = v["key"]
-    return dict(scheme="WarpLegacy" + k.capitalize(),
+    camel = "".join(part.capitalize() for part in k.split("-"))
+    return dict(scheme="WarpLegacy" + camel,
                 # Kvantum lists its themes by folder name: "Warp", "WarpNeon"
                 # (the user's wish 21.10.2026; WarpLegacy* before).
-                kvantum="Warp" + k.capitalize(),
+                kvantum="Warp" + camel,
                 theme="warp-legacy" + (f"-{k}" if k else ""),
                 lnf="org.warplegacy" + (f".{k}" if k else "") + ".desktop",
-                decoration="kwin4_decoration_qml_warplegacy" + k)
+                decoration="kwin4_decoration_qml_warplegacy" + k.replace("-", ""))
 
 
 def write(path, content):
@@ -244,6 +264,7 @@ PICTURES = (
     # Darker, after the concept's background (measured mean luminance 0.046):
     # the window edges stand out against them.
     ("dunkel-lichtbogen-rechts", "Dark Light Streaks", "Dunkle Lichtstreifen", "Diagonal streaks of light at the top right, deep blue"),
+    ("dunkel-lichtbogen-blau", "Dark Light Streaks Blue", "Dunkle Lichtstreifen Blau", "The same streaks of light in blue and cyan"),
     ("dunkel-horizont-boegen", "Dark Horizon Arcs", "Dunkler Horizont mit Bögen", "Horizon and arcs of light in the lower right corner"),
     ("dunkel-wirbel-neon", "Dark Neon Swirl", "Dunkler Neon-Wirbel", "Fine arcs in cyan, violet and pink"),
     ("dunkel-horizont-pink", "Dark Horizon Pink", "Dunkler Horizont Pink", "A planet's rim with a pink line of light"),
@@ -318,12 +339,13 @@ KONSOLE = {
 
 
 def konsole(v):
-    k = KONSOLE[v["key"]]
+    # Neon Blue shares Neon's cyan on black, under its own name.
+    k = KONSOLE[v["key"]] if v["key"] in KONSOLE else dict(KONSOLE["neon"], name=v["name"])
     konsole_files(k, ids(v)["scheme"], k["name"], opacity=1)
     # Neon also as a see-through profile over the desktop, Neon's default
     # (install.sh): 80 % transparency, as Konsole's slider calls it, no blur
     # (the user's wish 21.10.2026; fully transparent before).
-    if v["key"] == "neon":
+    if v["key"].startswith("neon"):
         konsole_files(k, ids(v)["scheme"] + "Transparent", k["name"] + " (transparent)", opacity=0.2)
 
 
@@ -354,11 +376,18 @@ HistorySize=10000
 """)
 
 
+# Per variant; classic names Breeze's, so a switch back from Neon takes
+# Neon's away again.
+CURSORS = {"neon": "WarpLegacyNeonCursors", "neon-blue": "WarpLegacyNeonBlueCursors"}
+
+
 def cursors():
     """Neon's mouse cursors: Breeze's with the rim in Neon's light
-    (cursors_neon.py), made from the Breeze cursors on this machine."""
+    (cursors_neon.py), made from the Breeze cursors on this machine; Neon
+    Blue's run cyan, blue, pink."""
     from cursors_neon import build_cursors
     build_cursors(OUT)
+    build_cursors(OUT, "WarpLegacyNeonBlueCursors", stops=["#48cffe", "#2a6cff", "#ff4fd8"])
 
 
 def session():
@@ -420,7 +449,7 @@ def lookandfeel(v):
     icons = f"[kdeglobals][Icons]\nTheme={v['icons']}\n" if v.get("icons") else ""
     # Neon's cursors with the frames' light; classic names Breeze's, so a
     # switch back from Neon takes them away again.
-    icons += f"[kcminputrc][Mouse]\ncursorTheme={'WarpLegacyNeonCursors' if v['key'] == 'neon' else 'breeze_cursors'}\n"
+    icons += f"[kcminputrc][Mouse]\ncursorTheme={CURSORS.get(v['key'], 'breeze_cursors')}\n"
     write(base + "contents/defaults", f"""[kdeglobals][General]
 ColorScheme={i['scheme']}
 font={UI_FONT}

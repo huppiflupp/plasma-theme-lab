@@ -1,16 +1,25 @@
 # Warp Legacy
 
-OS/2 Warp 4 for KDE Plasma 6, in two variants: the classic Warp 4 grey,
-and **Neon**, OS/2 at night with cyan and violet glowing edges.
+OS/2 Warp 4 for KDE Plasma 6, in three variants: the classic Warp 4 grey;
+**Neon**, OS/2 at night with cyan and violet glowing edges; and **Neon
+Blue**, the same night in blue, closest to the concept
+(`reference/neon-2026.png`), pink only as an accent.
 
 ![Warp Legacy](screenshots/warp-classic-2026-10.png)
 ![Warp Legacy Neon](screenshots/warp-neon-2026-10.png)
+![Warp Legacy Neon Blue](screenshots/warp-neon-blue-2026-10.png)
 
 Not affiliated with IBM, Arca Noae or Stardock. "OS/2" and "Warp" are
 trademarks of IBM; nothing of IBM's or Stardock's is included: the icons,
 wallpapers and panels are drawn and written anew (DESIGN.md §1).
 
 ## What it brings
+
+Neon Blue is Neon with these changes: electric blue `#2a6cff` where Neon
+is violet (frame edges, Kvantum, panels, LibreOffice and Firefox marks),
+blue selections, the concept's colourful icons (Warp Legacy Neon 2026)
+instead of the violet set, the light streaks wallpaper in blue, mouse
+cursors running cyan, blue, pink.
 
 | Part | Classic | Neon |
 |---|---|---|
@@ -57,10 +66,12 @@ back) changes everything at once without logging out: the global theme,
 Kvantum, icons, cursors, Konsole, LibreOffice, the wallpaper; the panels
 stay. Plasma's shell restarts for it; programs already open take the new
 style when started again. From a terminal:
-`~/.local/share/warp-legacy/warp-legacy-switch [neon|classic|toggle]`.
+`~/.local/share/warp-legacy/warp-legacy-switch [neon|neon-blue|classic|toggle]`;
+toggle (and the Warp menu) goes from either Neon to classic and back to
+the Neon used last.
 
-The lock screen shows the neon tubes of OS/2's Lockup: on black in Neon, on
-OS/2's grey in classic.
+The lock screen shows the neon tubes of OS/2's Lockup: on black in both Neons,
+on OS/2's grey in classic.
 
 The window buttons come in six looks (System Settings › Colours & Themes ›
 Window Decorations › the frame's settings): Warp 4's raised squares, the
@@ -72,9 +83,10 @@ glyphs glowing cyan in every look, close in pink.
 Needs Plasma 6 and, for the program style, Kvantum (`kvantum` package).
 
 ```bash
-./install.sh                     # install both variants
+./install.sh                     # install all three variants
 ./install.sh --apply             # … and switch to Warp Legacy
 ./install.sh --apply neon        # … and switch to Warp Legacy Neon
+./install.sh --apply neon-blue   # … and switch to Warp Legacy Neon Blue
 ./install.sh --apply --layout    # … and replace the panels with Warp Legacy's
 ```
 

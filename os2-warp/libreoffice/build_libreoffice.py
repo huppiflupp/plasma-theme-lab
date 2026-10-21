@@ -35,14 +35,15 @@ HERE = Path(__file__).resolve().parent
 EXTENSION_ID = "org.warplegacy.libreoffice"
 # The scheme names are the names LibreOffice lists; libreoffice-apply knows
 # them as well.
-SCHEME = {"": "Warp Legacy", "neon": "Warp Legacy Neon"}
+SCHEME = {"": "Warp Legacy", "neon": "Warp Legacy Neon", "neon-blue": "Warp Legacy Neon Blue"}
 
 
 def roles(P, neon):
     """Colour per ColorScheme entry (officecfg UI.xcs, LibreOffice 26.2).
     Entries not named here stay automatic."""
     if neon:
-        cyan, violet, pink = P["light"], P["dark"], P["selection_glow"][2]
+        # violet: Neon Blue's blue; pink is both Neons' accent
+        cyan, violet, pink = P["light"], P["dark"], "#ff4fd8"
         return dict(
             # The page a step lighter than the workspace round it, as the
             # windows on the Neon desktop; automatic text turns light on it.
@@ -110,7 +111,7 @@ def scheme_xml(name, colours):
 def build_libreoffice(out, variants, version):
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
-    schemes = "".join(scheme_xml(SCHEME[v["key"]], roles(v["P"], v["key"] == "neon")) for v in variants)
+    schemes = "".join(scheme_xml(SCHEME[v["key"]], roles(v["P"], v["key"].startswith("neon"))) for v in variants)
     files = {
         "META-INF/manifest.xml": """<?xml version="1.0" encoding="UTF-8"?>
 <manifest:manifest xmlns:manifest="http://openoffice.org/2001/manifest">

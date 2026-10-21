@@ -19,6 +19,11 @@ missing when `build/` is half-built or a quick one without the first Neon
 icon set. `dist/store/<version>/UPLOAD.md` lists every entry with file,
 category, title and description; upload the global themes last.
 
+Warp Legacy Neon Blue (the third variant, 21.10.2026) is not in the store
+edition yet: it would need a frame of its own from gen-warp-aurorae.py, its
+Plasma style and the blue cursors as further entries. The release archive
+has it.
+
 ## The entries
 
 | Part | Archive | Category (knsrc) | Dependency of |
@@ -30,7 +35,7 @@ category, title and description; upload the global themes last.
 | Icons, classic | `warp-legacy-icons-<v>.tar.gz` (about 3 MB) | KDE Icon Theme | classic |
 | Icons, Neon (three sets, the violet one inherits the other two) | `warp-legacy-neon-icons-<v>.tar.gz` (about 31 MB) | KDE Icon Theme | Neon |
 | Mouse cursors, Neon | `WarpLegacyNeonCursors.tar.gz` (keep the name) | X11 Mouse Theme | Neon |
-| Pictures (38 and two plain desktops) | `warp-legacy-wallpapers-<v>.tar.gz` (about 22 MB) | KDE Wallpaper (other) | both |
+| Pictures (39 and two plain desktops) | `warp-legacy-wallpapers-<v>.tar.gz` (about 22 MB) | KDE Wallpaper (other) | both |
 | Kvantum (optional) | `warp-legacy-kvantum-<v>.tar.gz` | Kvantum | — |
 | Konsole (optional) | `warp-legacy-konsole-<v>.tar.gz` | — | — |
 

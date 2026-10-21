@@ -80,7 +80,7 @@ PARTS.update({
     "cursors": ("warp-legacy-neon-cursors", "xcursor.knsrc", "X11 Mouse Theme",
                 "Warp Legacy Neon Cursors", "Breeze's cursors with the rim in Neon's light"),
     "wallpapers": ("warp-legacy-wallpapers", "wallpaper.knsrc", "KDE Wallpaper (other)",
-                   "Warp Legacy Pictures", "the 38 pictures and two plain desktops as wallpaper packages, 3840x2160"),
+                   "Warp Legacy Pictures", "the 39 pictures and two plain desktops as wallpaper packages, 3840x2160"),
 })
 CURSORS = "WarpLegacyNeonCursors"     # the archive's name is the folder's (subdir-archive)
 NEON_ICONS = ["WarpLegacyNeon", "WarpLegacyNeon2026", "WarpLegacyNeon2026Violett"]
@@ -259,7 +259,7 @@ def upload_guide(out, ids, complete):
               "cyan and violet glowing edges. The Warp Taskbar, the Warp Bar after the WarpCenter, "
               "the LaunchPad, the Control Strip and the Tab Launcher; the OS/2 window frame, "
               "Plasma styles, colour schemes, icons (Warp 4's folders, or glowing Neon ones), "
-              "Neon mouse cursors and 38 pictures. Not affiliated with IBM, Arca Noae or Stardock; "
+              "Neon mouse cursors and 39 pictures. Not affiliated with IBM, Arca Noae or Stardock; "
               "everything is drawn anew.", "",
               "Install the global theme and apply it with \"Desktop and window layout\" ticked: "
               "that puts the Warp Taskbar, the Control Strip and the Tab Launcher in place of the "

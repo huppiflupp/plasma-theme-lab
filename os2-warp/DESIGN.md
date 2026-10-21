@@ -236,6 +236,25 @@ word mark in the concept are not taken over (§1).
 Icons: glossy, glowing, blue-violet-cyan with orange accents, drawn for a
 dark background. Our own set (plan step 7).
 
+### Neon Blue (21.10.2026)
+
+Compared side by side, the concept looked more colourful than Neon: its
+light is mostly blue, pink appears only as an accent, its icons are full
+colour. Neon Blue, a third variant beside Neon (the user's choice), keeps
+Neon's navy surfaces, cyan light edge and pink accent and changes:
+
+- the dark edge from violet `#7a4dff` to electric blue `#2a6cff`
+  (frames, Kvantum, panels, LibreOffice and Firefox marks); the panels
+  read it from the colour scheme's DecorationHover, so one plasmoid
+  serves both Neons;
+- selections `#1f5fe0`, the Kvantum glow cyan-blue-cyan;
+- the icons Warp Legacy Neon 2026 (the concept's) instead of the violet set;
+- the wallpaper `dunkel-lichtbogen-blau`, Neon's streaks turned blue;
+- mouse cursors cyan, blue, pink; a wider glow round the window (10 px).
+
+Not in the KDE Store edition yet (it would need its own SVG frame, Plasma
+style and cursor archive).
+
 ## 9. Icons and wallpaper
 
 Our own drawings in the Warp 4 manner: 32×32 and 16×16, a limited palette

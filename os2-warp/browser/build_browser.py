@@ -34,7 +34,8 @@ HERE = Path(__file__).resolve().parent
 def roles(P, neon):
     """Browser colour roles (Firefox theme keys) from a build.py palette."""
     if neon:
-        cyan, violet, pink = P["light"], P["dark"], P["selection_glow"][2]
+        # violet: Neon Blue's blue; pink is both Neons' accent
+        cyan, violet, pink = P["light"], P["dark"], "#ff4fd8"
         return dict(
             frame=P["title_active"], frame_inactive=P["title_inactive"],
             tab_background_text=P["text2"], tab_text="#ffffff",
@@ -339,15 +340,15 @@ def write_zip(src, target):
 def build_browser(out, variants, version="0.1.0"):
     """Build all browser themes into out (a directory, recreated).
 
-    variants: build.py's VARIANTS, i.e. dicts with key ("" or "neon"),
+    variants: build.py's VARIANTS, i.e. dicts with key ("", "neon" or "neon-blue"),
     name and the palette P.
     """
     out = Path(out)
     if out.exists():
         shutil.rmtree(out)
     for v in variants:
-        neon = v["key"] == "neon"
-        id_ = "warp-legacy" + ("-neon" if neon else "")
+        neon = v["key"].startswith("neon")
+        id_ = "warp-legacy" + (f"-{v['key']}" if v["key"] else "")
         R = roles(v["P"], neon)
 
         ff = out / "firefox" / id_
@@ -366,7 +367,7 @@ def build_browser(out, variants, version="0.1.0"):
             json.dumps(chrome_manifest(v["name"], version, R, neon), indent=2) + "\n")
         write_zip(ch, out / "chrome" / f"{id_}.zip")
 
-        uc = out / "userchrome" / ("neon" if neon else "classic")
+        uc = out / "userchrome" / (v["key"] or "classic")
         uc.mkdir(parents=True)
         (uc / "userChrome.css").write_text(userchrome_css(v["name"], R, neon))
         (uc / "userContent.css").write_text(usercontent_css(v["name"], R))

@@ -15,6 +15,7 @@ export XDG_CONFIG_DIRS
 lnf=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
 case "$lnf" in
     org.warplegacy.neon.desktop) variant=neon; lock=neon-roehren; kvantum=WarpNeon; konsole="Warp Legacy Neon (transparent)"; picture=org.warplegacy.dunkel-lichtbogen-rechts ;;
+    org.warplegacy.neon-blue.desktop) variant=neon-blue; lock=neon-roehren; kvantum=WarpNeonBlue; konsole="Warp Legacy Neon Blue (transparent)"; picture=org.warplegacy.dunkel-lichtbogen-blau ;;
     org.warplegacy.desktop)      variant=classic; lock=neon-roehren-hell; kvantum=Warp; konsole="Warp Legacy"; picture=org.warplegacy.warp4-wirbel-violett ;;
     *) exit 0 ;;
 esac
@@ -29,7 +30,7 @@ for pair in "KDE widgetStyle" "Icons Theme"; do
 done
 # Konsole's profile of the variant, unless the user chose one of their own.
 case "$(kreadconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile)" in
-    ""|"Warp Legacy.profile"|"Warp Legacy Neon.profile"|"Warp Legacy Neon (transparent).profile")
+    ""|"Warp Legacy.profile"|"Warp Legacy Neon"*.profile)
         kwriteconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile "$konsole.profile" ;;
 esac
 # The lock screen's picture of the variant, if it is one of ours (install.sh).

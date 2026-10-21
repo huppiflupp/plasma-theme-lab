@@ -87,7 +87,16 @@ def svg(text):
     return re.sub(r"(<svg[^>]*>)", r"\1" + GRADIENT, text, count=1)
 
 
-def build_cursors(out: Path, name="WarpLegacyNeonCursors"):
+def build_cursors(out: Path, name="WarpLegacyNeonCursors", stops=None):
+    """stops: three colours top left to bottom right, Neon's by default
+    (Neon Blue: cyan, blue, pink)."""
+    global STOPS, GRADIENT
+    if stops:
+        rgb = [tuple(int(c[i:i + 2], 16) for i in (1, 3, 5)) for c in stops]
+        STOPS = [(0.0, rgb[0]), (0.55, rgb[1]), (1.0, rgb[2])]
+        GRADIENT = ('<linearGradient id="warpNeon" x1="0" y1="0" x2="1" y2="1">'
+                    f'<stop offset="0" stop-color="{stops[0]}"/><stop offset=".55" stop-color="{stops[1]}"/>'
+                    f'<stop offset="1" stop-color="{stops[2]}"/></linearGradient>')
     if not (SOURCE / "cursors").is_dir():
         print("Note: no Breeze cursors found, Neon keeps the system's cursors")
         return False
@@ -107,8 +116,8 @@ def build_cursors(out: Path, name="WarpLegacyNeonCursors"):
             if not f.is_symlink():
                 f.write_text(svg(f.read_text()))
     (theme / "index.theme").write_text(
-        "[Icon Theme]\nName=Warp Legacy Neon\n"
-        "Comment=Breeze's cursors with Warp Legacy Neon's light: cyan, violet, pink\n"
+        f"[Icon Theme]\nName={'Warp Legacy Neon Blue' if stops else 'Warp Legacy Neon'}\n"
+        f"Comment=Breeze's cursors with Warp Legacy Neon's light: {'cyan, blue, pink' if stops else 'cyan, violet, pink'}\n"
         "Inherits=breeze_cursors\n")
     return True
 

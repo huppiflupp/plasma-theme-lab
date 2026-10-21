@@ -9,21 +9,29 @@
 # (Fedora VM, Plasma 6.7.4, 21.10.2026); started afresh it loads colours,
 # icons and the wallpaper as at login.
 #
-#   warp-legacy-switch [neon|classic|toggle]      (toggle when left out)
+#   warp-legacy-switch [neon|neon-blue|classic|toggle]   (toggle when left out)
+#
+# toggle goes from either Neon to classic, and from classic to the Neon
+# last used (Neon when there was none).
 #
 # Programs already open keep their Kvantum style and Konsole profile until
 # they are started again; LibreOffice switches only while it is closed.
 here=$(dirname "$0")
 case "${1:-toggle}" in
     neon) lnf=org.warplegacy.neon.desktop ;;
+    neon-blue) lnf=org.warplegacy.neon-blue.desktop ;;
     classic) lnf=org.warplegacy.desktop ;;
     toggle)
-        if [ "$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)" = org.warplegacy.neon.desktop ]; then
-            lnf=org.warplegacy.desktop
-        else
-            lnf=org.warplegacy.neon.desktop
-        fi ;;
-    *) echo "usage: $0 [neon|classic|toggle]" >&2; exit 2 ;;
+        current=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
+        case "$current" in
+            org.warplegacy.neon*)
+                kwriteconfig6 --file warplegacyrc --group General --key lastNeon "$current"
+                lnf=org.warplegacy.desktop ;;
+            *)
+                lnf=$(kreadconfig6 --file warplegacyrc --group General --key lastNeon)
+                lnf=${lnf:-org.warplegacy.neon.desktop} ;;
+        esac ;;
+    *) echo "usage: $0 [neon|neon-blue|classic|toggle]" >&2; exit 2 ;;
 esac
 # Switching several times in a row ran into systemd's start limit: the shell
 # stayed stopped, no panels, no wallpaper (Fedora VM, 21.10.2026). Hence
@@ -43,6 +51,7 @@ if [ -n "$shell" ]; then
 fi
 sh "$here/warp-legacy-sync"
 case "$lnf" in
+    *neon-blue*) cursors=WarpLegacyNeonBlueCursors ;;
     *neon*) cursors=WarpLegacyNeonCursors ;;
     *) cursors=breeze_cursors ;;
 esac

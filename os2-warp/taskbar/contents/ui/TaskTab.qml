@@ -78,7 +78,7 @@ Item {
         NeonFrame {
             anchors.fill: parent
             opacity: parent.lit ? 0.9 : 0.35
-            light: "#48cffe"; dark: "#7a4dff"; accent: "#ff4fd8"
+            light: "#48cffe"; dark: Kirigami.Theme.hoverColor; accent: "#ff4fd8"
         }
         // Start: a violet glow along the left edge, as in the concept.
         Rectangle {

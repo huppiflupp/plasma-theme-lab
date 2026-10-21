@@ -86,7 +86,7 @@ if [ -f "$STATE/kvantum.kvconfig.before" ]; then
     cp -a "$STATE/kvantum.kvconfig.before" "$CONFIG/Kvantum/kvantum.kvconfig"
 elif [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ]; then
     case "$(kreadconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme)" in
-        WarpLegacy*|Warp|WarpNeon) kwriteconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme --delete ;;
+        WarpLegacy*|Warp|WarpNeon|WarpNeonBlue) kwriteconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme --delete ;;
     esac
     # install.sh made the file when there was none: an empty one goes again.
     # (nothing in it but group headers and blank lines)
@@ -132,6 +132,8 @@ rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/plasma_theme_warp-legacy*.kcache
 # What the Warp menu wrote while in use (common/DesktopMenu.qml): the
 # programs started from its search; not in the file list.
 rm -f "$DATA/warp-legacy/launched"
+# warp-legacy-switch's note of the Neon last used.
+rm -f "$CONFIG/warplegacyrc"
 rmdir "$DATA/warp-legacy" 2>/dev/null || true
 rm -rf "$STATE"
 echo "Warp Legacy removed. Log out and back in for every part to take effect."
