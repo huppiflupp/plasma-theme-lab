@@ -97,7 +97,7 @@ if [ -n "$APPLY" ]; then
     fi
     case "$VARIANT" in
         "")   LNF=org.warplegacy.desktop;      KVANTUM=WarpLegacy;     ICONS=WarpLegacy;         KONSOLE="Warp Legacy";      PICTURE=org.warplegacy.warp4-wirbel-violett ;;
-        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpLegacyNeon; ICONS=WarpLegacyNeon2026; KONSOLE="Warp Legacy Neon"; PICTURE=org.warplegacy.dunkel-lichtbogen-rechts ;;
+        neon) LNF=org.warplegacy.neon.desktop; KVANTUM=WarpLegacyNeon; ICONS=WarpLegacyNeon2026Violett; KONSOLE="Warp Legacy Neon"; PICTURE=org.warplegacy.dunkel-lichtbogen-rechts ;;
     esac
     plasma-apply-lookandfeel --apply "$LNF" $LAYOUT
     # The global theme only carries the decoration's library and theme into
@@ -121,6 +121,12 @@ if [ -n "$APPLY" ]; then
     dbus-send --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:0 2>/dev/null || true
     # Konsole after the concept's command prompt (build.py, KONSOLE).
     kwriteconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile "$KONSOLE.profile"
+    # The System Monitor's chart colours: Plasma turns the highlight's hue
+    # and stores the result per page, so Neon got orange disks
+    # (session/warp-legacy-sysmon; colours the user chose stay).
+    if command -v python3 >/dev/null 2>&1; then
+        python3 "$DATA/warp-legacy/warp-legacy-sysmon" "$LNF" || echo "Note: System Monitor colours not set." >&2
+    fi
     # The lock screen shows the neon tubes in both variants: OS/2's Lockup
     # was the same neon picture whatever the desktop looked like.
     kwriteconfig6 --file kscreenlockerrc --group Greeter --key WallpaperPlugin org.kde.image

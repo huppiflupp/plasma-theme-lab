@@ -83,6 +83,12 @@ if [ -f "$STATE/desktops.before" ] && in_session; then
 fi
 in_session && dbus-send --session --type=method_call --dest=org.kde.KWin /KWin org.kde.KWin.reconfigure 2>/dev/null || true
 
+# The System Monitor's chart colours: ours out, so it generates its own
+# from the highlight again; colours the user chose stay.
+if [ -f "$DATA/warp-legacy/warp-legacy-sysmon" ] && command -v python3 >/dev/null 2>&1; then
+    python3 "$DATA/warp-legacy/warp-legacy-sysmon" --reset || true
+fi
+
 remove() {   # remove <base> <list>: the files, then directories left empty
     while IFS= read -r f; do rm -f "$1/$f"; done < "$2"
     sed 's|/[^/]*$||' "$2" | sort -ru | while IFS= read -r d; do

@@ -32,6 +32,9 @@ case "$(kreadconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfi
     ""|"Warp Legacy.profile"|"Warp Legacy Neon.profile")
         kwriteconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile "$konsole.profile" ;;
 esac
+# The System Monitor's chart colours (warp-legacy-sysmon): its stored
+# colours do not follow a change of colour scheme.
+command -v python3 >/dev/null 2>&1 && python3 "$(dirname "$0")/warp-legacy-sysmon" "$lnf"
 kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnLeft M
 kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key ButtonsOnRight XIA
 # The wallpaper, once plasmashell answers (autostart runs early).

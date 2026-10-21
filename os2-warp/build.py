@@ -68,6 +68,10 @@ VARIANTS = [
          # Named in both variants: a global theme only writes the keys it
          # carries, and Neon's icons stayed after switching back.
          icons="WarpLegacy",
+         # System Monitor chart colours, in the order a face hands them out
+         # (session/warp-legacy-sysmon): OS/2's VGA colours, dark enough for
+         # lines on white; neighbours differ in hue (download blue, upload red).
+         sysmon=["#2400a8", "#a80000", "#00a0a0", "#600080", "#00802a", "#a85400"],
          description="OS/2 Warp 4: grey 3D surfaces, blue title bars"),
     dict(key="neon", name="Warp Legacy Neon", P=NEON,
          style=dict(light="#48cffe", dark="#7a4dff", ink="#020617", glyph="#ffffff", glow="#2a5cff",
@@ -76,7 +80,10 @@ VARIANTS = [
          wallpaper=("org.warplegacy.neon", "Warp Night", "Deep navy for the Neon variant"),
          # Closest to the concept's background: dark blue, streaks of light
          # at the top right only (the brighter neon-bogen-horizont before).
-         picture="dunkel-lichtbogen-rechts", icons="WarpLegacyNeon2026",
+         picture="dunkel-lichtbogen-rechts", icons="WarpLegacyNeon2026Violett",
+         # Meter cyan first (single gauges), then pink, blue, violet: the
+         # concept's neon tubes, alternating warm and cold.
+         sysmon=["#3ad0ff", "#ff4fd8", "#1a6fe0", "#b48cff", "#3ddc97", "#ffb347"],
          description="OS/2 Warp at night: navy surfaces, cyan and violet glowing edges"),
 ]
 
@@ -337,12 +344,17 @@ HistorySize=10000
 
 
 def session():
-    """warp-legacy-sync at login (session/): the Kvantum theme and the
-    button order follow the variant chosen in System Settings."""
+    """warp-legacy-sync at login (session/): the Kvantum theme, the
+    button order and the System Monitor's chart colours follow the variant
+    chosen in System Settings."""
     target = OUT / "warp-legacy/warp-legacy-sync"
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "session/warp-legacy-sync", target)
     shutil.copy2(ROOT / "session/warp-wallpaper", target.parent / "warp-wallpaper")
+    shutil.copy2(ROOT / "session/warp-legacy-sysmon", target.parent / "warp-legacy-sysmon")
+    # One line per variant: the look-and-feel id, then the chart colours.
+    write("warp-legacy/sysmon-colors",
+          "".join(f"{ids(v)['lnf']} {' '.join(v['sysmon'])}\n" for v in VARIANTS))
     write("config/autostart/warp-legacy-sync.desktop",
           "[Desktop Entry]\nType=Application\nName=Warp Legacy\n"
           # The path is put in by install.sh: autostart does not expand
