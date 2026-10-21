@@ -6,7 +6,10 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasma5support as P5Support
 import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager
+import org.kde.plasma.workspace.calendar as PlasmaCalendar
 import "launch.js" as Launch
+import "sayings.js" as Sayings
+import "feeds.js" as Feeds
 
 // The Control Strip after Object Desktop on OS/2 Warp 4 (DESIGN.md §6), for
 // a panel on the right edge, top to bottom: the workspaces in miniature
@@ -67,6 +70,129 @@ PlasmoidItem {
             root.cpuLast = {idle: idle, total: total};
         }
     }
+    // ---- the compact box's top and bottom ----------------------------------
+    readonly property var cfg: Plasmoid.configuration
+    readonly property string topPart: compact ? cfg.compactTop : ""
+    readonly property string bottomPart: compact ? cfg.compactBottom : ""
+    readonly property string lang: Qt.locale().name.split("_")[0] || "en"
+    function open(url) { if (/^https?:\/\//.test(url)) run("xdg-open " + Launch.quote(url)); }
+    function launch(command) { run(Launch.resolve(command, root.tr)); }
+
+    // A saying per slot of local time; a click moves on by one.
+    property int sayingStep: 0
+    readonly property int sayingSlot: Math.floor((now.getTime() - now.getTimezoneOffset() * 60000)
+                                                 / (Math.max(1, cfg.sayingMinutes) * 60000))
+    readonly property var saying: Sayings.at(sayingSlot + sayingStep, lang === "de")
+
+    // The next appointments of the enabled calendar plugins, for the top.
+    // Loaded only while shown: "PIM Events" starts Akonadi.
+    property var upcoming: []
+    property string day: Qt.formatDate(now, "yyyy-MM-dd")
+    Loader {
+        active: root.topPart === "events"
+        onActiveChanged: if (!active) root.upcoming = []
+        sourceComponent: Item {
+            // enabledPlugins loads the plugins; populateEnabledPluginsList()
+            // only ticks them in the settings' list (eventpluginsmanager.cpp).
+            PlasmaCalendar.EventPluginsManager {
+                id: plugins
+                enabledPlugins: root.cfg.enabledCalendarPlugins
+            }
+            PlasmaCalendar.Calendar {
+                id: calendar
+                days: 7; weeks: 6
+                firstDayOfWeek: Qt.locale().firstDayOfWeek
+                Component.onCompleted: { today = new Date(); resetToToday(); daysModel.setPluginsManager(plugins); }
+            }
+            Connections {
+                target: calendar.daysModel
+                function onAgendaUpdated(date) { collect.restart(); }
+            }
+            Connections {
+                target: root
+                function onDayChanged() { calendar.today = new Date(); calendar.resetToToday(); collect.restart(); }
+            }
+            // Agendas arrive per day; gather once they have settled, and
+            // every minute so a finished appointment drops out.
+            Timer { id: collect; interval: 300; onTriggered: root.upcoming = root.nextEvents(calendar.daysModel) }
+            Timer { interval: 60000; running: true; repeat: true; onTriggered: collect.restart() }
+        }
+    }
+    // Two weeks ahead, as far as the calendar's six weeks reach; an
+    // appointment running over several days is listed once.
+    function nextEvents(days) {
+        const list = [], seen = {}, t = new Date();
+        for (let d = 0; d < 14; d++) {
+            const date = new Date(t.getFullYear(), t.getMonth(), t.getDate() + d);
+            (days.eventsForDate(date) || []).forEach(e => {
+                if (!e.isAllDay && e.endDateTime && e.endDateTime < t) return;
+                const key = e.title + "|" + e.startDateTime;
+                if (seen[key]) return;
+                seen[key] = true;
+                list.push({title: e.title, allDay: e.isAllDay, start: e.startDateTime, day: d, date: date, color: String(e.eventColor || "")});
+            });
+        }
+        list.sort((a, b) => a.day - b.day || (b.allDay - a.allDay) || (a.start - b.start));
+        return list.slice(0, 2);
+    }
+    function dayLabel(e) {
+        const when = e.day === 0 ? tr("Today") : e.day === 1 ? tr("Tomorrow") : Qt.locale().toString(e.date, "ddd, d. MMM");
+        return e.allDay ? when : when + " " + Qt.formatTime(e.start, Qt.locale().timeFormat(Locale.ShortFormat));
+    }
+
+    // Clicking the clock: the month with its events, or the calendar app.
+    function openCalendar(anchor) {
+        if (cfg.clockOpensApp) { launch(cfg.calendarCommand || "@calendar"); return; }
+        calendarLoader.active = true;
+        calendarLoader.item.toggle(anchor);
+    }
+    Loader { id: calendarLoader; active: false; sourceComponent: CalendarPopup { root: root } }
+
+    // Weather and news, fetched only when the user picked them, every
+    // fetchMinutes (at least 15). Failures are quiet: the last reading
+    // stays, or the box shows the mark / a short note.
+    property var weather: null
+    property var news: null
+    readonly property string weatherUrl: topPart === "weather" ? Feeds.weatherUrl(cfg.weatherServer, cfg.weatherPlace, lang) : ""
+    readonly property string newsUrl: bottomPart === "news" && /^https?:\/\/\S+$/.test(String(cfg.newsUrl).trim()) ? String(cfg.newsUrl).trim() : ""
+    onWeatherUrlChanged: { weather = null; fetchTimer.restart(); }
+    onNewsUrlChanged: { news = null; fetchTimer.restart(); }
+    Timer {
+        id: fetchTimer
+        interval: Math.max(15, root.cfg.fetchMinutes) * 60000
+        running: root.weatherUrl !== "" || root.newsUrl !== ""
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: {
+            if (root.weatherUrl) root.fetch(root.weatherUrl, text => {
+                const w = Feeds.parseWeather(text, root.lang, Qt.locale().measurementSystem === Locale.ImperialUSSystem);
+                if (w) root.weather = w;
+            });
+            if (root.newsUrl) root.fetch(root.newsUrl, text => {
+                const n = Feeds.parseFeed(text, 8);
+                if (n) root.news = n;
+            });
+        }
+    }
+    // Requests still open after 30 s are given up.
+    property var requests: []
+    function fetch(url, done) {
+        const x = new XMLHttpRequest();
+        x.onreadystatechange = () => {
+            if (x.readyState !== XMLHttpRequest.DONE) return;
+            root.requests = root.requests.filter(r => r.x !== x);
+            if (x.status === 200) done(x.responseText);
+        };
+        x.open("GET", url);
+        x.send();
+        requests = requests.concat([{x: x, at: Date.now()}]);
+    }
+    Timer {
+        interval: 5000; repeat: true
+        running: root.requests.length > 0
+        onTriggered: root.requests.filter(r => Date.now() - r.at > 30000).forEach(r => r.x.abort())
+    }
+
     property var disks: []
     // The wallpaper of the desktop, for the workspace miniatures: a picture
     // path, or a package whose first image is taken. Until one is chosen
@@ -334,6 +460,7 @@ PlasmoidItem {
                     SegmentDigits { text: Qt.formatTime(root.now, "ss"); digitHeight: 22; weight: 0.1; aspect: 0.62; accent: parent.lit; ink: parent.unlit }
                 }
                 PlasmaCore.ToolTipArea { anchors.fill: parent; mainText: Qt.formatDate(root.now, Qt.locale().dateFormat(Locale.LongFormat)) }
+                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.openCalendar(parent) }
             }
         }
     }

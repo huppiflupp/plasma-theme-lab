@@ -22,6 +22,16 @@ KCM.SimpleKCM {
     property var cfg_showClockDefault
     property var cfg_layoutDefault
     property var cfg_mottoDefault
+    property var cfg_compactTopDefault
+    property var cfg_compactBottomDefault
+    property var cfg_sayingMinutesDefault
+    property var cfg_clockOpensAppDefault
+    property var cfg_calendarCommandDefault
+    property var cfg_enabledCalendarPluginsDefault
+    property var cfg_weatherServerDefault
+    property var cfg_weatherPlaceDefault
+    property var cfg_newsUrlDefault
+    property var cfg_fetchMinutesDefault
     property var cfg_thisWorkspaceDefault
     property var cfg_startLabelDefault
     property string cfg_tray

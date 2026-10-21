@@ -305,3 +305,143 @@ msgstr "Knöpfe für die Arbeitsflächen"
 
 msgid "Only the windows of the current workspace"
 msgstr "Nur die Fenster der aktuellen Arbeitsfläche"
+
+msgid "Start button:"
+msgstr "Start-Knopf:"
+
+# Control Strip, compact box (IDEEN.md)
+
+msgid "%1 – open the forecast"
+msgstr "%1 – Vorhersage öffnen"
+
+msgid "No weather data yet"
+msgstr "Noch keine Wetterdaten"
+
+msgid "Calendar"
+msgstr "Kalender"
+
+msgid "System monitor"
+msgstr "Systemmonitor"
+
+msgid "Disk usage"
+msgstr "Plattenbelegung"
+
+msgid "Open the article"
+msgstr "Artikel öffnen"
+
+msgid "Next saying"
+msgstr "Nächster Spruch"
+
+msgid "No headlines yet"
+msgstr "Noch keine Schlagzeilen"
+
+msgid "Today"
+msgstr "Heute"
+
+msgid "Tomorrow"
+msgstr "Morgen"
+
+msgid "Top:"
+msgstr "Oben:"
+
+msgid "Next appointments (the mark when there are none)"
+msgstr "Nächste Termine (die Marke, wenn keine anstehen)"
+
+msgid "The Warp Legacy mark"
+msgstr "Die Marke Warp Legacy"
+
+msgid "Weather (from the internet)"
+msgstr "Wetter (aus dem Internet)"
+
+msgid "Place:"
+msgstr "Ort:"
+
+msgid "e.g. Hamburg (empty: guessed from your IP address)"
+msgstr "z. B. Hamburg (leer: anhand der IP-Adresse geschätzt)"
+
+msgid "Weather service:"
+msgstr "Wetterdienst:"
+
+msgid "Clicking the clock:"
+msgstr "Klick auf die Uhr:"
+
+msgid "Shows the month and its events"
+msgstr "Zeigt den Monat mit seinen Terminen"
+
+msgid "Opens the calendar application"
+msgstr "Öffnet die Kalender-Anwendung"
+
+msgid "Calendar application:"
+msgstr "Kalender-Anwendung:"
+
+msgid "Events from:"
+msgstr "Termine aus:"
+
+msgid "Appointments come from KOrganizer/Akonadi (\"PIM Events\")."
+msgstr "Termine kommen aus KOrganizer/Akonadi („Kalenderereignisse“)."
+
+msgid "Bottom:"
+msgstr "Unten:"
+
+msgid "Sayings (Laozi, Seneca, Marcus Aurelius …)"
+msgstr "Sprüche (Laozi, Seneca, Marc Aurel …)"
+
+msgid "A fixed text"
+msgstr "Ein fester Text"
+
+msgid "News headlines (from the internet)"
+msgstr "Schlagzeilen (aus dem Internet)"
+
+msgid "Nothing"
+msgstr "Nichts"
+
+msgid "New saying:"
+msgstr "Neuer Spruch:"
+
+msgid "Every 15 minutes"
+msgstr "Alle 15 Minuten"
+
+msgid "Every hour"
+msgstr "Stündlich"
+
+msgid "Every day"
+msgstr "Täglich"
+
+msgid "Text:"
+msgstr "Text:"
+
+msgid "Feed address:"
+msgstr "Feed-Adresse:"
+
+msgid "https://… (an RSS or Atom feed)"
+msgstr "https://… (ein RSS- oder Atom-Feed)"
+
+msgid "Fetch every:"
+msgstr "Abruf alle:"
+
+msgid "%1 min"
+msgstr "%1 min"
+
+msgid "Weather and news are fetched from the internet. The services you name see your IP address; nothing else is sent. Without a connection the box stays quiet."
+msgstr "Wetter und Schlagzeilen kommen aus dem Internet. Die angegebenen Dienste sehen Ihre IP-Adresse, sonst wird nichts übertragen. Ohne Verbindung bleibt der Kasten still."
+
+msgid "Events"
+msgstr "Termine"
+
+msgid "No events"
+msgstr "Keine Termine"
+
+msgid "All day"
+msgstr "Ganztägig"
+
+msgid "Open Calendar"
+msgstr "Kalender öffnen"
+
+msgid "A calendar application"
+msgstr "Eine Kalender-Anwendung"
+
+msgid "A system monitor"
+msgstr "Ein Systemmonitor"
+
+msgid "A disk usage viewer"
+msgstr "Ein Programm für die Plattenbelegung"

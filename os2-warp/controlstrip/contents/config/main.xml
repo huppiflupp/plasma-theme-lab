@@ -18,5 +18,21 @@
     <!-- the compact box's motto; empty: none -->
     <entry name="motto" type="String"><default>Same spirit.
 New possibilities.</default></entry>
+    <!-- The compact box's top: "events" (the next appointments, the mark
+         when there are none), "mark", "weather" (fetched, so not default) -->
+    <entry name="compactTop" type="String"><default>events</default></entry>
+    <!-- Its bottom: "sayings" (rotating, shipped), "motto" (the fixed text
+         above), "news" (an RSS/Atom feed, fetched), "none" -->
+    <entry name="compactBottom" type="String"><default>sayings</default></entry>
+    <entry name="sayingMinutes" type="Int"><default>60</default></entry>
+    <!-- Clicking the clock: false the month with events, true the app -->
+    <entry name="clockOpensApp" type="Bool"><default>false</default></entry>
+    <entry name="calendarCommand" type="String"><default>@calendar</default></entry>
+    <entry name="enabledCalendarPlugins" type="StringList"><default>pimevents</default></entry>
+    <!-- Network sources, off unless chosen above. No key, no default feed. -->
+    <entry name="weatherServer" type="String"><default>https://wttr.in</default></entry>
+    <entry name="weatherPlace" type="String"><default></default></entry>
+    <entry name="newsUrl" type="String"><default></default></entry>
+    <entry name="fetchMinutes" type="Int"><default>30</default><min>15</min><max>1440</max></entry>
   </group>
 </kcfg>

@@ -66,6 +66,8 @@ const PRESETS = [
     {text: "Terminal", value: "@terminal", icon: "utilities-terminal"},
     {text: "Default text editor", value: "@editor", icon: "accessories-text-editor"},
     {text: "System Settings", value: "@settings", icon: "preferences-system"},
+    {text: "Calendar", value: "@calendar", icon: "view-calendar"},
+    {text: "System monitor", value: "@sysmon", icon: "utilities-system-monitor"},
     {text: "Trash", value: "@trash", icon: "user-trash"},
     {text: "Help Center", value: "@help", icon: "help-browser"},
     {text: "Installed application…", value: "app:", icon: "application-x-executable"},
@@ -140,6 +142,14 @@ const TOKENS = {
     "@terminal": {what: "A terminal", terminal: true,
                   programs: ["konsole", "xdg-terminal-exec", "gnome-terminal", "xterm"]},
     "@settings": {what: "System Settings", programs: ["systemsettings"]},
+    // From CDE Copper's launch.js; @sysmon and @diskusage for the Control
+    // Strip's meters (the last resort for disks: the file manager at "/").
+    "@calendar": {what: "A calendar application",
+                  programs: ["merkuro-calendar", "korganizer", "gnome-calendar", "thunderbird -calendar"]},
+    "@sysmon": {what: "A system monitor",
+                programs: ["plasma-systemmonitor", "ksysguard", "gnome-system-monitor", "mate-system-monitor", "xfce4-taskmanager"]},
+    "@diskusage": {what: "A disk usage viewer", fixed: "/",
+                   programs: ["filelight", "baobab", "qdirstat", "dolphin", "pcmanfm-qt", "nautilus", "xdg-open"]},
     "@help": {what: "Help Center", programs: ["khelpcenter", "xdg-open https://docs.kde.org"]}
 };
 
@@ -222,5 +232,6 @@ const TRANSLATABLE_STRINGS = [
     I18N_NOOP("Default text editor"), I18N_NOOP("Installed application…"), I18N_NOOP("Custom command…"),
     I18N_NOOP("Files"), I18N_NOOP("Home"), I18N_NOOP("Documents"), I18N_NOOP("Downloads"), I18N_NOOP("Pictures"),
     I18N_NOOP("Terminal"), I18N_NOOP("Text Editor"), I18N_NOOP("System Settings"), I18N_NOOP("Web"),
-    I18N_NOOP("Mail"), I18N_NOOP("Help"), I18N_NOOP("Trash"), I18N_NOOP("Desktop"), I18N_NOOP("Find"), I18N_NOOP("Lock")
+    I18N_NOOP("Mail"), I18N_NOOP("Help"), I18N_NOOP("Trash"), I18N_NOOP("Desktop"), I18N_NOOP("Find"), I18N_NOOP("Lock"),
+    I18N_NOOP("Calendar"), I18N_NOOP("System monitor")
 ];
