@@ -3,7 +3,7 @@
 FreeCAD (1.x) draws its widgets with its own Qt style sheet and keeps the
 colours of the 3D view, the sketcher and the tree in its parameters, so
 neither the colour scheme nor Kvantum reach it (the Flatpak has no Kvantum
-at all). This writes, into FreeCAD's per-user folder:
+at all). This writes, into FreeCAD's per-user folders (native and Flatpak):
 
     Gui/Stylesheets/CDE Copper.qss          Motif controls in the palette
     Gui/Stylesheets/images_cde/*.svg        their arrows and check marks
@@ -479,14 +479,20 @@ def remove_from_package(package: Path):
     tree.write(package, encoding="UTF-8", xml_declaration=True)
 
 
-def user_folders(data: Path):
-    """FreeCAD's per-user folders: one per version since 1.1 (v1-1), or the
+# The Flatpak keeps its own XDG folders, apart from ~/.local/share.
+FLATPAK_DATA = Path(".var/app/org.freecad.FreeCAD/data")
+
+
+def user_folders(data: Path, home: Path = None):
+    """FreeCAD's per-user folders, of a native FreeCAD (under data) and of
+    the Flatpak (under home): one per version since 1.1 (v1-1), or the
     folder itself for 1.0. Only folders FreeCAD already made are used."""
-    base = data / "FreeCAD"
-    if not base.is_dir():
-        return []
-    versions = sorted(p for p in base.glob("v[0-9]*-[0-9]*") if p.is_dir())
-    return versions or [base]
+    folders = []
+    for base in [data / "FreeCAD"] + ([home / FLATPAK_DATA / "FreeCAD"] if home else []):
+        if base.is_dir():
+            versions = sorted(p for p in base.glob("v[0-9]*-[0-9]*") if p.is_dir())
+            folders += versions or [base]
+    return folders
 
 
 def build_freecad(out: Path, P):

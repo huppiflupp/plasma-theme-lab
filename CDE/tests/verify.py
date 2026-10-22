@@ -677,7 +677,7 @@ class Stability(unittest.TestCase):
              patch.object(manage, "run"), patch.object(manage, "kvantum_available", return_value=False), \
              patch.object(manage, "current_scheme", return_value="test"), \
              patch.object(backdrops, "write_all"), patch.object(manage, "integrate_xfile"), \
-             patch.object(manage, "update_splash"), patch.object(manage, "update_gtk"), \
+             patch.object(manage, "update_splash"), patch.object(manage, "update_gtk"), patch.object(manage, "update_freecad"), \
              patch.object(manage, "save_manifest"), patch.object(manage, "plasma_script") as script:
             manage.set_palette({}, "NorthernSky")
             generated = script.call_args.args[0]
@@ -1059,26 +1059,32 @@ class FreeCAD(unittest.TestCase):
         import freecadtheme
         from unittest.mock import patch
         with tempfile.TemporaryDirectory(prefix="cde-freecad-") as temp:
-            data = Path(temp)
-            folder = data / "FreeCAD" / "v1-1"
+            data = Path(temp) / "data"
+            home = Path(temp) / "home"
+            native = data / "FreeCAD" / "v1-1"
+            native.mkdir(parents=True)
+            folder = home / freecadtheme.FLATPAK_DATA / "FreeCAD" / "v1-1"
             packs = folder / "SavedPreferencePacks"
             packs.mkdir(parents=True)
             (packs / "package.xml").write_text('<?xml version="1.0"?>\n<package format="1"><name>Saved</name><content>'
                                                '<preferencepack><name>Mine</name></preferencepack></content></package>\n')
-            with patch.object(manage, "DATA", data):
+            with patch.object(manage, "DATA", data), patch.object(manage, "HOME", home):
                 manage.update_freecad("Alpine")
                 manage.update_freecad("Alpine")
                 names = [p.findtext("name") for p in ET.parse(packs / "package.xml").getroot().iter("preferencepack")]
                 self.assertEqual(names, ["Mine", "CDE Copper"])
                 for rel in freecadtheme.OWNED:
                     self.assertTrue((folder / rel).exists(), rel)
+                    self.assertTrue((native / rel).exists(), rel)
                 manage.remove_freecad()
+            self.assertFalse((native / "SavedPreferencePacks" / "package.xml").exists())
             names = [p.findtext("name") for p in ET.parse(packs / "package.xml").getroot().iter("preferencepack")]
             self.assertEqual(names, ["Mine"])
             for rel in freecadtheme.OWNED:
                 self.assertFalse((folder / rel).exists(), rel)
         # No FreeCAD folder, nothing written.
-        with tempfile.TemporaryDirectory(prefix="cde-freecad-") as temp, patch.object(manage, "DATA", Path(temp)):
+        with tempfile.TemporaryDirectory(prefix="cde-freecad-") as temp, \
+             patch.object(manage, "DATA", Path(temp)), patch.object(manage, "HOME", Path(temp)):
             manage.update_freecad("Copper")
             self.assertEqual(list(Path(temp).iterdir()), [])
 

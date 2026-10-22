@@ -919,7 +919,7 @@ def update_freecad(name):
     sys.path.insert(0, str(ROOT))
     import build
     import freecadtheme
-    for folder in freecadtheme.user_folders(DATA):
+    for folder in freecadtheme.user_folders(DATA, HOME):
         freecadtheme.write(folder, build.P if name == "Copper" else palettes.theme(name))
 
 
@@ -927,7 +927,7 @@ def remove_freecad():
     """Our files only; a FreeCAD that still names the theme falls back to
     its built-in look (no style sheet) at its next start."""
     import freecadtheme
-    for folder in freecadtheme.user_folders(DATA):
+    for folder in freecadtheme.user_folders(DATA, HOME):
         for rel in freecadtheme.OWNED:
             remove(folder / rel)
         freecadtheme.remove_from_package(folder / "SavedPreferencePacks" / "package.xml")

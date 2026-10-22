@@ -153,7 +153,8 @@ languages can be added as `po/<language>.po`.
   controls as a style sheet of its own, the 3D view on the workspace colour
   with selection in the active-title colour, and sketch geometry in
   FreeCAD's usual hues, moved until they read on that colour. It is written
-  into every FreeCAD user folder that exists (`~/.local/share/FreeCAD/v1-1/`)
+  into every FreeCAD user folder that exists (`~/.local/share/FreeCAD/v1-1/`,
+  the Flatpak's `~/.var/app/org.freecad.FreeCAD/data/FreeCAD/v1-1/`)
   and rewritten with every palette; choose it once under Preferences ›
   General › Theme. FreeCAD copies a theme's colours only when it is chosen,
   so a small module (`Mod/CDECopper`) copies the newer ones at FreeCAD's
