@@ -9,9 +9,16 @@ Blue**, the same night in blue, closest to the concept
 ![Warp Legacy Neon](screenshots/warp-neon-2026-10.png)
 ![Warp Legacy Neon Blue](screenshots/warp-neon-blue-2026-10.png)
 
-More in the [gallery](screenshots/gallery/README.md): the taskbar with the
-compact box or the full Control Strip, other wallpapers and window buttons,
-Neon on dark pictures.
+<table>
+<tr><td width="50%"><img src="screenshots/gallery/neon-blue-taskbar-box.jpg" alt="Neon Blue: taskbar and the compact box with the weather"><br><sub>Neon Blue: taskbar and the compact box with the weather</sub></td><td width="50%"><img src="screenshots/gallery/neon-taskbar-strip.jpg" alt="Neon: taskbar and the full Control Strip"><br><sub>Neon: taskbar and the full Control Strip</sub></td></tr>
+<tr><td width="50%"><img src="screenshots/gallery/neon-dunkel-horizont-pink-warp4-buttons.jpg" alt="Neon on a dark pink horizon"><br><sub>Neon on a dark pink horizon</sub></td><td width="50%"><img src="screenshots/gallery/neon-blue-dunkel-orbit-cyan-tile-buttons.jpg" alt="Neon Blue on a cyan orbit, tile buttons"><br><sub>Neon Blue on a cyan orbit, tile buttons</sub></td></tr>
+<tr><td width="50%"><img src="screenshots/gallery/neon-neon-gitter-tube-buttons.jpg" alt="Neon on the neon grid, neon-tube buttons"><br><sub>Neon on the neon grid, neon-tube buttons</sub></td><td width="50%"><img src="screenshots/gallery/classic-warp3-tuerkis-diamond-buttons.jpg" alt="Classic on Warp 3's turquoise, diamond buttons"><br><sub>Classic on Warp 3's turquoise, diamond buttons</sub></td></tr>
+</table>
+
+More in the [gallery](screenshots/gallery/README.md): every variant with
+the compact box or the full Control Strip, other wallpapers and window
+buttons, Neon on dark pictures. The store entry's GIFs are in
+`screenshots/store/` (`tools/store-gifs.py` makes them from these).
 
 Not affiliated with IBM, Arca Noae or Stardock. "OS/2" and "Warp" are
 trademarks of IBM; nothing of IBM's or Stardock's is included: the icons,

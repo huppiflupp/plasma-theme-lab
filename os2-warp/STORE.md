@@ -83,3 +83,14 @@ Everything `install.sh` does beyond copying packages:
 - the IBM Plex fonts, the neon lock screen picture, four workspaces;
 - `uninstall.sh`'s restoring of the settings before: store packages are
   removed in "Get New…", the settings stay as the last theme left them.
+
+## Pictures
+
+`tools/store-gifs.py` joins the screenshots into the entry's GIFs in
+`screenshots/store/`, 1920×1080 with a label on each frame:
+`1-three-variants.gif` (the three variants, classic on other pictures),
+`2-panels.gif` (the taskbar with the compact box or the full Control Strip
+in each variant), `3-neon-dark.gif` and `4-neon-blue-dark.gif` (the Neons
+on dark pictures with the other button styles). The screenshots come from
+the VM in an English session (`tools/demo-scene.sh --panels concept` or
+`bottom`).
