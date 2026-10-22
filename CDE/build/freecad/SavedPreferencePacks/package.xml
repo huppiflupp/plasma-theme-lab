@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<package format="1">
+  <name>CDE Copper</name>
+  <description>FreeCAD in the colours of the CDE Copper palette</description>
+  <version>1.0.0</version>
+  <maintainer>CDE Copper</maintainer>
+  <license>GPL-3.0-or-later</license>
+  <content>
+    <preferencepack>
+      <name>CDE Copper</name>
+      <type>Theme</type>
+      <description>Motif controls and the CDE palette, following the palette chosen in the Style Manager.</description>
+      <version>1.0.0</version>
+      <tag>cde</tag>
+    </preferencepack>
+  </content>
+</package>

@@ -242,7 +242,7 @@ class Separation(unittest.TestCase):
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
             for item in ("tools", "frontpanel", "stylemanager", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "wallpapers", "screenshots",
-                         "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "systemparts.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
+                         "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "freecadtheme.py", "systemparts.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
                     shutil.copytree(source, copy / item, symlinks=True,
@@ -1027,6 +1027,60 @@ assert.strictEqual(parseTileRef('middle:1'), null);
             self.assertIn('"%s"' % role, api, role)
         for prop in ("desktopIds", "desktopNames", "currentDesktop"):
             self.assertIn('name: "%s"' % prop, api, prop)
+
+
+class FreeCAD(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, str(ROOT))
+
+    def test_pack_follows_the_palette(self):
+        import freecadtheme
+        import palettes
+        for name in ("Default", "Charcoal", "Alpine"):
+            P = palettes.theme(name)
+            cfg = ET.fromstring(freecadtheme.pack_cfg(P))
+            values = {e.get("Name"): e.get("Value") for e in cfg.iter("FCUInt")}
+            self.assertEqual(values["SelectionColor"], freecadtheme.rgba(P["selection"]), name)
+            texts = {e.get("Name"): e.text for e in cfg.iter("FCText")}
+            self.assertEqual(texts["StyleSheet"], freecadtheme.QSS)
+            self.assertEqual(texts["Theme"], freecadtheme.NAME)
+            # Sketch lines must read on the 3D view's workspace colour.
+            C = freecadtheme.colours(P)
+            for key in ("edge", "construction", "constrained", "dimension"):
+                self.assertGreaterEqual(palettes.contrast(C[key], P["desktop"]), 2.9, f"{name} {key}")
+            sheet = freecadtheme.qss(P)
+            self.assertIn(P["selection"], sheet)
+            # Colours are written in; FreeCAD's @tokens would need its yaml.
+            self.assertNotIn("@", sheet)
+
+    def test_install_and_remove_keep_the_users_packs(self):
+        import manage
+        import freecadtheme
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory(prefix="cde-freecad-") as temp:
+            data = Path(temp)
+            folder = data / "FreeCAD" / "v1-1"
+            packs = folder / "SavedPreferencePacks"
+            packs.mkdir(parents=True)
+            (packs / "package.xml").write_text('<?xml version="1.0"?>\n<package format="1"><name>Saved</name><content>'
+                                               '<preferencepack><name>Mine</name></preferencepack></content></package>\n')
+            with patch.object(manage, "DATA", data):
+                manage.update_freecad("Alpine")
+                manage.update_freecad("Alpine")
+                names = [p.findtext("name") for p in ET.parse(packs / "package.xml").getroot().iter("preferencepack")]
+                self.assertEqual(names, ["Mine", "CDE Copper"])
+                for rel in freecadtheme.OWNED:
+                    self.assertTrue((folder / rel).exists(), rel)
+                manage.remove_freecad()
+            names = [p.findtext("name") for p in ET.parse(packs / "package.xml").getroot().iter("preferencepack")]
+            self.assertEqual(names, ["Mine"])
+            for rel in freecadtheme.OWNED:
+                self.assertFalse((folder / rel).exists(), rel)
+        # No FreeCAD folder, nothing written.
+        with tempfile.TemporaryDirectory(prefix="cde-freecad-") as temp, patch.object(manage, "DATA", Path(temp)):
+            manage.update_freecad("Copper")
+            self.assertEqual(list(Path(temp).iterdir()), [])
 
 
 if __name__ == "__main__":

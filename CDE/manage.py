@@ -52,7 +52,7 @@ TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "
            "fonts/CDECopper", TOOL) + SCHEMES
 # The tool copy: what applying a palette needs, so the console and System
 # Settings can switch palettes without the extracted archive.
-TOOL_SOURCES = ("manage.py", "build.py", "palettes.py", "backdrops.py", "kvantum.py", "icons.py", "cursors.py", "gtktheme.py",
+TOOL_SOURCES = ("manage.py", "build.py", "palettes.py", "backdrops.py", "kvantum.py", "icons.py", "cursors.py", "gtktheme.py", "freecadtheme.py",
                 "layout.js", "tools", "palettes", "backdrops")
 # Owned by older installations and removed when they are upgraded.
 LEGACY_TARGETS = ("aurorae/themes/CDECopper", "wallpapers/CDEBackdrops", "wallpapers/org.cde.copper.backdrop")
@@ -640,6 +640,7 @@ def set_palette(manifest, name):
     update_splash(name)
     update_icons(name)
     update_gtk(name)
+    update_freecad(name)
     save_manifest(manifest)
     return theme
 
@@ -912,6 +913,26 @@ def update_gtk(name):
         gtk_theme(GTK_THEME)
 
 
+def update_freecad(name):
+    """Rewrite the FreeCAD theme (freecadtheme.py) in the palette, in every
+    FreeCAD user folder that exists. FreeCAD reads it at its next start."""
+    sys.path.insert(0, str(ROOT))
+    import build
+    import freecadtheme
+    for folder in freecadtheme.user_folders(DATA):
+        freecadtheme.write(folder, build.P if name == "Copper" else palettes.theme(name))
+
+
+def remove_freecad():
+    """Our files only; a FreeCAD that still names the theme falls back to
+    its built-in look (no style sheet) at its next start."""
+    import freecadtheme
+    for folder in freecadtheme.user_folders(DATA):
+        for rel in freecadtheme.OWNED:
+            remove(folder / rel)
+        freecadtheme.remove_from_package(folder / "SavedPreferencePacks" / "package.xml")
+
+
 def update_splash(name):
     """The start-up screen in the palette: its Colours.qml and backdrop tile
     in the installed global theme (ours)."""
@@ -1164,6 +1185,7 @@ def uninstall():
     for cache in (HOME / ".cache").glob("plasma_theme_cde-*"):
         remove(cache)
     remove_xfile_integration()
+    remove_freecad()
     if manifest["applied"]:
         dbus("org.kde.KWin", "/KWin", "reconfigure")
         start_shell()

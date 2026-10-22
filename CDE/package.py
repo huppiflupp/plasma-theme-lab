@@ -23,7 +23,7 @@ from build import VERSION  # noqa: E402
 DIST = ROOT / "dist"
 DIST.mkdir(exist_ok=True)
 archive = DIST / f"cde-copper-{VERSION}.tar.xz"
-items = ["build", "frontpanel", "stylemanager", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "tools", "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "systemparts.py", "system.py",
+items = ["build", "frontpanel", "stylemanager", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "tools", "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "freecadtheme.py", "systemparts.py", "system.py",
          "kvantum.py", "palettes.py", "backdrops.py", "configpage.py", "manage.py", "install.sh",
          "apply.sh", "uninstall.sh", "layout.js", "README.md", "LICENSE", "TESTING.md", "tests"]
 with tarfile.open(archive, "w:xz") as tar:

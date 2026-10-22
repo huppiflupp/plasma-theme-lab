@@ -149,6 +149,20 @@ languages can be added as `po/<language>.po`.
   programs such as Firefox or PCManFM get the Motif controls too; it is
   rebuilt with every palette. Libadwaita programs ignore GTK themes and only
   take Plasma's colours.
+- A FreeCAD theme ("CDE Copper", FreeCAD 1.1, also its Flatpak): Motif
+  controls as a style sheet of its own, the 3D view on the workspace colour
+  with selection in the active-title colour, and sketch geometry in
+  FreeCAD's usual hues, moved until they read on that colour. It is written
+  into every FreeCAD user folder that exists (`~/.local/share/FreeCAD/v1-1/`)
+  and rewritten with every palette; choose it once under Preferences ›
+  General › Theme. FreeCAD copies a theme's colours only when it is chosen,
+  so a small module (`Mod/CDECopper`) copies the newer ones at FreeCAD's
+  next start, as long as CDE Copper is the chosen theme. Uninstalling
+  removes the files; a FreeCAD that still names the theme starts with its
+  plain look.
+
+  ![FreeCAD in the Copper palette](screenshots/freecad-copper-1600.png)
+  ![FreeCAD in CDE's Default palette](screenshots/freecad-default-1600.png)
 - System parts, installed apart with `sudo python3 system.py install` (and
   undone with `uninstall`): a Plymouth boot splash (a Motif dialog with a
   meter on the backdrop, the passphrase prompt of an encrypted disk in it)

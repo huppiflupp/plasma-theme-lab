@@ -485,6 +485,8 @@ def main():
     build_cursors(OUT)
     from gtktheme import build_gtk
     build_gtk(OUT, P)
+    from freecadtheme import build_freecad
+    build_freecad(OUT, P)
     from systemparts import build_system
     build_system(OUT, P)
     from kvantum import build_kvantum
