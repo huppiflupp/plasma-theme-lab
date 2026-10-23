@@ -96,6 +96,12 @@ glyphs glowing cyan in every look, close in pink.
 
 Needs Plasma 6 and, for the program style, Kvantum (`kvantum` package).
 
+Download `warp-legacy-<version>.tar.xz` from the
+[releases](https://github.com/huppiflupp/warp-legacy/releases), unpack it
+and run the installer inside (no build needed), or clone this repository
+and run it here (it builds first: Python 3 with Pillow, NumPy, CairoSVG
+and PySide6, and gettext's `msgfmt`):
+
 ```bash
 ./install.sh                     # install all three variants
 ./install.sh --apply             # … and switch to Warp Legacy
@@ -147,8 +153,9 @@ translations, global themes). `install.sh` builds when `build/` is missing.
 | `fetch-reference.sh` | the reference screenshots DESIGN.md is measured from (not in the repository) |
 
 Parts taken from CDE Copper are copies, each with a note of where it came
-from; Warp Legacy and CDE Copper share no files (see the repository's
-CLAUDE.md).
+from; Warp Legacy and CDE Copper share no files. Warp Legacy is developed
+in [plasma-theme-lab](https://github.com/huppiflupp/plasma-theme-lab)
+next to CDE Copper and NT Legacy and mirrored here.
 
 ## Release
 

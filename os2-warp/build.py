@@ -143,7 +143,7 @@ def metadata(id_, name, description, structure=None):
     plugin = {"Id": id_, "Name": name, "Description": description,
               "Version": VERSION, "License": "GPL-2.0-or-later",
               "Authors": [{"Name": "Warp Legacy contributors"}],
-              "Website": "https://github.com/huppiflupp/plasma-theme-lab"}
+              "Website": "https://github.com/huppiflupp/warp-legacy"}
     meta = {"KPlugin": plugin}
     if structure:
         meta["KPackageStructure"] = structure

@@ -265,7 +265,7 @@ X-KDE-PluginInfo-Author=Warp Legacy contributors
 X-KDE-PluginInfo-Name={name}
 X-KDE-PluginInfo-Version={version}
 X-KDE-PluginInfo-License=GPL-2.0-or-later
-X-KDE-PluginInfo-Website=https://github.com/huppiflupp/plasma-theme-lab
+X-KDE-PluginInfo-Website=https://github.com/huppiflupp/warp-legacy
 X-KDE-PluginInfo-Category=
 """, encoding="utf-8")
     return target

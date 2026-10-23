@@ -128,7 +128,7 @@ def build_libreoffice(out, variants, version):
     <name lang="de">Warp-Legacy-Farben</name>
   </display-name>
   <publisher>
-    <name xlink:href="https://github.com/huppiflupp/plasma-theme-lab" lang="en">Warp Legacy contributors</name>
+    <name xlink:href="https://github.com/huppiflupp/warp-legacy" lang="en">Warp Legacy contributors</name>
   </publisher>
   <extension-description>
     <src lang="en" xlink:href="description-en.txt"/>
