@@ -100,7 +100,9 @@ Download `warp-legacy-<version>.tar.xz` from the
 [releases](https://github.com/huppiflupp/warp-legacy/releases), unpack it
 and run the installer inside (no build needed), or clone this repository
 and run it here (it builds first: Python 3 with Pillow, NumPy, CairoSVG
-and PySide6, and gettext's `msgfmt`):
+and PySide6, and gettext's `msgfmt`). The latest release, 0.4.2, has
+classic and Neon; Neon Blue and the compact box with the weather are so
+far only in the repository.
 
 ```bash
 ./install.sh                     # install all three variants
