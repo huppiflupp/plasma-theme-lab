@@ -1319,3 +1319,18 @@ moved; new text puts the mark back on the first.
 Checked on 245k (Wayland): Meta, "kon", arrows, Return confirmed by the
 user; plasmashell loads the console without QML errors; `build.py`,
 `tests/verify.py` green.
+
+## Release 1.1.0 (2026-10-24)
+
+Since 1.0.0: the FreeCAD theme in the CDE palette (ae79b209, 60f393b1), the
+calendar popup loading the event plugins (623a47aa), file manager tiles
+raising their open window (01b11b9b), arrow keys in Find Application
+(c7bdcf63). Version 1.1.0 in `build.py`, the metadata, `po/README.md`, the
+PO headers (they still said 0.9.6) and README; `dist/cde-copper-1.1.0.tar.xz`
+and the wallpaper archive built.
+
+Checked on 245k (Wayland): `build.py`, `tests/verify.py` (47) green;
+`msgfmt --check`: 406 translated, none fuzzy or untranslated; `manage.py
+check` plausible (Kvantum is missing on 245k); the two console changes
+installed and used. Not checked: the VMs (`plasma-lab`, `ubuntu-lab`),
+screenshots, console edges, sizes and palettes, X11.
