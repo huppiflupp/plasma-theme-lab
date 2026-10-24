@@ -187,17 +187,18 @@ PlasmoidItem {
     }
     // An application tile ("app:<desktop id>") whose program is open brings
     // its window forward, on whichever workspace, instead of starting it
-    // again (Thunderbird, already running, did nothing at all). With more
-    // than one window each click brings the next.
+    // again (Thunderbird, already running, did nothing at all). The file
+    // manager tiles do the same (Launch.windowApps). With more than one
+    // window each click brings the next.
     function raiseRunning(command) {
-        if (String(command).indexOf("app:") !== 0) return false;
-        const id = command.substring(4).replace(/\.desktop$/, "").toLowerCase();
+        const ids = Launch.windowApps(command);
+        if (!ids.length) return false;
         const rows = [];
         for (let i = 0; i < runningWindows.count; i++) {
             const idx = runningWindows.makeModelIndex(i);
             const appId = String(runningWindows.data(idx, TaskManager.AbstractTasksModel.AppId) || "").replace(/\.desktop$/, "").toLowerCase();
             const launcher = Launch.desktopId(String(runningWindows.data(idx, TaskManager.AbstractTasksModel.LauncherUrlWithoutIcon) || "")).toLowerCase();
-            if (appId === id || launcher === id) rows.push(idx);
+            if (ids.indexOf(appId) >= 0 || ids.indexOf(launcher) >= 0) rows.push(idx);
         }
         if (!rows.length) return false;
         const active = rows.findIndex(idx => runningWindows.data(idx, TaskManager.AbstractTasksModel.IsActive));

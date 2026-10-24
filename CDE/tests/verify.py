@@ -992,6 +992,12 @@ assert.strictEqual(desktopId('file:///usr/share/applications/org.kde.dolphin.des
 assert.strictEqual(desktopId('file:///usr/share/applications/kde4/foo.desktop'), 'kde4-foo');
 assert.strictEqual(desktopId('file:///home/u/Desktop/foo.desktop'), '');
 assert.strictEqual(desktopId('file:///home/u/notes.txt'), '');
+assert.deepStrictEqual(windowApps('app:org.kde.Kate.desktop'), ['org.kde.kate']);
+assert.ok(windowApps('@pcmanfm').indexOf('org.kde.dolphin') >= 0);
+assert.ok(windowApps('@files').indexOf('pcmanfm-qt') >= 0);
+assert.deepStrictEqual(windowApps('@xfile'), ['xfile']);
+for (const none of ['@files ~/Downloads', '@editor', '@terminal', 'dolphin', ''])
+    assert.deepStrictEqual(windowApps(none), [], none);
 const entry = 'Name=Text Editor\\nName[de]=Texteditor Kate\\nName[de_CH]=Chuchi\\nIcon=kate\\n';
 assert.deepStrictEqual(desktopSlot('org.kde.kate', entry, 'de_DE', {menu: 'mail'}),
     {label: 'Texteditor', icon: 'kate', command: 'app:org.kde.kate', menu: 'mail'});

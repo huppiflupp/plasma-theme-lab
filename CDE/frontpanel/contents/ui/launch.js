@@ -260,6 +260,24 @@ function detached(shell) {
         + quote(script.replace(/\$/g, "$$$$"));
 }
 
+// The programs whose open window a tile brings forward instead of starting
+// again, as lower-case app ids. A file manager given a folder that one of
+// its windows shows asks that window to come forward itself (Dolphin), which
+// Wayland refuses without an activation token, and the console's launches
+// carry none; the console may raise windows, so it does. Only the bare
+// tile: one that names a folder ("@files ~/Downloads") opens that folder.
+const FILE_MANAGERS = ["org.kde.dolphin", "pcmanfm-qt", "pcmanfm", "org.gnome.nautilus", "thunar", "xfile"];
+function windowApps(command) {
+    const words = String(command || "").trim().split(/\s+/);
+    const token = words[0] || "";
+    if (token.indexOf("app:") === 0)
+        return [token.substring(4).replace(/\.desktop$/, "").toLowerCase()];
+    if (words.length > 1) return [];
+    if (token === "@files" || token === "@pcmanfm") return FILE_MANAGERS;
+    if (token === "@xfile") return ["xfile"];
+    return [];
+}
+
 // Translate shipped labels at presentation time; keep user labels and app names.
 function slotLabel(slot, translate) {
     // A shipped label stays one when the tile gets another program (Files

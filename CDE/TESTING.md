@@ -1287,3 +1287,23 @@ y=1352, console from 1353, before ~17 px over the console); KWin reports
 Thunderbird's window as `net.thunderbird.Thunderbird`, the tile's id.
 `build.py`, `tests/verify.py` green. Not checked: X11, the VMs, upright
 console with the new menu stand-in.
+
+## File manager tiles raise their open window (2026-10-24)
+
+The Files tile did not reliably bring an open Dolphin forward. The tile runs
+`dolphin "$HOME"` through `systemd-run`; while a Dolphin window shows the
+home folder, the new process hands over to it over D-Bus and asks it to
+activate itself, which KWin refuses without an XDG activation token (the
+console's launches carry none): the window only demanded attention. With
+no such window a new one opened, hence "sometimes". The bare file manager
+tiles (`@files`, `@pcmanfm`, `@xfile`, no folder given) now raise an open
+file manager window through the TasksModel, as `app:` tiles do
+(`Launch.windowApps`).
+
+Checked on 245k (Wayland): the refusal reproduced with the tile's command
+line (KWin script: Dolphin `demandsAttention=true`, Konsole stayed active);
+KWin reports Dolphin as `org.kde.dolphin`; plasmashell loads the console
+without QML errors; `build.py`, `tests/verify.py` green. Pending: the click
+on the tile itself. Not checked: Meta+F1 and "Start New Instance" failing
+now and then (not reproduced; `dolphin` without arguments always opened a
+new window).
