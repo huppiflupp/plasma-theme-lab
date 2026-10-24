@@ -1,0 +1,278 @@
+"""Systemschicht: Plymouth und GRUB.
+
+Diese Teile liegen unter package/system/ und werden NUR von
+install-system.sh (sudo, mit Sicherung und --revert) eingespielt — getrennt
+vom Benutzer-Installer, weil ein Fehler hier den Start verhindern kann
+(guide/01, Risikostufe hoch).
+
+Die Kästen (GRUB-Menü, Fortschrittsbalken) kommen aus demselben
+9-Patch-Generator wie der Plasma Style und tragen damit dieselben Ecken.
+"""
+import os
+import shutil
+import struct
+import subprocess
+
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
+
+from . import frames, plasmasvg
+from .palette import readable, rgb
+
+
+def _box_svg(var, spec, prefix, scale_radius=2, glow=True, corner=None, radius=None):
+    """Ein einzelner 9-Patch im Stil des Themes, Ecken doppelt so groß wie
+    im Plasma Style — GRUB und Plymouth laufen in voller Bildschirmauflösung
+    ohne Skalierung."""
+    sh = spec["shape"]
+    raised = sh["bevel"] == "raised"
+    if radius is None:
+        radius = (sh["corner_size"] * scale_radius) if sh["corner"] != "square" else 0
+    g = plasmasvg.Generator(var.P, border=max(1, sh["bevel_width"]) if raised else 0,
+                            style="bevel" if raised else "flat", outer_border=max(1, sh["outer_border"]),
+                            corner_style=sh["corner"], radius=radius,
+                            corner=corner or max(10, radius + 4),
+                            cell=48, glow=(2 if sh["edge_glow"] and glow else 0))
+    return g.generate("box", {"description": "box", "prefixes": [prefix], "hints": [], "masks": []})
+
+
+def _darken(wall, P, amount, blur=10):
+    """Hintergrund für GRUB/Plymouth: weichgezeichnet und abgedunkelt — ein
+    Panzer mitten im Bild konkurrierte sonst mit Emblem und Menü."""
+    im = Image.open(wall).convert("RGB").resize((1920, 1080)).filter(ImageFilter.GaussianBlur(blur))
+    return Image.blend(im, Image.new("RGB", im.size, rgb(P["desktop"])), amount)
+
+
+def _label(text, ttf, size, colour, glow):
+    """Schriftzug mit weichem Leuchten — gerastert, weil weder GRUB noch
+    Plymouth (Image.Text) beliebige Schriften sauber setzen."""
+    font = ImageFont.truetype(ttf, size)
+    l, t, r, b = font.getbbox(text)
+    pad = size // 2
+    im = Image.new("RGBA", (r - l + 2 * pad, b - t + 2 * pad), (0, 0, 0, 0))
+    halo = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    ImageDraw.Draw(halo).text((pad - l, pad - t), text, font=font, fill=rgb(glow) + (200,))
+    im.alpha_composite(halo.filter(ImageFilter.GaussianBlur(size / 6)))
+    ImageDraw.Draw(im).text((pad - l, pad - t), text, font=font, fill=rgb(colour) + (255,))
+    return im
+
+
+# --------------------------------------------------------------------------
+PLYMOUTH_SCRIPT = """// {name} — Plymouth-Theme, generiert von Theme Forge.
+Window.SetBackgroundTopColor({dr:.3f}, {dg:.3f}, {db:.3f});
+Window.SetBackgroundBottomColor({dr:.3f}, {dg:.3f}, {db:.3f});
+sw = Window.GetWidth(); sh = Window.GetHeight();
+bg.image = Image("background.png");
+bg.sprite = Sprite(bg.image.Scale(sw, sh));
+bg.sprite.SetPosition(Window.GetX(), Window.GetY(), -10);
+
+cy = Window.GetY() + sh * 0.42;
+emblem.image = Image("emblem.png");
+emblem.sprite = Sprite(emblem.image);
+emblem.sprite.SetPosition(Window.GetX() + (sw - emblem.image.GetWidth()) / 2, cy - emblem.image.GetHeight(), 1);
+emblem.sprite.SetOpacity({emblem_opacity});
+
+label.image = Image("label.png");
+label.sprite = Sprite(label.image);
+label.sprite.SetPosition(Window.GetX() + (sw - label.image.GetWidth()) / 2, cy + 8, 1);
+
+track.image = Image("track.png");
+track.sprite = Sprite(track.image);
+track.x = Window.GetX() + (sw - {bw}) / 2;
+track.y = cy + 8 + label.image.GetHeight() + 20;
+track.sprite.SetPosition(track.x, track.y, 2);
+fill.image = Image("fill.png");
+fill.sprite = Sprite();
+fill.sprite.SetPosition(track.x + 4, track.y + 4, 3);
+
+fun progress(duration, fraction) {{
+    w = ({bw} - 8) * fraction;
+    if (w < 1) w = 1;
+    fill.sprite.SetImage(fill.image.Scale(w, {fh}));
+}}
+Plymouth.SetBootProgressFunction(progress);
+
+t = 0;
+fun refresh() {{
+    t++;
+    {pulse}
+}}
+Plymouth.SetRefreshFunction(refresh);
+
+// Passwortabfrage — ohne sie wartet ein verschlüsseltes System stumm.
+bullet.image = Image("bullet.png");
+bullets = [];
+prompt.sprite = Sprite();
+fun password(prompt_text, count) {{
+    prompt.image = Image.Text(prompt_text, {tr:.3f}, {tg:.3f}, {tb:.3f});
+    prompt.sprite.SetImage(prompt.image);
+    prompt.sprite.SetPosition(Window.GetX() + (sw - prompt.image.GetWidth()) / 2, track.y + 40, 4);
+    prompt.sprite.SetOpacity(1);
+    for (i = 0; i < count || i < bullets.GetSize(); i++) {{
+        if (i < count) {{
+            if (!bullets[i]) bullets[i] = Sprite(bullet.image);
+            bullets[i].SetPosition(Window.GetX() + sw / 2 - count * 9 + i * 18, track.y + 70, 4);
+            bullets[i].SetOpacity(1);
+        }} else if (bullets[i]) {{
+            bullets[i].SetOpacity(0);
+        }}
+    }}
+}}
+Plymouth.SetDisplayPasswordFunction(password);
+
+fun normal() {{
+    prompt.sprite.SetOpacity(0);
+    for (i = 0; i < bullets.GetSize(); i++) {{
+        if (bullets[i]) bullets[i].SetOpacity(0);
+    }}
+}}
+Plymouth.SetDisplayNormalFunction(normal);
+
+// Meldungen von systemd/fsck
+message.sprite = Sprite();
+fun message(text) {{
+    message.image = Image.Text(text, {tr:.3f}, {tg:.3f}, {tb:.3f});
+    message.sprite.SetImage(message.image);
+    message.sprite.SetPosition(Window.GetX() + (sw - message.image.GetWidth()) / 2, Window.GetY() + sh - 80, 5);
+}}
+Plymouth.SetMessageFunction(message);
+
+fun quit() {{
+    fill.sprite.SetOpacity(0);
+}}
+Plymouth.SetQuitFunction(quit);
+"""
+
+
+def plymouth(var, out, spec, wall, emblem_png, ttf):
+    P = var.P
+    base = f"{out}/system/plymouth/{var.id}"
+    os.makedirs(base, exist_ok=True)
+    layout = spec["boot"]["plymouth"]
+    _darken(wall, P, 0.6).save(f"{base}/background.png")
+    Image.open(emblem_png).resize((200, 200), Image.LANCZOS).save(f"{base}/emblem.png")
+    text_col = readable(P["text"], P["desktop"])
+    _label(spec["emblem"]["label"].upper(), ttf, 64 if layout == "text-bar" else 40,
+           text_col, P["glow"]).save(f"{base}/label.png")
+    bw, bh = 420, 18
+    frames.frame(_box_svg(var, spec, "track", 1, glow=False), "track", bw, bh).save(f"{base}/track.png")
+    Image.new("RGBA", (1, bh - 8), rgb(P["accent"]) + (255,)).save(f"{base}/fill.png")
+    Image.new("RGBA", (12, 12), rgb(P["glow"]) + (255,)).save(f"{base}/bullet.png")
+    tr, tg, tb = (c / 255 for c in rgb(text_col))
+    dr, dg, db = (c / 255 for c in rgb(P["desktop"]))
+    script = PLYMOUTH_SCRIPT.format(
+        name=var.name, dr=dr, dg=dg, db=db, tr=tr, tg=tg, tb=tb, bw=bw, fh=bh - 8,
+        emblem_opacity=0 if layout == "text-bar" else 1,
+        pulse="emblem.sprite.SetOpacity(0.65 + 0.35 * Math.Sin(t / 18));" if layout == "emblem-pulse" else "")
+    with open(f"{base}/{var.id}.script", "w") as f:
+        f.write(script)
+    with open(f"{base}/{var.id}.plymouth", "w") as f:
+        f.write(f"""[Plymouth Theme]
+Name={var.name}
+Description={spec['description']}
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/{var.id}
+ScriptFile=/usr/share/plymouth/themes/{var.id}/{var.id}.script
+""")
+
+
+# --------------------------------------------------------------------------
+def _pf2_name(path):
+    """Den Fontnamen aus einer PF2-Datei lesen — theme.txt muss ihn exakt nennen."""
+    with open(path, "rb") as f:
+        data = f.read(4096)
+    i = data.index(b"NAME")
+    n = struct.unpack(">I", data[i + 4:i + 8])[0]
+    return data[i + 8:i + 8 + n].rstrip(b"\0").decode()
+
+
+def grub(var, out, spec, wall, emblem_png, ttf):
+    P = var.P
+    base = f"{out}/system/grub/{var.camel}"
+    os.makedirs(base, exist_ok=True)
+    mkfont = shutil.which("grub2-mkfont") or shutil.which("grub-mkfont")
+    if not mkfont:
+        raise RuntimeError("grub2-mkfont fehlt")
+    fonts = {}
+    for key, size in (("item", 22), ("small", 16)):
+        dst = f"{base}/{key}.pf2"
+        subprocess.run([mkfont, "-s", str(size), "-o", dst, ttf], check=True, capture_output=True)
+        fonts[key] = _pf2_name(dst)
+
+    layout = spec["boot"]["grub"]
+    bg = _darken(wall, P, 0.5).convert("RGBA")
+    em = Image.open(emblem_png).convert("RGBA")
+    label = _label(spec["emblem"]["label"].upper(), ttf, 54, readable(P["text"], P["desktop"]), P["glow"])
+    # Emblem und Schriftzug ins Hintergrundbild: GRUB zeichnet "+ image" und
+    # "+ label" über dem Menü nicht zuverlässig (NT-Legacy-Befund, gen-grub.py).
+    if layout == "left-panel":
+        bg.alpha_composite(Image.new("RGBA", (680, 1080), rgb(P["surface"]) + (225,)), (0, 0))
+        bg.alpha_composite(Image.new("RGBA", (3, 1080), rgb(P["glow"]) + (255,)), (680, 0))
+        em = em.resize((220, 220), Image.LANCZOS)
+        bg.alpha_composite(em, (340 - 110, 90))
+        bg.alpha_composite(label, (340 - label.width // 2, 330))
+        box = {"left": "50", "top": "45%", "width": "580", "height": "45%"}
+        timeout = {"left": "50", "top": "93%", "width": "580"}
+    else:
+        em = em.resize((180, 180), Image.LANCZOS)
+        bg.alpha_composite(em, (960 - 90, 70))
+        bg.alpha_composite(label, (960 - label.width // 2, 262))
+        box = {"left": "50%-380", "top": "38%", "width": "760", "height": "44%"}
+        timeout = {"left": "50%-380", "top": "86%", "width": "760"}
+    bg.convert("RGB").save(f"{base}/background.png")
+
+    menu = frames.parts(frames.renderer(_box_svg(var, spec, "menu")), "menu")
+    # Kleine Ecken: GRUB legt die Ränder des Auswahlbilds AUSSEN um den
+    # Eintrag — mit 10-px-Ecken ragte der Balken in den nächsten (Test-VM).
+    sel_r = min(3, spec["shape"]["corner_size"]) if spec["shape"]["corner"] != "square" else 0
+    sel = frames.parts(frames.renderer(_box_svg(var, spec, "selected", glow=False, corner=sel_r + 2, radius=sel_r)), "selected")
+    names = {"topleft": "nw", "top": "n", "topright": "ne", "left": "w", "center": "c",
+             "right": "e", "bottomleft": "sw", "bottom": "s", "bottomright": "se"}
+    for part, short in names.items():
+        menu[part].save(f"{base}/menu_{short}.png")
+        menu[part].save(f"{base}/terminal_box_{short}.png")
+        sel[part].save(f"{base}/select_{short}.png")
+    with open(f"{base}/theme.txt", "w") as f:
+        f.write(f"""# {var.name} — GRUB-Theme, generiert von Theme Forge
+title-text: ""
+desktop-image: "background.png"
+desktop-image-scale-method: "crop"
+desktop-color: "{P['desktop']}"
+# Das Terminalfenster („Booting …“, Fehlermeldungen) im Stil des Menüs —
+# ohne diese Zeilen erschien beim Laden ein schwarzer Kasten (Test-VM).
+terminal-box: "terminal_box_*.png"
+terminal-left: "{box['left']}"
+terminal-top: "{box['top']}"
+terminal-width: "{box['width']}"
+terminal-height: "{box['height']}"
+
++ boot_menu {{
+    left = {box['left']}
+    top = {box['top']}
+    width = {box['width']}
+    height = {box['height']}
+    item_font = "{fonts['item']}"
+    item_color = "{P['text']}"
+    selected_item_color = "{P['selection_text']}"
+    item_height = 38
+    item_padding = 14
+    item_spacing = 4
+    icon_width = 0
+    icon_height = 0
+    menu_pixmap_style = "menu_*.png"
+    selected_item_pixmap_style = "select_*.png"
+    scrollbar = false
+}}
+
++ label {{
+    left = {timeout['left']}
+    top = {timeout['top']}
+    width = {timeout['width']}
+    align = "center"
+    id = "__timeout__"
+    text = "%d"
+    font = "{fonts['small']}"
+    color = "{readable(P['text'], P['desktop'])}"
+}}
+""")

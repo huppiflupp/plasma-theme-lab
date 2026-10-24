@@ -1,0 +1,33 @@
+{
+  "_doc": "Stilprüfung für 'Red Alert 2': zwei Fraktionen. Die Titelleiste (Identitätsfarbe des Themes) muss bei den Sowjets rot auf dunklem Grund sein, bei den Alliierten blau. Prüft nur, ob das LLM die Vorlage getroffen hat, nicht die Technik.",
+  "variants": {
+    "min": 2
+  },
+  "palettes": [
+    {
+      "name": "Sowjets: rot, dunkel",
+      "keys": [
+        "title_active"
+      ],
+      "hue": [
+        340,
+        20
+      ],
+      "min_sat": 0.45,
+      "min_hits": 1,
+      "mode": "dark"
+    },
+    {
+      "name": "Alliierte: blau",
+      "keys": [
+        "title_active"
+      ],
+      "hue": [
+        190,
+        250
+      ],
+      "min_sat": 0.3,
+      "min_hits": 1
+    }
+  ]
+}
