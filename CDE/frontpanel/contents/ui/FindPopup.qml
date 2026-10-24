@@ -9,8 +9,9 @@ import org.kde.kirigami as Kirigami
 
 // Find Application (from the applications menu): the applications that
 // match the search field, found by Plasma's application search (the one
-// KRunner uses: names, generic names, keywords), best first; Return starts
-// the first. Kicker's flat AppsModel, used here before, lists only the
+// KRunner uses: names, generic names, keywords), best first. Up and Down
+// move the mark through them while the cursor stays in the field; Return
+// starts the marked one, the first unless moved. Kicker's flat AppsModel, used here before, lists only the
 // categories in Plasma 6.
 PlasmaCore.Dialog {
     id: applications
@@ -45,13 +46,18 @@ PlasmaCore.Dialog {
                 color: applications.colors.fieldText; font.pixelSize: 13
                 background: Bevel { sunken: true; surface: applications.colors.field }
                 Keys.onEscapePressed: applications.visible = false
-                onAccepted: if (appList.count > 0) { appList.model.trigger(0, "", null); applications.visible = false; }
+                Keys.onUpPressed: appList.currentIndex = Math.max(0, appList.currentIndex - 1)
+                Keys.onDownPressed: appList.currentIndex = Math.min(appList.count - 1, appList.currentIndex + 1)
+                // New text, new results: the mark goes back to the best.
+                onTextChanged: appList.currentIndex = 0
+                onAccepted: if (appList.count > 0) { appList.model.trigger(Math.max(0, Math.min(appList.count - 1, appList.currentIndex)), "", null); applications.visible = false; }
             }
             ListView {
                 id: appList
                 Layout.fillWidth: true; Layout.fillHeight: true
                 clip: true; model: search.count > 0 ? search.modelForRow(0) : null; spacing: 2
                 ScrollBar.vertical: ScrollBar {}
+                onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
                 delegate: ConsoleButton {
                     required property int index
                     required property var model
@@ -62,6 +68,8 @@ PlasmaCore.Dialog {
                     Kirigami.Icon { x: 7; anchors.verticalCenter: parent.verticalCenter; width: 26; height: 26; source: parent.model.decoration; active: false }
                     leftPadding: 40
                     horizontal: true; surface: applications.colors.window; foreground: applications.colors.windowText
+                    selected: index === appList.currentIndex
+                    accent: applications.colors.highlight; accentText: applications.colors.highlightText
                     onClicked: { appList.model.trigger(index, "", null); applications.visible = false; }
                 }
             }

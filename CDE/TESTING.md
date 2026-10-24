@@ -1307,3 +1307,15 @@ without QML errors; `build.py`, `tests/verify.py` green. Pending: the click
 on the tile itself. Not checked: Meta+F1 and "Start New Instance" failing
 now and then (not reproduced; `dolphin` without arguments always opened a
 new window).
+
+## Find Application: arrow keys choose (2026-10-24)
+
+Meta, then typing, opens Find Application with the text; Return started
+only the first result. Up and Down now move a mark through the results
+(the button in the highlight colours, the list following it) while the
+cursor stays in the field; Return starts the marked one, the first unless
+moved; new text puts the mark back on the first.
+
+Checked on 245k (Wayland): Meta, "kon", arrows, Return confirmed by the
+user; plasmashell loads the console without QML errors; `build.py`,
+`tests/verify.py` green.
