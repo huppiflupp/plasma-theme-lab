@@ -6,7 +6,7 @@
     "Description": "A taskbar after the Neon concept: Start with the Warp menu, workspaces, window buttons",
     "Description[de]": "Taskleiste nach dem Neon-Konzept: Start mit dem Warp-Menü, Arbeitsflächen, Fensterknöpfe",
     "Icon": "start-here-kde",
-    "Version": "0.5.0",
+    "Version": "0.5.1",
     "License": "GPL-2.0-or-later",
     "Authors": [{"Name": "Warp Legacy contributors"}],
     "Category": "Windows and Tasks"

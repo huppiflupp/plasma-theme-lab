@@ -72,13 +72,26 @@ fi
 # The panels from before --layout: plasmashell writes its own on exit, so it
 # is stopped while the old file goes back.
 if [ -f "$STATE/appletsrc.before" ]; then
+    # Without a systemd user manager (OpenRC and the like) plasmashell is a
+    # plain process: kquitapp6 ends it, setsid starts it again.
     running=
-    if in_session && systemctl --user -q is-active plasma-plasmashell 2>/dev/null; then
-        running=1; systemctl --user stop plasma-plasmashell
+    if in_session && [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private" ] && command -v systemctl >/dev/null 2>&1; then
+        if systemctl --user -q is-active plasma-plasmashell 2>/dev/null; then
+            running=systemd; systemctl --user stop plasma-plasmashell
+        fi
+    elif in_session && pgrep -xu "$(id -u)" plasmashell >/dev/null 2>&1; then
+        running=plain; kquitapp6 plasmashell >/dev/null 2>&1
+        for _ in 1 2 3 4 5 6 7 8 9 10; do
+            pgrep -xu "$(id -u)" plasmashell >/dev/null 2>&1 || break
+            sleep 0.5
+        done
     fi
     cp -a "$STATE/appletsrc.before" "$CONFIG/plasma-org.kde.plasma.desktop-appletsrc"
     [ -f "$STATE/plasmashellrc.before" ] && cp -a "$STATE/plasmashellrc.before" "$CONFIG/plasmashellrc"
-    [ -n "$running" ] && systemctl --user start plasma-plasmashell
+    case "$running" in
+        systemd) systemctl --user start plasma-plasmashell ;;
+        plain) setsid -f plasmashell >/dev/null 2>&1 </dev/null ;;
+    esac
 fi
 
 if [ -f "$STATE/kvantum.kvconfig.before" ]; then

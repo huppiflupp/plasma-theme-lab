@@ -2,6 +2,27 @@
 
 Newest first. What was tested where, and what was not.
 
+## 0.5.1 — 25.10.2026, without systemd
+
+A CDE Copper user on Gentoo (OpenRC) found that the console's tiles did
+nothing: every launch went through `systemd-run --user`. Warp Legacy
+shares that code (`common/launch.js`, `detached()`), so its taskbar,
+LaunchPad, Warp menu and Control Strip starts failed there the same way.
+Now the shell checks for the user manager's socket
+(`$XDG_RUNTIME_DIR/systemd/private`) and `systemd-run`; without them it
+starts through `setsid -f`. `warp-legacy-switch` and `uninstall.sh` stop
+and start plasmashell with `kquitapp6` / `setsid -f plasmashell` when there
+is no systemd; before, the switch changed colours under a running shell
+(the crash of 21.10.2026) and the uninstaller copied panels under it.
+
+Checked on 245k: the generated launch shell with systemd and, with an
+empty `XDG_RUNTIME_DIR`, through setsid (both start the program);
+`warp-legacy-switch` without systemd against stub programs (kquitapp6,
+look and feel, setsid plasmashell, no systemctl call); `package.py` full
+build, both archives with the same file list as 0.5.0; `msgfmt --check`
+155 translated. Not checked: a real OpenRC system, the VMs, kpackagetool6
+on the new archives, uninstall.sh by hand.
+
 ## 0.5.0 — 25.10.2026, two packages (classic; Neon and Neon Blue)
 
 **Fedora 44** (`plasma-lab`, Plasma 6.7.4, snapshot `clean` plus Kvantum

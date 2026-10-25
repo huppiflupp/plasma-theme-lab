@@ -49,18 +49,32 @@ esac
 # stayed stopped, no panels, no wallpaper (Fedora VM, 21.10.2026). Hence
 # reset-failed before each start, and a shell left failed by that is
 # started too.
+# Without a systemd user manager (OpenRC and the like) plasmashell is a
+# plain process: kquitapp6 ends it (it waits until the shell has written
+# its configuration), setsid starts it in a session of its own.
 shell=
-if systemctl --user -q is-active plasma-plasmashell.service 2>/dev/null; then
+if [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private" ] && command -v systemctl >/dev/null 2>&1; then
+    if systemctl --user -q is-active plasma-plasmashell.service 2>/dev/null; then
+        shell=1
+        systemctl --user stop plasma-plasmashell.service
+    elif systemctl --user -q is-failed plasma-plasmashell.service 2>/dev/null; then
+        shell=1
+    fi
+    start_shell() {
+        systemctl --user reset-failed plasma-plasmashell.service 2>/dev/null
+        systemctl --user start plasma-plasmashell.service
+    }
+elif pgrep -xu "$(id -u)" plasmashell >/dev/null 2>&1; then
     shell=1
-    systemctl --user stop plasma-plasmashell.service
-elif systemctl --user -q is-failed plasma-plasmashell.service 2>/dev/null; then
-    shell=1
+    kquitapp6 plasmashell >/dev/null 2>&1
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+        pgrep -xu "$(id -u)" plasmashell >/dev/null 2>&1 || break
+        sleep 0.5
+    done
+    start_shell() { setsid -f plasmashell >/dev/null 2>&1 </dev/null; }
 fi
 plasma-apply-lookandfeel -a "$lnf" >/dev/null 2>&1 || echo "plasma-apply-lookandfeel failed" >&2
-if [ -n "$shell" ]; then
-    systemctl --user reset-failed plasma-plasmashell.service 2>/dev/null
-    systemctl --user start plasma-plasmashell.service
-fi
+[ -n "$shell" ] && start_shell
 sh "$here/warp-legacy-sync"
 case "$lnf" in
     *neon-blue*) cursors=WarpLegacyNeonBlueCursors ;;

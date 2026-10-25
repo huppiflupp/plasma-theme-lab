@@ -236,10 +236,15 @@ function resolve(command, translate) {
 // Detach from the executable data engine, which waits for its process
 // (KillMode=process: gtk-launch and kstart hand over and exit at once).
 // "$$" is systemd's literal dollar.
+// Without a systemd user manager (Gentoo and Devuan with OpenRC, Void,
+// Alpine) setsid takes over: the program leaves the shell's session and
+// the data engine is done once the shell has forked.
+const SYSTEMD_USER = "[ -S \"${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private\" ] && command -v systemd-run >/dev/null 2>&1";
 function detached(shell) {
     const script = "[ -n \"$DISPLAY$WAYLAND_DISPLAY\" ] && [ -n \"$DBUS_SESSION_BUS_ADDRESS\" ] || exit 0; " + shell;
-    return "systemd-run --user --collect --quiet -p KillMode=process -- sh -c "
-        + quote(script.replace(/\$/g, "$$$$"));
+    return "if " + SYSTEMD_USER + "; then "
+        + "systemd-run --user --collect --quiet -p KillMode=process -- sh -c " + quote(script.replace(/\$/g, "$$$$")) + "; "
+        + "else setsid -f sh -c " + quote(shell) + " >/dev/null 2>&1 </dev/null; fi";
 }
 
 // The desktop id of a task's launcher URL ("applications:<id>.desktop" or a
