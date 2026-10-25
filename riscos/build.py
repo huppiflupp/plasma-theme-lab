@@ -309,6 +309,13 @@ def lookandfeel(v):
     i = ids(v)
     base = f"plasma/look-and-feel/{i['lnf']}/"
     write(base + "metadata.json", json.dumps(metadata(i["lnf"], v["name"], v["description"], "Plasma/LookAndFeel"), indent=2))
+    # The pictures System Settings › Global Theme shows: VM screenshots of
+    # the variant with the iconbar (previews/, 640x360 and 1600x900).
+    key = v["key"] or "classic"
+    previews = OUT / base / "contents/previews"
+    previews.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT / f"previews/{key}.png", previews / "preview.png")
+    shutil.copy2(ROOT / f"previews/{key}-full.jpg", previews / "fullscreenpreview.jpg")
     # RISC OS: Back and Close on the left, Iconise and Toggle size on the
     # right (B = keep below, X, I, A). Plasma takes only library, theme and
     # BorderSize from here; install.sh writes the button order itself.

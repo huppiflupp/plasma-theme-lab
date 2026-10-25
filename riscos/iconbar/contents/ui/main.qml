@@ -61,6 +61,21 @@ PlasmoidItem {
         sortMode: TaskManager.TasksModel.SortAlpha
         launchInPlace: true
     }
+    // The iconised windows, one by one: RISC OS puts each on the Pinboard
+    // as an icon with the window's title; here they sit on the iconbar,
+    // left of the programs (the user's question 25.10.2026: where do
+    // minimised windows go?).
+    TaskManager.TasksModel {
+        id: iconised
+        activity: activities.currentActivity
+        virtualDesktop: desktops.currentDesktop
+        screenGeometry: Plasmoid.containment.screenGeometry
+        filterByActivity: true
+        filterByVirtualDesktop: false
+        filterNotMinimized: true
+        groupMode: TaskManager.TasksModel.GroupDisabled
+        sortMode: TaskManager.TasksModel.SortLastActivated
+    }
 
     // Mounted media, as RISC OS shows a drive icon per filing system.
     readonly property string user: String(Qt.resolvedUrl("~")).split("/").pop()
@@ -121,6 +136,28 @@ PlasmoidItem {
             }
 
             Item { Layout.fillWidth: true }
+
+            // ---- iconised windows -----------------------------------
+            Repeater {
+                model: iconised
+                IconbarItem {
+                    required property var model
+                    required property int index
+                    iconSource: model.decoration
+                    text: model.display || ""
+                    size: Math.round(bar.icon * 0.7); labelHeight: bar.label
+                    labelWidth: bar.icon * 2.4
+                    tip: root.tr("Iconised: %1", model.display || "")
+                    onSelect: iconised.requestToggleMinimized(iconised.makeModelIndex(index))
+                }
+            }
+            Rectangle {
+                visible: iconised.count > 0
+                Layout.preferredWidth: 1
+                Layout.fillHeight: true
+                Layout.topMargin: 8; Layout.bottomMargin: 8
+                color: Kirigami.Theme.disabledTextColor
+            }
 
             // ---- programs -------------------------------------------
             Repeater {

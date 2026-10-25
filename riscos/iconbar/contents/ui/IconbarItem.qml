@@ -15,11 +15,13 @@ Item {
     property string tip: ""
     property int size: 34
     property int labelHeight: 14
+    // How wide the name may grow (window titles get more room).
+    property real labelWidth: size * 2.6
     property bool active: false
     signal select()
     signal adjust()
 
-    implicitWidth: Math.max(size, label.visible ? Math.min(label.implicitWidth, size * 2.6) : 0) + 8
+    implicitWidth: Math.max(size, label.visible ? Math.min(label.implicitWidth, labelWidth) : 0) + 8
     implicitHeight: size + labelHeight
     Layout.preferredWidth: implicitWidth
     Layout.fillHeight: true
@@ -45,7 +47,7 @@ Item {
         id: label
         visible: item.text !== "" && item.labelHeight > 0
         anchors { top: picture.bottom; horizontalCenter: parent.horizontalCenter }
-        width: Math.min(implicitWidth, item.size * 2.6)
+        width: Math.min(implicitWidth, item.labelWidth)
         text: item.text
         elide: Text.ElideRight
         horizontalAlignment: Text.AlignHCenter
