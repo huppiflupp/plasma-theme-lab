@@ -339,6 +339,18 @@ PlasmaCore.Dialog {
     // as properties.
     readonly property FolderListModel desktopItems: FolderListModel { folder: menu.desktopUrl; showDirsFirst: true; showHidden: false }
     readonly property FolderListModel media: FolderListModel { folder: "file:///run/media/" + menu.user; showFiles: false }
+    // The global themes installed: the classic and the Neon package each
+    // bring only their own (package.py), and the switch row follows.
+    readonly property url lookAndFeelUrl: StandardPaths.writableLocation(StandardPaths.GenericDataLocation) + "/plasma/look-and-feel"
+    readonly property FolderListModel lookAndFeels: FolderListModel {
+        folder: menu.lookAndFeelUrl; showFiles: false; nameFilters: ["org.warplegacy.*"]
+    }
+    function hasLookAndFeel(id) {
+        const dir = localPath(lookAndFeelUrl);
+        for (let i = 0; i < lookAndFeels.count; i++)
+            if (String(lookAndFeels.get(i, "filePath")) === dir + "/" + id) return true;
+        return false;
+    }
     // The application menu's categories (as the Tab Launcher's tabs).
     // appletInterface as the Tab Launcher has it: without, the model stayed
     // empty and Programs opened nothing (VM, 20.10.2026).
@@ -365,13 +377,23 @@ PlasmaCore.Dialog {
         const rows = [
             {name: i18nd("warp-legacy", "Programs"), apps: categories, icon: "applications-other"},
             {name: i18nd("warp-legacy", "System Settings"), command: "@settings", icon: "preferences-system"},
-            // Classic and Neon at once, without logging out
-            // (session/warp-legacy-switch).
-            {name: neon ? i18nd("warp-legacy", "Switch to Warp Legacy") : i18nd("warp-legacy", "Switch to Warp Legacy Neon"),
-             command: "sh \"${XDG_DATA_HOME:-$HOME/.local/share}/warp-legacy/warp-legacy-switch\" toggle",
-             icon: "preferences-desktop-theme-global"},
             {separator: true}
         ];
+        // Classic and Neon at once, without logging out
+        // (session/warp-legacy-switch); with the Neon package alone,
+        // between Neon and Neon Blue (told apart by the selection's hue:
+        // violet in Neon, blue in Neon Blue), with the classic alone none.
+        const classic = hasLookAndFeel("org.warplegacy.desktop");
+        const neons = hasLookAndFeel("org.warplegacy.neon.desktop") || hasLookAndFeel("org.warplegacy.neon-blue.desktop");
+        let switchName = "";
+        if (classic && neons)
+            switchName = neon ? i18nd("warp-legacy", "Switch to Warp Legacy") : i18nd("warp-legacy", "Switch to Warp Legacy Neon");
+        else if (neons && hasLookAndFeel("org.warplegacy.neon.desktop") && hasLookAndFeel("org.warplegacy.neon-blue.desktop"))
+            switchName = Kirigami.Theme.highlightColor.hslHue > 0.66 ? i18nd("warp-legacy", "Switch to Neon Blue")
+                                                                      : i18nd("warp-legacy", "Switch to Neon");
+        if (switchName)
+            rows.splice(2, 0, {name: switchName, icon: "preferences-desktop-theme-global",
+                               command: "sh \"${XDG_DATA_HOME:-$HOME/.local/share}/warp-legacy/warp-legacy-switch\" toggle"});
         for (let i = 0; i < desktopItems.count; i++)
             rows.push(rowFor(desktopItems.get(i, "fileName"), desktopItems.get(i, "fileUrl"),
                              desktopItems.get(i, "fileIsDir"), desktopUrl));

@@ -1,4 +1,109 @@
-# KDE Store edition
+# KDE Store
+
+Two entries on store.kde.org, one per package that `package.py` makes;
+each is complete (panels, all wallpapers, fonts, LibreOffice and
+Firefox colours, install.sh). Since 25.10.2026, replacing the split
+edition below (the user's choice: two entries, not fifteen).
+
+| Entry | File | Category |
+|---|---|---|
+| **Warp Legacy** | `warp-legacy-<version>.tar.xz` (27 MB) | Global Themes (Plasma 6) |
+| **Warp Legacy Neon** | `warp-legacy-neon-<version>.tar.xz` (56 MB) | Global Themes (Plasma 6) |
+
+Licence GPL-2.0-or-later; the Source field links
+https://github.com/huppiflupp/warp-legacy. Pictures: the GIFs in
+`screenshots/store/classic/` and `screenshots/store/neon/`
+(`tools/store-gifs.py`), the PNGs `screenshots/warp-*-2026-10.png`.
+Each entry carries only its own archive: no other file, so "Get New…"
+cannot pick a wrong one (UPLOAD.md in the repository's root, NT Legacy).
+
+## How the archive works in "Get New…"
+
+The Global Themes category hands the file to kpackagetool6, which wants
+one package: a single folder with a `metadata.json`. `package.py` puts
+the family's main global theme (`metadata.json`, `contents/`) into the
+archive's folder, beside install.sh and build/:
+
+- "Get New…" installs it as the global theme Warp Legacy or Warp Legacy
+  Neon, with its name and preview, into
+  `~/.local/share/plasma/look-and-feel/org.warplegacy[.neon].desktop/`.
+  The rest (panels, icons, frame, Plasma style, wallpapers) comes from
+  `install.sh` in that folder; the description says so.
+- Unpacked by hand, it is the ordinary release archive.
+- The archive is GNU tar: kpackagetool6 could not open the Neon archive
+  in Python's default PAX format ("cannot open the package file"),
+  the classic one it could (Fedora VM, 25.10.2026).
+- `uninstall.sh` removes the folder "Get New…" made: without its
+  metadata.json, which uninstall removes with the theme's files, the
+  folder would turn every global theme in System Settings into "Breeze".
+
+## Pictures
+
+`tools/store-gifs.py` joins the screenshots into each entry's GIFs,
+1920×1080 with a label on each frame. `screenshots/store/classic/`:
+`1-warp-legacy.gif` (the variant, the taskbar with the compact box or the
+full Control Strip, other pictures and buttons). `screenshots/store/neon/`:
+`1-neon-and-neon-blue.gif` (both, and their panels), `2-neon-dark.gif`
+and `3-neon-blue-dark.gif` (on dark pictures with the other button
+looks). The screenshots come from the Fedora VM in an English session at
+1920×1080 (`tools/demo-scene.sh --panels screenshots`, `concept` or
+`bottom`; the button look is `buttonStyle` in `auroraerc`, group
+`kwin4_decoration_qml_warplegacy…`). The VM has no internet: Firefox and
+the weather went through a CONNECT proxy on the host that let only
+Wikipedia and wttr.in through, reached by an SSH reverse tunnel.
+
+## Description, Warp Legacy
+
+> OS/2 Warp 4 for Plasma 6: Warp 4's grey and blue, the OS/2 window
+> frame with six button looks, the Warp Taskbar, the Warp Bar after the
+> WarpCenter, the LaunchPad, the Control Strip (as a compact box with the
+> weather or the full strip) and the Tab Launcher, Warp 4's icons, OS/2
+> controls in programs (Kvantum), Konsole, LibreOffice and Firefox
+> colours, and 43 wallpapers. The night variants are the entry Warp
+> Legacy Neon; both can be installed side by side, the Warp menu then
+> switches between them.
+>
+> Install: "Get New…" puts the global theme in place. For everything
+> else run, once:
+>
+> `~/.local/share/plasma/look-and-feel/org.warplegacy.desktop/install.sh --apply --layout`
+>
+> then log out and in. Or download the archive, unpack it and run
+> `./install.sh --apply --layout` inside. `uninstall.sh` beside it puts
+> back the settings from before.
+>
+> Requirements: Plasma 6 (tested on Fedora 44 / Plasma 6.7 and Kubuntu
+> 26.04 / Plasma 6.6); Kvantum for the program style (package `kvantum`).
+> Not affiliated with IBM, Arca Noae or Stardock; everything is drawn
+> anew.
+
+## Description, Warp Legacy Neon
+
+> OS/2 at night for Plasma 6, in two colours: Neon, navy with cyan and
+> violet glowing edges, and Neon Blue, the same night in electric blue
+> with pink accents. The OS/2 window frame with a slow light running
+> round it and six button looks, the Warp Taskbar, the Warp Bar, the
+> LaunchPad, the Control Strip (compact box with the weather, or the full
+> strip) and the Tab Launcher, glowing icons, neon mouse cursors, Kvantum,
+> Konsole, LibreOffice and Firefox colours, and 43 wallpapers. The Warp
+> menu switches between Neon and Neon Blue without logging out. The
+> classic grey is the entry Warp Legacy.
+>
+> Install: "Get New…" puts the global theme in place. For everything
+> else run, once:
+>
+> `~/.local/share/plasma/look-and-feel/org.warplegacy.neon.desktop/install.sh --apply --layout`
+>
+> (`--apply neon-blue` for Neon Blue), then log out and in. Or download
+> the archive, unpack it and run `./install.sh --apply --layout` inside.
+> `uninstall.sh` beside it puts back the settings from before.
+>
+> Requirements: Plasma 6 (tested on Fedora 44 / Plasma 6.7 and Kubuntu
+> 26.04 / Plasma 6.6); Kvantum for the program style (package `kvantum`).
+> Not affiliated with IBM, Arca Noae or Stardock; everything is drawn
+> anew.
+
+## The split edition (store.py, not published)
 
 `store.py` (copied from CDE Copper's, see its head) splits the built theme
 into one archive per KDE Store entry, so that System Settings › Global
@@ -24,7 +129,7 @@ edition yet: it would need a frame of its own from gen-warp-aurorae.py, its
 Plasma style and the blue cursors as further entries. The release archive
 has it.
 
-## The entries
+### The entries
 
 | Part | Archive | Category (knsrc) | Dependency of |
 |---|---|---|---|
@@ -44,7 +149,7 @@ documents no size limit; the Neon icons are the largest archive. Should
 the store refuse one, the release archive on GitHub and the store's
 external link are the way out (as CDE/STORE.md describes).
 
-## What the store edition changes
+### What the store edition changes
 
 - **Global themes:** `widgetStyle=Breeze` instead of Kvantum; the SVG frame
   (`__aurorae__svg__WarpLegacy`, `…WarpLegacyNeon`) instead of the QML
@@ -65,7 +170,7 @@ external link are the way out (as CDE/STORE.md describes).
   `plasma-apply-lookandfeel` (the global theme alone; Kvantum, Konsole,
   LibreOffice do not follow).
 
-## What it cannot do
+### What it cannot do
 
 Everything `install.sh` does beyond copying packages:
 
@@ -83,14 +188,3 @@ Everything `install.sh` does beyond copying packages:
 - the IBM Plex fonts, the neon lock screen picture, four workspaces;
 - `uninstall.sh`'s restoring of the settings before: store packages are
   removed in "Get New…", the settings stay as the last theme left them.
-
-## Pictures
-
-`tools/store-gifs.py` joins the screenshots into the entry's GIFs in
-`screenshots/store/`, 1920×1080 with a label on each frame:
-`1-three-variants.gif` (the three variants, classic on other pictures),
-`2-panels.gif` (the taskbar with the compact box or the full Control Strip
-in each variant), `3-neon-dark.gif` and `4-neon-blue-dark.gif` (the Neons
-on dark pictures with the other button styles). The screenshots come from
-the VM in an English session (`tools/demo-scene.sh --panels concept` or
-`bottom`).

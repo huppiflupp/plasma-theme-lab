@@ -6,7 +6,7 @@
     "Description": "OS/2-style launch pad: Lock, Find, Shut down, Window list and launchers with drawers",
     "Description[de]": "Startleiste im Stil von OS/2: Sperren, Suchen, Systemabschluss, Fensterliste und Starter mit Schubladen",
     "Icon": "start-here-kde",
-    "Version": "0.4.2",
+    "Version": "0.5.0",
     "License": "GPL-2.0-or-later",
     "Authors": [{"Name": "Warp Legacy contributors"}],
     "Category": "Application Launchers"

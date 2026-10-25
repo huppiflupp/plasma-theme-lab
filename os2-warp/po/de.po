@@ -472,3 +472,9 @@ msgstr "Zu Warp Legacy wechseln"
 
 msgid "Switch to Warp Legacy Neon"
 msgstr "Zu Warp Legacy Neon wechseln"
+
+msgid "Switch to Neon Blue"
+msgstr "Zu Neon Blue wechseln"
+
+msgid "Switch to Neon"
+msgstr "Zu Neon wechseln"

@@ -12,25 +12,37 @@
 #   warp-legacy-switch [neon|neon-blue|classic|toggle]   (toggle when left out)
 #
 # toggle goes from either Neon to classic, and from classic to the Neon
-# last used (Neon when there was none).
+# last used (Neon when there was none). With the Neon package alone (no
+# classic global theme, package.py) it goes between Neon and Neon Blue;
+# with the classic alone there is nothing to switch to.
 #
 # Programs already open keep their Kvantum style and Konsole profile until
 # they are started again; LibreOffice switches only while it is closed.
 here=$(dirname "$0")
+installed() { [ -d "${XDG_DATA_HOME:-$HOME/.local/share}/plasma/look-and-feel/$1" ]; }
 case "${1:-toggle}" in
     neon) lnf=org.warplegacy.neon.desktop ;;
     neon-blue) lnf=org.warplegacy.neon-blue.desktop ;;
     classic) lnf=org.warplegacy.desktop ;;
     toggle)
         current=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
-        case "$current" in
-            org.warplegacy.neon*)
-                kwriteconfig6 --file warplegacyrc --group General --key lastNeon "$current"
-                lnf=org.warplegacy.desktop ;;
-            *)
-                lnf=$(kreadconfig6 --file warplegacyrc --group General --key lastNeon)
-                lnf=${lnf:-org.warplegacy.neon.desktop} ;;
-        esac ;;
+        if ! installed org.warplegacy.desktop; then
+            case "$current" in
+                org.warplegacy.neon.desktop) lnf=org.warplegacy.neon-blue.desktop ;;
+                *) lnf=org.warplegacy.neon.desktop ;;
+            esac
+            installed "$lnf" || { echo "Nothing to switch to" >&2; exit 1; }
+        else
+            case "$current" in
+                org.warplegacy.neon*)
+                    kwriteconfig6 --file warplegacyrc --group General --key lastNeon "$current"
+                    lnf=org.warplegacy.desktop ;;
+                *)
+                    lnf=$(kreadconfig6 --file warplegacyrc --group General --key lastNeon)
+                    lnf=${lnf:-org.warplegacy.neon.desktop}
+                    installed "$lnf" || { echo "Nothing to switch to" >&2; exit 1; } ;;
+            esac
+        fi ;;
     *) echo "usage: $0 [neon|neon-blue|classic|toggle]" >&2; exit 2 ;;
 esac
 # Switching several times in a row ran into systemd's start limit: the shell

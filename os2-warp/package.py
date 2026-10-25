@@ -2,14 +2,26 @@
 """Package Warp Legacy for release (after CDE Copper's package.py, a copy;
 the two themes share no files).
 
-    python3 package.py        # full build, then dist/warp-legacy-<version>.tar.xz
+    python3 package.py        # full build, then two archives in dist/:
+                              #   warp-legacy-<version>.tar.xz       classic
+                              #   warp-legacy-neon-<version>.tar.xz  Neon and Neon Blue
 
-The archive holds the built theme (build/, every icon set, the cursors,
-wallpaper packages, plasmoids, the LibreOffice extension) with install.sh
-and uninstall.sh: unpacked, `./install.sh --apply [neon|neon-blue]` needs neither
-Python nor a build. The sources too heavy for it (the icon masters,
-icons-neon2026/, 170 MB; the wallpaper sources) stay in the repository,
-which is where a rebuild starts.
+Each archive holds the built theme of its family (build/ without the
+other family's global theme, Plasma style, window frame, colours, Kvantum,
+Konsole, icons and cursors) and everything shared: the panels, all the
+wallpapers, the fonts, LibreOffice and the browsers, with install.sh and
+uninstall.sh. Unpacked, `./install.sh --apply [neon-blue] --layout` needs
+neither Python nor a build. The sources too heavy for it (the icon
+masters, icons-neon2026/, 170 MB; the wallpaper sources) stay in the
+repository, which is where a rebuild starts.
+
+One archive per KDE Store entry (STORE.md): the store's "Get New…" hands a
+Global Theme entry's file to kpackagetool, which wants one package with its
+metadata.json in the archive's single folder. The folder therefore also
+carries the family's main global theme (metadata.json, contents/): "Get
+New…" installs that theme, named and with its preview, instead of a nameless
+folder that turned every theme in the list into "Breeze" (UPLOAD.md, NT
+Legacy 0.2.3); install.sh in that folder brings the rest.
 
 The build is a full one, never WARP_SKIP_ICONS: a quick test build left
 the first Neon icon set out.
@@ -44,10 +56,28 @@ if missing:
 
 DIST = ROOT / "dist"
 DIST.mkdir(exist_ok=True)
-NAME = f"warp-legacy-{VERSION}"
-archive = DIST / f"{NAME}.tar.xz"
-ITEMS = ["build", "install.sh", "uninstall.sh", "README.md", "DESIGN.md", "LICENSE",
+ITEMS = ["install.sh", "uninstall.sh", "README.md", "DESIGN.md", "LICENSE",
          "RELEASE-CHECKLIST.md", "TESTING.md", "libreoffice/README.md", "browser/README.md"]
+BUILD = ROOT / "build"
+
+# family: (archive name, its global theme for kpackage, preview, what of
+# build/ belongs to the other family only)
+CLASSIC_ONLY = ["plasma/look-and-feel/org.warplegacy.desktop", "plasma/desktoptheme/warp-legacy",
+                "kwin/decorations/kwin4_decoration_qml_warplegacy", "color-schemes/WarpLegacy.colors",
+                "konsole/WarpLegacy.colorscheme", "konsole/Warp Legacy.profile", "config/Kvantum/Warp",
+                "icons/WarpLegacy"]
+NEON_ONLY = [p.relative_to(BUILD).as_posix() for pattern in
+             ["plasma/look-and-feel/org.warplegacy.neon*", "plasma/desktoptheme/warp-legacy-neon*",
+              "kwin/decorations/kwin4_decoration_qml_warplegacyneon*", "color-schemes/WarpLegacyNeon*",
+              "konsole/*Neon*", "config/Kvantum/WarpNeon*", "icons/WarpLegacyNeon*"]
+             for p in BUILD.glob(pattern)]
+FAMILIES = {
+    "classic": ("warp-legacy", "org.warplegacy.desktop", "previews/classic.png", NEON_ONLY),
+    "neon": ("warp-legacy-neon", "org.warplegacy.neon.desktop", "previews/neon.png", CLASSIC_ONLY),
+}
+for path in CLASSIC_ONLY:
+    if not (BUILD / path).exists():
+        sys.exit(f"build/{path} is missing, not packed")
 
 
 def keep(info):
@@ -59,11 +89,30 @@ def keep(info):
     return info
 
 
-with tarfile.open(archive, "w:xz", preset=6) as tar:
-    for item in ITEMS:
-        if (ROOT / item).exists():
-            tar.add(ROOT / item, arcname=f"{NAME}/{item}", filter=keep)
-    tar.add(ROOT / "previews/neon.png", arcname=f"{NAME}/preview.png", filter=keep)
-digest = hashlib.sha256(archive.read_bytes()).hexdigest()
-(DIST / "SHA256SUMS").write_text(f"{digest}  {archive.name}\n")
-print(f"{archive}: {archive.stat().st_size:,} bytes")
+sums = []
+for family, (name, lnf, preview, leave_out) in FAMILIES.items():
+    top = f"{name}-{VERSION}"
+    archive = DIST / f"{top}.tar.xz"
+    skip = {f"{top}/build/{path}" for path in leave_out}
+
+    def family_only(info):
+        if info.name in skip or any(info.name.startswith(s + "/") for s in skip):
+            return None
+        return keep(info)
+
+    # GNU, not Python's default PAX: kpackagetool6 (KArchive) could not
+    # open the Neon archive in PAX ("cannot open the package file"), the
+    # same files in GNU format it installed (Fedora VM, 25.10.2026).
+    with tarfile.open(archive, "w:xz", preset=6, format=tarfile.GNU_FORMAT) as tar:
+        theme = BUILD / "plasma/look-and-feel" / lnf
+        tar.add(theme / "metadata.json", arcname=f"{top}/metadata.json", filter=keep)
+        tar.add(theme / "contents", arcname=f"{top}/contents", filter=keep)
+        tar.add(BUILD, arcname=f"{top}/build", filter=family_only)
+        for item in ITEMS:
+            if (ROOT / item).exists():
+                tar.add(ROOT / item, arcname=f"{top}/{item}", filter=keep)
+        tar.add(ROOT / preview, arcname=f"{top}/preview.png", filter=keep)
+    digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+    sums.append(f"{digest}  {archive.name}\n")
+    print(f"{archive}: {archive.stat().st_size:,} bytes")
+(DIST / "SHA256SUMS").write_text("".join(sums))

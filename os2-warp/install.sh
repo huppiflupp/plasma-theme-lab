@@ -4,8 +4,11 @@
 # uninstall.sh removes exactly those. A Kvantum choice made before is kept
 # aside and restored by uninstall.sh.
 #
-#   ./install.sh                 install all three variants
-#   ./install.sh --apply         … and switch to Warp Legacy
+#   ./install.sh                 install the variants the archive brings
+#                                (classic, or Neon and Neon Blue; the
+#                                repository's build has all three)
+#   ./install.sh --apply         … and switch to Warp Legacy (Neon in
+#                                the Neon package, which has no classic)
 #   ./install.sh --apply neon    … and switch to Warp Legacy Neon
 #   ./install.sh --apply neon-blue  … and to Warp Legacy Neon Blue
 #   … --layout                   also replace the panels with Warp Legacy's
@@ -31,6 +34,18 @@ DATA="${XDG_DATA_HOME:-$HOME/.local/share}"
 CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
 STATE="$DATA/warp-legacy-install"
 [ -d "$HERE/build" ] || python3 "$HERE/build.py"
+# The packages bring one family each (package.py): the variant asked for
+# must be in this one.
+case "$VARIANT" in "") lnf=org.warplegacy.desktop ;; *) lnf=org.warplegacy.$VARIANT.desktop ;; esac
+if [ ! -d "$HERE/build/plasma/look-and-feel/$lnf" ]; then
+    if [ -z "$VARIANT" ] && [ -d "$HERE/build/plasma/look-and-feel/org.warplegacy.neon.desktop" ]; then
+        VARIANT=neon
+    else
+        case "$VARIANT" in "") other="Warp Legacy" ;; *) other="Warp Legacy Neon" ;; esac
+        echo "This archive does not bring that variant; it is in the package $other." >&2
+        exit 2
+    fi
+fi
 mkdir -p "$STATE"
 # The lists only grow: a later install that brings fewer files (a test
 # build without icons) must not make uninstall.sh forget earlier ones.

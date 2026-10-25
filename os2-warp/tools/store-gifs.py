@@ -19,25 +19,26 @@ GALLERY = SHOTS / "gallery"
 FONT = str(ROOT / "fonts/IBMPlex/IBMPlexSansCondensed-SemiBold.otf")
 NAVY, CYAN, PINK, LIGHT = (10, 18, 64), (58, 208, 255), (255, 79, 216), (232, 246, 255)
 
-# The GIFs: file, then (picture, label); a picture of the screenshots folder
-# carries the Warp Bar, so its label goes lower.
+# The GIFs, one folder per KDE Store entry (STORE.md): file, then
+# (picture, label); a picture of the screenshots folder carries the Warp
+# Bar, so its label goes lower.
 GIFS = {
-    "1-three-variants.gif": [
+    "classic/1-warp-legacy.gif": [
         ("warp-classic-2026-10.png", "Warp Legacy: OS/2 Warp 4's grey and blue"),
-        ("warp-neon-2026-10.png", "Warp Legacy Neon: navy, cyan and violet"),
-        ("warp-neon-blue-2026-10.png", "Warp Legacy Neon Blue: the night in blue"),
+        ("gallery/classic-taskbar-box.jpg", "Taskbar and the compact box: weather, clock, gauges"),
+        ("gallery/classic-taskbar-strip.jpg", "Or the full Control Strip: workspaces, launchers, gauges"),
         ("gallery/classic-warp3-tuerkis-diamond-buttons.jpg", "Warp 3's turquoise, diamond buttons"),
         ("gallery/classic-marmorpapier-corners-buttons.jpg", "Marbled paper, window-corner buttons"),
     ],
-    "2-panels.gif": [
+    "neon/1-neon-and-neon-blue.gif": [
+        ("warp-neon-2026-10.png", "Warp Legacy Neon: navy, cyan and violet"),
+        ("warp-neon-blue-2026-10.png", "Warp Legacy Neon Blue: the night in blue"),
         ("gallery/neon-blue-taskbar-box.jpg", "Taskbar and the compact box: weather, clock, gauges"),
         ("gallery/neon-blue-taskbar-strip.jpg", "Or the full Control Strip: workspaces, launchers, gauges"),
         ("gallery/neon-taskbar-box.jpg", "Neon: taskbar and compact box"),
         ("gallery/neon-taskbar-strip.jpg", "Neon: taskbar and full Control Strip"),
-        ("gallery/classic-taskbar-box.jpg", "Classic: taskbar and compact box"),
-        ("gallery/classic-taskbar-strip.jpg", "Classic: taskbar and full Control Strip"),
     ],
-    "3-neon-dark.gif": [
+    "neon/2-neon-dark.gif": [
         ("gallery/neon-dunkel-horizont-pink-warp4-buttons.jpg", "Neon on a pink horizon"),
         ("gallery/neon-dunkel-rauch-pink-tube-buttons.jpg", "Pink smoke, neon-tube buttons"),
         ("gallery/neon-dunkel-nebel-indigo-diamond-buttons.jpg", "Indigo nebula, diamond buttons"),
@@ -46,7 +47,7 @@ GIFS = {
         ("gallery/neon-dunkel-orbit-violett-tile-buttons.jpg", "Violet orbit, tile buttons"),
         ("gallery/neon-neon-gitter-tube-buttons.jpg", "Neon grid, neon-tube buttons"),
     ],
-    "4-neon-blue-dark.gif": [
+    "neon/3-neon-blue-dark.gif": [
         ("gallery/neon-blue-dunkel-horizont-cyan-warp4-buttons.jpg", "Neon Blue on a cyan horizon"),
         ("gallery/neon-blue-dunkel-polarlicht-cyan-tube-buttons.jpg", "Cyan aurora, neon-tube buttons"),
         ("gallery/neon-blue-dunkel-orbit-cyan-tile-buttons.jpg", "Cyan orbit, tile buttons"),
@@ -87,6 +88,7 @@ def main():
     out = Path(sys.argv[1]) if len(sys.argv) > 1 else SHOTS / "store"
     out.mkdir(parents=True, exist_ok=True)
     for name, frames in GIFS.items():
+        (out / name).parent.mkdir(exist_ok=True)
         make(out / name, frames)
 
 

@@ -2,6 +2,45 @@
 
 Newest first. What was tested where, and what was not.
 
+## 0.5.0 — 25.10.2026, two packages (classic; Neon and Neon Blue)
+
+**Fedora 44** (`plasma-lab`, Plasma 6.7.4, snapshot `clean` plus Kvantum
+1.1.6 from local RPMs, saved as `vor-warp-050`):
+
+- "Get New…"'s path: `kpackagetool6 -t Plasma/LookAndFeel -i` on both
+  archives installs `org.warplegacy[.neon].desktop` with name and preview.
+  First run: the Neon archive in Python's PAX format failed ("cannot open
+  the package file"), in GNU format it installs; package.py writes GNU.
+- Neon package from that folder: `install.sh --apply --layout` (Neon by
+  default, the package has no classic), reboot: Neon in place, Kvantum
+  WarpNeon, cursors, compact box, no QML errors from `org.warplegacy.*`.
+  Warp menu: one switch row, "Switch to Neon Blue"; switched, the row
+  reads "Switch to Neon" (told by the selection's hue).
+- `uninstall.sh` from the "Get New…" folder first left that folder without
+  metadata.json (the "Breeze" fault of NT Legacy); it now removes it.
+- Classic package: `install.sh --apply neon` refuses (exit 2, names the
+  other package); `--apply --layout`, reboot: classic in place, the Warp
+  menu without a switch row.
+- Both packages: the row "Switch to Warp Legacy Neon"; `warp-legacy-switch
+  toggle` there and back. `uninstall.sh`: no file naming Warp Legacy left
+  under `~/.local/share` and `~/.config`, the global theme as before.
+
+**Kubuntu 26.04** (`ubuntu-lab`, Plasma 6.6.6, snapshot `clean`, no
+Kvantum):
+
+- Neon package by kpackagetool6, then `install.sh --apply neon-blue
+  --layout` from the folder, reboot: Neon Blue, cursors, icons; no QML
+  errors. The menu row "Switch to Neon" clicked (QMP): Neon.
+- `uninstall.sh` from the folder: the folder gone, nothing of Warp
+  Legacy left. Classic package `--apply --layout`, reboot: classic, no
+  switch row; `uninstall.sh` exit 0.
+
+Screenshots and gallery taken anew in `plasma-lab` (English session,
+1920×1080, Wikipedia through a proxy on the host).
+
+Not tested: the real "Get New…" dialog against the store (the entries
+are not uploaded yet); Firefox and Chrome themes; LibreOffice by hand.
+
 ## After 0.4.1 — 21.10.2026, open points
 
 **Kubuntu 26.04** (`ubuntu-lab`), archive 0.4.1:

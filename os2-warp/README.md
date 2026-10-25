@@ -17,7 +17,7 @@ Blue**, the same night in blue, closest to the concept
 
 More in the [gallery](screenshots/gallery/README.md): every variant with
 the compact box or the full Control Strip, other wallpapers and window
-buttons, Neon on dark pictures. The store entry's GIFs are in
+buttons, Neon on dark pictures. The store entries' GIFs are in
 `screenshots/store/` (`tools/store-gifs.py` makes them from these).
 
 Not affiliated with IBM, Arca Noae or Stardock. "OS/2" and "Warp" are
@@ -96,20 +96,39 @@ glyphs glowing cyan in every look, close in pink.
 
 Needs Plasma 6 and, for the program style, Kvantum (`kvantum` package).
 
-Download `warp-legacy-<version>.tar.xz` from the
-[releases](https://github.com/huppiflupp/warp-legacy/releases), unpack it
-and run the installer inside (no build needed), or clone this repository
-and run it here (it builds first: Python 3 with Pillow, NumPy, CairoSVG
-and PySide6, and gettext's `msgfmt`). The latest release, 0.4.2, has
-classic and Neon; Neon Blue and the compact box with the weather are so
-far only in the repository.
+There are two packages, each complete with the panels, all 43 wallpapers,
+LibreOffice and Firefox colours, from the
+[releases](https://github.com/huppiflupp/warp-legacy/releases) or the KDE
+Store:
+
+| Package | Variants |
+|---|---|
+| `warp-legacy-<version>.tar.xz` | Warp Legacy, the classic grey (27 MB) |
+| `warp-legacy-neon-<version>.tar.xz` | Warp Legacy Neon and Neon Blue (56 MB) |
+
+Unpack one (or both) and run the installer inside, no build needed. Or
+clone this repository and run it here: it builds all three variants
+first (Python 3 with Pillow, NumPy, CairoSVG and PySide6, and gettext's
+`msgfmt`).
 
 ```bash
-./install.sh                     # install all three variants
-./install.sh --apply             # … and switch to Warp Legacy
+./install.sh                     # install the package's variants
+./install.sh --apply             # … and switch to Warp Legacy (Neon in the Neon package)
 ./install.sh --apply neon        # … and switch to Warp Legacy Neon
 ./install.sh --apply neon-blue   # … and switch to Warp Legacy Neon Blue
 ./install.sh --apply --layout    # … and replace the panels with Warp Legacy's
+```
+
+The Warp menu switches between the variants installed: classic and Neon
+with both packages, Neon and Neon Blue with the Neon package alone.
+
+From the KDE Store's "Get New…" (System Settings › Global Theme), the
+package arrives as a global theme only. For everything else, run the
+installer in the folder it was put in:
+
+```bash
+~/.local/share/plasma/look-and-feel/org.warplegacy.neon.desktop/install.sh --apply --layout
+~/.local/share/plasma/look-and-feel/org.warplegacy.desktop/install.sh --apply --layout
 ```
 
 Log out and back in afterwards: the window frame and some settings only
@@ -123,7 +142,7 @@ take effect in a new session.
 It stops while LibreOffice runs, and while Firefox still wears the theme
 (`firefox-apply.sh remove` first, or `--keep-firefox`).
 
-puts back what `--apply` changed (colour scheme, styles, icon theme,
+`uninstall.sh` puts back what `--apply` changed (colour scheme, styles, icon theme,
 window frame and button order, lock screen picture, the number of
 workspaces), the panels from before `--layout`, and the global theme in
 use before, then removes the files. LibreOffice's colours
@@ -161,16 +180,15 @@ next to CDE Copper and NT Legacy and mirrored here.
 
 ## Release
 
-`python3 package.py` makes a full build and packs it with the installer
-into `dist/warp-legacy-<version>.tar.xz` (no build needed to install from
-it). RELEASE-CHECKLIST.md is the test plan, TESTING.md the log.
+`python3 package.py` makes a full build and packs the two packages,
+`dist/warp-legacy-<version>.tar.xz` and
+`dist/warp-legacy-neon-<version>.tar.xz` (no build needed to install
+from them). They are also the two KDE Store entries (STORE.md).
+RELEASE-CHECKLIST.md is the test plan, TESTING.md the log.
 
-`python3 store.py` (after a full build) makes the KDE Store edition in
-`dist/store/<version>/`: one archive per store entry, the global themes
-fetching the rest as dependencies. It uses Breeze widgets and an SVG
-version of the frame, and leaves out what only `install.sh` does
-(warp-legacy-sync, the button order, Kvantum, Konsole, LibreOffice,
-Firefox, IBM Plex, the lock screen picture); see STORE.md.
+`python3 store.py` makes an older, split store edition (one entry per
+part, the global themes fetching the rest as dependencies); it is not
+published, see STORE.md.
 
 ## Licence
 

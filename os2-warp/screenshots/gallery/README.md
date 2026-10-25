@@ -1,7 +1,7 @@
 # Gallery
 
 Taken in the VM at 1920×1080 in an English session with
-`tools/demo-scene.sh` (21.10.2026). The weather in the compact box is
+`tools/demo-scene.sh` (25.10.2026, Warp Legacy 0.5.0). The weather in the compact box is
 fixed to Austin for the pictures; normally it follows your place.
 
 ## Panels

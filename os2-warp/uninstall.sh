@@ -135,5 +135,13 @@ rm -f "$DATA/warp-legacy/launched"
 # warp-legacy-switch's note of the Neon last used.
 rm -f "$CONFIG/warplegacyrc"
 rmdir "$DATA/warp-legacy" 2>/dev/null || true
+# A package from the store's "Get New…" is the whole archive, install.sh
+# and build/ beside the global theme (package.py); with the theme's files
+# removed above, the folder is left without metadata.json, and one such
+# folder showed every global theme in System Settings as "Breeze" (NT
+# Legacy, UPLOAD.md). Fedora VM, 25.10.2026.
+for dir in "$DATA"/plasma/look-and-feel/org.warplegacy.*; do
+    [ -d "$dir" ] && [ ! -f "$dir/metadata.json" ] && rm -rf -- "$dir"
+done
 rm -rf "$STATE"
 echo "Warp Legacy removed. Log out and back in for every part to take effect."
