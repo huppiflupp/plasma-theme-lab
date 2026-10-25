@@ -244,6 +244,11 @@ console in a panel: `apply.sh` sets up a small systemd path unit
 packages into place by hand (or installing them one by one from the store)
 skips that step; run `install.sh` and `apply.sh` from the archive once.
 
+Without a systemd user session (Gentoo or Devuan with OpenRC, Void, Alpine)
+there is no such watcher: choose palettes in the Style Manager or the front
+console. Launchers, the Style Manager and the installer work without systemd
+since 1.1.1.
+
 ### KDE Store edition
 
 On the store CDE Copper is one entry carrying the release archive of

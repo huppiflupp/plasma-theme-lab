@@ -76,6 +76,32 @@ def run(*args, check=True):
         return None
 
 
+def systemd_user():
+    """A systemd user manager runs this session. Gentoo and Devuan with
+    OpenRC, Void or Alpine have none: plasmashell is then a plain process."""
+    runtime = os.environ.get("XDG_RUNTIME_DIR", "")
+    return bool(runtime and os.path.exists(os.path.join(runtime, "systemd/private")) and shutil.which("systemctl"))
+
+
+def shell_active():
+    if systemd_user():
+        result = run("systemctl", "--user", "-q", "is-active", "plasma-plasmashell.service", check=False)
+        return result is not None and result.returncode == 0
+    return subprocess.run(["pgrep", "-xu", str(os.getuid()), "plasmashell"], capture_output=True).returncode == 0
+
+
+def stop_shell(check=True):
+    if systemd_user():
+        run("systemctl", "--user", "stop", "plasma-plasmashell.service", check=check)
+        return
+    # kquitapp6 waits until plasmashell has written its configuration.
+    run("kquitapp6", "plasmashell", check=False)
+    for _ in range(20):
+        if not shell_active():
+            return
+        time.sleep(0.5)
+
+
 def session_ready():
     """Do not auto-start a bus or run apply tools before Plasma is ready."""
     if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")) or not os.environ.get("DBUS_SESSION_BUS_ADDRESS"):
@@ -349,7 +375,7 @@ def install():
         run("fc-cache", "-f", str(DATA / "fonts/CDECopper"), check=False)
     # Desktops whose backdrop settings still name an older palette (saved by
     # a settings dialog opened before a palette change) get the one applied.
-    if manifest.get("applied") and run("systemctl", "--user", "-q", "is-active", "plasma-plasmashell.service", check=False).returncode == 0:
+    if manifest.get("applied") and shell_active():
         sync_desktops(manifest, manifest.get("palette", "Copper"), check=False)
     print("Installed CDE Copper. Original configuration: " + str(STATE / "config"))
 
@@ -358,7 +384,7 @@ def offer_shell_restart(restart):
     """A running plasmashell keeps the front panel's old code and settings
     schema; new settings would not even be saved until it restarts. Asked
     only at a terminal, so scripts and tests never restart the session."""
-    if run("systemctl", "--user", "-q", "is-active", "plasma-plasmashell.service", check=False).returncode:
+    if not shell_active():
         return
     if not restart and sys.stdin.isatty():
         try:
@@ -366,10 +392,13 @@ def offer_shell_restart(restart):
         except EOFError:
             pass
     if restart:
-        run("systemctl", "--user", "restart", "plasma-plasmashell.service")
+        stop_shell()
+        start_shell()
         print("Plasma restarted.")
-    else:
+    elif systemd_user():
         print("Restart Plasma to load the new front panel: systemctl --user restart plasma-plasmashell")
+    else:
+        print("Restart Plasma to load the new front panel: kquitapp6 plasmashell; setsid -f plasmashell")
 
 
 def palette_owned(target, patterns):
@@ -746,7 +775,7 @@ def set_lockscreen(manifest, kind, running=True):
         manifest["shell_previous"] = current
     save_manifest(manifest)
     if running:
-        run("systemctl", "--user", "stop", "plasma-plasmashell.service")
+        stop_shell()
     source = CONFIG / f"plasma-{current}-appletsrc"
     if source.exists():
         shutil.copy2(source, CONFIG / f"plasma-{wanted}-appletsrc")
@@ -770,7 +799,7 @@ WATCH = "cde-copper-theme"
 
 def move_shell(current, wanted):
     """plasmashell under another shell package, its configuration moved."""
-    run("systemctl", "--user", "stop", "plasma-plasmashell.service")
+    stop_shell()
     source = CONFIG / f"plasma-{current}-appletsrc"
     if source.exists():
         shutil.copy2(source, CONFIG / f"plasma-{wanted}-appletsrc")
@@ -780,7 +809,14 @@ def move_shell(current, wanted):
 
 def start_shell():
     """Start plasmashell; quick theme switches could hit systemd's start
-    limit (start-limit-hit), which left the desktop without a shell."""
+    limit (start-limit-hit), which left the desktop without a shell.
+    Without systemd it starts in a session of its own, with the session's
+    environment (run() would hand it the offscreen platform)."""
+    if not systemd_user():
+        if not shell_active():
+            subprocess.run(["setsid", "-f", "plasmashell"], stdin=subprocess.DEVNULL,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return
     run("systemctl", "--user", "reset-failed", "plasma-plasmashell.service", check=False)
     if run("systemctl", "--user", "start", "plasma-plasmashell.service", check=False).returncode:
         time.sleep(2)
@@ -855,7 +891,7 @@ def rescue_lost_panels():
         return
     time.sleep(3)
     if lost_panels():
-        run("systemctl", "--user", "stop", "plasma-plasmashell.service", check=False)
+        stop_shell(check=False)
         start_shell()
 
 
@@ -868,6 +904,10 @@ def watch_units(enable):
         remove(path)
         remove(service)
         run("systemctl", "--user", "daemon-reload", check=False)
+        return
+    if not systemd_user():
+        print("No systemd user session: the shell and the palette do not follow System Settings by "
+              "themselves. Choose palettes in the Style Manager or the front console.")
         return
     folder.mkdir(parents=True, exist_ok=True)
     path.write_text("[Unit]\nDescription=CDE Copper: the shell follows the global theme\n\n"
@@ -1149,7 +1189,7 @@ def uninstall():
     # The watcher first, or restoring kdeglobals would set it off.
     watch_units(False)
     if manifest["applied"]:
-        run("systemctl", "--user", "stop", "plasma-plasmashell.service")
+        stop_shell()
         # Keep the current files before switching shells copies panel config
         # over the default shell's file.
         kept = STATE / "config-at-uninstall"

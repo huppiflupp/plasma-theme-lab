@@ -1347,9 +1347,17 @@ the same way. Now both check for the user manager's socket
 console starts through `setsid -f`, the Style Manager through `setsid -w`
 (keeps the exit status for its message).
 
+`manage.py` assumed systemd as well: `install.sh` ended in a traceback
+(`run("systemctl", …)` returns None when the program is missing, and
+`.returncode` was read from it). Now `systemd_user()`, `shell_active()`
+(`pgrep -x plasmashell` without systemd), `stop_shell()` (`kquitapp6
+plasmashell`) and `start_shell()` (`setsid -f plasmashell`); the theme
+watcher is skipped with a note.
+
 Checked on 245k: the generated shell for a slot run with systemd and, with
 `XDG_RUNTIME_DIR` pointing at an empty directory, through setsid; both
-started the program. `build.py`, `tests/verify.py` (47) green; `msgfmt
+started the program; `manage.py`'s shell functions and watcher with an
+empty `XDG_RUNTIME_DIR` (calls mocked). `build.py`, `tests/verify.py` (47) green; `msgfmt
 --check`: 406 translated; `manage.py check` plausible. Not checked: a real
 OpenRC system (Gentoo, Artix, Devuan), the VMs, a click in the installed
 console, X11.
