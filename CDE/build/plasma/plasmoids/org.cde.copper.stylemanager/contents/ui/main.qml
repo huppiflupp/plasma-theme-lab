@@ -103,9 +103,12 @@ PlasmoidItem {
         pendingWhat = what;
         const log = "\"${XDG_RUNTIME_DIR:-/tmp}/cde-copper-style.log\"";
         const script = "python3 " + quote(tool) + " palette " + args + " > " + log + " 2>&1";
-        // systemd-run expands $ itself: doubled, the shell gets it.
-        worker.connectSource("systemd-run --user --wait --collect --quiet -p KillMode=process -- sh -c "
-                             + quote(script.replace(/\$/g, "$$$$")) + "; echo \"exit=$?\"; tail -n 4 " + log);
+        // systemd-run expands $ itself: doubled, the shell gets it. Without
+        // a systemd user manager (OpenRC and the like) setsid -w runs it in
+        // its own session and hands back its exit status.
+        worker.connectSource("if [ -S \"${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private\" ] && command -v systemd-run >/dev/null 2>&1; then "
+                             + "systemd-run --user --wait --collect --quiet -p KillMode=process -- sh -c " + quote(script.replace(/\$/g, "$$$$")) + "; "
+                             + "else setsid -w sh -c " + quote(script) + " </dev/null; fi; echo \"exit=$?\"; tail -n 4 " + log);
     }
     property string pendingWhat: ""
     P5Support.DataSource {

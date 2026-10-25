@@ -254,10 +254,15 @@ function check(command) {
 // systemd expands ${NAME} in the command line itself (an unknown name to
 // nothing, as "${f#$p/}" or "${XDG_RUNTIME_DIR:-/tmp}"); "$$" is its
 // literal dollar, so the shell gets the script as written.
+// Without a systemd user manager (Gentoo and Devuan with OpenRC, Void,
+// Alpine) setsid takes over: the program leaves the console's session and
+// the data engine is done once the shell has forked.
+const SYSTEMD_USER = "[ -S \"${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private\" ] && command -v systemd-run >/dev/null 2>&1";
 function detached(shell) {
     const script = "[ -n \"$DISPLAY$WAYLAND_DISPLAY\" ] && [ -n \"$DBUS_SESSION_BUS_ADDRESS\" ] || exit 0; " + shell;
-    return "systemd-run --user --collect --quiet -p KillMode=process -- sh -c "
-        + quote(script.replace(/\$/g, "$$$$"));
+    return "if " + SYSTEMD_USER + "; then "
+        + "systemd-run --user --collect --quiet -p KillMode=process -- sh -c " + quote(script.replace(/\$/g, "$$$$")) + "; "
+        + "else setsid -f sh -c " + quote(shell) + " >/dev/null 2>&1 </dev/null; fi";
 }
 
 // The programs whose open window a tile brings forward instead of starting

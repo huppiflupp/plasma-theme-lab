@@ -3,7 +3,7 @@
     "Id": "kwin4_decoration_qml_cdecopper",
     "Name": "CDE",
     "Description": "Motif window frame after mwm; follows the colour scheme",
-    "Version": "1.1.0",
+    "Version": "1.1.1",
     "License": "GPL-2.0-or-later",
     "Authors": [
       {

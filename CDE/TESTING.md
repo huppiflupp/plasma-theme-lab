@@ -1334,3 +1334,22 @@ Checked on 245k (Wayland): `build.py`, `tests/verify.py` (47) green;
 check` plausible (Kvantum is missing on 245k); the two console changes
 installed and used. Not checked: the VMs (`plasma-lab`, `ubuntu-lab`),
 screenshots, console edges, sizes and palettes, X11.
+
+## Release 1.1.1: launchers without systemd (2026-10-25)
+
+Report from a Gentoo user: every console tile except "Apps" did nothing,
+also with an installed application chosen in the settings (Kitty). Every
+launch went through `systemd-run --user` (`launch.js`, `detached()`); on
+OpenRC there is neither the command nor a user manager, so the start failed
+silently. The Style Manager's palette switching used `systemd-run --wait`
+the same way. Now both check for the user manager's socket
+(`$XDG_RUNTIME_DIR/systemd/private`) and `systemd-run`; without them the
+console starts through `setsid -f`, the Style Manager through `setsid -w`
+(keeps the exit status for its message).
+
+Checked on 245k: the generated shell for a slot run with systemd and, with
+`XDG_RUNTIME_DIR` pointing at an empty directory, through setsid; both
+started the program. `build.py`, `tests/verify.py` (47) green; `msgfmt
+--check`: 406 translated; `manage.py check` plausible. Not checked: a real
+OpenRC system (Gentoo, Artix, Devuan), the VMs, a click in the installed
+console, X11.
