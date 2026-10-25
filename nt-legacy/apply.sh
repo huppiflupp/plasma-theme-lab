@@ -352,6 +352,7 @@ at_runtime plasma-apply-colorscheme  "$SHORT"
 # Let KWin re-read the decoration. KWin only loads the Aurorae THEME itself
 # at session start, though - hence the note below.
 qdbus6 org.kde.KWin /KWin reconfigure >/dev/null 2>&1 \
+    || qdbus-qt6 org.kde.KWin /KWin reconfigure >/dev/null 2>&1 \
     || qdbus org.kde.KWin /KWin reconfigure >/dev/null 2>&1 || true
 
 if command -v systemctl >/dev/null; then
@@ -492,6 +493,8 @@ if [ -n "$PANEL_COPY" ]; then
 
     cp "$PANEL_COPY" "$APPLETSRC"
     systemctl --user restart plasma-plasmashell.service
+
+  (without systemd: kquitapp6 plasmashell; setsid -f plasmashell)
 
 EOF
 fi

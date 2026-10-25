@@ -59,7 +59,7 @@ EMAIL = "huppiflupp@users.noreply.github.com"
 WEBSITE = "https://github.com/huppiflupp/nt-legacy"
 LICENSE = "GPL-2.0-or-later"
 FONT = "Noto Sans"
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 
 # --------------------------------------------------------------------------
 # Colors. The only place where they are defined.
