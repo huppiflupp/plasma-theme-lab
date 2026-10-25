@@ -122,6 +122,20 @@ the white/grey bevel; the default action button in a cream ring (RISC OS
 marks the button Return presses so); radio buttons with a red dot, as
 RISC OS 3's configuration windows; progress bars in the Wimp's green.
 
+## 8. Icons
+
+The user's rules (25.10.2026): every icon, correctly scaled, no picture
+twice. `iconkit/` draws every meaning Breeze has (2 577 at its largest sizes, its symlinks
+counted as synonyms) anew as SVG in two colour worlds, after RISC OS's own
+sprites: **ro4** (`RiscLegacy`, classic, 4 and the palettes: pale green
+folders, grey, black outline, flat colour) and **ro5** (`RiscLegacy2026`,
+2026 and Dark: blue folders, saturated colours, soft gradients). Each icon
+exists large (scalable, 24 px and up) and small (16 and 22 px: thicker
+lines, no text, less detail). `build_icons.py` reports coverage and every
+pair of meanings that came out identical. The original 34 px sprites
+(`vendor/riscos-open/Sprites-*`) remain the reference, no longer shipped
+as icons: scaled up they were pixelated (the user, 25.10.2026).
+
 ## 7. Open
 
 - RO4's texture on the iconbar and the window backgrounds (Kvantum can tile

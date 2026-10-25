@@ -126,9 +126,9 @@ VARIANTS = [
          description="RISC OS taken on to 2026: the same window, smooth and warm"),
     dict(key="2026-dark", picture="fenland-nacht", art="dark", name="RISC Legacy 2026 Dark", P=DARK, icons="RiscLegacy2026",
          description="RISC OS 2026 at night, the focus in brass"),
-    dict(key="pi", picture="himbeerlaub", art="classic", name="RISC Legacy Pi", P=PI, icons="RiscLegacy5",
+    dict(key="pi", picture="himbeerlaub", art="classic", name="RISC Legacy Pi", P=PI, icons="RiscLegacy",
          description="RISC OS Pi: the green desktop, raspberry for selections, RISC OS 5's icons"),
-    dict(key="iyonix", picture="iyonix-blau", art="classic", name="RISC Legacy Iyonix", P=IYONIX, icons="RiscLegacy5",
+    dict(key="iyonix", picture="iyonix-blau", art="classic", name="RISC Legacy Iyonix", P=IYONIX, icons="RiscLegacy",
          description="The Iyonix's blue for the focus and selections"),
     dict(key="acorn", picture="eicheln", art="select", name="RISC Legacy Acorn", P=ACORN, icons="RiscLegacy", tile="tile_1",
          description="RISC OS 4's stone with Acorn green"),
@@ -361,11 +361,11 @@ def plasmoids():
 
 
 def icons():
-    """RISC OS's own icons (tools/iconset.py), RISC OS 4's and 5's."""
-    load(ROOT / "tools/iconset.py", "iconset").build(OUT / "icons")
-    # 2026's own, drawn as SVG (the user's choice 25.10.2026: pixels for
-    # the classic variants, smooth icons for 2026).
-    load(ROOT / "tools/svgicons.py", "svgicons").build(OUT / "icons")
+    """The icon themes from iconkit/ (DESIGN.md §8): every icon Breeze has,
+    drawn anew as SVG in two colour worlds, RISC OS 4's (RiscLegacy) and
+    RISC OS 5's (RiscLegacy2026); what is not drawn yet comes from Breeze."""
+    sys.path.insert(0, str(ROOT / "iconkit"))
+    load(ROOT / "iconkit/build_icons.py", "build_icons").build(OUT / "icons")
 
 
 def variant_table():
