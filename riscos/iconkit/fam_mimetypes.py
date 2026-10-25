@@ -14,7 +14,7 @@ The generic types (text-x-generic, image-x-generic, x-office-*) carry no
 band, only a large emblem. Templates get a dashed stencil frame, a set of
 several files a second page behind.
 """
-from base import folder, page
+from base import page
 from glyphs import D, F, O, S, W, glyph, reg
 
 
@@ -27,11 +27,57 @@ def _(c, k):
 
 @reg("mime-bits")
 def _(c, k):
-    # 1 0 1 / 0 1 1: binary data
-    S(c, "M5 4 V11 M19 4 V11 M12 13 V20 M19 13 V20", k)
-    for cx, cy in ((12, 7.5), (5, 16.5)):
-        c.parts.append(f'<ellipse cx="{cx}" cy="{cy}" rx="2.3" ry="3.5" fill="none" stroke="{k}" '
-                       f'stroke-width="{W(c):g}"/>')
+    # 1 0 / 0 1 in heavy strokes: binary data, readable at 22 px
+    F(c, "M4 3 H8 V11 H4 Z M16 13 H20 V21 H16 Z", k)
+    for cx, cy in ((16, 7), (6, 17)):
+        c.parts.append(f'<ellipse cx="{cx}" cy="{cy}" rx="3" ry="3.4" fill="none" stroke="{k}" '
+                       f'stroke-width="{W(c) * 1.5:g}"/>')
+
+
+# emblem variants for the small versions of big families
+@reg("mime-zipper")
+def _(c, k):
+    S(c, "M4 4 H20 V20 H4 Z M12 4 V20", k)
+    S(c, "M9.5 7 H14.5 M9.5 10.5 H14.5 M9.5 14 H14.5", k)
+    F(c, "M10 15.5 H14 V20 H10 Z", k)
+
+
+@reg("mime-crate")
+def _(c, k):
+    S(c, "M3 6 H21 V20 H3 Z M3 6 L21 20 M21 6 L3 20", k)
+
+
+@reg("mime-squeeze")
+def _(c, k):
+    S(c, "M3 12 H9 M6 9 L9 12 L6 15 M21 12 H15 M18 9 L15 12 L18 15 M12 3 V21", k)
+
+
+@reg("mime-stack")
+def _(c, k):
+    S(c, "M5 4 H19 V9 H5 Z M3 11 H21 V16 H3 Z M5 18 H19 V21 H5 Z", k)
+
+
+@reg("mime-pic-tall")
+def _(c, k):
+    S(c, "M6 3 H18 V21 H6 Z M6 17 L10 12 L14 16 L18 12", k)
+    D(c, 13.5, 7.5, 1.6, k)
+
+
+@reg("mime-pic-pixel")
+def _(c, k):
+    S(c, "M3 5 H21 V19 H3 Z", k)
+    F(c, "M3 5 H9 V12 H3 Z M9 12 H15 V19 H9 Z M15 5 H21 V12 H15 Z", k)
+
+
+@reg("mime-film-play")
+def _(c, k):
+    S(c, "M3 5 H21 V19 H3 Z", k)
+    F(c, "M10 8.5 L16 12 L10 15.5 Z", k)
+
+
+@reg("mime-clapper")
+def _(c, k):
+    S(c, "M3 10 H21 V20 H3 Z M3 10 L4 5 L20 3 L21 8 M8 4.4 L10 9 M13 3.8 L15 8.5", k)
 
 
 @reg("mime-keyval")
@@ -363,7 +409,7 @@ def _frame(c):
 
 
 def _file(c, name, label, col, emblem, flags):
-    if "stack" in flags:
+    if "stack" in flags and not c.small:
         c.group("translate(-4 -3)", lambda cv: page(cv))
     ink = c.darken(col, 0.25) if col != c["grey"] else c["ink"]
     if label is None:
@@ -396,6 +442,16 @@ MARKS = ("plain", "stripe", "block", "dots", "notch")
 VARIANTS = [(sh, mk) for mk in MARKS for sh in SHADES]
 
 
+# Big families also change their emblem at small size, the strongest cue:
+SUBFAM = {
+    ("brown", "archive"): ("archive", "mime-zipper", "mime-crate", "mime-squeeze", "mime-stack"),
+    ("green", "picture"): ("picture", "mime-pic-tall", "mime-pic-pixel"),
+    ("red", "film"): ("film", "mime-film-play", "mime-clapper"),
+    ("violet", "font"): ("font", "text", "italic"),
+    ("cyan", "harddisk"): ("harddisk", "partition", "multidisk"),
+}
+
+
 def _variants():
     groups, out = {}, {}
     for name, (label, col, emblem, *flags) in T.items():
@@ -404,7 +460,10 @@ def _variants():
         key = (col.rstrip("+-"), emblem)
         i = groups.get(key, 0)
         groups[key] = i + 1
-        out[name] = (col.rstrip("+-"), VARIANTS[i])
+        alts = SUBFAM.get(key, (emblem,))
+        n = len(alts)
+        shade, mark = SHADES[(i // n) % 3], MARKS[i // (3 * n)]
+        out[name] = (key[0], alts[i % n], shade, mark)
     return out
 
 
@@ -412,7 +471,7 @@ SMALL = _variants()
 
 
 def _small(c, name, emblem):
-    key, (shade, mark) = SMALL[name]
+    key, emblem, shade, mark = SMALL[name]
     base = c[key]
     col = base if shade == "base" else c.lighten(base, 0.45) if shade == "light" else c.darken(base, 0.4)
     ink = c.darken(base, 0.25) if key != "grey" else c["ink"]
@@ -437,14 +496,6 @@ def _small(c, name, emblem):
 
 
 def draw(name, c):
-    if name == "inode-directory":
-        folder(c)
-        ink = c.darken(c["folder"][1], 0.55)
-        if not c.small:
-            c.text(24, 36, "DIR", 10, ink)
-        else:
-            c.path("M14 27 h20 M14 33 h14", "none", ink, 2)
-        return True
     spec = T.get(name)
     if not spec:
         return None

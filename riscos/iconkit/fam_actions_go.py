@@ -573,10 +573,43 @@ def _(c, k):
     S(c, "M7 8 H17 M7 11.5 H14", k, W(c) * 0.7)
 
 
-def _im(word, col):
+# Each protocol: its own bubble shape, and at 16/22 px (where the word is
+# left out) a symbol of its own, so that they differ by more than colour.
+IM_SHAPE = {
+    "rect": "M2 3.5 H22 V17 H11 L5.5 21.5 V17 H2 Z",
+    "round": "M12 3 C18 3 22 6 22 10.5 C22 15 18 18 12 18 C10.5 18 9.5 17.8 8.5 17.5 L3.5 21.5 L5 16 "
+             "C3 14.5 2 12.5 2 10.5 C2 6 6 3 12 3 Z",
+    "right": "M2 3.5 H22 V17 H19 V21.5 L13.5 17 H2 Z",
+    "center": "M4 3.5 H20 A2 2 0 0 1 22 5.5 V14 A2 2 0 0 1 20 16 H15 L12 21.5 L9 16 H4 A2 2 0 0 1 2 14 V5.5 "
+              "A2 2 0 0 1 4 3.5 Z",
+    "shout": "M2 4 L7.5 5.5 L12 1.5 L15.5 5.5 L22.5 3.5 L20.5 9.5 L23 14 L17 15 L16.5 21.5 L12 17 L5.5 20.5 "
+             "L6.5 15 L1 13 L4 9 Z",
+    "square": "M2 3 H22 V17 H8 L3 21.5 V17 H2 Z",
+}
+IM_SYMBOL = {
+    "AIM": "M8 15 L12 6 L16 15 M9.5 12 H14.5",
+    "ICQ": "M12 7 A3.5 3.5 0 1 1 11.99 7 Z",
+    "MSN": "M7.5 10.5 H8.5 M13.5 10.5 H14.5",
+    "Y!": "M12 6 V11.5 M12 14.5 V15",
+    "id": "M12 9.5 V15 M12 6.5 V6.6",
+    "M": "M7 14 V7 L12 12 L17 7 V14",
+    "[m]": "M9.5 6 H7 V15 H9.5 M14.5 6 H17 V15 H14.5",
+}
+
+
+def _im(word, col, shape):
     def g(c, k):
-        P(c, "M2 3.5 H22 V17 H11 L5.5 21.5 V17 H2 Z", grad(c, col, 0.45), k)
-        TX(c, 12, 13.6, word, 7.5 if len(word) <= 3 else 6.5, k)
+        if shape == "double":
+            P(c, "M8 2 H22.5 V12 H20 V15.5 L16.5 12 H8 Z", grad(c, col, 0.65), k)
+            P(c, "M1.5 6.5 H17 V17.5 H9 L4.5 21.5 V17.5 H1.5 Z", grad(c, col, 0.4), k)
+            x, y = 9.25, 14.6
+        else:
+            P(c, IM_SHAPE[shape], grad(c, col, 0.45), k)
+            x, y = 12, 13.6
+        if c.small:
+            S(c, IM_SYMBOL[word], k)
+        else:
+            TX(c, x, y, word, 7.5 if len(word) <= 3 else 6.5, k)
     return g
 
 
@@ -1684,6 +1717,26 @@ def _(c, k):
     G(c, "gear", 2, 2, 20, k)
 
 
+@reg("act-go-colsize")
+def _(c, k):
+    P(c, "M3 4 H21 V20 H3 Z", "#ffffff", k)
+    c.parts.append(f'<rect x="9" y="4.6" width="6" height="14.8" fill="{c.lighten(c["green"], 0.3)}"/>')
+    S(c, "M9 4 V20 M15 4 V20", k, W(c) * 0.7)
+    S(c, "M5 12 H19 M7.5 9.5 L5 12 L7.5 14.5 M16.5 9.5 L19 12 L16.5 14.5", c["blue"])
+
+
+@reg("act-go-rowsize")
+def _(c, k): rot(c, 90, lambda cv: GLYPHS["act-go-colsize"](cv, k))
+
+
+@reg("act-go-hearts")
+def _(c, k):
+    P(c, "M15.5 13 C11 10 10 7.5 10 5.8 A2.9 2.9 0 0 1 15.5 4.8 A2.9 2.9 0 0 1 21 5.8 C21 7.5 20 10 15.5 13 Z",
+      grad(c, "red", 0.55), k)
+    P(c, "M10 21 C4 17 3 14 3 11.7 A3.6 3.6 0 0 1 10 10.6 A3.6 3.6 0 0 1 17 11.7 C17 14 16 17 10 21 Z",
+      grad(c, "red", 0.35), k)
+
+
 # ---- coins (help-donate-*) ----------------------------------------------------------
 CURRENCY = {"brl": "R$", "chf": "Fr", "eur": "€", "gbp": "£", "inr": "₹", "jpy": "¥", "pln": "zł",
             "rub": "₽", "sek": "kr", "try": "₺", "uah": "₴", "usd": "$"}
@@ -1701,9 +1754,20 @@ def donate(sym):
 
 def zoom(n):
     def f(c):
-        c.circle(21, 21, 9, c.lighten(c["blue"], 0.6), stroke=None)
-        action(c, "magnifier")
-        TX(c, 21, 25, f"{n}×", 11, c["ink"])
+        if not c.small:
+            c.circle(21, 21, 9, c.lighten(c["blue"], 0.6), stroke=None)
+            action(c, "magnifier")
+            TX(c, 21, 25, f"{n}\u00d7", 11, c["ink"])
+            return True
+        # 16/22 px: the factor as the pips of a die, which read at a glance.
+        c.circle(16, 16, 11, c.lighten(c["blue"], 0.6), stroke=None)
+        glyph(c, "magnifier", 1, 1, 40, c["ink"], width=3.0)
+        c.rect(25, 25, 22, 22, "#ffffff", 3, width=1.4)
+        o = 6
+        pips = {1: [(0, 0)], 2: [(-o, -o), (o, o)], 3: [(-o, -o), (0, 0), (o, o)],
+                4: [(-o, -o), (o, -o), (-o, o), (o, o)], 5: [(-o, -o), (o, -o), (0, 0), (-o, o), (o, o)]}[n]
+        for x, y in pips:
+            c.circle(36 + x, 36 + y, 2.6, c["ink"], stroke=None)
         return True
     return f
 
@@ -1717,8 +1781,8 @@ def text_icon(s, size=22, col="ink", b=None, bc="green"):
     return f
 
 
-def im(word, col):
-    reg(f"act-go-im-{word}")(_im(word, col))
+def im(word, col, shape):
+    reg(f"act-go-im-{word}")(_im(word, col, shape))
     return a(f"act-go-im-{word}")
 
 
@@ -1798,22 +1862,20 @@ T = {
     # h
     "handle-move": a("move", None, acc="blue", halo=True),
     "handle-sort": a("act-go-grip"),
-    "headphones": a("act-go-headphones"),
     "help-about": a("info", None, acc="blue", halo=True),
     "help-contents": a("act-go-book", "question", "blue"),
-    "help-keybord-shortcuts": a("act-go-keyboard", "question", "blue"),
     "help-whatsthis": a("pointer", "question", "blue"),
     "hexagon-shape": a("act-go-hexagon"),
     "home": a("act-go-home"),
     "hotpixels": a("act-go-hotpixels"),
     # im
-    "im-aim": im("AIM", "yellow"),
-    "im-icq": im("ICQ", "green"),
-    "im-identi.ca": im("id", "cyan"),
-    "im-mastodon": im("M", "violet"),
-    "im-matrix": im("[m]", "grey"),
-    "im-msn": im("MSN", "blue"),
-    "im-yahoo": im("Y!", "red"),
+    "im-aim": im("AIM", "yellow", "rect"),
+    "im-icq": im("ICQ", "green", "round"),
+    "im-identi.ca": im("id", "cyan", "right"),
+    "im-mastodon": im("M", "violet", "center"),
+    "im-matrix": im("[m]", "grey", "square"),
+    "im-msn": im("MSN", "blue", "double"),
+    "im-yahoo": im("Y!", "red", "shout"),
     "im-user": a("act-go-user"),
     "im-user-away": a("act-go-user", "clock", "orange"),
     "im-user-busy": a("act-go-user", "minus", "red"),
@@ -1859,7 +1921,6 @@ T = {
     "kdenlive-add-clip": a("act-go-film", "plus"),
     "kdenlive-add-color-clip": a("act-go-colorclip", "plus"),
     "kdenlive-custom-effect": a("act-go-wand", "gear", "violet"),
-    "kdenlive-hide-video": a("act-go-film", "eye-off", "grey"),
     "kdenlive-insert-rect": a("act-go-sel-minus", "plus", "violet"),
     "kdenlive-insert-unicode": text_icon("Ω", 26, "ink", "plus", "violet"),
     "kdenlive-ripple": a("act-go-tl-ripple"),
@@ -1916,7 +1977,6 @@ T = {
     "kstars_solarsystem": a("act-go-ks-solar"),
     "kstars_stars": a("act-go-ks-stars"),
     "kstars_supernovae": a("act-go-ks-supernovae"),
-    "kstars_xplanet": a("act-go-ks-xplanet"),
     # ktorrent
     "kt-add-feeds": a("act-go-feed", "plus"),
     "kt-remove-feeds": a("act-go-feed", "minus", "red"),
@@ -1928,7 +1988,6 @@ T = {
     "kt-set-max-upload-speed": a("act-go-cloud", "arrow-up", "green"),
     "kt-start-all": a("act-go-play2"),
     "kt-stop-all": a("act-go-stop2"),
-    "l2h": a("act-go-tex2html"),
     # labplot
     "labplot-TeX-logo": a("act-go-lp-tex"),
     "labplot-axis-horizontal": a("act-go-lp-axis-h"),
@@ -1984,6 +2043,7 @@ T = {
     "list-add-user": a("act-go-users", "plus"),
     "list-remove-user": a("act-go-users", "minus", "red"),
     "love-amarok": a("act-go-heart"),
+    "love": a("act-go-hearts"),
     # mail
     "mail-attachment": a("act-go-env", "act-go-clip", "grey"),
     "mail-encrypted-part": a("act-go-env", "lock", "orange"),
@@ -2015,6 +2075,12 @@ T = {
     "mail-signed-part": a("act-go-env", "check", "orange"),
     "mail-signed-verified": a("act-go-env", "shield", "blue"),
     "mail-tagged": a("act-go-env", "tag", "violet"),
+    "mail-deleted": a("act-go-env", "cross", "red"),
+    "mail-encrypted-full": a("act-go-env", "lock", "red"),
+    "mail-flag": a("act-go-env", "flag", "red"),
+    "mail-forwarded": a("act-go-env-open", "forward", "blue"),
+    "mail-replied": a("act-go-env-open", "reply", "blue"),
+    "mail-thread-watch": a("act-go-env", "eye", "cyan"),
     # maps, masks
     "map-flat": a("act-go-map-flat"),
     "map-globe": a("act-go-map-globe"),
@@ -2024,7 +2090,6 @@ T = {
     "mask-alpha": a("act-go-mask-alpha"),
     "mask-invert": a("act-go-mask-invert"),
     "mask-luma": a("act-go-mask-luma"),
-    "measure": a("act-go-measure"),
     # media
     "media-album-cover-manager-amarok": a("act-go-cover", "gear", "blue"),
     "media-album-track": a("act-go-sleeve", "note", "violet"),
@@ -2055,12 +2120,14 @@ T = {
     "media-track-queue-amarok": a("act-go-note", "clock", "blue"),
     "media-track-show-active": a("act-go-note", "eye", "green"),
     # meeting, menus
-    "meeting-attending-tentative": a("act-go-calendar", "question", "orange"),
     "meeting-participant-no-response": a("act-go-user", "hourglass", "grey"),
     "meeting-participant-request-response": a("act-go-user", "question", "blue"),
     "menu_new_sep": a("act-go-moremark", "plus", "blue"),
     "merge": a("act-go-merge"),
     "mergecell": a("act-go-mergecell-all"),
+    "gnumeric-cells-merge": a("act-go-mergecell-all", "check", "green"),
+    "gnumeric-column-size": a("act-go-colsize"),
+    "gnumeric-row-size": a("act-go-rowsize"),
     "mergecell-horizontal": a("act-go-mergecell-h"),
     "mergecell-vertical": a("act-go-mergecell-v"),
     "messagebox_warning": a("act-go-warning"),
@@ -2083,7 +2150,6 @@ T = {
     "network-connect": a("act-go-plugs", "check", "green"),
     "network-disconnect": a("act-go-plugs", "cross", "red"),
     "new-audio-alarm": a("act-go-alarm", "music", "violet"),
-    "new-command-alarm": a("act-go-alarm", "terminal", "grey"),
     "newline": a("act-go-newline"),
     "news-subscribe": a("act-go-news", "plus"),
     "news-unsubscribe": a("act-go-news", "minus", "red"),

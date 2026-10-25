@@ -71,7 +71,7 @@ if [ -f "$STATE/kvantum.kvconfig.before" ]; then
     cp -a "$STATE/kvantum.kvconfig.before" "$CONFIG/Kvantum/kvantum.kvconfig"
 elif [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ]; then
     case "$(kreadconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme)" in
-        RiscLegacy*) kwriteconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme --delete ;;
+        RiscLegacy*|RiscOS*) kwriteconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme --delete ;;
     esac
     if ! grep -qvE '^[[:space:]]*(\[.*\])?[[:space:]]*$' "$CONFIG/Kvantum/kvantum.kvconfig"; then
         rm -f "$CONFIG/Kvantum/kvantum.kvconfig"

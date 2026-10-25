@@ -5,6 +5,7 @@ import Qt.labs.folderlistmodel
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasma5support as P5Support
+import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager
 import "launch.js" as Launch
@@ -15,9 +16,12 @@ import "launch.js" as Launch
 // application menu), the running programs on the right, one icon per
 // program, then the clock in its white box and the task manager.
 //
-// Select (left click) on a program brings its window forward, or
-// iconises it when it is in front; Adjust (middle click) opens another
-// window of it, as RISC OS's Adjust opens a second view.
+// RISC OS's three buttons (DESIGN.md §9): Select (left) on a program
+// brings its window forward or iconises it when it is in front; Menu
+// (middle) opens the program's menu, titled with its name (Info, New
+// window, Iconise, Quit); Adjust (right) opens another window, as Adjust
+// opens a second view. On Apps, Select opens the applications as a Filer
+// window (RISC OS's Apps directory), Menu the cascading menu.
 PlasmoidItem {
     id: root
     preferredRepresentation: fullRepresentation
@@ -130,9 +134,11 @@ PlasmoidItem {
                 iconName: "applications-all"; fallback: "applications-other"
                 text: root.tr("Apps")
                 size: bar.icon; labelHeight: bar.label
-                tip: root.tr("Programs, settings, folders; type to find a program")
+                tip: root.tr("Select: the applications as a Filer window. Menu: programs, settings, folders; type to find a program")
                 active: menu.visible
-                onSelect: menu.visible ? menu.close() : menu.open(apps)
+                onSelect: root.launch("@files applications:/")
+                onMenu: menu.visible ? menu.close() : menu.open(apps)
+                onAdjust: menu.visible ? menu.close() : menu.open(apps)
             }
 
             Item { Layout.fillWidth: true }
@@ -178,6 +184,7 @@ PlasmoidItem {
                         else tasks.requestActivate(idx);
                     }
                     onAdjust: tasks.requestNewInstance(tasks.makeModelIndex(index))
+                    onMenu: root.openTaskMenu(task, index)
                 }
             }
 
@@ -196,6 +203,41 @@ PlasmoidItem {
                 tip: root.tr("Task manager: programs and memory")
                 onSelect: root.launch("@sysmon")
             }
+        }
+    }
+
+    // The program's menu (Menu on its icon), RISC OS style: titled with
+    // the program's name.
+    property int menuTask: -1
+    function openTaskMenu(item, index) {
+        root.menuTask = index;
+        const idx = tasks.makeModelIndex(index);
+        taskMenu.title = tasks.data(idx, Qt.DisplayRole) || "";
+        taskMenu.visualParent = item;
+        taskMenu.openRelative();
+    }
+    PlasmaExtras.Menu {
+        id: taskMenu
+        property string title: ""
+        placement: PlasmaExtras.Menu.TopPosedLeftAlignedPopup
+        // The title, as RISC OS's menus carry one (a section header is not
+        // drawn by Kvantum, VM 26.10.2026): the name, greyed, a line below.
+        PlasmaExtras.MenuItem { text: taskMenu.title; enabled: false }
+        PlasmaExtras.MenuItem { separator: true }
+        PlasmaExtras.MenuItem {
+            text: root.tr("New window")
+            icon: "window-new"
+            onClicked: tasks.requestNewInstance(tasks.makeModelIndex(root.menuTask))
+        }
+        PlasmaExtras.MenuItem {
+            text: root.tr("Iconise / restore")
+            icon: "window-minimize"
+            onClicked: tasks.requestToggleMinimized(tasks.makeModelIndex(root.menuTask))
+        }
+        PlasmaExtras.MenuItem {
+            text: root.tr("Quit")
+            icon: "application-exit"
+            onClicked: tasks.requestClose(tasks.makeModelIndex(root.menuTask))
         }
     }
 

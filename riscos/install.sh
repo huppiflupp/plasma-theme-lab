@@ -10,6 +10,10 @@
 #   … --layout                       also replace the panels with the
 #                                    iconbar along the bottom
 #
+# --apply also sets up RISC OS's handling (DESIGN.md §9): double-click,
+# Menu (middle button) on the desktop and the title bars, the command line
+# on F12 and the Task Window on Ctrl+F12 with the star commands.
+#
 # Before the first --apply it writes down every setting it is about to
 # change (settings.before) and, before the first --layout, the panels
 # (appletsrc.before); uninstall.sh puts them back.
@@ -41,7 +45,7 @@ mkdir -p "$STATE"
 if [ ! -f "$STATE/kvantum.kvconfig.before" ] && [ ! -f "$STATE/kvantum.none" ]; then
     if [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ]; then
         case "$(kreadconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme)" in
-            RiscLegacy*) : ;;
+            RiscLegacy*|RiscOS*) : ;;
             *) cp -a "$CONFIG/Kvantum/kvantum.kvconfig" "$STATE/kvantum.kvconfig.before" ;;
         esac
     else
@@ -54,8 +58,13 @@ mkdir -p "$DATA"
 for entry in "$HERE"/build/*; do
     [ "$(basename "$entry")" = config ] || cp -a --remove-destination "$entry" "$DATA/"
 done
+# The Kvantum themes' names before 25.10.2026 (now RiscOS, RiscOS4 …).
+rm -rf "$CONFIG"/Kvantum/RiscLegacy*
 mkdir -p "$CONFIG" && cp -a --remove-destination "$HERE/build/config/." "$CONFIG/"
 fc-cache -f "$DATA/fonts/risc-legacy" >/dev/null 2>&1 || true
+# The command line's and Task Window's profiles start bash with the star
+# commands from here (build.py writes @DATA@).
+sed -i "s|@DATA@|$DATA|g" "$DATA"/konsole/RISC\ Legacy\ *.profile
 echo "Installed $(cat "$STATE/files" "$STATE/config-files" | wc -l) files"
 command -v kvantummanager >/dev/null 2>&1 || \
     echo "Note: Kvantum is not installed; programs keep their own style (package: kvantum or qt6-style-kvantum)." >&2
@@ -75,6 +84,15 @@ kwinrc	org.kde.kdecoration2	theme
 kwinrc	org.kde.kdecoration2	ButtonsOnLeft
 kwinrc	org.kde.kdecoration2	ButtonsOnRight
 kwinrc	org.kde.kdecoration2	BorderSize
+kdeglobals	KDE	SingleClick
+kwinrc	MouseBindings	CommandActiveTitlebar2
+kwinrc	MouseBindings	CommandInactiveTitlebar2
+kglobalshortcutsrc	plasmashell	show dashboard
+kglobalshortcutsrc	services>risclegacy-commandline.desktop	_launch
+kglobalshortcutsrc	services>risclegacy-taskwindow.desktop	_launch
+plasma-org.kde.plasma.desktop-appletsrc	ActionPlugins>0	MiddleButton;NoModifier
+kwinrc	Plugins	risclegacy-commandlineEnabled
+dolphinrc	General	OpenExternallyCalledFolderInNewTab
 plasmarc	Theme	name"
 UNSET=$'\x01unset'
 record() {
@@ -91,8 +109,23 @@ record() {
         printf '%s\t%s\t%s\t%s\n' "$file" "$groups" "$key" "$value"
     done <<< "$SETTINGS" > "$STATE/settings.before"
 }
+# A record from an older install lacks the keys added since (the shell's
+# shortcuts and rule, 25.10.2026): they are recorded now, before anything
+# changes them.
+complete_record() {
+    [ -f "$STATE/settings.before" ] || return 0
+    while IFS=$'\t' read -r file groups key; do
+        awk -F'\t' -v f="$file" -v g="$groups" -v k="$key" '$1 == f && $2 == g && $3 == k {found = 1} END {exit !found}' \
+            "$STATE/settings.before" && continue
+        args=(); IFS='>' read -ra parts <<< "$groups"
+        for g in "${parts[@]}"; do args+=(--group "$g"); done
+        value=$(kreadconfig6 --file "$file" "${args[@]}" --key "$key" --default "$UNSET")
+        printf '%s\t%s\t%s\t%s\n' "$file" "$groups" "$key" "$value" >> "$STATE/settings.before"
+    done <<< "$SETTINGS"
+}
 if [ -n "$APPLY" ]; then
     record
+    complete_record
     if [ -n "$LAYOUT" ] && [ ! -f "$STATE/appletsrc.before" ] && [ -f "$STATE/settings.before" ]; then
         cp -a "$CONFIG/plasma-org.kde.plasma.desktop-appletsrc" "$STATE/appletsrc.before" 2>/dev/null || true
         cp -a "$CONFIG/plasmashellrc" "$STATE/plasmashellrc.before" 2>/dev/null || true
@@ -129,6 +162,30 @@ if [ -n "$APPLY" ]; then
     # desktop's picture as it was.
     if [ -z "$LAYOUT" ] && command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
         plasma-apply-wallpaperimage "$DATA/wallpapers/$PICTURE" >/dev/null 2>&1 || true
+    fi
+    # ---- RISC OS's handling (DESIGN.md §9) ---------------------------
+    # Double-click opens, as in RISC OS's Filer, and every folder opened
+    # from the iconbar or the desktop gets a window of its own.
+    kwriteconfig6 --file kdeglobals --group KDE --key SingleClick false
+    kwriteconfig6 --file dolphinrc --group General --key OpenExternallyCalledFolderInNewTab false
+    # Menu (middle button) on a title bar: the window's menu; on the desktop
+    # (the Pinboard): the desktop's menu.
+    kwriteconfig6 --file kwinrc --group MouseBindings --key CommandActiveTitlebar2 "Operations menu"
+    kwriteconfig6 --file kwinrc --group MouseBindings --key CommandInactiveTitlebar2 "Operations menu"
+    kwriteconfig6 --file plasma-org.kde.plasma.desktop-appletsrc --group ActionPlugins --group 0 \
+        --key "MiddleButton;NoModifier" org.kde.contextmenu
+    # The command line (F12) along the bottom of the screen: a KWin script
+    # (kwin/scripts/risclegacy-commandline) watches for its window.
+    kwriteconfig6 --file kwinrc --group Plugins --key risclegacy-commandlineEnabled true
+    # Shortcuts: Ctrl+F12 the Task Window (Plasma's "show desktop
+    # dashboard" gives it up; uninstall.sh puts it back), F12 the command
+    # line unless another program has it (Yakuake).
+    kwriteconfig6 --file kglobalshortcutsrc --group plasmashell --key "show dashboard" "none,Ctrl+F12,Show Desktop"
+    kwriteconfig6 --file kglobalshortcutsrc --group services --group risclegacy-taskwindow.desktop --key _launch "Ctrl+F12"
+    if grep -q '^[^=]*=F12,' "$CONFIG/kglobalshortcutsrc" 2>/dev/null; then
+        echo "Note: F12 belongs to another program (Yakuake?); the command line is in the menu, or set a key for it." >&2
+    else
+        kwriteconfig6 --file kglobalshortcutsrc --group services --group risclegacy-commandline.desktop --key _launch "F12"
     fi
     dbus-send --session --type=method_call --dest=org.kde.KWin /KWin org.kde.KWin.reconfigure 2>/dev/null || true
     echo "Applied $LNF. Log out and back in for every part to take effect."

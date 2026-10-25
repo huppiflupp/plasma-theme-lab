@@ -19,7 +19,7 @@ where its relatives carry a plaque.
 import math
 
 from base import case as risc_case, page
-from glyphs import glyph, reg, S, D, O
+from glyphs import GLYPHS, glyph, reg, F, S, D, O
 
 
 # ---- helpers ---------------------------------------------------------------
@@ -56,15 +56,21 @@ def marker(c):
 
 
 def plaque(c, name, col=None, cx=34, cy=34):
-    """The subject on a white round plaque at the lower right."""
-    r = 13.5 if c.small else 12.5
+    """The subject on a white round plaque at the lower right. At 16/22 px
+    the plaque grows and fine glyphs give way to bold filled ones."""
+    if c.small:
+        cx, cy, r, s = cx - 2, cy - 2, 15.5, 22
+    else:
+        r, s = 12.5, 15.5
     c.circle(cx, cy, r, "#ffffff")
-    s = 17 if c.small else 15.5
     if callable(name):
         name(c, cx, cy, s)
     else:
         col = c[col] if col in c.w else (col or c["ink"])
-        glyph(c, name, cx - s / 2, cy - s / 2, s, col, width=4.0 if c.small else 2.5)
+        if c.small and "pref-s-" + name in GLYPHS:
+            glyph(c, "pref-s-" + name, cx - s / 2, cy - s / 2, s, col, width=3.4)
+        else:
+            glyph(c, name, cx - s / 2, cy - s / 2, s, col, width=3.4 if c.small else 2.5)
     return True
 
 
@@ -171,12 +177,25 @@ def harddisk(c):
 
 def chip(c, cx=21, cy=21):
     m = c["metal"][1]
+    body = c.grad(c.lighten("#30343b", 0.25), "#30343b")
+    if c.small:
+        # Bigger die, three heavy pins a side, a lit face.
+        pins = ""
+        for i in range(3):
+            p = cx - 8 + i * 8
+            pins += (f"M{p} {cy - 18} V{cy - 13} M{p} {cy + 13} V{cy + 18} "
+                     f"M{cx - 18} {p - cx + cy} H{cx - 13} M{cx + 13} {p - cx + cy} H{cx + 18} ")
+        c.line(pins, m, 2.6)
+        c.rect(cx - 14, cy - 14, 28, 28, body, 3)
+        c.rect(cx - 8, cy - 8, 16, 16, c.grad(c.lighten(c["metal"][0], 0.3), c["metal"][1]), 2, width=0.8)
+        c.path(f"M{cx - 7} {cy - 7} h12 l-12 12 z", "#ffffff", None, opacity=0.55)
+        return
     pins = ""
     for i in range(4):
         p = cx - 7.5 + i * 5
         pins += f"M{p} {cy - 15} V{cy - 11} M{p} {cy + 11} V{cy + 15} M{cx - 15} {p - cx + cy} H{cx - 11} M{cx + 11} {p - cx + cy} H{cx + 15} "
     c.line(pins, m, 2.4)
-    c.rect(cx - 12, cy - 12, 24, 24, c.grad(c.lighten("#30343b", 0.2), "#30343b"), 2.5)
+    c.rect(cx - 12, cy - 12, 24, 24, body, 2.5)
     c.rect(cx - 7, cy - 7, 14, 14, c.grad(c["metal"]), 1.5, width=0.9)
     c.text(cx, cy + 2.6, "CPU", 7.5, "#30343b")
 
@@ -693,11 +712,147 @@ def _cookie(c, k):
         D(c, x, y, 1.5, k)
 
 
-def big(c, name, accent):
-    """The subject drawn large with a light fill behind it, and the cog."""
-    glyph(c, name, 2, 2, 36, c.lighten(c[accent], 0.55), width=6 if not c.small else 7)
-    glyph(c, name, 2, 2, 36, c["ink"], width=None if not c.small else 3.0)
-    return marker(c)
+# ---- bold, filled stand-ins for plaque subjects at 16/22 px -------------------
+W_ = "#ffffff"
+
+
+@reg("pref-s-ethernet")
+def _(c, k): F(c, "M3 6 H21 V16 H16 V19 H8 V16 H3 Z", k); F(c, "M7 9 H17 V12 H7 Z", W_)
+@reg("pref-s-harddisk")
+def _(c, k): F(c, "M2 7 H22 V17 H2 Z", k); D(c, 17.5, 12, 2, W_)
+@reg("pref-s-list")
+def _(c, k): S(c, "M4 6 H20 M4 12 H20 M4 18 H20", k, 3.6)
+@reg("pref-s-list-bullet")
+def _(c, k): D(c, 5, 6, 2.4, k); D(c, 5, 12, 2.4, k); D(c, 5, 18, 2.4, k); S(c, "M10 6 H21 M10 12 H21 M10 18 H21", k, 3.2)
+@reg("pref-s-tree")
+def _(c, k): S(c, "M6 8 V19 H13 M6 13 H13", k, 2.6); F(c, "M2 2 H11 V9 H2 Z", k); F(c, "M12 10 H22 V16 H12 Z", k); F(c, "M12 17 H22 V23 H12 Z", k)
+@reg("pref-s-server")
+def _(c, k): F(c, "M4 3 H20 V10.5 H4 Z M4 13.5 H20 V21 H4 Z", k); D(c, 16.5, 6.7, 1.5, W_); D(c, 16.5, 17.2, 1.5, W_)
+@reg("pref-s-database")
+def _(c, k): F(c, "M4 6 C4 2 20 2 20 6 V18 C20 22 4 22 4 18 Z", k); S(c, "M4.5 7 C7 10 17 10 19.5 7", W_, 1.6)
+@reg("pref-s-monitor")
+def _(c, k): F(c, "M2 3 H22 V16 H2 Z M10 16 H14 V19 H18 V21.5 H6 V19 H10 Z", k); F(c, "M5 6 H19 V13 H5 Z", W_)
+@reg("pref-s-laptop")
+def _(c, k): F(c, "M4 4 H20 V15 H4 Z M1 17 H23 L21 20 H3 Z", k); F(c, "M7 7 H17 V12.5 H7 Z", W_)
+@reg("pref-s-id-card")
+def _(c, k): F(c, "M2 5 H22 V19 H2 Z", k); D(c, 8, 11, 2.6, W_); S(c, "M13 10 H19 M13 14.5 H18", W_, 2)
+@reg("pref-s-ticket")
+def _(c, k): F(c, "M2 6 H22 V10 A2 2 0 0 0 22 14 V18 H2 V14 A2 2 0 0 0 2 10 Z", k); S(c, "M15 8 V16", W_, 1.8)
+@reg("pref-s-terminal")
+def _(c, k): F(c, "M2 3 H22 V21 H2 Z", k); S(c, "M6 9 L10 12.5 L6 16 M12 16 H18", W_, 2.4)
+@reg("pref-s-modem")
+def _(c, k): F(c, "M2 12 H22 V20 H2 Z", k); S(c, "M6 12 L4 4 M18 12 L20 4", k, 2.6); D(c, 7, 16, 1.4, W_); D(c, 12, 16, 1.4, W_)
+@reg("pref-s-log")
+def _(c, k): F(c, "M4 2 H16 L20 6 V22 H4 Z", k); S(c, "M7.5 10 H16.5 M7.5 14 H16.5 M7.5 18 H13", W_, 2)
+@reg("pref-s-partition")
+def _(c, k): O(c, 12, 12, 8.5, k, w=2.8); F(c, "M12 12 V2.5 A9.5 9.5 0 0 1 21.5 12 Z", k)
+@reg("pref-s-users")
+def _(c, k):
+    # at 16/22 px one bold figure reads; two read as a face
+    D(c, 12, 7.5, 5, k)
+    F(c, "M3 21.5 C3 13.5 21 13.5 21 21.5 Z", k)
+@reg("pref-s-people")
+def _(c, k): D(c, 7, 7, 3.4, k); D(c, 17, 7, 3.4, k); F(c, "M0.5 20 C0.5 13 13.5 13 13.5 20 Z M10.5 20 C10.5 13 23.5 13 23.5 20 Z", k)
+@reg("pref-s-window")
+def _(c, k): F(c, "M2 3 H22 V9 H2 Z", k); S(c, "M3 4 H21 V20 H3 Z", k, 2.6)
+@reg("pref-s-menu")
+def _(c, k): F(c, "M3 3 H21 V21 H3 Z", k); S(c, "M7 8 H17 M7 12 H17 M7 16 H17", W_, 2.2)
+@reg("pref-s-box")
+def _(c, k): F(c, "M12 2 L22 7 V17 L12 22 L2 17 V7 Z", k); S(c, "M2.5 7.3 L12 12 L21.5 7.3 M12 12 V21", W_, 1.8)
+@reg("pref-s-history")
+def _(c, k): D(c, 12, 12, 9.5, k); S(c, "M12 6.5 V12 L15.5 14.5", W_, 2.4)
+@reg("pref-s-clock")
+def _(c, k): D(c, 12, 12, 9.5, k); S(c, "M12 6 V12 H17", W_, 2.4)
+@reg("pref-s-atom")
+def _(c, k): S(c, "M12 3 C20 3 20 21 12 21 C4 21 4 3 12 3 Z", k, 2.6); S(c, "M3 12 C3 4 21 4 21 12 C21 20 3 20 3 12 Z", k, 2.6); D(c, 12, 12, 3, k)
+@reg("pref-s-money")
+def _(c, k): F(c, "M1 6 H23 V18 H1 Z", k); D(c, 12, 12, 3.4, W_)
+@reg("pref-s-disc")
+def _(c, k): D(c, 12, 12, 9.5, k); D(c, 12, 12, 2.8, W_)
+@reg("pref-s-sign")
+def _(c, k): S(c, "M12 3 V22", k, 2.6); F(c, "M4 4 H18 L21 7.5 L18 11 H4 Z M20 12 H6 L3 15.5 L6 19 H20 Z", k)
+@reg("pref-s-more")
+def _(c, k): D(c, 4.5, 12, 2.8, k); D(c, 12, 12, 2.8, k); D(c, 19.5, 12, 2.8, k)
+@reg("pref-s-network")
+def _(c, k): S(c, "M12 9 V13 M5 17 V13 H19 V17", k, 2.4); F(c, "M8 2 H16 V9 H8 Z M1 16 H9 V22 H1 Z M15 16 H23 V22 H15 Z", k)
+@reg("pref-s-robot")
+def _(c, k): F(c, "M4 7 H20 V20 H4 Z", k); S(c, "M12 7 V3", k, 2.4); D(c, 9, 12.5, 1.8, W_); D(c, 15, 12.5, 1.8, W_); S(c, "M9 16.5 H15", W_, 1.8)
+@reg("pref-s-picture")
+def _(c, k): F(c, "M2 4 H22 V20 H2 Z", k); F(c, "M4 18 L9 11 L13 15 L16 12 L20 18 Z", W_); D(c, 16, 8, 1.8, W_)
+@reg("pref-s-cursor")
+def _(c, k): F(c, "M6 2 V20 L10.5 16 L14 22 L17 20.5 L13.5 14.5 L19 14 Z", k)
+@reg("pref-s-envelope")
+def _(c, k): F(c, "M2 5 H22 V19 H2 Z", k); S(c, "M3 6 L12 13 L21 6", W_, 2)
+@reg("pref-s-folder")
+def _(c, k): F(c, "M2 5 H9 L11 7 H22 V20 H2 Z", k)
+@reg("pref-s-location")
+def _(c, k): F(c, "M12 22 C5 14 4 11 4 9 A8 8 0 0 1 20 9 C20 11 19 14 12 22 Z", k); D(c, 12, 9, 3, W_)
+@reg("pref-s-tag")
+def _(c, k): F(c, "M3 3 H12 L21 12 L12 21 L3 12 Z", k); D(c, 7.5, 7.5, 1.8, W_)
+@reg("pref-s-heart")
+def _(c, k): F(c, "M12 21 C4 15 2 11 2 8 A5 5 0 0 1 12 6 A5 5 0 0 1 22 8 C22 11 20 15 12 21 Z", k)
+@reg("pref-s-star")
+def _(c, k): F(c, "M12 2 L14.9 8.6 L22 9.3 L16.6 14 L18.2 21 L12 17.3 L5.8 21 L7.4 14 L2 9.3 L9.1 8.6 Z", k)
+@reg("pref-s-filter")
+def _(c, k): F(c, "M2 3 H22 L14.5 12 V21 L9.5 18 V12 Z", k)
+@reg("pref-s-flame")
+def _(c, k): F(c, "M12 2 C14 7 19 9 19 15 A7 7 0 0 1 5 15 C5 11 8 9 9 6 C10 8 11 9 12 9 C12 7 12 4 12 2 Z", k)
+@reg("pref-s-lock")
+def _(c, k): S(c, "M7.5 11 V8 A4.5 4.5 0 0 1 16.5 8 V11", k, 2.8); F(c, "M4 10 H20 V21 H4 Z", k)
+@reg("pref-s-bell")
+def _(c, k): F(c, "M5 17 C6.5 15 6.5 12 6.5 10 A5.5 5.5 0 0 1 17.5 10 C17.5 12 17.5 15 19 17 Z", k); D(c, 12, 19.5, 2.2, k)
+@reg("pref-s-info")
+def _(c, k): D(c, 12, 5, 2.6, k); S(c, "M12 10 V20", k, 4)
+@reg("pref-s-hash")
+def _(c, k): S(c, "M9 3 L7 21 M17 3 L15 21 M3 9 H21 M2 15 H20", k, 3)
+@reg("pref-s-login")
+def _(c, k): S(c, "M14 3 H20 V21 H14", k, 2.8); S(c, "M3 12 H13 M9 7 L14 12 L9 17", k, 3)
+@reg("pref-s-play")
+def _(c, k): F(c, "M6 3 L20 12 L6 21 Z", k)
+@reg("pref-s-power")
+def _(c, k): S(c, "M12 2.5 V11 M7 5.5 A8 8 0 1 0 17 5.5", k, 3)
+@reg("pref-s-share")
+def _(c, k): D(c, 18, 5, 3.2, k); D(c, 18, 19, 3.2, k); D(c, 6, 12, 3.2, k); S(c, "M6 12 L18 5 M6 12 L18 19", k, 2.4)
+@reg("pref-s-forward")
+def _(c, k): F(c, "M13 3 L22 11 L13 19 V14 C8 14 5 16 2 20 C3 13 7 9 13 8 Z", k)
+@reg("pref-s-download")
+def _(c, k): F(c, "M9 2 H15 V10 H20 L12 18 L4 10 H9 Z", k); S(c, "M3 21 H21", k, 2.6)
+@reg("pref-s-restart")
+def _(c, k): S(c, "M19 12 A7.5 7.5 0 1 1 15 5.3", k, 3); F(c, "M13 1 L21 4 L15 10 Z", k)
+@reg("pref-s-refresh")
+def _(c, k): S(c, "M19 12 A7.5 7.5 0 1 1 15 5.3", k, 3); F(c, "M13 1 L21 4 L15 10 Z", k); D(c, 12, 12, 2.4, k)
+@reg("pref-s-globe")
+def _(c, k): D(c, 12, 12, 9.5, k); S(c, "M3 12 H21 M12 3 C8 8 8 16 12 21 C16 16 16 8 12 3", W_, 1.6)
+@reg("pref-s-vpn")
+def _(c, k): F(c, "M12 2 L20 5 V11 C20 16 17 19 12 22 C7 19 4 16 4 11 V5 Z", k); F(c, "M8.5 11 H15.5 V16.5 H8.5 Z", W_)
+@reg("pref-s-move")
+def _(c, k): S(c, "M12 3 V21 M3 12 H21", k, 2.6); F(c, "M12 1 L16 5.5 H8 Z M12 23 L16 18.5 H8 Z M1 12 L5.5 8 V16 Z M23 12 L18.5 8 V16 Z", k)
+@reg("pref-s-brush")
+def _(c, k): S(c, "M21 3 L12 12", k, 3.4); F(c, "M12 10 L14 13 C14 18 9 21 2 21 C5 19 4 16 6 13 C8 11 10 10 12 10 Z", k)
+@reg("pref-s-link")
+def _(c, k): S(c, "M9 15 L15 9 M10.5 6.5 L13 4 A4 4 0 0 1 20 11 L17.5 13.5 M13.5 17.5 L11 20 A4 4 0 0 1 4 13 L6.5 10.5", k, 3)
+
+
+def git_branches(c):
+    """Version control without the logo: a branch drawn as pipes and
+    knobs, a side line leaving the main line and merging back."""
+    o = c["orange"]
+    pipe = "M12 6 V36 M12 30 C12 22 28 24 28 14"
+    c.path(pipe, "none", "ink", 7 if not c.small else 5.5)
+    c.path(pipe, "none", c.lighten(o, 0.25), 4 if not c.small else 2.6)
+    for x, y in ((12, 7), (12, 36), (28, 12)):
+        c.circle(x, y, 5.5 if not c.small else 6, c.grad(c.lighten(o, 0.35), c.darken(o, 0.15)))
+        if not c.small:
+            c.circle(x - 1.5, y - 1.5, 1.6, "#ffffff", None)
+
+
+def puzzle_piece(c):
+    g = c["green"]
+    d = ("M5 14 H14 C12 9 14 5 18 5 C22 5 24 9 22 14 H31 V22 C36 20 40 22 40 26 C40 30 36 32 31 30 "
+         "V39 H22 C24 35 22 32 18 32 C14 32 12 35 14 39 H5 Z")
+    c.path(d, c.grad(c.lighten(g, 0.35), c.darken(g, 0.12)))
+    if not c.small:
+        c.path("M7 16 H15 C14 12 15 7 18 7 C16 9 16 13 17 16 H29 V18 H7 Z", "#ffffff", None, opacity=0.3)
 
 
 def draw(name, c):
@@ -722,9 +877,11 @@ def draw(name, c):
             body(c)
             return plaque(c, g, col)
         if name == "preferences-git":
-            return big(c, "branch", "orange")
+            git_branches(c)
+            return marker(c)
         if name == "preferences-plugin":
-            return big(c, "puzzle", "green")
+            puzzle_piece(c)
+            return marker(c)
         if name == "plasma-search":
             search_bar(c)
             return True

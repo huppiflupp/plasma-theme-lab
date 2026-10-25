@@ -213,6 +213,11 @@ def _faces(n, c):
         c.circle(17, 26, 2.6 if not c.small else 3.2, ink, None)
         c.path("M15 33 Q24 39 34 32", "none", "ink", 2.2)
         return True
+    if n == "smile":
+        _face(c)
+        _eyes(c)
+        _l(c, "M15 29 Q24 37 33 29")
+        return True
     if n == "plain":
         _face(c)
         _eyes(c)

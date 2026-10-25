@@ -1,0 +1,14 @@
+{
+  "KPlugin": {
+    "Id": "risclegacy-commandline",
+    "Name": "RISC Legacy command line",
+    "Description": "Lays the RISC OS style command line (F12) along the bottom of the screen",
+    "Version": "0.1.0",
+    "License": "GPL-2.0-or-later",
+    "Authors": [{"Name": "RISC Legacy contributors"}],
+    "EnabledByDefault": false
+  },
+  "KPackageStructure": "KWin/Script",
+  "X-Plasma-API": "javascript",
+  "X-Plasma-MainScript": "code/main.js"
+}

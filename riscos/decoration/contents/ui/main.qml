@@ -27,7 +27,13 @@ Decoration {
     readonly property bool maximized: decoration.client.maximized
     readonly property int line: 1
     readonly property int tool: 20 * px
-    readonly property int titleHeight: tool + 2 * line
+    // RISC OS 4's sprites carry their black outline on all four sides; the
+    // Wimp lays them one pixel over each other, and the outline is the
+    // window's line (Style.qml: shared). The drawn sets leave it to us.
+    readonly property bool shared: style.shared
+    readonly property int gap: shared ? -px : line
+    readonly property int inset: shared ? 0 : line
+    readonly property int titleHeight: shared ? tool : tool + 2 * line
 
     function art(name) { return Qt.resolvedUrl("art/" + name + sfx + ".png"); }
 
@@ -36,7 +42,7 @@ Decoration {
             || decorationSettings.borderSize === DecorationOptions.BorderNoSides ? 0 : root.line;
         borders.setBorders(side);
         borders.setTitle(root.titleHeight);
-        maximizedBorders.setTitle(root.titleHeight - root.line);
+        maximizedBorders.setTitle(root.titleHeight - root.inset);
         // RISC OS has no sizing border; the mouse still finds one.
         extendedBorders.setAllBorders(6);
     }
@@ -55,14 +61,14 @@ Decoration {
     // ---- title row -----------------------------------------------------
     Item {
         id: titleRow
-        x: root.maximized ? 0 : root.line
-        y: root.maximized ? 0 : root.line
+        x: root.maximized ? 0 : root.inset
+        y: root.maximized ? 0 : root.inset
         width: parent.width - 2 * x
         height: root.tool
 
         ButtonGroup {
             id: leftButtons
-            spacing: root.line
+            spacing: root.gap
             explicitSpacer: root.tool / 2
             menuButton: menuButtonComponent
             appMenuButton: appMenuButtonComponent
@@ -81,8 +87,8 @@ Decoration {
         Item {
             id: captionBar
             anchors {
-                left: leftButtons.right; leftMargin: leftButtons.width > 0 ? root.line : 0
-                right: rightButtons.left; rightMargin: rightButtons.width > 0 ? root.line : 0
+                left: leftButtons.right; leftMargin: leftButtons.width > 0 ? root.gap : 0
+                right: rightButtons.left; rightMargin: rightButtons.width > 0 ? root.gap : 0
                 top: parent.top; bottom: parent.bottom
             }
             Rectangle {
@@ -130,7 +136,7 @@ Decoration {
         }
         ButtonGroup {
             id: rightButtons
-            spacing: root.line
+            spacing: root.gap
             explicitSpacer: root.tool / 2
             menuButton: menuButtonComponent
             appMenuButton: appMenuButtonComponent

@@ -60,6 +60,79 @@ def _(c, k):
         D(c, x, y, 3, k)
 
 
+# ---- plaque glyphs for 16/22 px: few strokes, filled where possible -----------
+
+
+def _star_d(cx=12, cy=12.5, r1=9.5, r2=4):
+    pts = []
+    for i in range(10):
+        a = -math.pi / 2 + i * math.pi / 5
+        r = r1 if i % 2 == 0 else r2
+        pts.append(f"{cx + r * math.cos(a):.2f} {cy + r * math.sin(a):.2f}")
+    return "M" + " L".join(pts) + " Z"
+
+
+@reg("status-s-clock")
+def _(c, k): S(c, "M12 4.5 V12.5 L17.5 16", k)            # the plaque is the face
+@reg("status-s-lock")
+def _(c, k): F(c, "M5 11 H19 V21 H5 Z", k); S(c, "M8.5 11 V8 A3.5 3.5 0 0 1 15.5 8 V11", k, 3.2)
+@reg("status-s-hourglass")
+def _(c, k): F(c, "M5 3 H19 L12 12 Z M12 12 L19 21 H5 Z", k)
+@reg("status-s-moon")
+def _(c, k): F(c, "M14 3 A9 9 0 1 0 21 15 A7 7 0 1 1 14 3 Z", k)
+@reg("status-s-star")
+def _(c, k): F(c, _star_d(), k)
+@reg("status-s-ring")
+def _(c, k): O(c, 12, 12, 6.5, k, w=3.4)                   # invisible: hollow
+@reg("status-s-envelope")
+def _(c, k): S(c, "M3 6 H21 V18 H3 Z M3 6 L12 13 L21 6", k, 2.8)
+@reg("status-s-speaker-off")
+def _(c, k): F(c, "M2 8.5 H7 L12 4 V20 L7 15.5 H2 Z", k); S(c, "M15 9 L21 15 M21 9 L15 15", k, 3)
+@reg("status-s-battery")
+def _(c, k): F(c, "M2 7 H19 V17 H2 Z M19 10 H22 V14 H19 Z", k)
+@reg("status-s-sun")
+def _(c, k): D(c, 12, 12, 5, k); S(c, "M12 1.5 V4 M12 20 V22.5 M1.5 12 H4 M20 12 H22.5", k, 3)
+@reg("status-s-palette")
+def _(c, k): F(c, "M12 3 C7 9 5 12 5 15 A7 7 0 0 0 19 15 C19 12 17 9 12 3 Z", k)
+@reg("status-s-globe")
+def _(c, k): O(c, 12, 12, 8, k, w=2.8); S(c, "M4 12 H20 M12 4 V20", k, 2.6)
+@reg("status-s-calendar")
+def _(c, k): F(c, "M4 5 H20 V9 H4 Z", k); S(c, "M4 9 V20 H20 V9", k, 2.8)
+@reg("status-s-bell")
+def _(c, k): F(c, "M5 17 C7 15 7 13 7 10 A5 5 0 0 1 17 10 C17 13 17 15 19 17 Z M10 19 H14 A2 2 0 0 1 10 19 Z", k)
+@reg("status-s-shield")
+def _(c, k): F(c, "M12 2.5 L20 6 V11 C20 16 17 19.5 12 21.5 C7 19.5 4 16 4 11 V6 Z", k)
+@reg("status-s-camera")
+def _(c, k): F(c, "M2 7 H7 L9 4 H15 L17 7 H22 V20 H2 Z", k)
+@reg("status-s-keyboard")
+def _(c, k): S(c, "M2 7 H22 V17 H2 Z M7 13 H17", k, 2.8)
+@reg("status-s-flame")
+def _(c, k): F(c, "M12 2 C14 7 19 9 19 15 A7 7 0 0 1 5 15 C5 11 8 10 9 6 C10 9 11 10 12 10 C12 7 11 5 12 2 Z", k)
+@reg("status-s-leaf")
+def _(c, k): F(c, "M4 20 C4 9 10 3 21 3 C21 14 15 20 4 20 Z", k)
+@reg("status-s-z")
+def _(c, k): S(c, "M6 5 H18 L6 19 H18", k, 3.4)
+@reg("status-s-bluetooth")
+def _(c, k): S(c, "M6 8 L17 16 L12 20.5 V3.5 L17 8 L6 16", k, 2.8)
+@reg("status-s-eye-off")
+def _(c, k): O(c, 12, 12, 6.5, k, w=3.4)
+
+
+# glyph name -> (the plaque's glyph at 16/22 px, its line width)
+SMALL_PLAQUE = {
+    "clock": ("status-s-clock", 4.2), "lock": ("status-s-lock", 3.2), "hourglass": ("status-s-hourglass", 3),
+    "moon": ("status-s-moon", 3), "star": ("status-s-star", 3), "eye-off": ("status-s-ring", 3.4),
+    "envelope": ("status-s-envelope", 2.8), "speaker-off": ("status-s-speaker-off", 3),
+    "battery": ("status-s-battery", 3), "sun": ("status-s-sun", 3), "palette": ("status-s-palette", 3),
+    "globe": ("status-s-globe", 2.8), "calendar": ("status-s-calendar", 2.8), "bell": ("status-s-bell", 3),
+    "shield": ("status-s-shield", 3), "camera": ("status-s-camera", 3), "keyboard": ("status-s-keyboard", 2.8),
+    "flame": ("status-s-flame", 3), "leaf": ("status-s-leaf", 3), "zzz": ("status-s-z", 3.4),
+    "bluetooth": ("status-s-bluetooth", 2.8), "repeat": ("repeat", 3.2), "sync": ("sync", 3.2),
+    "power": ("power", 3.6), "download": ("download", 3.8), "forbidden": ("forbidden", 3.4),
+    "question": ("question", 3), "info": ("info", 3), "exclamation": ("exclamation", 3),
+}
+
+
 # ---- helpers ------------------------------------------------------------------
 
 
@@ -81,7 +154,8 @@ def overlay(c, name, color="green", x=26, y=26, size=20):
     y2 = min(y, 48 - s2)
     r = s2 / 2
     c.circle(x2 + r, y2 + r, r, c[color], width=0.9)
-    glyph(c, name, x2 + s2 * 0.19, y2 + s2 * 0.19, s2 * 0.62, "#ffffff", width=4.2)
+    g, w = SMALL_PLAQUE.get(name, (name, 4.2))
+    glyph(c, g, x2 + s2 * 0.15, y2 + s2 * 0.15, s2 * 0.7, "#ffffff", width=w)
     return True
 
 
@@ -434,10 +508,10 @@ SIMPLE = {
     "software-updates-release": ("obj", "box", "brown", "arrow-up-double", "violet"),
     "software-updates-security": ("obj", "box", "brown", "shield", "red"),
     "software-updates-updates": ("obj", "box", "brown", "arrow-down", "green"),
-    "kpackagekit-important": ("obj", "archive", "orange", "exclamation", "red"),
-    "kpackagekit-inactive": ("grey", "archive"),
-    "kpackagekit-security": ("obj", "archive", "orange", "lock", "red"),
-    "kpackagekit-updates": ("obj", "archive", "orange", "download", "blue"),
+    "kpackagekit-important": ("obj", "bag", "orange", "exclamation", "red"),
+    "kpackagekit-inactive": ("grey", "bag"),
+    "kpackagekit-security": ("obj", "bag", "orange", "lock", "red"),
+    "kpackagekit-updates": ("obj", "bag", "orange", "download", "blue"),
     "update-none": ("disc", "grey", "check"),
     "update-low": ("disc", "green", "arrow-down"),
     "update-medium": ("disc", "orange", "arrow-down"),
@@ -476,8 +550,6 @@ SIMPLE = {
     "network-limited": ("obj", "network", "blue", "exclamation", "orange"),
     "network-unavailable": ("grey", "network", "cross", "red"),
     "network-bluetooth-activated": ("disc", "blue", "bluetooth"),
-    "network-flightmode-on": ("disc", "orange", "airplane-mode"),
-    "network-flightmode-off": ("disc", "grey", "airplane-mode"),
     "video-card-inactive": ("grey", "status-gpu"),
     "video-off": ("grey", "video-camera", None, None, "slash"),
     "waveform-off": ("grey", "status-waveform", None, None, "slash"),
@@ -515,8 +587,6 @@ SIMPLE = {
     "redshift-status-off": ("grey", "sun", None, None, "slash"),
     "flightmode-on": ("obj", "airplane-mode", "orange"),
     "flightmode-off": ("grey", "airplane-mode", None, None, "slash"),
-    "touchpad_enabled": ("obj", "touchpad", "green"),
-    "touchpad_disabled": ("grey", "touchpad", None, None, "slash"),
     "input-caps-on": ("cap", "caps"),
     "input-num-on": ("captext", "1"),
     "input-combo-on": ("cap", "plus"),
@@ -753,6 +823,26 @@ def _draw(name, c):
         c.path("M24 4 L40 10 V22 C40 32 33 39 24 44 C15 39 8 32 8 22 V10 Z",
                c.grad(c.lighten(c[col], 0.3), c.darken(c[col], 0.1)))
         glyph(c, g, 13, 12, 22, c["ink"] if col == "yellow" else "#ffffff", width=3.2)
+        return True
+    if name in ("network-flightmode-on", "network-flightmode-off"):
+        # the radio side of flight mode: the signal bars, the plane over them
+        on = name.endswith("on")
+        bars(c, 0 if on else 5)
+        glyph(c, "airplane-mode", 1, 1, 30, c["ink"], width=7 if c.small else 5.5)
+        glyph(c, "airplane-mode", 1, 1, 30, c["orange"] if on else "#ffffff", width=3.6 if c.small else 2.6)
+        return True
+    if name in ("touchpad_enabled", "touchpad_disabled"):
+        # the pad itself, solid, with its two buttons; a finger on it when on
+        on = name.endswith("enabled")
+        body = c.grad(c["case"]) if on else _off(c)
+        c.rect(5, 5, 38, 38, body, 4)
+        c.rect(9, 9, 30, 21, c.grad(c["metal"]) if on else c["grey"], 2)
+        c.rect(9, 33, 14.5, 6, c["case_dark"], 1.5)
+        c.rect(24.5, 33, 14.5, 6, c["case_dark"], 1.5)
+        if on:
+            c.circle(28, 19, 5, c["green"], width=1.2)
+        else:
+            _slash(c)
         return True
     if name == "network-bluetooth-activated-locked":
         disc(c, c["blue"], "bluetooth")

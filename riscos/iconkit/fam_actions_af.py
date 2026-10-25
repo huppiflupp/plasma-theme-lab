@@ -470,6 +470,7 @@ def border_style(c):
 
 # ---- nodes (path editing) --------------------------------------------------
 def _sq(c, x, y, col, s=6):
+    s = s * (1.7 if c.small else 1)
     c.rect(x - s / 2, y - s / 2, s, s, col, 0, width=1.2)
 
 
@@ -477,38 +478,46 @@ CURVE = "M5 36 C10 14 18 12 24 22 C30 32 38 34 43 12"
 
 
 def nodes(kind):
+    """Inkscape's node tools. Small: the same picture with bigger nodes,
+    fewer and heavier lines (handles thick, curves simpler)."""
     def run(c):
-        blue, white = c["blue"], "#ffffff"
+        blue, white, sm = c["blue"], "#ffffff", c.small
+        hw = 1.4 if not sm else 1.6           # handle lines (x1.6 when small)
+        hr = 2.5 if not sm else 3.6           # handle ends
         if kind in ("add", "insert", "remove"):
-            c.path(CURVE, "none")
-            _sq(c, 5, 36, white); _sq(c, 43, 12, white)
+            c.path(CURVE if not sm else "M5 36 C10 14 18 14 24 22 C30 30 36 30 40 14", "none")
+            if not sm:
+                _sq(c, 5, 36, white); _sq(c, 43, 12, white)
             _sq(c, 24, 22, c["green"] if kind != "remove" else c["red"], 7)
         elif kind == "break":
             c.path("M5 36 C10 14 17 12 21 18", "none"); c.path("M27 26 C31 32 38 34 43 12", "none")
-            _sq(c, 21, 18, blue); _sq(c, 27, 26, blue)
-            c.line("M17 30 L22 25 M31 14 L26 19", c["red"], 2)
+            _sq(c, 19 if sm else 21, 17 if sm else 18, blue); _sq(c, 29 if sm else 27, 27 if sm else 26, blue)
+            if not sm:
+                c.line("M17 30 L22 25 M31 14 L26 19", c["red"], 2)
         elif kind == "join":
             c.path("M5 36 C8 20 14 18 24 24", "none"); c.path("M43 36 C40 20 34 18 24 24", "none")
             _sq(c, 24, 24, blue, 7)
             c.line("M14 10 L20 16 M20 11 V16 H15 M34 10 L28 16 M28 11 V16 H33", c["green"], 2)
         elif kind in ("connect", "disconnect"):
-            c.path("M4 6 C4 18 8 24 16 24", "none"); c.path("M44 6 C44 18 40 24 32 24", "none")
+            c.path("M4 6 C4 18 8 24 14 24", "none"); c.path("M44 6 C44 18 40 24 34 24", "none")
             if kind == "connect":
                 c.line("M19 24 H29", c["green"], 3.2)
             else:
-                c.line("M20 20 L28 28 M28 20 L20 28", c["red"], 2.4)
-            _sq(c, 16, 24, blue); _sq(c, 32, 24, blue)
+                c.line("M20 19 L28 29 M28 19 L20 29", c["red"], 2.4)
+            _sq(c, 14, 24, blue); _sq(c, 34, 24, blue)
         elif kind == "corner":
-            c.path("M4 40 L24 10 L44 40", "none")
-            c.line("M24 10 L12 4 M24 10 L36 4", c["grey"], 1.4)
-            c.path("M24 4 L30 10 L24 16 L18 10 Z", blue, width=1.2)
+            c.path("M4 42 L24 12 L44 42", "none")
+            c.line("M24 12 L10 5 M24 12 L38 5", c["grey"], hw)
+            z = 6 if not sm else 9
+            c.path(f"M24 {12 - z} L{24 + z} 12 L24 {12 + z} L{24 - z} 12 Z", blue, width=1.2)
         elif kind in ("smooth", "symmetric"):
-            c.path("M4 40 C8 16 40 16 44 40", "none")
-            left = 8 if kind == "symmetric" else 15
-            c.line(f"M{left} 22 H40", c["grey"], 1.4)
-            c.circle(left, 22, 2.5, white, width=1.2); c.circle(40, 22, 2.5, white, width=1.2)
+            c.path("M4 42 C8 16 40 16 44 42", "none")
+            left = 6 if kind == "symmetric" else 16
+            right = 42 if kind == "symmetric" else 44
+            c.line(f"M{left} 22 H{right}", c["grey"], hw)
+            c.circle(left, 22, hr, white, width=1.2); c.circle(right, 22, hr, white, width=1.2)
             if kind == "symmetric":
-                c.line("M14 27 V31 M34 27 V31", c["ink"], 1.6)
+                c.line("M14 27 V32 M34 27 V32", c["ink"], 1.8)
             _sq(c, 24, 22, blue)
         elif kind in ("node-curve", "node-line", "seg-curve", "seg-line"):
             d = "M8 38 C8 10 40 10 40 38" if kind.endswith("curve") else "M8 38 L40 10"
@@ -519,6 +528,45 @@ def nodes(kind):
                 _sq(c, 8, 38, col, 7); _sq(c, 40, 38, col, 7)
             else:
                 _sq(c, 8, 38, col, 7); _sq(c, 40, 10, col, 7)
+        return True
+    return run
+
+
+# ---- UML relations: two classes and the line between them -----------------
+def uml(kind):
+    def run(c):
+        sm = c.small
+        for x in (3, 35):
+            c.rect(x, 13, 10, 22, c.grad(c["page"]), 1.5)
+            if not sm:
+                c.line(f"M{x} 19 h10", "ink", 1)
+        w = 2.2 if not sm else 2.0            # x1.6 when small
+        dia = "M35 24 L26 17 L17 24 L26 31 Z"
+        if kind == "association":
+            c.line("M13 24 H35", "ink", w)
+        elif kind in ("aggregation", "composition"):
+            c.line("M13 24 H17", "ink", w)
+            c.path(dia, "#ffffff" if kind == "aggregation" else c["ink"], "ink", w * 0.8)
+        elif kind == "dependency":
+            c.line("M13 24 H16 M20 24 H23 M27 24 H33" if not sm else "M13 24 H17 M23 24 H33", "ink", w)
+            c.path("M27 17 L34 24 L27 31", "none", "ink", w)
+        return True
+    return run
+
+
+def align_out_side(bottom):
+    """Boxes beside the anchor, with their edge on the anchor's far edge
+    (the top-out/bottom-out of the horizontal row)."""
+    def run(c):
+        _anchor(c, (27, 14, 17, 20), False)
+        if bottom:      # tops of the boxes on the anchor's bottom edge
+            for r in ((4, 34, 10, 10), (16, 34, 9, 7)):
+                _box(c, r, False)
+            _ln(c, 3, 34, 45, 34, False)
+        else:           # bottoms on the anchor's top edge
+            for r in ((4, 4, 10, 10), (16, 7, 9, 7)):
+                _box(c, r, False)
+            _ln(c, 3, 14, 45, 14, False)
         return True
     return run
 
@@ -811,10 +859,10 @@ SPEC = {
     "adjusthsl": hue_wheel,
     "adjustlevels": A("levels", "blue"),
     "adjustrgb": color_dots,
-    "aggregation": A("act-af-aggregation"),
+    "aggregation": uml("aggregation"),
     "akonadiconsole": A("terminal", None, "database", "blue"),
     "align-horizontal-baseline": align_baseline(False),
-    "align-horizontal-bottom-out": align("right-out", True, "arrow-down"),
+    "align-horizontal-bottom-out": align_out_side(True),
     "align-horizontal-center": align("center"),
     "align-horizontal-left": align("left"),
     "align-horizontal-left-out": align("left-out"),
@@ -823,7 +871,7 @@ SPEC = {
     "align-horizontal-right": align("right"),
     "align-horizontal-right-out": align("right-out"),
     "align-horizontal-right-to-anchor": align("right", False, "anchor"),
-    "align-horizontal-top-out": align("left-out", True, "arrow-up"),
+    "align-horizontal-top-out": align_out_side(False),
     "align-none": scatter(None, "cross", "red"),
     "align-vertical-baseline": align_baseline(True),
     "align-vertical-bottom": align("right", True),
@@ -845,7 +893,7 @@ SPEC = {
     "archive-insert": A("archive", "brown", "arrow-down", "blue"),
     "archive-remove": A("archive", "brown", "minus", "red"),
     "artifact": A("act-af-artifact", "orange"),
-    "association": A("act-af-association"),
+    "association": uml("association"),
     "atmosphere": A("act-af-atmosphere", "cyan"),
     "auto-transition": A("act-af-transition", None, "wand", "violet"),
     "auto-type": A("keyboard", None, "lightning", "orange"),
@@ -855,7 +903,6 @@ SPEC = {
     "backup": A("harddisk", None, "history", "blue"),
     "bboxnext": A("selection", None, "arrow-right", "blue"),
     "bboxprev": A("selection", None, "arrow-left", "blue"),
-    "beamerframe": A("presentation", "orange"),
     "bitmap-trace": A("picture", None, "path", "violet"),
     "black_sum": A("sigma", "grey", None, None, "sigma"),
     "blur": A("blur", "cyan"),
@@ -916,9 +963,8 @@ SPEC = {
     "composite-track-off": A("act-af-transition", "grey", "cross", "red"),
     "composite-track-on": A("act-af-transition", "blue", "check", "green"),
     "composite-track-preview": A("act-af-transition", "blue", "eye", "blue"),
-    "composition": A("act-af-composition"),
+    "composition": uml("composition"),
     "configure": A("gear"),
-    "configure-shortcuts": A("keyboard", None, "gear", "blue"),
     "contrast": A("contrast", "ink", None, None, "contrast"),
     "coordinate": A("act-af-coordinate"),
     "copy-coordinates": A("act-af-coordinate", None, "copy", "blue"),
@@ -928,7 +974,6 @@ SPEC = {
     "dashboard-show": A("act-af-gauge", "blue"),
     "database-change-key": A("database", None, "key", "orange"),
     "database-index": A("database", None, "list", "blue"),
-    "dblatex": K(A("page"), letters("TeX", 11, 30, italic=True)),
     "debug-execute-from-cursor": dbg("from-cursor"),
     "debug-execute-to-cursor": dbg("to-cursor"),
     "debug-run": A("bug", None, "play", "green"),
@@ -940,9 +985,9 @@ SPEC = {
     "debug-step-over": dbg("over"),
     "deep-history": K(lambda c: c.circle(24, 24, 17, c.grad(c["page"])), letters("H*", 18, 31)),
     "delete-comment": A("comment", None, "cross", "red"),
-    "delete-table-row": table([(0, 1), (1, 1), (2, 1)], "red", b="minus", bc="red"),
+    "edit-table-delete-row": table([(0, 1), (1, 1), (2, 1)], "red", b="minus", bc="red"),
     "deletecell": table([(1, 1)], "red", b="cross", bc="red"),
-    "dependency": A("act-af-dependency"),
+    "dependency": uml("dependency"),
     "depth16to8": depth("16", "8"),
     "depth8to16": depth("8", "16"),
     "description": A("lines", None, "info", "blue"),
@@ -1117,10 +1162,7 @@ SPEC = {
     "financial-account": A("bank", "green", "act-af-coin", "orange"),
     "financial-categories": A("chart-pie", "green", "tag", "violet"),
     "financial-forecast": A("act-af-forecast", "green"),
-    "financial-investments": A("chart-line", "green", "act-af-coin", "orange"),
     "financial-list": A("list", "green", "act-af-coin", "orange"),
-    "financial-payees": A("people", "green", "act-af-coin", "orange"),
-    "financial-report": A("page", "green", "chart-bar", "green"),
     "find-location": A("location", None, "magnifier", "blue"),
     "fingerprint": A("fingerprint"),
     "flag": A("flag"),
@@ -1296,6 +1338,10 @@ SPEC.update({
     "document-share": A("page", None, "share", "blue"),
     "document-swap": A("act-af-page-swap"),
     "document-unequal": A("act-af-page-unequal"),
+    "align-vertical-bottom-to-anchor": align("right", True, "anchor"),
+    "amarok_change_language": A("language", None, "refresh", "violet"),
+    "choice-round": A("circle", "orange", None, None, "circle"),
+    "format-list-unordered": A("list-bullet"),
 })
 
 

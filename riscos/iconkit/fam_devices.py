@@ -334,12 +334,8 @@ def _draw(name, c):
         else:
             c.line("M5 33 H21 M27 33 H43", c["yellow"], 2)
         return True
-    if name in ("printer", "cups", "cupsprinter"):
+    if name == "printer":
         printer_body(c)
-        if name == "cups":
-            overlay(c, "network", "blue", 27, 2, 19)
-        elif name == "cupsprinter":
-            overlay(c, "gear", "violet", 27, 2, 19)
         return True
     if name == "printer-laser":
         printer_body(c, laser=True)
@@ -461,6 +457,17 @@ def _draw(name, c):
     if name == "keyboard-spacebar":
         key(c, 2, 14, 44, 22)
         glyph(c, "spacebar", 12, 10, 24, ink, width=2.4 if not c.small else 3.0)
+        return True
+    if name == "multimedia-player":
+        c.rect(10, 4, 28, 40, c.grad(c["metal"]), 4)
+        c.rect(13, 7, 22, 17, c.grad(c["screen"]), 1, width=0.9)
+        glyph(c, "play", 16, 7.5, 16, "#ffffff")
+        for i, g in enumerate(("previous", "play", "next")):
+            c.circle(16 + i * 8, 33, 3.4, c.grad(c["case_top"]), width=1)
+        if not c.small:
+            for i, g in enumerate(("previous", "play", "next")):
+                glyph(c, g, 13.6 + i * 8, 30.6, 4.8, c["ink"], width=2.6)
+        c.rect(14, 39, 20, 2, c.lighten(c["grey"], 0.3), 1, width=0.6)
         return True
     if name == "multimedia-player-ipod-mini-blue":
         c.rect(12, 3, 24, 42, c.grad(c.lighten(c["blue"], 0.35), c.darken(c["blue"], 0.15)), 5)

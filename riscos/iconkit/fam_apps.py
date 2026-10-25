@@ -683,11 +683,14 @@ def bulb(c):
 
 
 def lifebuoy(c):
-    c.circle(24, 24, 14, "none", "ink", 13)
-    c.circle(24, 24, 14, "none", WHITE, 10.6)
-    for a in (0, 90, 180, 270):
-        c.path(arc(24, 24, 14, a + 20, a + 70), "none", c["red"], 10.6 / 1.0)
-    c.circle(24, 24, 14, "none", c.lighten(c["ink"], 0.6), 0.8)
+    # eight equal ring segments, red and white alternating
+    for i in range(8):
+        a0, a1 = i * 45 - 22.5 - 90, i * 45 + 22.5 - 90
+        p = lambda r, a: f"{24 + r * math.cos(math.radians(a)):.2f} {24 + r * math.sin(math.radians(a)):.2f}"
+        d = f"M{p(19, a0)} A19 19 0 0 1 {p(19, a1)} L{p(9.5, a1)} A9.5 9.5 0 0 0 {p(9.5, a0)} Z"
+        c.path(d, G(c, c["red"], 0.3, 0.1) if i % 2 == 0 else WHITE, None)
+    c.circle(24, 24, 19, "none")
+    c.circle(24, 24, 9.5, "none")
     return True
 
 
@@ -1391,9 +1394,8 @@ def _(c): at(c, 0, 12, 0.8, harddisk); at(c, 16, -2, 0.55, fat_arrow, c["green"]
 
 @app("ubiquity-kde")
 def _(c):
-    at(c, 0, 0, 0.55, cd)
-    at(c, 12, 10, 0.4, fat_arrow, c["orange"], _rot=-60)
-    at(c, 14, 20, 0.7, harddisk)
+    at(c, -2, -2, 0.75, cd)
+    at(c, 13, 19, 0.7, harddisk)
 
 
 @app("calindori")
@@ -1626,18 +1628,22 @@ def _(c):
 @app("kalzium")
 def _(c):
     # a periodic table: tall columns at both sides, the low middle block,
-    # the rare earths apart below
-    cw, ch = 4.4, 6.2
-    for k in range(10):
-        rows = range(5) if k == 0 else range(1, 5) if k in (1, 6, 7, 8, 9) else range(2, 5)
-        if k == 9:
-            rows = range(5)
-        col = c["red"] if k == 0 else c["orange"] if k == 1 else c["green"] if k >= 6 else c["cyan"]
-        if k == 9:
-            col = c["yellow"]
-        for r in rows:
-            c.rect(2 + k * cw, 4 + r * ch, cw, ch, col, 0, "ink", 0.6)
-    c.rect(11, 38, 26, 6, c.lighten(c["violet"], 0.3), 0, "ink", 0.6)
+    # the rare earths apart below; at 16/22 px fewer, larger cells
+    if c.small:
+        n, cw, ch, x0 = 5, 8.8, 9, 2
+        tall = lambda k: range(4) if k in (0, n - 1) else range(1, 4) if k == n - 2 else range(2, 4)
+    else:
+        n, cw, ch, x0 = 10, 4.4, 6.2, 2
+        tall = lambda k: range(5) if k in (0, 9) else range(1, 5) if k in (1, 6, 7, 8) else range(2, 5)
+    for k in range(n):
+        col = c["red"] if k == 0 else c["yellow"] if k == n - 1 else c["green"] if k >= n - 4 + (n == 5) * 1 \
+            else c["orange"] if k == 1 else c["cyan"]
+        for r in tall(k):
+            c.rect(x0 + k * cw, 4 + r * ch, cw, ch, col, 0, "ink", 0.6 if not c.small else 0.5)
+    if c.small:
+        c.rect(10, 41, 28, 5, c.lighten(c["violet"], 0.3), 0, "ink", 0.5)
+    else:
+        c.rect(11, 38, 26, 6, c.lighten(c["violet"], 0.3), 0, "ink", 0.6)
 
 
 @app("kamoso")
@@ -1965,9 +1971,9 @@ def _(c): drone(c)
 
 @app("kiten")
 def _(c):
+    # a dictionary with the character for mountain (shan), three strokes
     book(c, c["blue"])
-    c.rect(16, 12, 14, 18, "none", 0.5, WHITE, 2.4)
-    c.line("M16 21 H30", WHITE, 2.4)
+    c.line("M15 15 V31 H33 V15 M24 10 V31", WHITE, 3.4 if not c.small else 2.6)
 
 
 @app("kjumpingcube")

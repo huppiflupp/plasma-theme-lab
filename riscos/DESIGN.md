@@ -136,6 +136,38 @@ pair of meanings that came out identical. The original 34 px sprites
 (`vendor/riscos-open/Sprites-*`) remain the reference, no longer shipped
 as icons: scaled up they were pixelated (the user, 25.10.2026).
 
+## 9. Handling (RISC OS's way of working)
+
+RISC OS (RISC OS Open's GUI comparison, the Style Guide): three buttons —
+**Select** (left) chooses and opens, **Menu** (middle) opens a menu where
+the pointer is (no menu bars; menus carry a title), **Adjust** (right) does
+the complementary thing (move a window without raising it, close a Filer
+window and open its parent). Applications are directories named `!Name`;
+started, they put an icon on the iconbar: Select opens the window, Menu
+the program's menu (Info, Choices, Quit). "Apps" on the iconbar is the
+applications directory. Saving is dragging a file icon from a save box into
+a Filer window. F12 opens the command line at the bottom of the screen,
+`*` prompt and star commands (`*Cat`, `*Dir`, `*Run` …); Ctrl+F12 a Task
+Window, the command line as an ordinary window.
+
+What RISC Legacy takes over:
+
+| RISC OS | here |
+|---|---|
+| Select / Menu / Adjust on iconbar icons | open or iconise / the program's menu with its name as title (New window, Iconise, Quit) / another window |
+| Apps | Select: the applications as a Filer window (`applications:/`); Menu: the cascading menu |
+| Menu on the desktop (Pinboard) | the desktop's menu (`ActionPlugins/0 MiddleButton`) |
+| Menu on a title bar | the window's menu (`CommandActiveTitlebar2`) |
+| Filer: double-click, a window per directory | `SingleClick=false`, Dolphin opens folders from outside in a new window |
+| F12 command line | Konsole profile "RISC Legacy Command Line", white on black, laid along the bottom (third of the screen, no frame) by the KWin script `risclegacy-commandline` (a window rule came too late: Konsole sets its title after mapping) |
+| Ctrl+F12 Task Window | Konsole profile "RISC Legacy Task Window", black on white; Plasma's "show desktop dashboard" gives Ctrl+F12 up |
+| star commands | `shell/starrc` on bash: only words with `*` are RISC OS commands (`*Cat` lists, `cat` stays Unix's), as aliases so a file named like a command is not globbed |
+
+Not taken over: saving by dragging (every program's own save dialog
+would have to take part) and Menu inside other programs' windows (their
+own middle-button use). install.sh records every setting it changes;
+uninstall.sh restores them.
+
 ## 7. Open
 
 - RO4's texture on the iconbar and the window backgrounds (Kvantum can tile

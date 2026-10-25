@@ -20,6 +20,7 @@ Item {
     property bool active: false
     signal select()
     signal adjust()
+    signal menu()
 
     implicitWidth: Math.max(size, label.visible ? Math.min(label.implicitWidth, labelWidth) : 0) + 8
     implicitHeight: size + labelHeight
@@ -58,9 +59,11 @@ Item {
     MouseArea {
         id: mouse
         anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+        // RISC OS's buttons: Select (left), Menu (middle), Adjust (right).
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
         hoverEnabled: true
-        onClicked: mouse => mouse.button === Qt.MiddleButton ? item.adjust() : item.select()
+        onClicked: mouse => mouse.button === Qt.MiddleButton ? item.menu()
+                          : mouse.button === Qt.RightButton ? item.adjust() : item.select()
     }
     QQC2.ToolTip.visible: mouse.containsMouse && item.tip !== ""
     QQC2.ToolTip.text: item.tip

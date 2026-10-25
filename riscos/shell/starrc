@@ -1,0 +1,74 @@
+# RISC Legacy: RISC OS's star commands on top of bash (DESIGN.md §9).
+#
+# Sourced by the command line (F12) and the Task Window (Ctrl+F12):
+#   bash --rcfile ~/.local/share/risc-legacy/shell/starrc
+# Only words starting with "*" are RISC OS commands, case does not matter:
+# "*Cat" lists the directory as RISC OS does, while a plain "cat" is still
+# Unix's cat. Everything else is ordinary bash.
+
+[ -f ~/.bashrc ] && . ~/.bashrc
+
+PS1='*'
+PS2='> '
+
+_rl_help() {
+    cat <<'EOF'
+RISC Legacy star commands (as in RISC OS; case does not matter):
+  *Cat [dir]        list a directory          *Ex [dir]       list with details
+  *Dir <dir>        change directory          *Up / *Back     parent / previous
+  *CDir <dir>       create a directory        *Copy a b       copy (asks first)
+  *Rename a b       rename                    *Delete f       delete a file
+  *Wipe <obj>       delete, also directories  *Type f         show a text file
+  *Run <prog>       run a program             *Filer_OpenDir  open a Filer window
+  *Free             free disc space           *Time           date and time
+  *Modules          loaded kernel modules     *Help [cmd]     this list
+  *Desktop          back to the desktop (close this window)
+Everything without a star is ordinary bash.
+EOF
+}
+
+_rl_star() {
+    local cmd="${1#\*}"
+    shift
+    case "${cmd,,}" in
+        cat|.)          ls -C --group-directories-first "$@" ;;
+        ex)             ls -l --group-directories-first "$@" ;;
+        dir)            cd "${1:-$HOME}" ;;
+        up)             cd .. ;;
+        back)           cd - >/dev/null ;;
+        cdir)           mkdir -p -- "$@" ;;
+        copy)           cp -ri -- "$@" ;;
+        rename)         mv -i -- "$@" ;;
+        delete)         rm -i -- "$@" ;;
+        wipe)           rm -rI -- "$@" ;;
+        type)           cat -- "$@" ;;
+        run)            ( setsid -f "$@" >/dev/null 2>&1 </dev/null ) ;;
+        filer_opendir)  ( setsid -f xdg-open "${1:-.}" >/dev/null 2>&1 </dev/null ) ;;
+        free)           df -h "${1:-.}" ;;
+        time)           date ;;
+        modules)        lsmod ;;
+        help)           if [ -n "$1" ]; then man "$1" 2>/dev/null || _rl_help; else _rl_help; fi ;;
+        desktop|quit)   exit ;;
+        "")             return 0 ;;
+        *)              echo "File '$cmd' not found" >&2; return 214 ;;
+    esac
+}
+
+# bash runs this for a command it cannot find; "*Cat" is such a word.
+command_not_found_handle() {
+    case "$1" in
+        \**) _rl_star "$@" ;;
+        *)   printf 'bash: %s: command not found\n' "$1" >&2; return 127 ;;
+    esac
+}
+# A word that is a file's name would be globbed: "*cat" matching "Muscat"
+# runs that file. The star commands are therefore aliases as well, so the
+# shell sees them before any globbing.
+for _c in cat ex dir up back cdir copy rename delete wipe type run filer_opendir free time modules help desktop quit; do
+    for _v in "$_c" "${_c^}" "${_c^^}"; do alias "*$_v=_rl_star $_c"; done
+done
+alias '*Filer_OpenDir=_rl_star filer_opendir'
+alias '*=_rl_star ""'
+unset _c _v
+shopt -s expand_aliases
+echo "RISC Legacy command line. Type *Help for the star commands."

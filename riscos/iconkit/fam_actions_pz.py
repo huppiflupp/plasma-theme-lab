@@ -313,10 +313,12 @@ def _(c, k): S(c, "M3 5 H12 M7.5 5 V18", k); S(c, "M15 4 A9 9 0 0 1 20 17 M17 14
 # ---- timeline, media ------------------------------------------------------------------
 @reg("act-pz-timeline")
 def _(c, k):
-    F(c, R(2, 5, 9, 5), light(c, "blue", 0.3), k)
-    F(c, R(12, 5, 10, 5), light(c, "violet", 0.3), k)
-    F(c, R(5, 13, 12, 5), light(c, "green", 0.3), k)
-    S(c, "M14.5 2 V21", c["red"])
+    # One track of two clips over the time ruler, the playhead in red.
+    F(c, R(2, 6, 10, 8), light(c, "blue", 0.3), k)
+    F(c, R(12, 6, 10, 8), light(c, "violet", 0.3), k)
+    S(c, "M2 19 H22", k, W(c) * 0.8)
+    S(c, "M15 3 V21", c["red"])
+    F(c, "M12.5 2 H17.5 L15 5 Z", c["red"])
 @reg("act-pz-zone-in")
 def _(c, k): S(c, "M2 18 H22", k, W(c) * 0.6); S(c, "M13 4 H8 V21 H13", c["green"], W(c) * 1.3); S(c, "M14 12 H21 M18 9 L21 12 L18 15", k)
 @reg("act-pz-zone-out")
@@ -443,6 +445,13 @@ def _(c, k):
 def _(c, k): Sd(c, "M3 12 A9 6.5 0 1 0 21 12 A9 6.5 0 1 0 3 12 Z", k, W(c) * 1.25)
 @reg("act-pz-tools")
 def _(c, k):
+    if c.small:
+        # 16/22 px: a wrench and a screwdriver as two plain crossed bars.
+        S(c, "M4 20 L15 9", k)
+        S(c, "M13.5 4.5 A4.5 4.5 0 1 0 19.5 10.5", k)
+        S(c, "M6 6 L14 14", k, W(c) * 0.7)
+        S(c, "M15.5 15.5 L20 20", k, W(c) * 2.0)
+        return
     GLYPHS["wrench"](c, k)
     c.group("translate(24 0) scale(-1 1)", lambda cv: GLYPHS["screwdriver"](cv, k))
 @reg("act-pz-typewriter")
@@ -1005,6 +1014,66 @@ SPEC = {
 SPEC.update({k: A(v) for k, v in SNAP.items()})
 
 
+def _script(sup):
+    def fn(c, k):
+        S(c, "M2 6 L12 19 M12 6 L2 19", k)
+        d = "M15 4 A2.6 2.6 0 1 1 19.5 6.5 L15 11 H21" if sup else "M15 14 A2.6 2.6 0 1 1 19.5 16.5 L15 21 H21"
+        S(c, d, c["blue"], W(c) * 0.9)
+    return fn
+
+
+reg("act-pz-superscript")(_script(True))
+reg("act-pz-subscript")(_script(False))
+
+SPEC.update({
+    "path-clip-edit": A("crop", None, "pencil", "violet"),
+    "qa": A("magnifier", None, "check", "green"),
+    "show-offline": A("user", "grey", "eye", "blue"),
+    "system-lock-screen": A("monitor", None, "lock", "blue"),
+    "system-save-session": A("save", None, "user", "blue"),
+    "system-search": A("magnifier", "blue"),
+    "system-users": A("users", "blue"),
+    "tag-recents": A("tag", None, "clock", "blue"),
+    "text_subscript": A("act-pz-subscript"),
+    "text_superscript": A("act-pz-superscript"),
+    "tool-measure": A("measure", "violet"),
+    "view-time-schedule-baselined-add": A("act-pz-gantt", None, "flag", "green"),
+    "xml-node-duplicate": A("code", "orange", "copy", "blue"),
+})
+
+
+# ---- badges at 16/22 px ------------------------------------------------------------------
+# base.action's badge glyph is 13 units wide: plain marks (plus, arrows, ...)
+# read, pictures do not. Those get a bigger plaque and, where the picture
+# is too fine, a bolder stand-in.
+SIMPLE_BADGES = {"plus", "minus", "cross", "check", "arrow-up", "arrow-down", "arrow-left", "arrow-right",
+                 "chevron-up", "chevron-down", "chevron-left", "chevron-right", "exclamation", "question",
+                 "info", "play", "stop", "dot", "act-pz-one"}
+
+
+@reg("act-pz-gantt-s")
+def _(c, k): F(c, R(2, 3, 11, 5), k); F(c, R(7, 10, 11, 5), k); F(c, R(12, 17, 10, 5), k)
+@reg("act-pz-bars3")
+def _(c, k): F(c, R(3, 4, 18, 4), k); F(c, R(3, 10, 18, 4), k); F(c, R(3, 16, 18, 4), k)
+@reg("act-pz-child-s")
+def _(c, k): S(c, "M6 3 V15 H19 M14 10 L19 15 L14 20", k)
+@reg("act-pz-grid-s")
+def _(c, k): F(c, R(3, 3, 8, 8), k); F(c, R(13, 3, 8, 8), k); F(c, R(3, 13, 8, 8), k); F(c, R(13, 13, 8, 8), k)
+
+
+SMALL_STANDIN = {"act-pz-gantt": "act-pz-gantt-s", "list-bullet": "act-pz-bars3", "menu": "act-pz-bars3",
+                 "act-pz-child": "act-pz-child-s", "grid": "act-pz-grid-s", "table": "act-pz-grid-s"}
+
+
+def act(c, g, acc, badge, bc):
+    if not (c.small and badge and badge not in SIMPLE_BADGES):
+        return action(c, g, acc, badge, bc)
+    action(c, g, acc)
+    c.circle(35, 35, 12, c[bc or "green"], width=1.1)
+    glyph(c, SMALL_STANDIN.get(badge, badge), 26.5, 26.5, 17, "#ffffff", width=3.4)
+    return True
+
+
 @reg("act-pz-shear-v")
 def _(c, k): S(c, "M5 8 L19 3 V16 L5 21 Z", k)
 
@@ -1071,6 +1140,6 @@ def draw(name, c):
         if s is None:
             return None
         g, acc, badge, bc = s
-        return action(c, g, acc, badge, bc)
+        return act(c, g, acc, badge, bc)
     except Exception:  # noqa: BLE001
         return None

@@ -74,9 +74,11 @@ def _glyph(c, name, col, x=11, y=11, size=26):
 
 
 def _gear_mark(c):
-    """'automatic': a small cog plaque at the top right."""
-    c.circle(38, 10, 8, _fill(c, "grey"), width=1.1)
-    glyph(c, "gear", 32, 4, 12, "#ffffff", width=2.6 if not c.small else 3.4)
+    """'automatic': a solid disc with a bold A at the top right (drawn as
+    strokes, so it survives at 16/22 px where text is left out)."""
+    r = 8.5 if not c.small else 9.5
+    c.circle(38, 10, r, c.darken(c["blue"], 0.1), width=1.1)
+    c.path("M34.2 14.6 L38 5 L41.8 14.6 M35.6 11.2 H40.4", "none", "#ffffff", 2.2 if not c.small else 1.9)
 
 
 def _star_pts(cx=24, cy=25, ro=20, ri=8.4):

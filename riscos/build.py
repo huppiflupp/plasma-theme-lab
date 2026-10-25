@@ -142,7 +142,9 @@ def ids(v):
     k = v["key"]
     camel = "".join(part.capitalize() for part in k.split("-"))
     return dict(scheme="RiscLegacy" + camel,
-                kvantum="RiscLegacy" + camel,
+                # Kvantum lists its themes by folder name: "RiscOS",
+                # "RiscOS4" … (the user's wish 25.10.2026; RiscLegacy* before).
+                kvantum="RiscOS" + camel,
                 theme="risc-legacy" + (f"-{k}" if k else ""),
                 lnf="org.risclegacy" + (f".{k}" if k else "") + ".desktop",
                 decoration="kwin4_decoration_qml_risclegacy" + k.replace("-", ""),
@@ -269,7 +271,8 @@ def decoration(v):
     art.VARIANTS[v["art"]](folder)
     write(f"kwin/decorations/{name}/contents/ui/Style.qml",
           f"import QtQuick\n\n// Written by build.py for {v['name']}.\nQtObject {{\n"
-          f"    readonly property color line: \"{v['P']['border']}\"\n}}\n")
+          f"    readonly property color line: \"{v['P']['border']}\"\n"
+          f"    readonly property bool shared: {'true' if v['art'] == 'select' else 'false'}\n}}\n")
     write(f"kwin/decorations/{name}/metadata.json", json.dumps(
         metadata(name, v["name"], "RISC OS window frame: Back and Close, centred title, Iconise and Toggle size",
                  "KWin/Decoration"), indent=2))
@@ -377,6 +380,66 @@ def variant_table():
     write("risc-legacy/variants", "\n".join(rows) + "\n")
 
 
+def shell():
+    """RISC OS's command line (F12) and Task Window (Ctrl+F12), DESIGN.md §9:
+    the star commands (shell/starrc) on bash, two Konsole profiles, their
+    launchers. install.sh puts in the paths (@DATA@), the KWin rule that
+    lays the command line along the bottom and the shortcuts."""
+    shutil.copytree(ROOT / "shell", OUT / "risc-legacy/shell", dirs_exist_ok=True)
+    # The KWin script that lays the command line along the bottom.
+    shutil.copytree(ROOT / "kwinscript", OUT / "kwin/scripts/risclegacy-commandline", dirs_exist_ok=True)
+    mono = "Liberation Mono,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+    for key, name, bg, fg, title in (("commandline", "RISC Legacy Command Line", "0,0,0", "255,255,255", "*Command line"),
+                                     ("taskwindow", "RISC Legacy Task Window", "255,255,255", "0,0,0", "Task Window")):
+        scheme = name.replace(" ", "")
+        write(f"konsole/{scheme}.colorscheme", f"""[General]
+Description={name}
+Opacity=1
+
+[Background]
+Color={bg}
+[BackgroundIntense]
+Color={bg}
+[Foreground]
+Color={fg}
+[ForegroundIntense]
+Color={fg}
+""" + "".join(f"[Color{i}]\nColor={c}\n[Color{i}Intense]\nColor={c}\n" for i, c in enumerate(
+            # The Wimp's colours; on the command line's black the darker ones
+            # lighter (directories were dark blue on black, VM 26.10.2026).
+            ("0,0,0", "255,85,85", "0,221,0", "255,204,0", "102,170,255", "238,102,238", "0,221,255", "238,238,238")
+            if key == "commandline" else
+            ("0,0,0", "221,0,0", "0,153,0", "187,119,0", "0,68,153", "153,0,153", "0,119,153", "119,119,119"))))
+        write(f"konsole/{name}.profile", f"""[Appearance]
+ColorScheme={scheme}
+Font={mono}
+
+[General]
+Command=/bin/bash --rcfile @DATA@/risc-legacy/shell/starrc
+LocalTabTitleFormat={title}
+Name={name}
+Parent=FALLBACK/
+TerminalMargin=6
+
+[Scrolling]
+ScrollBarPosition=2
+
+[Terminal Features]
+BlinkingCursorEnabled=false
+""")
+        write(f"applications/risclegacy-{key}.desktop", f"""[Desktop Entry]
+Type=Application
+Name={'Command line' if key == 'commandline' else 'Task Window'}
+Name[de]={'Befehlszeile' if key == 'commandline' else 'Task Window'}
+Comment=RISC OS's {'command line, F12' if key == 'commandline' else 'Task Window, Ctrl+F12'}: star commands on bash
+Icon=utilities-terminal
+Exec=konsole --profile "{name}" --hide-menubar --hide-tabbar
+Terminal=false
+Categories=System;TerminalEmulator;
+X-KDE-StartupNotify=false
+""")
+
+
 def fonts():
     shutil.copytree(ROOT / "fonts", OUT / "fonts/risc-legacy", dirs_exist_ok=True)
 
@@ -394,6 +457,7 @@ def main():
     wallpapers()
     plasmoids()
     icons()
+    shell()
     fonts()
     variant_table()
     print(f"RISC Legacy {VERSION} ({', '.join(v['name'] for v in VARIANTS)}) built in {OUT}")
