@@ -1,0 +1,10 @@
+{
+  "prompt": "Soft-focus photograph of raspberry leaves in pastel green morning light, gentle bokeh, a few ripe red berries at the right edge, the left half calm pale green, no text, no letters, no logos, no people, calm and uncluttered, plenty of quiet space",
+  "seed": 3105,
+  "size": [
+    1920,
+    1088
+  ],
+  "model": "Z-Image Turbo (local ComfyUI)",
+  "variant": "pi"
+}

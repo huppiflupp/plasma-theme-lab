@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RiscOSConfigDialog</class>
+ <widget class="QWidget" name="RiscOSConfigDialog">
+  <layout class="QFormLayout" name="form">
+   <item row="0" column="0">
+    <widget class="QLabel" name="pixelScaleLabel">
+     <property name="text">
+      <string>Tool size:</string>
+     </property>
+     <property name="buddy">
+      <cstring>kcfg_pixelScale</cstring>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="kcfg_pixelScale">
+     <item><property name="text"><string>Follow the title font</string></property></item>
+     <item><property name="text"><string>20 pixels, as RISC OS</string></property></item>
+     <item><property name="text"><string>40 pixels, doubled</string></property></item>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+</ui>

@@ -1,0 +1,10 @@
+{
+  "prompt": "Close-up nature photograph of green oak leaves and a few acorns on a mossy forest floor, soft overcast light, shallow depth of field, muted greens and browns, no text, no letters, no logos, no people, calm and uncluttered, plenty of quiet space",
+  "seed": 3107,
+  "size": [
+    1920,
+    1088
+  ],
+  "model": "Z-Image Turbo (local ComfyUI)",
+  "variant": "acorn"
+}

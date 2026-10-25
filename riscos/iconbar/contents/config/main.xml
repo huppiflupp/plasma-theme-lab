@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+  <kcfgfile name=""/>
+  <group name="General">
+    <!-- the icons' edge in pixels (RISC OS: 34 at 90 dpi) -->
+    <entry name="iconSize" type="Int"><default>40</default></entry>
+    <!-- programs' names below their icons -->
+    <entry name="taskLabels" type="Bool"><default>false</default></entry>
+    <!-- "riscos": 2:23pm; "locale": the locale's short time -->
+    <entry name="clockStyle" type="String"><default>locale</default></entry>
+  </group>
+</kcfg>

@@ -1,0 +1,17 @@
+{
+  "KPlugin": {
+    "Id": "org.risclegacy.iconbar",
+    "Name": "Iconbar",
+    "Name[de]": "Iconbar",
+    "Description": "RISC OS's iconbar: filing systems and Apps on the left, running programs and the clock on the right",
+    "Description[de]": "Die Iconbar von RISC OS: links Dateisysteme und Apps, rechts die laufenden Programme und die Uhr",
+    "Icon": "applications-all",
+    "Version": "0.1.0",
+    "License": "GPL-2.0-or-later",
+    "Authors": [{"Name": "RISC Legacy contributors"}],
+    "Category": "Windows and Tasks"
+  },
+  "KPackageStructure": "Plasma/Applet",
+  "X-Plasma-API-Minimum-Version": "6.0",
+  "X-Plasma-Provides": ["org.kde.plasma.launchermenu", "org.kde.plasma.multitasking"]
+}

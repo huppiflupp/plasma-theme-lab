@@ -1,0 +1,10 @@
+{
+  "prompt": "A seamless close-up photograph of pale grey-white marble with faint soft grey veins, polished but matte, diffuse daylight, the stone filling the whole frame, no text, no letters, no logos, no people, calm and uncluttered, plenty of quiet space",
+  "seed": 3102,
+  "size": [
+    1920,
+    1088
+  ],
+  "model": "Z-Image Turbo (local ComfyUI)",
+  "variant": "4"
+}

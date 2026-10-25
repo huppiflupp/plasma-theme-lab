@@ -1,0 +1,10 @@
+{
+  "prompt": "Abstract photograph of deep blue light falling through frosted glass in soft diagonal bands, smooth gradients from navy to steel blue, minimal, no text, no letters, no logos, no people, calm and uncluttered, plenty of quiet space",
+  "seed": 3106,
+  "size": [
+    1920,
+    1088
+  ],
+  "model": "Z-Image Turbo (local ComfyUI)",
+  "variant": "iyonix"
+}

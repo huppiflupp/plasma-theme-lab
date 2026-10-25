@@ -1,0 +1,786 @@
+"""Kvantum widget style for RISC Legacy, generated from the palette.
+
+Copied from Warp Legacy (os2-warp/kvantum.py, b7834ba1, itself from CDE
+Copper's) and changed to RISC OS (DESIGN.md §6): buttons with a black
+outline and the Wimp's white and grey bevel; the default action button in
+a cream ring, as RISC OS marks the button Return presses; lists and menus
+select in the scheme's selection colour (black in RISC OS 3 and 4); radio
+buttons with RISC OS's red dot. Nothing of os2-warp/ is referenced.
+
+Kvantum draws every widget part from an SVG object whose id encodes
+element, state and nine-patch position (see reference: Kvantum's
+Theme-Making.pdf). Each object is drawn here at exactly the pixel size that
+the .kvconfig frame widths request, so no scaling blurs the Motif bevels.
+
+(The rest of the original text, about Motif, no longer applies.)
+"""
+from pathlib import Path
+
+CELL = 8           # interior sample size of every nine-patch
+GAP = 6            # spacing between objects on the sheet
+STATES = ("normal", "focused", "pressed", "toggled")
+SIDES = ("top", "bottom", "left", "right", "topleft", "topright", "bottomleft", "bottomright")
+# Progress bar styles, chosen in the console's Style page (manage.py
+# palette --progress): the filled part outlined in ink with a one-pixel
+# bevel, floating a pixel inside the groove with Motif's two-pixel bevel, or
+# a slim 8-pixel bar.
+PROGRESS = ("outlined", "floating", "slim")
+
+
+class Sheet:
+    """Lays SVG objects out on a grid and emits the document."""
+
+    def __init__(self):
+        self.objects = []
+        self.defs = []
+        self.x = GAP
+        self.y = GAP
+        self.row_height = 0
+
+    def place(self, w, h):
+        if self.x + w + GAP > 1600:
+            self.x = GAP
+            self.y += self.row_height + GAP
+            self.row_height = 0
+        x, y = self.x, self.y
+        self.x += w + GAP
+        self.row_height = max(self.row_height, h)
+        return x, y
+
+    def add(self, name, w, h, rects):
+        """rects: iterable of (u, v, w, h, color) in local coordinates; color None = transparent."""
+        x, y = self.place(w, h)
+        body = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="#000" fill-opacity="0"/>']
+        for u, v, rw, rh, color in rects:
+            if color is None:
+                continue
+            body.append(f'<rect x="{x+u}" y="{y+v}" width="{rw}" height="{rh}" fill="{color}"/>')
+        self.objects.append(f'<g id="{name}">' + "".join(body) + "</g>")
+
+    def add_path(self, name, w, h, paths):
+        x, y = self.place(w, h)
+        body = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="#000" fill-opacity="0"/>']
+        for d, color, extra in paths:
+            body.append(f'<path transform="translate({x},{y})" d="{d}" fill="{color}" {extra}/>')
+        self.objects.append(f'<g id="{name}">' + "".join(body) + "</g>")
+
+    def svg(self):
+        height = self.y + self.row_height + GAP
+        return ('<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="%d" viewBox="0 0 1600 %d" '
+                'shape-rendering="crispEdges">' % (height, height)
+                + ("<defs>" + "".join(self.defs) + "</defs>" if self.defs else "")
+                + "".join(self.objects) + "</svg>")
+
+    def gradient(self, name, stops):
+        """A left-to-right gradient, (offset, colour, opacity) stops. Used as a
+        fill "url(#name)"; per object bounding box, so a stretched nine-patch
+        part shows the whole run."""
+        body = "".join(f'<stop offset="{o}" stop-color="{c}" stop-opacity="{a}"/>' for o, c, a in stops)
+        self.defs.append(f'<linearGradient id="{name}" x1="0" y1="0" x2="1" y2="0">{body}</linearGradient>')
+        return f"url(#{name})"
+
+
+def runs(pixels, w, h):
+    """Merge same-coloured horizontal pixel runs into rects."""
+    for v in range(h):
+        u = 0
+        while u < w:
+            color = pixels(u, v)
+            end = u + 1
+            while end < w and pixels(end, v) == color:
+                end += 1
+            yield (u, v, end - u, 1, color)
+            u = end
+
+
+def box_pixels(rings, interior, w, h):
+    """Colour function of a w×h box: rings from outside in, each (topleft, bottomright).
+
+    Within each 1 px ring the top row and left column carry the top-left
+    colour, except for the corner pixels shared with the bottom/right sides:
+    those go to the bottom-right colour, which gives the Motif diagonal."""
+    n = len(rings)
+
+    def color(u, v):
+        d = min(u, v, w - 1 - u, h - 1 - v)
+        if d >= n:
+            return interior
+        tl, br = rings[d]
+        a, b, ring_w, ring_h = u - d, v - d, w - 2 * d, h - 2 * d
+        if (b == 0 and a < ring_w - 1) or (a == 0 and b < ring_h - 1):
+            return tl
+        return br
+    return color
+
+
+# The filled part's rings from outside in, per progress style.
+PROGRESS_RINGS = {"outlined": lambda ink, trough, top, bottom: [(ink, ink), (top, bottom)],
+                  "floating": lambda ink, trough, top, bottom: [(trough, trough), (top, bottom), (top, bottom)],
+                  "slim": lambda ink, trough, top, bottom: [(top, bottom)]}
+
+
+def progress_widths(progress):
+    """Frame widths (top, bottom, left, right) of the filled part."""
+    groove = 1 if progress == "slim" else 2
+    rings = len(PROGRESS_RINGS[progress]("", "", "", ""))
+    return groove + rings, groove + rings, groove + rings, rings
+
+
+def progress_pattern(sheet, name, groove, rings, fill):
+    """The filled part of a progress bar. Kvantum draws it over the whole
+    bar, groove edge included, so its frame repeats the groove's top, bottom
+    and left edge outside the fill's own rings; at the right end, where the
+    fill stops inside the groove, only the fill's rings."""
+    g, n = len(groove), len(rings)
+    left, right, top = g + n, n, g + n
+    w, h = left + CELL + right, 2 * top + CELL
+    inner = box_pixels(rings, fill, w - g, h - 2 * g)
+    outer = box_pixels(groove, None, w + g, h)      # no right edge within w
+
+    def color(u, v):
+        if min(u, v, h - 1 - v) < g:
+            return outer(u, v)
+        return inner(u - g, v - g)
+    sheet.add(name, CELL, CELL, [(0, 0, CELL, CELL, fill)])
+    parts = {"topleft": (0, 0, left, top), "top": (left, 0, CELL, top), "topright": (left + CELL, 0, right, top),
+             "left": (0, top, left, CELL), "right": (left + CELL, top, right, CELL),
+             "bottomleft": (0, top + CELL, left, top), "bottom": (left, top + CELL, CELL, top),
+             "bottomright": (left + CELL, top + CELL, right, top)}
+    for side, (ox, oy, pw, ph) in parts.items():
+        sheet.add(f"{name}-{side}", pw, ph, runs(lambda u, v: color(ox + u, oy + v), pw, ph))
+
+
+def mix(color, other, t):
+    a = [int(color[i:i + 2], 16) for i in (1, 3, 5)]
+    b = [int(other[i:i + 2], 16) for i in (1, 3, 5)]
+    return "#" + "".join(f"{round(x + (y - x) * t):02x}" for x, y in zip(a, b))
+
+
+def edges(color):
+    """Light and dark edge of a coloured bar (the progress fill)."""
+    return mix(color, "#ffffff", 0.5), mix(color, "#000000", 0.4)
+
+
+def nine_patch(sheet, name, rings, interior, frame=None):
+    """Emit interior plus eight frame parts for one element-state."""
+    n = frame if frame is not None else len(rings)
+    size = 2 * n + CELL
+    color = box_pixels(rings, interior, size, size)
+    parts = {"topleft": (0, 0, n, n), "top": (n, 0, CELL, n), "topright": (n + CELL, 0, n, n),
+             "left": (0, n, n, CELL), "right": (n + CELL, n, n, CELL),
+             "bottomleft": (0, n + CELL, n, n), "bottom": (n, n + CELL, CELL, n),
+             "bottomright": (n + CELL, n + CELL, n, n)}
+    if interior is not None:
+        sheet.add(name, CELL, CELL, [(0, 0, CELL, CELL, interior)])
+    if n == 0:
+        return
+    for side, (ox, oy, w, h) in parts.items():
+        sheet.add(f"{name}-{side}", w, h, runs(lambda u, v: color(ox + u, oy + v), w, h))
+
+
+def build_kvantum(out, P, name="RiscLegacy", comment="RISC OS controls: grey, bevelled, a black outline", progress="outlined"):
+    # ink draws outlines; text, arrows and check marks use the palette's
+    # text colour, which a dark CDE surface turns white. For CDE Copper both
+    # are the same ink.
+    ink, light, dark = P["border"], P["light"], P["dark"]
+    text = P["text"]
+    # "blue" (Warp's title blue) is the selection here: menus, focus.
+    face, base, blue = P["surface"], P["window"], P["selection"]
+    hover_face, pressed_face, groove = P["button_hover"], P["button_pressed"], P["groove"]
+    disabled = P["inactive_text"]
+    # OS/2: black outline, white/grey ring, then face/grey (a two-pixel
+    # shadow at the bottom right); pressed swaps the light and the dark.
+    # Fields: grey/white outside, black/face inside, the view colour within.
+    raised = [(ink, ink), (light, dark), (face, dark)]
+    sunken = [(dark, light), (ink, face), (base, base)]
+    pressed = [(ink, ink), (dark, light), (dark, face)]
+    # Lists select in the scheme's selection colour lightened half towards
+    # the surface: views that lost the focus (Dolphin's places) write the
+    # selected row in the normal text colour, black on the full dark blue
+    # (VM 25.10.2026); on the half tone both black and white read.
+    select = mix(P["selection"], face, 0.5)
+    etched = [(dark, light), (light, dark)]
+    s = Sheet()
+
+    # Push/tool buttons, combo boxes, headers, scrollbar sliders.
+    nine_patch(s, "button-normal", raised, face)
+    nine_patch(s, "button-focused", raised, hover_face)
+    nine_patch(s, "button-pressed", pressed, pressed_face)
+    nine_patch(s, "button-toggled", pressed, pressed_face)
+    # RISC OS's default action button: a cream ring round the raised edge.
+    cream = P.get("default_ring", P["title_active"])
+    nine_patch(s, "button-default", [(ink, ink), (cream, cream), (cream, cream)], None)
+    s.add("button-default-indicator", 9, 9, [])
+    # The slider sits in a narrow groove: one bevel ring inside the ink
+    # outline, not two, or its dark right edge reads heavier than the rest.
+    for st, rings, fill in (("normal", raised[:2], face), ("focused", raised[:2], hover_face), ("pressed", pressed[:2], pressed_face)):
+        nine_patch(s, f"scrollbarslider-{st}", rings, fill)
+    for st in ("normal", "focused", "pressed"):
+        s.add(f"grip-{st}", 8, 8, [])
+    # Text fields and spin boxes.
+    nine_patch(s, "lineedit-normal", sunken, base)
+    nine_patch(s, "lineedit-focused", sunken, base)
+    # Generic and group frames: double etched line, no interior.
+    nine_patch(s, "common-normal", etched, None)
+    nine_patch(s, "group-normal", etched, None)
+    # Tabs: the active tab shares the page colour and attaches to the frame.
+    nine_patch(s, "tabframe-normal", raised, None)
+    nine_patch(s, "tab-normal", raised, groove)
+    nine_patch(s, "tab-focused", raised, pressed_face)
+    nine_patch(s, "tab-toggled", raised, face)
+    # Item views: hover is a light wash, selection is grey (lists), blue in menus.
+    nine_patch(s, "itemview-normal", [(None, None), (None, None)], None)
+    glow = P.get("selection_glow")
+    if glow:
+        # Neon: the selection see-through, cyan into violet into pink with a
+        # brighter edge of the same run, so the window shows through it (the
+        # user's wish, 21.10.2026). Text on it stays the scheme's white.
+        cyan, violet, pink = glow
+        fill = s.gradient("sel-fill", [(0, cyan, 0.42), (0.55, violet, 0.52), (1, pink, 0.42)])
+        edge = s.gradient("sel-edge", [(0, cyan, 0.95), (0.55, violet, 0.95), (1, pink, 0.85)])
+        hover = s.gradient("sel-hover", [(0, cyan, 0.13), (0.55, violet, 0.16), (1, pink, 0.12)])
+        hover_edge = s.gradient("sel-hover-edge", [(0, cyan, 0.45), (1, violet, 0.40)])
+        # Stronger in menus: over the menu's navy the lighter run was hardly
+        # visible (VM, 21.10.2026).
+        menu = s.gradient("sel-menu", [(0, cyan, 0.75), (0.55, violet, 0.85), (1, pink, 0.75)])
+        nine_patch(s, "itemview-focused", [(hover_edge, hover_edge), (hover, hover)], hover)
+        nine_patch(s, "itemview-pressed", [(edge, edge), (fill, fill)], fill)
+        nine_patch(s, "itemview-toggled", [(edge, edge), (fill, fill)], fill)
+    else:
+        nine_patch(s, "itemview-focused", [(hover_face, hover_face), (hover_face, hover_face)], hover_face)
+        nine_patch(s, "itemview-pressed", [(select, select), (select, select)], select)
+        nine_patch(s, "itemview-toggled", [(select, select), (select, select)], select)
+        menu = P.get("menu_selection", blue)
+    # Menus and menu bars.
+    nine_patch(s, "menu-normal", raised, face)
+    s.add("menuitem-pressed", CELL, CELL, [(0, 0, CELL, CELL, menu)])
+    s.add("menuitem-toggled", CELL, CELL, [(0, 0, CELL, CELL, menu)])
+    s.add("menuitem-separator", 16, 8, [(0, 3, 16, 1, dark), (0, 4, 16, 1, light)])
+    for st in ("normal", "focused"):
+        s.add(f"menuitem-tearoff-{st}", 20, 8, [(u, 3, 4, 1, dark) for u in (0, 8, 16)] + [(u, 4, 4, 1, light) for u in (0, 8, 16)])
+    for st in ("focused", "pressed", "toggled"):
+        nine_patch(s, f"menubaritem-{st}", [(light, dark), (light, dark)], face)
+    # Toolbars.
+    s.add("toolbar-normal", CELL, CELL, [(0, 0, CELL, CELL, face)])
+    s.add("toolbar-handle", 8, 24, [(2, 2, 1, 20, light), (3, 2, 1, 20, dark), (5, 2, 1, 20, light), (6, 2, 1, 20, dark)])
+    s.add("toolbar-separator", 4, 24, [(1, 2, 1, 20, dark), (2, 2, 1, 20, light)])
+    s.add("header-separator", 2, 16, [(0, 0, 1, 16, dark), (1, 0, 1, 16, light)])
+    # Grooves: scrollbars, sliders, progress bars.
+    nine_patch(s, "slider-normal", [(dark, light), (dark, light)], groove)
+    nine_patch(s, "slider-toggled", [(dark, light), (dark, light)], P["panel"])
+    s.add("slider-tick-normal", 5, 1, [(0, 0, 5, 1, dark)])
+    groove_rings = [(dark, light)] if progress == "slim" else [(dark, light), (dark, light)]
+    nine_patch(s, "progress-normal", groove_rings, P["checker"])
+    # The filled part is a raised Motif bar in its own colour, its shadows
+    # shaded from the fill as Motif shades everything.
+    for st, fill in (("normal", P.get("progress", blue)), ("disabled", P["title_inactive"])):
+        top, bottom = edges(fill)
+        progress_pattern(s, f"progress-pattern-{st}", groove_rings, PROGRESS_RINGS[progress](ink, P["checker"], top, bottom), fill)
+    for st, rings, fill in (("normal", raised, face), ("focused", raised, hover_face),
+                            ("pressed", pressed, pressed_face), ("disabled", raised, face)):
+        color = box_pixels(rings, fill, 16, 16)
+        s.add(f"slidercursor-{st}", 16, 16, list(runs(color, 16, 16)) + [(4, 7, 8, 1, dark), (4, 8, 8, 1, light)])
+    # Splitters, size grip, docks, MDI title bars.
+    for st, fill in (("normal", face), ("focused", hover_face), ("pressed", pressed_face)):
+        s.add(f"splitter-{st}", CELL, CELL, [(0, 0, CELL, CELL, fill)])
+        s.add(f"splitter-grip-{st}", 6, 16, [(2, v, 2, 2, dark) for v in (2, 7, 12)] + [(3, v + 1, 1, 1, light) for v in (2, 7, 12)])
+    for st in ("normal", "focused"):
+        s.add(f"sizegrip-{st}", 13, 13, [(12 - i, i, 1, 1, dark) for i in range(13)] + [(12 - i, i + 4, 1, 1, dark) for i in range(9)] + [(12 - i, i + 8, 1, 1, dark) for i in range(5)])
+    s.add("dock-normal", CELL, CELL, [(0, 0, CELL, CELL, face)])
+    s.add("dock-focused", CELL, CELL, [(0, 0, CELL, CELL, hover_face)])
+    s.add("titlebar-normal", CELL, CELL, [(0, 0, CELL, CELL, P["title_inactive"])])
+    s.add("titlebar-focused", CELL, CELL, [(0, 0, CELL, CELL, blue)])
+    glyphs = {"close": [(2, 2, 8, 8)], "minimize": [(3, 6, 6, 3)], "maximize": [(1, 1, 10, 10)],
+              "restore": [(1, 4, 7, 7), (4, 1, 7, 7)], "shade": [(1, 2, 10, 2)], "menu": [(1, 4, 10, 4)]}
+    for glyph, rects in glyphs.items():
+        for st in ("normal", "focused", "pressed", "disabled"):
+            if glyph == "menu" and st != "normal":
+                continue
+            color = disabled if st == "disabled" else text
+            body = []
+            for (u, v, w, h) in rects:
+                body += [(u, v, w, 1, color), (u, v + h - 1, w, 1, color), (u, v, 1, h, color), (u + w - 1, v, 1, h, color)]
+            if glyph == "close":
+                body = [(2 + i, 2 + i, 1, 1, color) for i in range(8)] + [(9 - i, 2 + i, 1, 1, color) for i in range(8)] + \
+                       [(3 + i, 2 + i, 1, 1, color) for i in range(7)] + [(8 - i, 2 + i, 1, 1, color) for i in range(7)]
+            s.add(f"mdi-{glyph}-{st}", 12, 12, body)
+    # Tool tips and the keyboard focus frame.
+    nine_patch(s, "tooltip-normal", [(ink, ink), (base, base), (dark, dark)], base)
+    nine_patch(s, "focus", [(blue, blue), (ink, ink)], None)
+    # Arrows for scrollbars, combo boxes, spin boxes, tool buttons, sub-menus.
+    arrow = {"up": "M4.5 1 L8 6 H1 Z", "down": "M4.5 8 L1 3 H8 Z", "left": "M1 4.5 L6 1 V8 Z", "right": "M8 4.5 L3 1 V8 Z"}
+    for direction, d in arrow.items():
+        for st in ("normal", "focused", "pressed", "disabled"):
+            s.add_path(f"arrow-{direction}-{st}", 9, 9, [(d, disabled if st == "disabled" else text, "")])
+    for sign in ("plus", "minus"):
+        for st in ("normal", "focused", "pressed", "disabled"):
+            color = disabled if st == "disabled" else text
+            body = [(0, 0, 9, 1, color), (0, 8, 9, 1, color), (0, 0, 1, 9, color), (8, 0, 1, 9, color), (1, 1, 7, 7, base), (2, 4, 5, 1, color)]
+            if sign == "plus":
+                body.append((4, 2, 1, 5, color))
+            s.add(f"arrow-{sign}-{st}", 9, 9, body)
+    # Tab close and tear indicators.
+    for st in ("normal", "focused", "pressed", "disabled"):
+        color = disabled if st == "disabled" else (blue if st == "focused" else text)
+        s.add(f"tab-close-{st}", 9, 9, [(1 + i, 1 + i, 1, 1, color) for i in range(7)] + [(7 - i, 1 + i, 1, 1, color) for i in range(7)])
+    s.add("tab-tear", 2, 16, [(0, 0, 1, 16, dark), (1, 0, 1, 16, light)])
+    # Check boxes (sunken square) and Motif diamond radio buttons.
+    check = "M3 8 L6 11 L13 4 L13 6 L6 13 L3 10 Z"
+    tri = [(4, 7, 8, 2, P["window_text"])]
+    for st in ("normal", "focused"):
+        rings = [(dark, light), (blue, blue) if st == "focused" else (dark, light)]
+        body = list(runs(box_pixels(rings, base, 16, 16), 16, 16))
+        s.add(f"checkbox-{st}", 16, 16, body)
+        s.add_path(f"checkbox-checked-{st}", 16, 16, [(f"M{x} {y} h{w} v{h} h-{w} Z", c, "") for (x, y, w, h, c) in body if c] + [(check, P["window_text"], "")])
+        s.add(f"checkbox-tristate-{st}", 16, 16, body + tri)
+        diamond_ring = blue if st == "focused" else None
+        s.add_path(f"radio-{st}", 16, 16, radio(dark, light, base, diamond_ring))
+        s.add_path(f"radio-checked-{st}", 16, 16, radio(dark, light, base, diamond_ring) + [(circle(3), P.get("radio", "#dd0000"), "")])
+
+    kv = out / "Kvantum" / name
+    kv.mkdir(parents=True, exist_ok=True)
+    (kv / f"{name}.svg").write_text(s.svg())
+    (kv / f"{name}.kvconfig").write_text(progress_config(kvconfig(P, disabled, comment), progress))
+
+
+def progress_config(text, progress):
+    """Frame widths and bar thickness of the chosen progress style."""
+    groove = 1 if progress == "slim" else 2
+    fill = dict(zip(("frame.top", "frame.bottom", "frame.left", "frame.right"), progress_widths(progress)))
+    text = text.replace("progressbar_thickness=16", "progressbar_thickness=" + ("8" if progress == "slim" else "16"))
+    sections = text.split("\n[")
+    for i, section in enumerate(sections):
+        widths = ({key: groove for key in fill} if section.startswith("Progressbar]")
+                  else fill if section.startswith("ProgressbarContents]") else None)
+        if widths is not None:
+            sections[i] = "\n".join(f"{line.split('=')[0]}={widths[line.split('=')[0]]}"
+                                    if line.split("=")[0] in widths else line for line in section.split("\n"))
+    return "\n[".join(sections)
+
+
+def circle(r, c=8):
+    return f"M{c - r} {c} a{r} {r} 0 1 0 {2 * r} 0 a{r} {r} 0 1 0 {-2 * r} 0 Z"
+
+
+def radio(tl, br, fill, ring):
+    """A 16 px round OS/2 radio button: sunken, top-left half dark, the
+    bottom-right half light, a white well; an optional focus ring."""
+    paths = [(circle(7.5), br, ""),
+             (f"M{8 - 7.5 * 0.7071:.3f} {8 + 7.5 * 0.7071:.3f} A7.5 7.5 0 0 1 {8 + 7.5 * 0.7071:.3f} {8 - 7.5 * 0.7071:.3f} Z", tl, ""),
+             (circle(6), fill, "")]
+    if ring:
+        paths.append((circle(6) + " " + circle(5), ring, 'fill-rule="evenodd"'))
+    return paths
+
+
+def kvconfig(P, disabled, comment):
+    ink, face, base, blue = P["text"], P["surface"], P["window"], P["selection"]
+    text = f"text.normal.color={ink}\ntext.focus.color={ink}\ntext.press.color={ink}\ntext.toggle.color={ink}\ntext.shadow=false\n"
+    return f"""[%General]
+author=RISC Legacy contributors
+comment={comment}
+respect_DE=true
+x11drag=false
+alt_mnemonic=true
+left_tabs=true
+attach_active_tab=true
+joined_inactive_tabs=false
+mirror_doc_tabs=false
+group_toolbar_buttons=false
+toolbar_interior_spacing=1
+toolbar_separator_thickness=4
+spread_progressbar=true
+progressbar_thickness=16
+composite=false
+menu_shadow_depth=0
+tooltip_shadow_depth=0
+translucent_windows=false
+blurring=false
+popup_blurring=false
+animate_states=false
+splitter_width=6
+scroll_width=16
+scroll_min_extent=36
+scroll_arrows=true
+scrollbar_in_view=false
+transient_scrollbar=false
+slider_width=8
+slider_handle_width=16
+slider_handle_length=16
+check_size=16
+menu_separator_height=6
+submenu_overlap=0
+combo_as_lineedit=false
+square_combo_button=true
+combo_menu=false
+inline_spin_indicators=false
+vertical_spin_indicators=false
+spin_button_width=16
+small_icon_size=16
+large_icon_size=32
+button_icon_size=16
+toolbar_icon_size=22
+no_window_pattern=true
+remove_extra_frames=false
+tree_branch_line=true
+groupbox_top_label=false
+click_behavior=0
+
+[GeneralColors]
+window.color={face}
+base.color={base}
+alt.base.color={P['alt_window']}
+button.color={face}
+light.color={P['light']}
+mid.light.color={P['checker']}
+dark.color={P['border']}
+mid.color={P['dark']}
+highlight.color={P['selection']}
+inactive.highlight.color={P['hover']}
+tooltip.base.color={base}
+text.color={P['window_text']}
+window.text.color={ink}
+button.text.color={ink}
+disabled.text.color={disabled}
+tooltip.text.color={P['window_text']}
+highlight.text.color={P['selection_text']}
+link.color={P['link']}
+link.visited.color={P['dark']}
+
+[Hacks]
+respect_darkness=false
+transparent_dolphin_view=false
+transparent_ktitle_label=true
+transparent_menutitle=true
+force_size_grip=true
+iconless_menu=false
+iconless_pushbutton=false
+normal_default_pushbutton=true
+tint_on_mouseover=0
+no_selection_tint=true
+
+[PanelButtonCommand]
+frame=true
+frame.element=button
+frame.top=3
+frame.bottom=3
+frame.left=3
+frame.right=3
+interior=true
+interior.element=button
+indicator.element=arrow
+indicator.size=9
+{text}text.margin.top=5
+text.margin.bottom=4
+text.margin.left=5
+text.margin.right=5
+text.iconspacing=4
+min_width=+0.1font
+min_height=+0.1font
+
+[PanelButtonTool]
+inherits=PanelButtonCommand
+text.margin.top=3
+text.margin.bottom=3
+text.margin.left=4
+text.margin.right=4
+
+[Dock]
+inherits=PanelButtonCommand
+frame=false
+interior=false
+
+[DockTitle]
+inherits=PanelButtonCommand
+frame=false
+interior=true
+interior.element=dock
+text.bold=true
+text.margin.top=2
+text.margin.bottom=2
+text.margin.left=4
+text.margin.right=4
+
+[IndicatorSpinBox]
+inherits=PanelButtonCommand
+frame.element=lineedit
+interior.element=lineedit
+indicator.element=arrow
+indicator.size=9
+
+[RadioButton]
+inherits=PanelButtonCommand
+frame=false
+interior.element=radio
+text.margin.top=2
+text.margin.bottom=2
+text.margin.left=4
+text.margin.right=4
+
+[CheckBox]
+inherits=PanelButtonCommand
+frame=false
+interior.element=checkbox
+text.margin.top=2
+text.margin.bottom=2
+text.margin.left=4
+text.margin.right=4
+
+[Focus]
+inherits=PanelButtonCommand
+interior=false
+frame=true
+frame.element=focus
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+
+[GenericFrame]
+inherits=PanelButtonCommand
+frame=true
+interior=false
+frame.element=common
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+
+[LineEdit]
+inherits=PanelButtonCommand
+frame.element=lineedit
+interior.element=lineedit
+text.margin.top=5
+text.margin.bottom=4
+text.margin.left=4
+text.margin.right=4
+
+[DropDownButton]
+inherits=PanelButtonCommand
+indicator.element=arrow-down
+
+[IndicatorArrow]
+indicator.element=arrow
+indicator.size=9
+
+[ToolboxTab]
+inherits=PanelButtonCommand
+
+[Tab]
+inherits=PanelButtonCommand
+frame.element=tab
+interior.element=tab
+indicator.element=tab
+frame.top=3
+frame.bottom=3
+frame.left=3
+frame.right=3
+text.margin.top=3
+text.margin.bottom=3
+text.margin.left=8
+text.margin.right=8
+
+[TabFrame]
+inherits=PanelButtonCommand
+frame.element=tabframe
+interior=false
+frame.top=3
+frame.bottom=3
+frame.left=3
+frame.right=3
+
+[TabBarFrame]
+inherits=GenericFrame
+frame=false
+interior=false
+
+[TreeExpander]
+inherits=PanelButtonCommand
+frame=false
+interior=false
+indicator.element=arrow
+indicator.size=9
+
+[HeaderSection]
+inherits=PanelButtonCommand
+text.margin.top=3
+text.margin.bottom=3
+text.margin.left=6
+text.margin.right=6
+
+[SizeGrip]
+indicator.element=sizegrip
+
+[Toolbar]
+inherits=PanelButtonCommand
+frame=false
+interior=true
+interior.element=toolbar
+indicator.element=toolbar
+indicator.size=8
+
+[Slider]
+inherits=PanelButtonCommand
+frame.element=slider
+interior.element=slider
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+
+[SliderCursor]
+inherits=PanelButtonCommand
+frame=false
+interior.element=slidercursor
+
+[Progressbar]
+inherits=PanelButtonCommand
+frame.element=progress
+interior.element=progress
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+text.bold=false
+
+[ProgressbarContents]
+inherits=PanelButtonCommand
+frame=true
+frame.element=progress-pattern
+interior.element=progress-pattern
+frame.top=1
+frame.bottom=1
+frame.left=1
+frame.right=1
+
+[ItemView]
+inherits=PanelButtonCommand
+frame.element=itemview
+interior.element=itemview
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+text.margin=0
+text.margin.top=2
+text.margin.bottom=2
+text.margin.left=3
+text.margin.right=3
+
+[Splitter]
+inherits=PanelButtonCommand
+frame=false
+interior.element=splitter
+indicator.element=splitter-grip
+indicator.size=16
+
+[Scrollbar]
+inherits=PanelButtonCommand
+indicator.element=arrow
+indicator.size=9
+
+[ScrollbarSlider]
+inherits=PanelButtonCommand
+frame.element=scrollbarslider
+interior.element=scrollbarslider
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+indicator.element=grip
+indicator.size=8
+
+[ScrollbarGroove]
+inherits=PanelButtonCommand
+frame.element=slider
+interior.element=slider
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+
+[MenuItem]
+inherits=PanelButtonCommand
+frame=false
+interior.element=menuitem
+indicator.element=menuitem
+text.focus.color={P['selection_text']}
+text.press.color={P['selection_text']}
+text.toggle.color={P['selection_text']}
+min_height=+0.2font
+text.margin.top=2
+text.margin.bottom=2
+text.margin.left=5
+text.margin.right=5
+
+[MenuBarItem]
+inherits=PanelButtonCommand
+frame.element=menubaritem
+interior.element=menubaritem
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+text.margin.top=3
+text.margin.bottom=3
+text.margin.left=6
+text.margin.right=6
+
+[MenuBar]
+inherits=PanelButtonCommand
+frame=false
+interior=false
+
+[TitleBar]
+inherits=PanelButtonCommand
+frame=false
+interior.element=titlebar
+indicator.element=mdi
+indicator.size=12
+text.bold=true
+text.margin.top=2
+text.margin.bottom=2
+text.margin.left=4
+text.margin.right=4
+
+[ComboBox]
+inherits=PanelButtonCommand
+text.margin.left=6
+text.margin.right=6
+
+[Menu]
+inherits=PanelButtonCommand
+frame.element=menu
+interior.element=menu
+frame.top=3
+frame.bottom=3
+frame.left=3
+frame.right=3
+
+[GroupBox]
+inherits=GenericFrame
+frame=true
+frame.element=group
+interior=false
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+text.bold=true
+
+[ToolTip]
+inherits=GenericFrame
+frame=true
+frame.element=tooltip
+interior=true
+interior.element=tooltip
+frame.top=3
+frame.bottom=3
+frame.left=3
+frame.right=3
+text.margin=0
+
+[Window]
+interior=false
+frame=false
+"""

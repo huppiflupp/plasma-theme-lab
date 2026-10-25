@@ -1,0 +1,10 @@
+{
+  "prompt": "Documentary landscape photograph of the flat English fens near Cambridge at early morning, a straight drainage channel reflecting a pale cream sky, low mist over the fields, muted slate blue and warm cream tones, wide horizon in the lower third, no text, no letters, no logos, no people, calm and uncluttered, plenty of quiet space",
+  "seed": 3103,
+  "size": [
+    1920,
+    1088
+  ],
+  "model": "Z-Image Turbo (local ComfyUI)",
+  "variant": "2026"
+}

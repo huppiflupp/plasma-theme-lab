@@ -1,0 +1,10 @@
+{
+  "prompt": "Landscape photograph of the flat English fens at night, a long drainage channel reflecting a deep blue sky with a thin warm brass glow at the horizon, stars faint, very dark and quiet, low horizon in the lower third, no text, no letters, no logos, no people, calm and uncluttered, plenty of quiet space",
+  "seed": 3104,
+  "size": [
+    1920,
+    1088
+  ],
+  "model": "Z-Image Turbo (local ComfyUI)",
+  "variant": "2026-dark"
+}

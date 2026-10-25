@@ -1,0 +1,11 @@
+Window tool sprites of the RISC OS Wimp (WindowManager), decoded to PNG by
+tools/rospr.py from
+
+  RiscOS/Sources/Desktop/Wimp/Resources/UK/RO400/Tools,ff9     -> RO400/
+  RiscOS/Sources/Desktop/Wimp/Resources/Germany/Ursula/Tools2D -> Tools2D/
+
+of the RISC OS source code, Copyright Acorn Computers Ltd and RISC OS Open
+Ltd, licensed under the Apache License, Version 2.0 (LICENSE in this
+folder). Taken from the mirror github.com/TimothyEBaldwin/RISC_OS_Linux_Source
+(branch Linux2, 25.10.2026); upstream is gitlab.riscosopen.org. Converted
+from the RISC OS sprite format, otherwise unchanged.
