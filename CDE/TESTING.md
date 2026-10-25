@@ -1382,3 +1382,9 @@ opening from the status popup; all four combinations of `hideTrayIcons` and
 `hideTrayVolume` give the expected `hiddenItems`. The Qt bug itself does not
 occur with 6.11.1, so the failure was not reproduced; not checked with Qt
 6.11.2.
+
+Release 1.1.2 (same day): `dist/cde-copper-1.1.2.tar.xz` unpacked in
+`plasma-lab`, `install.sh`, shell restart, `apply.sh --panel`, shell restart:
+console up, volume in the tray's `extraItems` and `hiddenItems`, no QML
+errors in the journal. Not checked: `ubuntu-lab`, console edges, sizes and
+palettes (the change touches only the tray's lists).
