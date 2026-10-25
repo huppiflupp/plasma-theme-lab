@@ -39,6 +39,11 @@ archive's folder, beside install.sh and build/:
 
 ## Pictures
 
+The logos: `screenshots/store/classic/logo.png` and
+`screenshots/store/neon/logo.png` (512×512, `tools/store-logo.py`), an
+OS/2 window with the word mark, on the violet swirl or glowing on the
+dark light streaks; drawn anew, no IBM logo.
+
 `tools/store-gifs.py` joins the screenshots into each entry's GIFs,
 1920×1080 with a label on each frame. `screenshots/store/classic/`:
 `1-warp-legacy.gif` (the variant, the taskbar with the compact box or the
