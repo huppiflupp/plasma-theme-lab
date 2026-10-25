@@ -9,8 +9,10 @@
         `zoom` does (SCALE default 3); --shared gives all frames one palette and
         leaves the pixels unchanged from the frame before transparent, so that
         a series on the same desktop stores only what changes
-    store-pictures.py overview OUT.png BACK.png MID.png FRONT.png
-        three desktops in perspective on a backdrop, the store's hero picture
+    store-pictures.py overview OUT.png BACK.png MID.png FRONT.png [X0,Y0,X1,Y1]
+        three desktops in perspective on a backdrop, the store's hero picture;
+        with the console's box in FRONT the desktops move up and the console
+        lies enlarged and upright across the bottom, legible in the thumbnail
     store-pictures.py zoom OUT.png IN.png X0 Y0 X1 Y1 [SCALE]
         the frame with the given part of it enlarged (SCALE, default 3) in a
         bevelled inset at the top right, for the clock's styles
@@ -115,7 +117,7 @@ def frame(im, border=6):
     out.paste(im.convert("RGBA"), (border, border))
     return out
 
-def overview(out, back, mid, front):
+def overview(out, back, mid, front, console=None):
     W, H = 1600, 900
     bg = Image.new("RGB", (W, H), TEAL)
     d = ImageDraw.Draw(bg)
@@ -128,6 +130,10 @@ def overview(out, back, mid, front):
     layers = [(back, [(60, 80), (900, 30), (900, 560), (60, 470)], 0.72),
               (mid, [(420, 150), (1240, 110), (1240, 650), (420, 560)], 0.86),
               (front, [(700, 240), (1560, 210), (1560, 790), (700, 700)], 1.0)]
+    if console:
+        layers = [(back, [(70, 50), (790, 15), (790, 470), (70, 395)], 0.72),
+                  (mid, [(400, 95), (1120, 65), (1120, 525), (400, 450)], 0.86),
+                  (front, [(720, 150), (1550, 125), (1550, 615), (720, 575)], 1.0)]
     for path, quad, alpha in layers:
         im = frame(Image.open(path).convert("RGB"))
         layer = warp(im, quad, (W, H))
@@ -139,6 +145,17 @@ def overview(out, back, mid, front):
         if alpha < 1:
             layer.putalpha(layer.split()[3].point(lambda a: int(a * alpha)))
         canvas = Image.alpha_composite(canvas, layer)
+    if console:
+        # The console of the front desktop, as wide as the picture allows,
+        # in a thin dark frame with the same shadow as the desktops.
+        part = Image.open(front).convert("RGB").crop(console)
+        width = W - 2 * 60
+        part = frame(part.resize((width, round(part.height * width / part.width)), Image.Resampling.LANCZOS), 4)
+        x, y = (W - part.width) // 2, H - part.height - 55
+        shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        shadow.paste((0, 0, 0, 170), (x + 14, y + 18, x + part.width + 14, y + part.height + 18))
+        canvas = Image.alpha_composite(canvas, shadow.filter(ImageFilter.GaussianBlur(16)))
+        canvas.paste(part, (x, y))
     canvas.convert("RGB").save(out, quality=92)
     print(out, canvas.size)
 
@@ -201,7 +218,7 @@ def main():
     if what == "gif":
         gif(out, rest)
     elif what == "overview":
-        overview(out, *rest[:3])
+        overview(out, *rest[:3], tuple(int(v) for v in rest[3].split(",")) if len(rest) > 3 else None)
     elif what == "zoom":
         zoom(out, rest[0], *[int(v) for v in rest[1:5]], int(rest[5]) if len(rest) > 5 else 3)
     elif what == "logo":

@@ -1336,6 +1336,19 @@ check` plausible (Kvantum is missing on 245k); the two console changes
 installed and used. Not checked: the VMs (`plasma-lab`, `ubuntu-lab`),
 screenshots, console edges, sizes and palettes, X11.
 
+## Store hero picture with a slimmer console (2026-10-24)
+
+The console hardly showed in `overview.png` and its thumbnail. New frames
+in `ubuntu-lab` (Plasma 6.6, Wayland, 1920×1080, English session, 1.1.0
+from `dist/`, Kvantum 1.1.5 from the Ubuntu archive): the console with
+`consoleScale` 0.85 and the window tile on the right instead of the strip
+(77 px instead of 118), Dolphin on ~/Pictures and Konsole with
+`tests/terminal-demo.sh` placed by `tests/arrange.js`; Arizona with Mesa,
+CopperNight with Kristall, Copper with Altai. `store-pictures.py overview`
+takes the console's box in the front frame (491,991,1429,1068): the three
+desktops move up and the console lies enlarged across the bottom. Looked at
+in full and at 320×180: clock, tiles and workspaces legible.
+
 ## Release 1.1.1: launchers without systemd (2026-10-25)
 
 Report from a Gentoo user: every console tile except "Apps" did nothing,
