@@ -1144,7 +1144,7 @@ def apply(panel=False, palette=None, backdrop=None, backdrop_scale=None):
         # required. The console's own setting (cdecopperrc, mirrored from its
         # configuration) decides how many; the console renames and trims
         # them itself once it runs.
-        exe = shutil.which("qdbus6") or shutil.which("qdbus-qt6")
+        exe = shutil.which("qdbus6") or shutil.which("qdbus-qt6") or "/usr/lib/qt6/bin/qdbus"
         count = int(subprocess.check_output([exe, "org.kde.KWin", "/VirtualDesktopManager", "org.kde.KWin.VirtualDesktopManager.count"], text=True).strip())
         saved = read_kconfig(CONFIG / "cdecopperrc").get("Console", {})
         shown = saved.get("showWorkspaces", "true") != "false"

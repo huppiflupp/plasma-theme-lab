@@ -140,7 +140,8 @@ Checks of 2026-10-03 afternoon (version 0.2.1, after feedback), same VM:
   tile's subpanel; recent files of KWrite (the VM's default editor; Kate is
   not installed) in the Editor tile's subpanel, opened from there; a tile set to
   LibreOffice Writer lists the document Writer opened last.
-- The tray's volume icon is removed once the tray has started; the console's
+- The tray's volume icon goes behind the tray's arrow once the tray has
+  started (until 1.1.1 it was switched off in the tray); the console's
   volume popup (slider, Mute, Settings) opens.
 - Console at the left and the right edge: upright layout, arrows pointing to
   the screen, Applications menu and cascade opening towards the middle, lined up
@@ -1361,3 +1362,23 @@ empty `XDG_RUNTIME_DIR` (calls mocked). `build.py`, `tests/verify.py` (47) green
 --check`: 406 translated; `manage.py check` plausible. Not checked: a real
 OpenRC system (Gentoo, Artix, Devuan), the VMs, a click in the installed
 console, X11.
+
+## Tray volume behind the arrow instead of switched off (2026-10-25)
+
+Store report: with the full package the tray's volume entry no longer worked
+("Cannot assign object of type Kirigami.Action to property of type
+Action_QMLTYPE", plasma-pa `main.qml:465`), and the output device could not
+be changed. The console took `org.kde.plasma.volume` out of the tray's
+`extraItems`; switched on again while the shell runs, the applet hits a Qt
+6.11.2 bug (QTBUG-149607, KDE bug 520144, fixed in plasma-nm, not in
+plasma-pa 6.7.5). Now the entry stays in the tray and goes to `hiddenItems`
+(recorded in `trayHiddenByConsole`), so it loads with the shell and keeps
+its device list. `trayHiddenByConsole` also no longer collects duplicates.
+
+`plasma-lab` (Fedora 44, Plasma 6.7.4, Qt 6.11.1, 1.1.1 from `dist/` with
+the new `TrayControl.qml` copied in): after a shell restart volume in
+`extraItems` and `hiddenItems`, gone from the visible tray, listed and
+opening from the status popup; all four combinations of `hideTrayIcons` and
+`hideTrayVolume` give the expected `hiddenItems`. The Qt bug itself does not
+occur with 6.11.1, so the failure was not reproduced; not checked with Qt
+6.11.2.

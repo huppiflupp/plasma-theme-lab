@@ -415,7 +415,8 @@ global theme or a panel rebuild: every value is mirrored into
   gap or sitting on the screen edge; one console for all screens (default,
   its window list shows the windows of every screen) or one on every screen
   (each lists its own screen's windows, or all of them); whether the
-  tray's volume icon is left to the console; hard
+  tray's volume icon is left to the console (the tray keeps it behind its
+  arrow, with the output devices); hard
   contrast (pure black text, white on dark surfaces, labels in semibold);
   label; size
   (75–200 %, tiles, icons and text scale together).

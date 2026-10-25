@@ -499,7 +499,7 @@ msgid "Volume only in the console"
 msgstr ""
 
 #: frontpanel/contents/ui/configLaunchers.qml:367
-msgid "The tray leaves out its own volume icon."
+msgid "The tray's own volume entry, with the output devices, moves behind its arrow."
 msgstr ""
 
 #: frontpanel/contents/ui/configLaunchers.qml:375

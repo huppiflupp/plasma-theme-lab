@@ -24,6 +24,11 @@ Item {
     }
     // The tray beside the console would show a second volume control; the
     // console's own one (wheel, click for slider and mute) replaces it.
+    // The tray's entry goes behind its arrow, not out of the tray: it holds
+    // the output devices, which the console's popup does not. And an entry
+    // switched back on while the shell runs fails to load with Qt 6.11.2
+    // ("Cannot assign object of type Kirigami.Action", QTBUG-149607, KDE
+    // bug 520144); kept in the tray, it loads with the shell.
     function syncTray() {
         const hide = Plasmoid.configuration.hideTrayVolume;
         // With hideTrayIcons every entry the tray knows goes to its hidden
@@ -52,18 +57,21 @@ Item {
             + " ours.currentConfigGroup = ['General']; var mine = list(ours, 'trayHiddenByConsole');"
             + " for (var w of p.widgets()) { if (w.type !== 'org.kde.plasma.systemtray') continue; w.currentConfigGroup = ['General'];"
             + " var items = w.readConfig('extraItems', []); if (typeof items === 'string') items = items ? items.split(',') : [];"
-            + " var has = items.indexOf('org.kde.plasma.volume') >= 0;"
-            + (hide ? " if (has) items = items.filter(function (i) { return i !== 'org.kde.plasma.volume'; });"
-                    : " if (!has && items.length) items.push('org.kde.plasma.volume');")
+            + " if (items.length && items.indexOf('org.kde.plasma.volume') < 0) items.push('org.kde.plasma.volume');"
             + " var off = list(w, 'cdeDisabledItems'); var curated = " + JSON.stringify(curated) + ";"
             + (icons ? " var out = curated.filter(function (i) { return items.indexOf(i) >= 0 && off.indexOf(i) < 0; });"
                        + " if (out.length) { items = items.filter(function (i) { return out.indexOf(i) < 0; }); w.writeConfig('cdeDisabledItems', off.concat(out)); }"
                      : " if (off.length) { off.forEach(function (i) { if (items.indexOf(i) < 0) items.push(i); }); w.writeConfig('cdeDisabledItems', []); }")
             + " w.writeConfig('extraItems', items);"
             + " var now = list(w, 'hiddenItems');"
-            + (icons ? " var add = list(w, 'knownItems').concat(" + JSON.stringify(tray.statusIds) + ").filter(function (i, k, all) { return now.indexOf(i) < 0 && all.indexOf(i) === k; });"
-                       + " if (add.length) { w.writeConfig('hiddenItems', now.concat(add)); ours.writeConfig('trayHiddenByConsole', mine.concat(add)); }"
-                     : " if (mine.length) { w.writeConfig('hiddenItems', now.filter(function (i) { return mine.indexOf(i) < 0; })); ours.writeConfig('trayHiddenByConsole', []); }")
+            + " var want = " + (icons ? "list(w, 'knownItems').concat(" + JSON.stringify(tray.statusIds) + ")" : "[]")
+            + (hide ? ".concat(['org.kde.plasma.volume'])" : "") + ";"
+            + " var add = want.filter(function (i, k, all) { return now.indexOf(i) < 0 && all.indexOf(i) === k; });"
+            + " var drop = mine.filter(function (i) { return want.indexOf(i) < 0; });"
+            + " var kept = mine.filter(function (i, k, all) { return want.indexOf(i) >= 0 && all.indexOf(i) === k; });"
+            + " if (add.length || drop.length || kept.length !== mine.length) {"
+            + " w.writeConfig('hiddenItems', now.filter(function (i) { return drop.indexOf(i) < 0; }).concat(add));"
+            + " ours.writeConfig('trayHiddenByConsole', kept.concat(add.filter(function (i) { return kept.indexOf(i) < 0; }))); }"
             + " } }";
         tray.root.execute(tray.root.dbus + " org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript " + Launch.quote(script));
     }

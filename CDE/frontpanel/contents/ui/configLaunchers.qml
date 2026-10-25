@@ -369,7 +369,7 @@ ConfigPage {
                 wrapMode: Text.WordWrap
                 font: Kirigami.Theme.smallFont
                 opacity: 0.7
-                text: i18nd("cde-copper", "The tray leaves out its own volume icon.")
+                text: i18nd("cde-copper", "The tray's own volume entry, with the output devices, moves behind its arrow.")
             }
             Item { Kirigami.FormData.isSection: true }
             Advanced { id: advanced }

@@ -505,8 +505,8 @@ msgid "Volume only in the console"
 msgstr "Lautstärke nur in der Konsole"
 
 #: frontpanel/contents/ui/configLaunchers.qml:367
-msgid "The tray leaves out its own volume icon."
-msgstr "Die Systemleiste lässt ihr eigenes Lautstärkesymbol weg."
+msgid "The tray's own volume entry, with the output devices, moves behind its arrow."
+msgstr "Der Lautstärke-Eintrag der Systemleiste, mit den Ausgabegeräten, wandert hinter ihren Pfeil."
 
 #: frontpanel/contents/ui/configLaunchers.qml:375
 msgid "LLM hosts:"
