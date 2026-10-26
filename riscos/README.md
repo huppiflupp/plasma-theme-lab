@@ -25,9 +25,9 @@ iconbar) is drawn and written anew. The theme itself: GPL-2.0-or-later.
 | RISC Legacy Acorn | RISC OS 4's stone with Acorn green | Acorns |
 | RISC Legacy Graphite | classic RISC OS in darker greys | Slate |
 
-Besides these seven, eighteen ray-traced wallpapers (POV-Ray): chrome
-spheres on a chessboard, polyhedra, a marble Lipizzaner, singularities
-on a board or a green grid — each by day and in moonlight.
+Besides these seven, eleven ray-traced wallpapers (POV-Ray): chrome
+spheres on a chessboard, polyhedra, glass pyramids, a singularity, a
+green grid — each by day and in moonlight.
 
 Every wallpaper has a day and a night picture of the same scene. With
 Plasma's automatic day/night switching (System Settings › Global Theme)

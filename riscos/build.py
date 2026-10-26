@@ -312,15 +312,8 @@ PICTURES = (
     ("raytracing-solids", "Ray-Traced Solids", "Cube, cone, torus and a glass cylinder"),
     ("raytracing-glass-pyramids", "Glass Pyramids", "A field of glass pyramids"),
     ("raytracing-rings", "Linked Rings", "Two linked rings floating, chrome and gold"),
-    ("raytracing-lipizzaner-noon", "Lipizzaner, Noon", "A marble Lipizzaner in a levade on its plinth"),
-    ("raytracing-lipizzaner-evening", "Lipizzaner, Evening", "The marble Lipizzaner at sunset"),
-    ("raytracing-lipizzaner-moonlight", "Lipizzaner by Moonlight", "The marble Lipizzaner by moonlight, in the morning by day"),
-    ("raytracing-lipizzaner-spheres", "Lipizzaner with Spheres", "The Lipizzaner between two chrome spheres"),
     ("raytracing-grid", "Green Grid", "Chrome spheres on a green wireframe grid"),
     ("raytracing-grid-evening", "Green Grid, Evening", "Glass pyramids on the green grid at sunset"),
-    ("raytracing-ensemble", "Ensemble", "The Lipizzaner, polyhedra and a floating sphere"),
-    ("raytracing-singularity-phi", "Singularity with Phi", "The board runs into a singularity, a golden phi above it"),
-    ("raytracing-singularity-spheres", "Singularity with Spheres", "Spheres rolling into a deep singularity"),
     ("raytracing-singularity", "Singularity", "Only the singularity and a chrome phi, a fine board"),
 )
 
