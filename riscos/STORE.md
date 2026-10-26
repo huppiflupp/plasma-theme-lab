@@ -54,14 +54,21 @@ RISC OS Pi, the Iyonix, Acorn green and Graphite.
   underneath: without a star everything works as always.
 - An icon set of its own: every icon Breeze has, drawn anew in RISC OS's
   manner, in RISC OS 4's and RISC OS 5's colours.
-- Wallpapers in pairs for Plasma's day/night switching: limestone,
+- 18 wallpapers in pairs for Plasma's day/night switching: limestone,
   marble, the fens near Cambridge, raspberry leaves, frosted glass,
-  acorns, slate.
+  acorns, slate, and eleven ray-traced with POV-Ray (chrome spheres on a
+  chessboard, polyhedra, a singularity, a green grid), each by day and in
+  moonlight.
 - Programs styled with Kvantum: black outlines, the grey bevel, the cream
   ring round the default button, red radio dots.
 
 **Install**: unpack, then `./install.sh --apply classic --layout` (or 4,
 2026, 2026-dark, pi, iyonix, acorn, graphite). Every setting it changes
 is recorded; `./uninstall.sh` puts them back. Needs Kvantum.
+"Get New…" installs the classic global theme; `install.sh` in
+`~/.local/share/plasma/look-and-feel/org.risclegacy.desktop/` brings the
+rest.
+
+Sources: https://github.com/huppiflupp/risc-legacy
 
 Not affiliated with RISC OS Open Ltd, RISC OS Developments or Acorn.
