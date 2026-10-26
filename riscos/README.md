@@ -64,9 +64,10 @@ RISC Legacy brings both ways in:
 - **Ctrl+F12** — a **Task Window**, the command line as an ordinary
   window, black on white.
 
-Underneath is an ordinary bash: only words that start with `*` are star
-commands. `*Cat` lists the directory the RISC OS way, `cat` is still
-Unix's cat, and everything without a star works as always.
+Underneath is an ordinary bash: words that start with `*` are star
+commands. As at RISC OS's `*` prompt, the star can be left out where bash
+has no command of that name — `Cat`, `Dir`, `Ex`, `Help` —, while the
+lower-case `cat` and `dir` stay Unix's. Everything else works as always.
 
 | Star command | RISC OS | here |
 |---|---|---|

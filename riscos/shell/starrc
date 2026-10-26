@@ -2,9 +2,11 @@
 #
 # Sourced by the command line (F12) and the Task Window (Ctrl+F12):
 #   bash --rcfile ~/.local/share/risc-legacy/shell/starrc
-# Only words starting with "*" are RISC OS commands, case does not matter:
+# Words starting with "*" are RISC OS commands, case does not matter:
 # "*Cat" lists the directory as RISC OS does, while a plain "cat" is still
-# Unix's cat. Everything else is ordinary bash.
+# Unix's cat. As at RISC OS's prompt the star may be left out where bash has
+# no command of that name ("Cat", "Dir", "Ex", "Help"). Everything else is
+# ordinary bash.
 
 [ -f ~/.bashrc ] && . ~/.bashrc
 
@@ -23,7 +25,9 @@ RISC Legacy star commands (as in RISC OS; case does not matter):
   *Free             free disc space           *Time           date and time
   *Modules          loaded kernel modules     *Help [cmd]     this list
   *Desktop          back to the desktop (close this window)
-Everything without a star is ordinary bash.
+The star may be left out where bash has no command of that name:
+Cat, Dir, Ex, Help … (lower-case cat and dir stay Unix's).
+Everything else is ordinary bash.
 EOF
 }
 
@@ -54,20 +58,33 @@ _rl_star() {
     esac
 }
 
-# bash runs this for a command it cannot find; "*Cat" is such a word.
+# bash runs this for a command it cannot find; "*Cat" is such a word. At
+# RISC OS's "*" prompt the star is left out as well ("Cat", "Dir"): a name
+# bash does not know that is a star command's runs as one. Unix's own
+# commands win ("cat", "dir" in lower case stay Unix's).
+_RL_STARS=" cat ex dir up back cdir copy rename delete wipe type run filer_opendir free time modules help desktop quit "
 command_not_found_handle() {
     case "$1" in
         \**) _rl_star "$@" ;;
-        *)   printf 'bash: %s: command not found\n' "$1" >&2; return 127 ;;
+        *)   case "$_RL_STARS" in
+                 *" ${1,,} "*) _rl_star "$@" ;;
+                 *) printf 'bash: %s: command not found\n' "$1" >&2; return 127 ;;
+             esac ;;
     esac
 }
 # A word that is a file's name would be globbed: "*cat" matching "Muscat"
 # runs that file. The star commands are therefore aliases as well, so the
-# shell sees them before any globbing.
+# shell sees them before any globbing. The same without the star ("Cat",
+# "Dir"): command_not_found_handle runs in a subshell, where "Dir" could not
+# change the directory. Lower case only where bash has nothing of that name
+# ("up", "wipe"; not "cat", "dir", "type", "help").
 for _c in cat ex dir up back cdir copy rename delete wipe type run filer_opendir free time modules help desktop quit; do
-    for _v in "$_c" "${_c^}" "${_c^^}"; do alias "*$_v=_rl_star $_c"; done
+    for _v in "$_c" "${_c^}" "${_c^^}"; do
+        alias "*$_v=_rl_star $_c"
+        if [ "$_v" != "$_c" ] || ! type "$_v" >/dev/null 2>&1; then alias "$_v=_rl_star $_c"; fi
+    done
 done
-alias '*Filer_OpenDir=_rl_star filer_opendir'
+alias '*Filer_OpenDir=_rl_star filer_opendir' 'Filer_OpenDir=_rl_star filer_opendir'
 alias '*=_rl_star ""'
 unset _c _v
 shopt -s expand_aliases

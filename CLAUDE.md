@@ -38,3 +38,27 @@ change to one theme must not alter the other:
 - `CDE/tests/verify.py` rebuilds the theme from a copy without its
   parent directory and compares byte for byte with `CDE/build/`. If that
   fails, the separation has been broken.
+
+## English session in the lab VMs (since 26.10.2026)
+
+Screenshots and tests run in an English session (the user's rule: English
+is the default). Plasma's own setting (`~/.config/plasma-localerc`,
+`[Formats] LANG`, `[Translations] LANGUAGE`) is not enough on its own:
+startplasma takes LANG from SDDM, SDDM from PID 1 (systemd), and PID 1
+reads `/etc/locale.conf` only at boot; the systemd user manager also keeps
+its old LANG as long as an SSH session holds it open, and hands it to the
+next Plasma session. So, in the guest, once:
+
+```bash
+sudo localectl set-locale LANG=en_US.UTF-8
+kwriteconfig6 --file plasma-localerc --group Formats --key LANG en_US.UTF-8
+kwriteconfig6 --file plasma-localerc --group Translations --key LANGUAGE en_US
+systemctl --user set-environment LANG=en_US.UTF-8 LANGUAGE=en_US
+sudo systemctl reboot          # restarting sddm is not enough
+# check: tr '\0' '\n' < /proc/$(pgrep -x plasmashell)/environ | grep LANG
+```
+
+The keyboard layout stays German. plasma-lab is English since 26.10.2026.
+Programs started over SSH miss the session's environment (kdedefaults,
+LANG) and look like Breeze or German: start them with plasmashell's
+environment (read `/proc/<plasmashell>/environ`).

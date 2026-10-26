@@ -10,21 +10,24 @@ theme with install.sh beside it, all variants and wallpapers inside.
 Licence GPL-2.0-or-later (the RISC OS 4 window tools: Apache 2.0, RISC OS
 Open, with LICENSE and NOTICE in the archive).
 
-## Pictures (to make)
+## Pictures
 
-From the Fedora VM, English session, 1920×1080:
+`screenshots/store/`, taken in the Fedora VM in an English session at
+1920×1080 (26.10.2026):
 
-1. RISC Legacy (classic) with the iconbar, a Filer window and an iconised
-   window on the iconbar.
-2. **The command line (F12)** along the bottom: `*Help`, then `*Cat` and
-   `*Ex` in the home directory — shows what the star commands are.
-3. **A Task Window (Ctrl+F12)** beside a Filer window: `*Dir Documents`,
-   `*Cat`, and an ordinary `ls | head` to show that bash is underneath.
-4. The iconbar's menus: a program's menu (Menu on its icon) and the Apps
-   menu.
-5. Day and night: the same desktop at day and after the switch (2026 and
-   2026 Dark on Fenland; classic on Limestone and Graphite at night).
-6. The variants side by side (the previews in `previews/`).
+| File | Shows |
+|---|---|
+| `1-filer-iconbar.png` | classic: two Filer windows, iconised windows with their title on the iconbar |
+| `2-command-line-star-commands.png` | the command line (F12) along the bottom: `Dir`, `Help`, `Cat`, `Ex` |
+| `3-task-window.png` | a Task Window (Ctrl+F12) beside a Filer: star commands and an ordinary `ls` |
+| `4a-iconbar-program-menu.png` | Menu on a program's icon: its menu, titled with its name |
+| `4b-apps-menu.png` | the Apps menu, cascading into the programs |
+| `5a-2026-day.png`, `5b-2026-night.png` | 2026 by day and 2026 Dark at night, the same Fenland picture |
+| `5c-classic-day.png`, `5d-classic-night-graphite.png` | classic on Limestone by day, Graphite at night |
+| `variant-<key>.jpg` | the same scene in each of the eight variants |
+
+The previews in System Settings › Global Theme (`previews/`) are made from
+the variant pictures. Store order: 1, 2, 3, 4b, 5a/5b, then the variants.
 
 ## Description
 
