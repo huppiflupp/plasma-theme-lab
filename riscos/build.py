@@ -118,21 +118,21 @@ GRAPHITE = dict(surface=WIMP[5], window=WIMP[6], panel=WIMP[5],
                 default_ring=WIMP[12], radio="#ff4444")
 
 VARIANTS = [
-    dict(key="", picture="granit", art="classic", name="RISC Legacy", P=CLASSIC, icons="RiscLegacy",
+    dict(key="", picture="kalkstein", night="graphite", art="classic", name="RISC Legacy", P=CLASSIC, icons="RiscLegacy",
          description="RISC OS 3: grey windows, a cream title for the focus, the iconbar"),
-    dict(key="4", picture="marmor", art="select", name="RISC Legacy 4", P=SELECT, icons="RiscLegacy", tile="tile_1",
+    dict(key="4", picture="marmor", night="graphite", art="select", name="RISC Legacy 4", P=SELECT, icons="RiscLegacy", tile="tile_1",
          description="RISC OS 4: the stone-textured window tools"),
-    dict(key="2026", picture="fenland-morgen", art="modern", name="RISC Legacy 2026", P=MODERN, icons="RiscLegacy2026",
+    dict(key="2026", picture="fenland", night="2026-dark", art="modern", name="RISC Legacy 2026", P=MODERN, icons="RiscLegacy2026",
          description="RISC OS taken on to 2026: the same window, smooth and warm"),
-    dict(key="2026-dark", picture="fenland-nacht", art="dark", name="RISC Legacy 2026 Dark", P=DARK, icons="RiscLegacy2026",
+    dict(key="2026-dark", picture="fenland", day="2026", art="dark", name="RISC Legacy 2026 Dark", P=DARK, icons="RiscLegacy2026",
          description="RISC OS 2026 at night, the focus in brass"),
-    dict(key="pi", picture="himbeerlaub", art="classic", name="RISC Legacy Pi", P=PI, icons="RiscLegacy",
+    dict(key="pi", picture="himbeerlaub", night="graphite", art="classic", name="RISC Legacy Pi", P=PI, icons="RiscLegacy",
          description="RISC OS Pi: the green desktop, raspberry for selections, RISC OS 5's icons"),
-    dict(key="iyonix", picture="iyonix-blau", art="classic", name="RISC Legacy Iyonix", P=IYONIX, icons="RiscLegacy",
+    dict(key="iyonix", picture="iyonix-glas", night="graphite", art="classic", name="RISC Legacy Iyonix", P=IYONIX, icons="RiscLegacy",
          description="The Iyonix's blue for the focus and selections"),
-    dict(key="acorn", picture="eicheln", art="select", name="RISC Legacy Acorn", P=ACORN, icons="RiscLegacy", tile="tile_1",
+    dict(key="acorn", picture="eicheln", night="graphite", art="select", name="RISC Legacy Acorn", P=ACORN, icons="RiscLegacy", tile="tile_1",
          description="RISC OS 4's stone with Acorn green"),
-    dict(key="graphite", picture="schiefer", art="graphite", name="RISC Legacy Graphite", P=GRAPHITE, icons="RiscLegacy",
+    dict(key="graphite", picture="schiefer", day="classic", art="graphite", name="RISC Legacy Graphite", P=GRAPHITE, icons="RiscLegacy",
          description="Classic RISC OS in the darker greys, the focus still cream"),
 ]
 
@@ -286,26 +286,31 @@ def kvantum(v):
 
 # The generated backdrops (wallpapers/, tools/gen-wallpapers.py; prompt and
 # seed in the JSON beside each): stem, name, description.
+# Every picture is a pair (tools/gen-wallpapers.py): <stem>.jpg by day,
+# <stem>-dark.jpg at night. Plasma shows images_dark under a dark colour
+# scheme, so the backdrop follows the day/night switching of the global
+# themes (install.sh: each variant's partner) without changing the place.
 PICTURES = (
-    ("granit", "Granite", "Fine grey granite, RISC OS 3's grey"),
+    ("kalkstein", "Limestone", "Smooth honed limestone, RISC OS 3's quiet grey"),
     ("marmor", "Marble", "Pale marble, after RISC OS 4's stone"),
-    ("fenland-morgen", "Fenland Morning", "The fens near Cambridge at dawn, where Acorn began"),
-    ("fenland-nacht", "Fenland Night", "The fens at night, a brass glow on the horizon"),
-    ("himbeerlaub", "Raspberry Leaves", "Raspberry leaves in pastel green"),
-    ("iyonix-blau", "Iyonix Blue", "Deep blue light through frosted glass"),
+    ("fenland", "Fenland", "The fens near Cambridge, where Acorn began: dawn and blue hour"),
+    ("himbeerlaub", "Raspberry Leaves", "Raspberry leaves in pastel green, at dusk by night"),
+    ("iyonix-glas", "Iyonix Glass", "Light through frosted glass, ice blue by day, deep blue by night"),
     ("eicheln", "Acorns", "Oak leaves and acorns on moss"),
-    ("schiefer", "Slate", "Dark slate"),
+    ("schiefer", "Slate", "Slate, silver grey by day, dark by night"),
 )
 
 
 def wallpapers():
-    """One wallpaper package per picture, all offered with every variant."""
+    """One wallpaper package per picture, all offered with every variant,
+    each with its day and its night picture."""
     for stem, name, description in PICTURES:
         id_ = f"org.risclegacy.{stem}"
-        write(f"wallpapers/{id_}/metadata.json", json.dumps(metadata(id_, name, description), indent=2))
-        target = OUT / f"wallpapers/{id_}/contents/images/1920x1080.jpg"
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(ROOT / f"wallpapers/{stem}.jpg", target)
+        write(f"wallpapers/{id_}/metadata.json", json.dumps(metadata(id_, name, description + ", light and dark"), indent=2))
+        for sub, suffix in (("images", ""), ("images_dark", "-dark")):
+            target = OUT / f"wallpapers/{id_}/contents/{sub}/1920x1080.jpg"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / f"wallpapers/{stem}{suffix}.jpg", target)
 
 
 def lookandfeel(v):
@@ -342,9 +347,11 @@ theme={i['decoration']}
 ButtonsOnLeft=BX
 ButtonsOnRight=IA
 BorderSize=Normal
-[Wallpaper]
-Image={i['wallpaper']}
 """)
+    # No [Wallpaper]: Plasma's day/night switching applies the partner's
+    # global theme, and the picture must stay the one the desktop has (its
+    # night half shows by itself). The picture comes from the layout
+    # (layout.js) and install.sh.
 
 
 def layout(v):
@@ -372,10 +379,16 @@ def icons():
 
 
 def variant_table():
-    """For install.sh: key, global theme, Kvantum theme, icons, picture,
-    decoration, colour scheme, Plasma style."""
+    """For install.sh and the follower (shell/follow): key, global theme,
+    Kvantum theme, icons, picture, decoration, colour scheme, Plasma style,
+    the day theme, the night theme (Plasma's day/night switching)."""
+    by_key = {v["key"] or "classic": ids(v)["lnf"] for v in VARIANTS}
+
+    def pair(v):
+        own = ids(v)["lnf"]
+        return by_key[v["day"]] if "day" in v else own, by_key[v["night"]] if "night" in v else own
     rows = [f"{v['key'] or 'classic'}\t{ids(v)['lnf']}\t{ids(v)['kvantum']}\t{v['icons']}\t{ids(v)['wallpaper']}"
-            f"\t{ids(v)['decoration']}\t{ids(v)['scheme']}\t{ids(v)['theme']}"
+            f"\t{ids(v)['decoration']}\t{ids(v)['scheme']}\t{ids(v)['theme']}\t" + "\t".join(pair(v))
             for v in VARIANTS]
     write("risc-legacy/variants", "\n".join(rows) + "\n")
 
@@ -386,6 +399,25 @@ def shell():
     launchers. install.sh puts in the paths (@DATA@), the KWin rule that
     lays the command line along the bottom and the shortcuts."""
     shutil.copytree(ROOT / "shell", OUT / "risc-legacy/shell", dirs_exist_ok=True)
+    # The follower (shell/follow, DESIGN.md §10): after Plasma's day/night
+    # switching, the parts the global theme leaves out. kdeglobals is
+    # written whenever the global theme changes.
+    write("config/systemd/user/risclegacy-follow.path", """[Unit]
+Description=RISC Legacy: follow a change of the global theme
+
+[Path]
+PathChanged=%h/.config/kdeglobals
+
+[Install]
+WantedBy=default.target
+""")
+    write("config/systemd/user/risclegacy-follow.service", """[Unit]
+Description=RISC Legacy: complete a switch of the global theme
+
+[Service]
+Type=oneshot
+ExecStart=@DATA@/risc-legacy/shell/follow
+""")
     # The KWin script that lays the command line along the bottom.
     shutil.copytree(ROOT / "kwinscript", OUT / "kwin/scripts/risclegacy-commandline", dirs_exist_ok=True)
     mono = "Liberation Mono,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"

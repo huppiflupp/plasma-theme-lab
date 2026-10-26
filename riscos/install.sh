@@ -64,7 +64,7 @@ mkdir -p "$CONFIG" && cp -a --remove-destination "$HERE/build/config/." "$CONFIG
 fc-cache -f "$DATA/fonts/risc-legacy" >/dev/null 2>&1 || true
 # The command line's and Task Window's profiles start bash with the star
 # commands from here (build.py writes @DATA@).
-sed -i "s|@DATA@|$DATA|g" "$DATA"/konsole/RISC\ Legacy\ *.profile
+sed -i "s|@DATA@|$DATA|g" "$DATA"/konsole/RISC\ Legacy\ *.profile "$CONFIG/systemd/user/risclegacy-follow.service"
 echo "Installed $(cat "$STATE/files" "$STATE/config-files" | wc -l) files"
 command -v kvantummanager >/dev/null 2>&1 || \
     echo "Note: Kvantum is not installed; programs keep their own style (package: kvantum or qt6-style-kvantum)." >&2
@@ -78,6 +78,8 @@ kdeglobals	General	fixed
 kdeglobals	WM	activeFont
 kdeglobals	KDE	widgetStyle
 kdeglobals	KDE	LookAndFeelPackage
+kdeglobals	KDE	DefaultLightLookAndFeel
+kdeglobals	KDE	DefaultDarkLookAndFeel
 kdeglobals	Icons	Theme
 kwinrc	org.kde.kdecoration2	library
 kwinrc	org.kde.kdecoration2	theme
@@ -130,7 +132,7 @@ if [ -n "$APPLY" ]; then
         cp -a "$CONFIG/plasma-org.kde.plasma.desktop-appletsrc" "$STATE/appletsrc.before" 2>/dev/null || true
         cp -a "$CONFIG/plasmashellrc" "$STATE/plasmashellrc.before" 2>/dev/null || true
     fi
-    IFS=$'\t' read -r _ LNF KVANTUM ICONS PICTURE DECORATION SCHEME STYLE < <(grep "^$VARIANT	" "$TABLE")
+    IFS=$'\t' read -r _ LNF KVANTUM ICONS PICTURE DECORATION SCHEME STYLE DAY NIGHT < <(grep "^$VARIANT	" "$TABLE")
     plasma-apply-lookandfeel --apply "$LNF" $LAYOUT
     # The frame, the colours and the Plasma style written out as well: the
     # global theme's defaults left kwinrc without the decoration (Fedora
@@ -162,6 +164,19 @@ if [ -n "$APPLY" ]; then
     # desktop's picture as it was.
     if [ -z "$LAYOUT" ] && command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
         plasma-apply-wallpaperimage "$DATA/wallpapers/$PICTURE" >/dev/null 2>&1 || true
+    fi
+    # Day and night (DESIGN.md §10): Plasma's automatic switching (Quick
+    # Settings or System Settings › Global Theme) swaps to the variant's
+    # partner, the picture shows its night half by itself, and the
+    # follower puts in Kvantum, the frame and the icons after each switch.
+    kwriteconfig6 --file kdeglobals --group KDE --key DefaultLightLookAndFeel "$DAY"
+    kwriteconfig6 --file kdeglobals --group KDE --key DefaultDarkLookAndFeel "$NIGHT"
+    printf '%s\n' "$LNF" > "$DATA/risc-legacy/followed"
+    if [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private" ] && command -v systemctl >/dev/null 2>&1; then
+        systemctl --user daemon-reload
+        systemctl --user enable --now risclegacy-follow.path >/dev/null 2>&1 || true
+    else
+        echo "Note: without a systemd user manager the day/night switch changes the colours, not Kvantum and the frame." >&2
     fi
     # ---- RISC OS's handling (DESIGN.md §9) ---------------------------
     # Double-click opens, as in RISC OS's Filer, and every folder opened

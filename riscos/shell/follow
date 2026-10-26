@@ -1,0 +1,46 @@
+#!/bin/sh
+# RISC Legacy: complete a switch of the global theme (DESIGN.md §10).
+#
+# Plasma's day/night switching (and System Settings › Global Theme) applies
+# a global theme, but leaves out what RISC Legacy needs besides: the Kvantum
+# theme lives in Kvantum's own file, and the QML decoration, the icons and
+# the Plasma style did not always arrive from the theme's defaults (Fedora
+# VM, 25.10.2026; install.sh writes them for the same reason). This puts
+# them in after the switch, from the variant table.
+#
+# Started by risclegacy-follow.path whenever kdeglobals changes; does
+# nothing unless the global theme is a RISC Legacy one that it has not
+# followed yet.
+DATA="${XDG_DATA_HOME:-$HOME/.local/share}"
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
+TABLE="$DATA/risc-legacy/variants"
+DONE="$DATA/risc-legacy/followed"
+
+lnf=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
+case "$lnf" in org.risclegacy.*) ;; *) exit 0 ;; esac
+[ "$(cat "$DONE" 2>/dev/null)" = "$lnf" ] && exit 0
+row=$(awk -F'\t' -v l="$lnf" '$2 == l' "$TABLE" 2>/dev/null)
+[ -n "$row" ] || exit 0
+
+tab=$(printf '\t')
+IFS="$tab" read -r _ _ kvantum icons _ decoration scheme style _ _ <<EOF
+$row
+EOF
+# First, so that the writes below (kdeglobals again) end at the check above.
+printf '%s\n' "$lnf" > "$DONE"
+if [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ] || command -v kvantummanager >/dev/null 2>&1; then
+    mkdir -p "$CONFIG/Kvantum"
+    kwriteconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme "$kvantum"
+fi
+kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.kwin.aurorae
+kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme "$decoration"
+[ "$(kreadconfig6 --file kdeglobals --group General --key ColorScheme)" = "$scheme" ] || \
+    plasma-apply-colorscheme "$scheme" >/dev/null 2>&1
+[ "$(kreadconfig6 --file kdeglobals --group Icons --key Theme)" = "$icons" ] || {
+    kwriteconfig6 --file kdeglobals --group Icons --key Theme "$icons"
+    dbus-send --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:0 2>/dev/null
+}
+[ "$(kreadconfig6 --file plasmarc --group Theme --key name)" = "$style" ] || \
+    plasma-apply-desktoptheme "$style" >/dev/null 2>&1
+dbus-send --session --type=method_call --dest=org.kde.KWin /KWin org.kde.KWin.reconfigure 2>/dev/null
+exit 0

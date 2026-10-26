@@ -1,0 +1,12 @@
+{
+  "prompt": "Close-up nature photograph of oak leaves and a few acorns on a mossy forest floor at dusk, the same scene at night in cool moonlight and soft blue dusk, dark but with clearly visible mid tones, nothing pitch black, gentle and even, muted deep greens and browns, shallow depth of field, no text, no letters, no logos, no people, calm and uncluttered, the upper third especially quiet and even, plenty of empty space",
+  "seed": 3107,
+  "size": [
+    1920,
+    1088
+  ],
+  "model": "Krea-2 Turbo (ComfyUI on ai395)",
+  "source": "eicheln.jpg",
+  "graded": true,
+  "denoise": 0.4
+}

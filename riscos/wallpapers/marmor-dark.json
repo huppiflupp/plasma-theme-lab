@@ -1,0 +1,12 @@
+{
+  "prompt": null,
+  "seed": null,
+  "size": [
+    1920,
+    1088
+  ],
+  "model": null,
+  "source": "marmor.jpg",
+  "graded": true,
+  "denoise": null
+}

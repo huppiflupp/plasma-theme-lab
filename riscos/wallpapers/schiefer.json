@@ -1,10 +1,12 @@
 {
-  "prompt": "A seamless close-up photograph of dark grey slate, fine layered texture, soft even light, charcoal and graphite tones filling the whole frame, no text, no letters, no logos, no people, calm and uncluttered, plenty of quiet space",
-  "seed": 3108,
+  "prompt": null,
+  "seed": null,
   "size": [
     1920,
     1088
   ],
-  "model": "Z-Image Turbo (local ComfyUI)",
-  "variant": "graphite"
+  "model": null,
+  "source": "schiefer-dark.jpg",
+  "graded": true,
+  "denoise": null
 }

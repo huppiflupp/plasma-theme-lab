@@ -1,0 +1,12 @@
+{
+  "prompt": "Landscape photograph of the flat English fens at late blue hour, a long drainage channel reflecting a deep blue sky with a thin warm brass glow at the horizon, the same scene at night in cool moonlight and soft blue dusk, dark but with clearly visible mid tones, nothing pitch black, gentle and even, low horizon in the lower third, no text, no letters, no logos, no people, calm and uncluttered, the upper third especially quiet and even, plenty of empty space",
+  "seed": 3103,
+  "size": [
+    1920,
+    1088
+  ],
+  "model": "Krea-2 Turbo (ComfyUI on ai395)",
+  "source": "fenland.jpg",
+  "graded": true,
+  "denoise": 0.45
+}

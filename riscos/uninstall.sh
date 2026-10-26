@@ -12,6 +12,11 @@ UNSET=$'\x01unset'
 [ -f "$STATE/files" ] || { echo "RISC Legacy is not installed." >&2; exit 1; }
 in_session() { [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; }
 
+# The follower first, so that the restoring below does not wake it.
+if [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private" ] && command -v systemctl >/dev/null 2>&1; then
+    systemctl --user disable --now risclegacy-follow.path >/dev/null 2>&1 || true
+fi
+
 current=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
 previous=
 if [ -f "$STATE/settings.before" ]; then
@@ -89,8 +94,10 @@ remove() {   # remove <base> <list>: the files, then directories left empty
 remove "$DATA" "$STATE/files"
 [ -f "$STATE/config-files" ] && remove "$CONFIG" "$STATE/config-files"
 rm -f "${XDG_CACHE_HOME:-$HOME/.cache}"/plasma_theme_risc-legacy*.kcache
-# What the Apps menu wrote while in use: the programs started from its search.
-rm -f "$DATA/risc-legacy/launched"
+# What was written while in use: the programs started from the Apps menu's
+# search, the theme the follower followed last.
+rm -f "$DATA/risc-legacy/launched" "$DATA/risc-legacy/followed"
 rmdir "$DATA/risc-legacy" 2>/dev/null || true
 rm -rf "$STATE"
+command -v systemctl >/dev/null 2>&1 && systemctl --user daemon-reload 2>/dev/null || true
 echo "RISC Legacy removed. Log out and back in for every part to take effect."

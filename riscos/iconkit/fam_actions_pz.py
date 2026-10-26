@@ -1125,6 +1125,21 @@ CUSTOM["zoom-1-to-2"] = _zoom_ratio("1:2", False)
 CUSTOM["zoom-2-to-1"] = _zoom_ratio("2:1", True)
 
 
+def _shutdown(c):
+    """Shutdown also sits on the desktop: a red button with a body and an
+    outline, so it holds on dark and busy backdrops, not a bare red line
+    (tools/contrast-sheet.py)."""
+    red = c["red"]
+    c.circle(24, 24, 19, c.grad(c.lighten(red, 0.25), c.darken(red, 0.2)), width=1.6)
+    if not c.small:
+        c.path("M11 18 a14 12 0 0 1 26 0 a30 14 0 0 0 -26 0 z", "#ffffff", None, opacity=0.3)
+    glyph(c, "power", 11, 11, 26, "#ffffff", width=3.4 if not c.small else 4.2)
+    return True
+
+
+CUSTOM["system-shutdown"] = _shutdown
+
+
 def mine(name):
     return bool(name) and name[0] not in "abcdefghijklmno"
 

@@ -174,4 +174,29 @@ uninstall.sh restores them.
   a picture), the Pinboard backdrop.
 - Menus with a title bar, as RISC OS's.
 - An icon set (RISC OS's sprites are in the sources too, `Sprites22`).
-- More palettes; generated backdrops.
+- More palettes.
+
+## 10. Backdrops, day and night
+
+Every backdrop is a pair (`wallpapers/<stem>.jpg` and `<stem>-dark.jpg`),
+shipped as one wallpaper package with `images/` and `images_dark/`: Plasma
+shows the night half under a dark colour scheme. The pairs come from
+`tools/gen-wallpapers.py` (Krea-2 on ai395): one half from a prompt, the
+other from it — a stone only graded into the other light (the model would
+invent new veins), a scene graded and then worked over by the model at low
+denoise (the light in the sky), so the switch changes the light, not the
+place. Quiet surfaces only: the granite of 0.1 was too busy.
+
+Plasma's day/night switching swaps global themes; `install.sh --apply`
+sets the variant and its partner (`DefaultLightLookAndFeel`,
+`DefaultDarkLookAndFeel`): 2026 ↔ 2026 Dark, Graphite at night for the
+other light variants, Classic by day for Graphite. The global themes
+carry no `[Wallpaper]`, so a switch keeps the desktop's picture. The
+follower (`shell/follow`, started by `risclegacy-follow.path` on every
+change of kdeglobals) puts in what the global theme leaves out: Kvantum,
+the frame, icons, Plasma style.
+
+Contrast: `tools/contrast-sheet.py` lays the desktop icons on every
+picture and measures how much of each icon's outline ring disappears.
+Night pictures keep the band where the icons sit above ~0.045 relative
+luminance; icons that were bare lines (network, shutdown) got bodies.

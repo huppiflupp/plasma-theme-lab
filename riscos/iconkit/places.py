@@ -70,7 +70,15 @@ def draw(name, c):
         glyph(c, "server", 6, 4, 32, c["ink"]); plaque(c, "database", c["blue"])
         return True
     if name == "network-workgroup":
-        glyph(c, "network", 4, 4, 40, c["ink"])
+        # Three computers on one cable. Bodies and a filled cable, not the
+        # bare network glyph: it sits on the desktop and must hold on night
+        # backdrops (tools/contrast-sheet.py).
+        w = 5 if not c.small else 6.5
+        c.line("M24 17 V27 M10 33 V27 H38 V33", c["ink"], w + 2.4)
+        c.line("M24 17 V27 M10 33 V27 H38 V33", c.lighten(c["metal"][0], 0.2), w)
+        for x, y in ((14, 3), (0, 29), (28, 29)):
+            c.rect(x + 1, y + 1, 18, 14, c.grad(c["case"]), 1.5)
+            c.rect(x + 4, y + 4, 12, 8, c.grad(c["screen"]), 0.5, width=1.1)
         return True
     if name == "user-identity":
         c.circle(24, 24, 19, c.grad(c["folder"]))
