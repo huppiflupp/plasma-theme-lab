@@ -1,0 +1,15 @@
+{
+  "renderer": "POV-Ray 3.7.0.10.unofficial",
+  "script": "os2-warp/tools/render-raytracing.py",
+  "scene": "statue",
+  "time_of_day": "abend",
+  "source": "wallpaper/warp-legacy/raytracing/statue-abend.pov",
+  "size": [
+    3840,
+    2160
+  ],
+  "antialias": "+A0.02 +AM2 +R5 +J0.8",
+  "seed": null,
+  "seconds": 17.1,
+  "host": "245k (Intel Core Ultra 5 245K, 14 threads, CPU)"
+}

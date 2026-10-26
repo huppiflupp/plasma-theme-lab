@@ -1,23 +1,15 @@
 {
-  "model": "z_image_turbo_bf16 (qwen_3_4b, ae)",
-  "steps": 8,
-  "cfg": 1,
-  "sampler": "res_multistep/simple",
-  "shift": 3,
-  "prompt": "Retro 1990s raytraced 3D render in POV-Ray style, clearly synthetic computer graphics, several polished chrome spheres and clear glass prisms standing on an infinite black and white checkerboard floor stretching to the horizon, perfect mirror reflections and refractions, cool blue sky gradient from deep blue at the top to pale blue at the horizon, crisp hard shadows, clean and still, objects grouped in the lower right half. The upper left quarter of the frame stays calm and empty. No text, no letters, no logos, no watermark.",
-  "seed": 1101,
-  "base_size": [
-    1920,
-    1088
-  ],
-  "seconds_base": 16.0,
-  "comfy_file": "warp_raytrace_zimage_1101_00001_.png",
-  "slug": "raytracing-chrom",
-  "final_size": [
+  "renderer": "POV-Ray 3.7.0.10.unofficial",
+  "script": "os2-warp/tools/render-raytracing.py",
+  "scene": "chrom",
+  "time_of_day": "mittag",
+  "source": "wallpaper/warp-legacy/raytracing/chrom-mittag.pov",
+  "size": [
     3840,
     2160
   ],
-  "upscaler": "4x-UltraSharp -> lanczos 3840x2176 -> crop 3840x2160",
-  "seconds_upscale": 8.0,
-  "seconds_total": 24.0
+  "antialias": "+A0.02 +AM2 +R5 +J0.8",
+  "seed": null,
+  "seconds": 43.8,
+  "host": "245k (Intel Core Ultra 5 245K, 14 threads, CPU)"
 }

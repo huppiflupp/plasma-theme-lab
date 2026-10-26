@@ -243,7 +243,13 @@ PICTURES = (
     ("warp-antrieb", "Warp Drive", "Warp-Antrieb", "Star streaks at warp speed, deep blue"),
     ("neon-roehren", "Neon Tubes", "Neonröhren", "Red, blue and yellow neon tube on black"),
     ("neon-roehren-hell", "Neon Tubes on Grey", "Neonröhren auf Grau", "The neon tubes on OS/2's grey (the classic lock screen)"),
-    ("raytracing-chrom", "Chrome Spheres", "Chromkugeln", "Ray-traced chrome spheres on a chessboard, 1990s style"),
+    # Ray-traced with POV-Ray (tools/render-raytracing.py), each with a night
+    # picture beside it (<stem>-dark.jpg, images_dark).
+    ("raytracing-chrom", "Chrome Spheres", "Chromkugeln", "Ray-traced chrome spheres and glass pyramids on a chessboard, at noon and at night"),
+    ("raytracing-chrom-abend", "Chrome Spheres at Dusk", "Chromkugeln am Abend", "The chrome spheres in the evening sun"),
+    ("raytracing-koerper", "Ray-Traced Solids", "Raytracing-Körper", "Cube, glass sphere, cone and torus on a chessboard, in the morning"),
+    ("raytracing-statue", "Marble Torso", "Marmortorso", "An antique marble torso on a chessboard, in the evening"),
+    ("raytracing-sinkhole", "Sinkhole", "Erdfall", "The chessboard caves in"),
     ("marmorpapier", "Marbled Paper", "Marmorpapier", "Grey-blue marbled paper"),
     ("stillleben-90er", "Desk, 1996", "Schreibtisch 1996", "Gouache of a 1990s desk with a CRT monitor"),
     ("wirbel-nacht-indigo", "Night Swirl Indigo", "Nachtwirbel Indigo", "Dark silk spiral in night blue and indigo"),
@@ -288,9 +294,14 @@ def pictures():
         meta = metadata(id_, name, description)
         meta["KPlugin"]["Name[de]"] = name_de
         write(f"wallpapers/{id_}/metadata.json", json.dumps(meta, indent=2, ensure_ascii=False))
-        target = OUT / f"wallpapers/{id_}/contents/images/3840x2160.jpg"
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(ROOT / f"wallpapers/{stem}.jpg", target)
+        # A night picture beside it goes to images_dark: Plasma shows it
+        # under a dark colour scheme.
+        for sub, suffix in (("images", ""), ("images_dark", "-dark")):
+            if suffix and not (ROOT / f"wallpapers/{stem}{suffix}.jpg").exists():
+                continue
+            target = OUT / f"wallpapers/{id_}/contents/{sub}/3840x2160.jpg"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(ROOT / f"wallpapers/{stem}{suffix}.jpg", target)
 
 
 def icons():
