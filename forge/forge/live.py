@@ -29,12 +29,11 @@ class Live:
         self.n = 0
         self.target = None
         events.begin("live-vm", vm=env, lang=lang)
-        if reset:
-            log(f"[{env}] snapshot clean …")
-            vmtest.vmctl(env, "reset", check=True)
-        else:
+        ready = vmtest.revert(env, lang, log) if reset else False
+        if not reset:
             vmtest.vmctl(env, "start", check=True)
-        vmtest.set_language(env, lang, log)
+        if not ready:
+            vmtest.set_language(env, lang, log)
         # A window on screen, so colours, frame and icons can be seen to change
         # (without one only the wallpaper did, test 26.10.2026).
         time.sleep(8)
