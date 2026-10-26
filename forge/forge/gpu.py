@@ -1,17 +1,17 @@
-"""Eine Grafikkarte, zwei Nutzer: LLM und Bildmodell wechseln sich ab.
+"""One graphics card, two users: the LLM and the image model take turns.
 
-Auf 245k (RTX 5080, 16 GB) belegt der llama-server ~14 GB; Z-Image braucht
-die Karte für sich. need("images") hält deshalb den LLM-Dienst an und
-startet ein lokales ComfyUI, need("llm") macht es umgekehrt. Gewechselt wird
-nur bei Bedarf — der Ablauf Entwurf → Malen → Prüfen → Reparieren → Malen
-kostet so wenige Wechsel à ~20 s. Am Programmende stellt restore() den
-Ausgangszustand wieder her (LLM-Dienst läuft, eigenes ComfyUI beendet).
+On 245k (RTX 5080, 16 GB) the llama-server takes ~14 GB; Z-Image needs the
+card to itself. need("images") therefore stops the LLM service and starts a
+local ComfyUI, need("llm") does the reverse. It switches only when needed —
+the course design → paint → check → repair → paint so costs few switches of
+~20 s each. At the end of the program restore() brings back the starting
+state (the LLM service running, our own ComfyUI ended).
 
-Nur aktiv, wenn ComfyUI lokal ist (comfy.LOCAL). Ein fremdes ComfyUI auf
-demselben Port wird mitbenutzt, aber nie beendet.
+Active only when ComfyUI is local (comfy.LOCAL). Somebody else's ComfyUI on
+the same port is shared, but never ended.
 
-Umgebung: FORGE_LLM_SERVICE (systemd-User-Dienst, Standard llama-qwen36.service,
-leer = nicht verwalten), FORGE_COMFY_DIR (Standard /data/ComfyUI).
+Environment: FORGE_LLM_SERVICE (systemd user service, default llama-qwen36.service,
+empty = do not manage), FORGE_COMFY_DIR (default /data/ComfyUI).
 """
 import atexit
 import os
@@ -24,7 +24,7 @@ from . import comfy
 
 SERVICE = os.environ.get("FORGE_LLM_SERVICE", "llama-qwen36.service")
 COMFY_DIR = os.environ.get("FORGE_COMFY_DIR", "/data/ComfyUI")
-UNIT = "comfy-forge"            # eigener systemd-Scope, damit nur unserer beendet wird
+UNIT = "comfy-forge"            # a systemd scope of its own, so that only ours is ended
 
 _state = {"mode": None, "stopped_llm": False, "started_comfy": False}
 
@@ -52,7 +52,7 @@ def _wait(url, seconds, what):
         if _up(url):
             return
         time.sleep(2)
-    raise RuntimeError(f"{what} nicht bereit nach {seconds} s")
+    raise RuntimeError(f"{what} not ready after {seconds} s")
 
 
 def managed():
@@ -60,13 +60,13 @@ def managed():
 
 
 def need(mode, log=print):
-    """mode = "llm" oder "images"; sorgt dafür, dass der Dienst läuft."""
+    """mode = "llm" or "images"; makes sure that service runs."""
     if not managed() or _state["mode"] == mode:
         return
     if mode == "images":
         if not _up(comfy.BASE + "/system_stats"):
             if _systemctl("is-active", SERVICE).stdout.strip() == "active":
-                log(f"GPU: {SERVICE} anhalten, lokales ComfyUI starten")
+                log(f"GPU: stopping {SERVICE}, starting a local ComfyUI")
                 _systemctl("stop", SERVICE)
                 _state["stopped_llm"] = True
             _start_comfy()
@@ -74,7 +74,7 @@ def need(mode, log=print):
     else:
         if not _up(_llm_url()):
             if _state["started_comfy"]:
-                log("GPU: ComfyUI beenden, LLM-Dienst starten")
+                log("GPU: ending ComfyUI, starting the LLM service")
                 _stop_comfy()
             _systemctl("start", SERVICE)
             _wait(_llm_url(), 300, SERVICE)
@@ -105,11 +105,11 @@ def _stop_comfy():
 
 
 def restore(log=print):
-    """Ausgangszustand: eigenes ComfyUI aus, LLM-Dienst an (wenn wir ihn angehalten haben)."""
+    """The starting state: our own ComfyUI off, the LLM service on (if we stopped it)."""
     if _state["started_comfy"]:
         _stop_comfy()
     if _state["stopped_llm"]:
-        log(f"GPU: {SERVICE} wieder starten")
+        log(f"GPU: starting {SERVICE} again")
         _systemctl("start", SERVICE)
         _state["stopped_llm"] = False
     _state["mode"] = None
@@ -120,5 +120,5 @@ def _term(*_):
 
 
 atexit.register(restore)
-# SIGTERM (kill, systemd) soll ebenfalls aufräumen, nicht nur Strg+C.
+# SIGTERM (kill, systemd) is to clean up as well, not only Ctrl+C.
 signal.signal(signal.SIGTERM, _term)

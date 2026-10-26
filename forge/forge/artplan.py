@@ -1,93 +1,90 @@
-"""Bildplan: was gemalt wird — Hintergründe, Material, Cameo-Motive der Icons.
+"""Art plan: what gets painted — wallpapers, material, the icons' cameo motifs.
 
-Ein eigener LLM-Schritt nach der Spezifikation, in kleinen Anfragen (je
-Variante Szenen + Material, einmal alle Icon-Motive), jede mit eigenem
-Schema und eigener Prüfung. Die Bild-Prompts selbst setzt der Motor aus den
-Motiven zusammen (feste Stilformel), damit die Icons ein einheitlicher Satz
-werden.
+An LLM step of its own after the specification, in small requests (scenes +
+material per variant, once all icon motifs), each with a schema and a check
+of its own. The engine itself puts the image prompts together from the
+motifs (a fixed style formula), so that the icons become one consistent set.
 
-Privatmodus (--private): Namen von Einheiten, Figuren und Orten der
-Vorlage sind erlaubt. Das Bildmodell kennt viele davon aber nicht (Test
-24.10.2026: „Kirov airship“ ergab ein graues Stahlschiff statt des roten
-Zeppelins) — deshalb verlangt der Plan Name UND Aussehen.
+Private mode (--private): names of units, characters and places of the
+model are allowed. The image model does not know many of them, though (test
+24.10.2026: "Kirov airship" gave a grey steel ship instead of the red
+zeppelin); hence the plan asks for the name AND the look.
 """
 import json
 import re
 
-from . import iconset, llm, spec as specmod
+from . import events, iconset, llm, spec as specmod
 
 TRAPS = {"icon", "icons", "text", "letters", "letter", "words", "logo", "logos", "label", "labels",
          "caption", "sign", "signs", "poster", "screen", "screens", "desktop", "interface", "ui",
          "monitor", "display", "document", "file", "files", "page", "pages", "symbol", "writing"}
 
-SCENES_SYSTEM = """Du planst die Bildwelt eines Desktop-Themes. Ein Bildmodell (Krea) malt danach
-deine Prompts. Es malt jedes Wort wörtlich und kennt viele Namen aus Spielen und
-Filmen NICHT sicher."""
+SCENES_SYSTEM = """You plan the imagery of a desktop theme. An image model (Krea) then paints
+your prompts. It paints every word literally and does NOT reliably know many names from games
+and films. Write everything in English."""
 
-SCENES_USER = """Stilvorlage: {request}
-Design-Brief:
+SCENES_USER = """Style model: {request}
+Design brief:
 {brief}
 
-Variante: {vname} ({mode}), Leitfarbe {lead}, Grundton {surface}.
+Variant: {vname} ({mode}), lead colour {lead}, base tone {surface}.
 {names_rule}
 
-Liefere:
-0. elements: zuerst 4–8 ikonische Elemente GENAU DIESER Variante/Fraktion in der Vorlage
-   (Einheiten, Figuren, Gebäude, Schauplätze — keine der Gegenseite). name: wie in der
-   Vorlage; look: ENGLISCH, wie es aussieht (Form, Farben, Merkmale), 8–30 Wörter.
-   Farben wie in der Vorlage — in Strategiespielen tragen Einheiten und Gebäude die
-   Fraktions-/Teamfarbe; hier ist das die Leitfarbe {lead}, nicht pauschal Tarngrün.
+Deliver:
+0. elements: first 4–8 iconic elements of EXACTLY THIS variant/faction in the model
+   (units, characters, buildings, locations — none of the other side). name: as in the
+   model; look: in English, what it looks like (shape, colours, features), 8–30 words.
+   Colours as in the model — in strategy games units and buildings carry the
+   faction/team colour; here that is the lead colour {lead}, not camouflage green by default.
 {voted}
-1. wallpapers: genau drei Hintergrundbilder für diese Variante; jedes zeigt mindestens
-   ein Element aus elements als Hauptmotiv, in einer eigenen, ikonischen Szene.
-   prompt: englisch, 50–130 Wörter, ein durchgehender Absatz, NUR die Szene — Medium
-   und Stil setzt der Motor selbst davor, nenne sie nicht. Für jede Einheit oder Figur
-   ihr AUSSEHEN beschreiben (Form, Farben, Merkmale), nicht nur den Namen. Licht,
-   Farbwelt passend zur Leitfarbe, eine ruhige Bildzone (Himmel, Nebel, Boden).
-   Nie: Symbole, Bildschirme, Schilder, Schrift, Rahmen. Ende: „no text, no logos“.
-   title: kurzer deutscher Bildtitel.
-2. texture: englischer Prompt für eine Metalloberfläche als Material für Fensterrahmen
-   und Leisten: Draufsicht auf ein flaches Blech im Grundton/der Leitfarbe dieser
-   Variante, waagrechte Schleifspuren, leichte Gebrauchsspuren, gleichmäßiges Licht,
-   ohne Nieten, Nähte, Objekte und Schrift. Farbe: vor allem die Leitfarbe, dunkel."""
+1. wallpapers: exactly three wallpapers for this variant; each shows at least one
+   element from elements as its main subject, in an iconic scene of its own.
+   prompt: English, 50–130 words, one continuous paragraph, ONLY the scene — the engine
+   puts the medium and style in front itself, do not name them. For every unit or character
+   describe its LOOK (shape, colours, features), not just the name. Light and colour world
+   fitting the lead colour, one calm area of the picture (sky, fog, ground).
+   Never: symbols, screens, signs, lettering, frames. End with "no text, no logos".
+   title: a short English title for the picture.
+2. texture: an English prompt for a metal surface as the material for window frames
+   and panels: top view of a flat sheet in the base tone/lead colour of this
+   variant, horizontal grinding marks, slight signs of wear, even light,
+   without rivets, seams, objects and lettering. Colour: mainly the lead colour, dark."""
 
-ICONS_SYSTEM = """Du entwirfst einen Satz Programmsymbole im Stil der „Cameos“ eines
-Strategiespiels: jedes Symbol ist ein kleines gemaltes Bild eines Motivs aus der
-Bildwelt der Vorlage, das trotzdem die Funktion verrät."""
+ICONS_SYSTEM = """You design a set of program icons in the style of the "cameos" of a
+strategy game: each icon is a small painted picture of a motif from the imagery of the
+model that still tells its function. Write everything in English."""
 
-ICONS_USER = """Stilvorlage: {request}
-Design-Brief (Auszug):
+ICONS_USER = """Style model: {request}
+Design brief (excerpt):
 {brief}
 {names_rule}
 
-Ikonische Elemente der Vorlage (Auswahl, du darfst weitere nehmen):
+Iconic elements of the model (a selection, you may take others):
 {elements}
 
-Schreibe für jedes Symbol zuerst source — den NAMEN eines Elements der Vorlage (eine
-Einheit, ein Gebäude, eine Figur, ein Gegenstand der Bildwelt; nicht die Funktion des
-Symbols) —, dann
-motif: englisch, 6–25 Wörter, ein Gegenstand, eine
-Einheit, eine Figur oder ein Gebäude aus der Vorlage, groß und klar im Bild, dessen
-Zusammenhang mit der Funktion man sofort sieht (Terminal → Funker an einer
-Konsole, Papierkorb → Schrotthaufen …). Regeln:
-- Alle Ordner (folder, folder-*, user-home, user-desktop) zeigen DENSELBEN Behälter
-  wie „folder“; die Varianten fügen nur ein deutliches Merkmal hinzu.
-- Jedes Motiv anders; keine Schrift, keine Buchstaben, keine Bildschirme, keine Dokumente.
-- Dateitypen und abstrakte Funktionen als greifbarer Gegenstand der Bildwelt: z. B. eine
-  versiegelte Akte, eine Filmrolle in einer Munitionskiste, ein Feldtelefon, ein Hebel,
-  eine Funkantenne, ein Tresor — nie „Datei“, „Symbol“, „Icon“ oder ein Bildschirm.
-- Für Einheiten/Figuren mit Namen auch das Aussehen nennen.
+For every icon write source first — the NAME of an element of the model (a unit, a
+building, a character, an object of its imagery; not the icon's function) —, then
+motif: English, 6–25 words, an object, a unit, a character or a building from the
+model, large and clear in the picture, whose connection with the function one sees at
+once (terminal → radio operator at a console, trash → scrap heap …). Rules:
+- All folders (folder, folder-*, user-home, user-desktop) show THE SAME container
+  as "folder"; the variants only add one clear feature.
+- Every motif different; no lettering, no letters, no screens, no documents.
+- File types and abstract functions as a tangible object of the imagery: e.g. a
+  sealed dossier, a film reel in an ammunition box, a field telephone, a lever,
+  a radio antenna, a safe — never "file", "symbol", "icon" or a screen.
+- For named units/characters also give their look.
 
-Symbole:
+Icons:
 {icons}"""
 
 
 def _names_rule(private):
     if private:
-        return ("Namen von Einheiten, Figuren und Orten der Vorlage sind erlaubt (privates Theme) — "
-                "nenne sie, und beschreibe zusätzlich, wie sie aussehen.")
-    return ("Keine Namen von Marken, Einheiten oder Figuren der Vorlage — beschreibe sie nur "
-            "mit eigenen Worten nach ihrem Aussehen.")
+        return ("Names of units, characters and places of the model are allowed (private theme) — "
+                "name them, and describe in addition what they look like.")
+    return ("No names of brands, units or characters of the model — describe them only "
+            "in your own words by their look.")
 
 
 def _words(text):
@@ -103,7 +100,7 @@ def _banned(spec, private):
 
 def _mark_errors(field, text, banned):
     low = text.lower()
-    return [f"{field} enthält den geschützten Namen „{t}“" for t in banned
+    return [f"{field} contains the protected name \"{t}\"" for t in banned
             if re.search(r"(?<![a-z])" + re.escape(t) + r"(?![a-z])", low)]
 
 
@@ -124,12 +121,12 @@ SCENE_SCHEMA = {
 
 
 def _body(p):
-    """Prompt ohne die Schlussformel „no text, no logos“."""
+    """The prompt without the closing formula "no text, no logos"."""
     return re.split(r"(?i)no text", p)[0]
 
 
 def _traps(text):
-    """Fallenwörter, ohne harmlose Wendungen („signs of wear“, „no text“)."""
+    """Trap words, without harmless phrases ("signs of wear", "no text")."""
     low = re.sub(r"\bsigns? of\b", "", text.lower())
     low = re.sub(r"\b(no|without)\s+\w+", "", low)
     return sorted(_words(low) & TRAPS)
@@ -140,47 +137,47 @@ def check_scenes(obj, banned, private=False, voted=(), others=()):
     names = [e["name"] for e in obj["elements"]]
     for e in obj["elements"]:
         if _words(e["look"]) & GERMAN or re.search(r"[äöüß]", e["look"].lower()):
-            errors.append(f"elements „{e['name']}“: look ist deutsch — schreibe es englisch")
+            errors.append(f"elements \"{e['name']}\": look is not in English — write it in English")
     if voted:
         missing = [n for n in voted[:4] if not any(_name_in(n, e) for e in names)]
         if missing:
-            errors.append(f"elements: es fehlen abgestimmte Elemente {', '.join(missing)} — nimm sie auf")
+            errors.append(f"elements: the agreed elements {', '.join(missing)} are missing — add them")
     for i, w in enumerate(obj["wallpapers"]):
         for o in others:
             if re.search(r"\b" + re.escape(o.lower()), w["prompt"].lower()):
-                errors.append(f"wallpapers[{i}].prompt nennt „{o}“ — das ist die andere Variante; "
-                              "zeige nur Elemente dieser Variante")
+                errors.append(f"wallpapers[{i}].prompt names \"{o}\" — that is the other variant; "
+                              "show only elements of this variant")
     for i, w in enumerate(obj["wallpapers"]):
         p = w["prompt"]
         traps = _traps(_body(p))
         if private and not any(_name_in(n, p) for n in names):
-            errors.append(f"wallpapers[{i}].prompt zeigt keines der elements ({', '.join(names)}) — "
-                          "nimm eines davon als Hauptmotiv und beschreibe sein Aussehen")
+            errors.append(f"wallpapers[{i}].prompt shows none of the elements ({', '.join(names)}) — "
+                          "take one of them as the main subject and describe its look")
         if traps:
             sents = [s for s in specmod._sentences(_body(p)) if _traps(s)]
-            errors.append(f"wallpapers[{i}].prompt enthält {', '.join(traps)} — das Bildmodell malt das "
-                          f"wörtlich. Schreibe diese Sätze ohne diese Wörter: " + " / ".join(f"„{s}“" for s in sents))
+            errors.append(f"wallpapers[{i}].prompt contains {', '.join(traps)} — the image model paints that "
+                          f"literally. Rewrite these sentences without these words: " + " / ".join(f"\"{s}\"" for s in sents))
         if "no text" not in p.lower():
-            errors.append(f"wallpapers[{i}].prompt muss mit „no text, no logos“ enden")
+            errors.append(f"wallpapers[{i}].prompt must end with \"no text, no logos\"")
         if len(p.split()) < 40:
-            errors.append(f"wallpapers[{i}].prompt ist zu kurz ({len(p.split())} Wörter, mindestens 50)")
+            errors.append(f"wallpapers[{i}].prompt is too short ({len(p.split())} words, at least 50)")
         errors += _mark_errors(f"wallpapers[{i}]", p + " " + w["title"], banned)
     t = obj["texture"].lower()
     for w in sorted(_words(t) & {"rivet", "rivets", "text", "logo", "logos", "letters", "seam", "seams"}):
         if not re.search(r"\b(no|without)\b[^.]*\b" + w, t):
-            errors.append(f"texture nennt „{w}“ — die Fläche muss leer sein (oder „no {w}“ schreiben)")
+            errors.append(f"texture names \"{w}\" — the surface must be empty (or write \"no {w}\")")
     return errors
 
 
 def _name_in(name, text):
-    """Element-Name im Text? Ein markantes Wort genügt („Kirov“ für „Kirov Airship“)."""
+    """Is the element's name in the text? One distinctive word is enough ("Kirov" for "Kirov Airship")."""
     low = text.lower()
     words = [w for w in re.findall(r"[a-z0-9]+", name.lower()) if len(w) > 3]
     return name.lower() in low or any(re.search(r"\b" + re.escape(w) + r"\b", low) for w in words)
 
 
-# Ersatzwörter für Fallen — als Vorschlag in der Fehlermeldung und als letzte
-# Stufe ohne LLM. Gegenständlich, ohne Schrift.
+# Replacement words for traps — as a suggestion in the error message and as
+# the last stage without the LLM. Figurative, without lettering.
 REPLACE = {"text": "markings", "letters": "markings", "letter": "dispatch", "words": "markings",
            "writing": "markings", "screen": "radar scope", "screens": "radar scopes",
            "monitor": "radar scope", "display": "gauge", "document": "dossier", "file": "dossier",
@@ -199,6 +196,7 @@ def replace_traps(text):
                   re.search(r"(?i)\b(no|without)\s+$", text[:m.start()]) else m.group(0), text)
 
 
+# German function words: an answer containing them was not written in English.
 GERMAN = {"der", "die", "das", "ein", "eine", "einen", "mit", "und", "auf", "im", "zum", "des", "dem"}
 GENERIC = {"symbol", "icon", "stilisiert", "stylized", "generic", "abstract", "abstrakt", "file", "document"}
 
@@ -217,65 +215,65 @@ def check_icon(name, entry, banned):
     errors = []
     motif = entry["motif"]
     if _words(motif) & GERMAN or re.search(r"[äöüß]", motif.lower()):
-        errors.append(f"{name}: motif ist deutsch — schreibe es englisch")
+        errors.append(f"{name}: motif is not in English — write it in English")
     if _words(entry["source"]) & GENERIC:
-        errors.append(f"{name}: source „{entry['source']}“ ist kein Element der Vorlage — nimm eine "
-                      "Einheit, ein Gebäude, eine Figur oder einen Gegenstand aus der Vorlage")
+        errors.append(f"{name}: source \"{entry['source']}\" is not an element of the model — take a "
+                      "unit, a building, a character or an object from the model")
     if re.search(r"(?<![A-Za-z])[\"„“'][^\"„“”']{2,}[\"“”'](?![A-Za-z])", motif):
-        errors.append(f"{name}: motif enthält ein Zitat — das wird als Schrift gemalt; ohne Anführungszeichen")
+        errors.append(f"{name}: motif contains a quotation — it gets painted as lettering; leave out the quotation marks")
     traps = _traps(motif)
     if traps:
-        alt = ", ".join(f"„{t}“ → „{REPLACE.get(t, '?')}“" for t in traps)
-        errors.append(f"{name}: motif enthält {', '.join(traps)} — das Bildmodell malt das wörtlich; "
-                      f"ersetze: {alt}")
+        alt = ", ".join(f"\"{t}\" → \"{REPLACE.get(t, '?')}\"" for t in traps)
+        errors.append(f"{name}: motif contains {', '.join(traps)} — the image model paints that literally; "
+                      f"replace: {alt}")
     errors += _mark_errors(f"{name}", motif, banned)
     return errors
 
 
 def check_icons(obj, banned):
-    """{icon: [Fehler]} — leer, wenn alles passt."""
+    """{icon: [errors]} — empty when everything fits."""
     out = {}
     seen = {}
     for name, entry in obj.items():
         errs = check_icon(name, entry, banned)
         key = entry["motif"].lower().strip(" .")
         if key in seen:
-            errs.append(f"{name}: motif ist identisch mit {seen[key]} — jedes Motiv anders")
+            errs.append(f"{name}: motif is identical to {seen[key]} — every motif different")
         seen.setdefault(key, name)
         if errs:
             out[name] = errs
     return out
 
 
-ICON_FIX = """Stilvorlage: {request}
+ICON_FIX = """Style model: {request}
 {names_rule}
-Symbol „{name}“ ({meaning}). Bisher: {entry}
-Fehler:
+Icon "{name}" ({meaning}). So far: {entry}
+Errors:
 - {errors}
-Gib source und motif neu zurück (motif englisch, 6–25 Wörter, ein greifbarer Gegenstand,
-eine Einheit, ein Gebäude oder eine Figur aus der Vorlage, der die Funktion verrät)."""
+Return source and motif anew (motif in English, 6–25 words, a tangible object, a unit,
+a building or a character from the model that tells the function)."""
 
 
 def _ask(system, user, schema, check, log, what, rounds=4, seed=None):
-    """Anfrage mit Prüfung; Fehler gehen mit der bisherigen Antwort zurück."""
+    """A request with a check; errors go back together with the answer so far."""
     msgs = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     text, info = llm.chat(msgs, schema=schema, max_tokens=8000, temperature=0.6, seed=seed)
-    log(f"{what}: {info['tokens']} Token in {info['seconds']} s")
+    log(f"{what}: {info['tokens']} tokens in {info['seconds']} s")
     obj = json.loads(text)
     for r in range(rounds):
         errs = check(obj)
         if not errs:
             return obj, r + 1
         for e in errs:
-            log(f"  Fehler: {e}")
+            log(f"  error: {e}")
         text, info = llm.chat(msgs + [{"role": "assistant", "content": json.dumps(obj, ensure_ascii=False)},
-                                      {"role": "user", "content": "Korrigiere genau diese Fehler und gib "
-                                       "alles vollständig zurück:\n- " + "\n- ".join(errs)}],
+                                      {"role": "user", "content": "Fix exactly these errors and return "
+                                       "everything in full:\n- " + "\n- ".join(errs)}],
                               schema=schema, max_tokens=8000, temperature=0.3, seed=seed)
         obj = json.loads(text)
     errs = check(obj)
     if errs:
-        raise llm.LLMError(f"{what}: nach {rounds} Runden noch Fehler: {errs}")
+        raise llm.LLMError(f"{what}: still errors after {rounds} rounds: {errs}")
     return obj, rounds + 1
 
 
@@ -290,12 +288,12 @@ def _norm(name):
 
 
 def vote_elements(request, variant, samples=6, log=print):
-    """Ikonische Elemente per Mehrheitsentscheid, im Denkmodus.
+    """Iconic elements by majority vote, in thinking mode.
 
-    Ohne Denkmodus erfand das Modell Namen und vermischte die Fraktionen
-    (Tanja bei den Sowjets, „MiG2…MiG8“); mit Denkmodus kommen die richtigen,
-    aber jede Antwort mit ein, zwei Ausreißern — die fallen bei der Mehrheit
-    heraus. Namensformen werden gebündelt („Kirov“ ⊂ „Kirov Airship“)."""
+    Without thinking mode the model invented names and mixed up the factions
+    (Tanya with the Soviets, "MiG2…MiG8"); with it the right ones come, but
+    every answer with one or two outliers — those drop out in the majority.
+    Forms of a name are grouped ("Kirov" ⊂ "Kirov Airship")."""
     answers = []
     for i in range(samples):
         try:
@@ -305,7 +303,7 @@ def vote_elements(request, variant, samples=6, log=print):
             continue
         names = [n.strip(" .*-") for n in text.strip().splitlines()[-1].split(",")]
         answers.append({_norm(n): n for n in names if 2 <= len(n) <= 40 and _norm(n)})
-    groups = []          # [{keys}, Stimmen, {Schreibweise: Anzahl}]
+    groups = []          # [{keys}, votes, {spelling: count}]
     for ans in answers:
         hit_groups = set()
         for key, shown in ans.items():
@@ -323,56 +321,57 @@ def vote_elements(request, variant, samples=6, log=print):
     need = max(2, (len(answers) + 1) // 2)
     picked = sorted((g for g in groups if g[1] >= need), key=lambda g: -g[1])[:8]
     names = [max(g[2], key=lambda n: (g[2][n], len(n))) for g in picked]
-    log(f"Elemente {variant}: " + (", ".join(f"{n} ({g[1]}/{len(answers)})" for n, g in zip(names, picked))
-                                   or "keine Einigung"))
+    log(f"elements {variant}: " + (", ".join(f"{n} ({g[1]}/{len(answers)})" for n, g in zip(names, picked))
+                                   or "no agreement"))
     return names
 
 
-STYLE_SYSTEM = """Du gestaltest den Bildstil eines Icon-Satzes für ein Desktop-Theme. Ein Bildmodell
-malt danach jedes Icon; was es zeigt, steht fest — du bestimmst nur, WIE es aussieht."""
+STYLE_SYSTEM = """You design the picture style of an icon set for a desktop theme. An image model
+then paints every icon; what it shows is fixed — you decide only HOW it looks. Write everything
+in English."""
 
-STYLE_USER = """Stilvorlage: {request}
-Design-Brief (Auszug):
+STYLE_USER = """Style model: {request}
+Design brief (excerpt):
 {brief}
 {names_rule}
-Farben des Themes: {colors}
+Colours of the theme: {colors}
 
-Schreibe ein Stilblatt, ENGLISCH, je Feld ein kurzer Satz, so dass alle Icons wie ein Satz
-aus der Vorlage wirken (bei einem Spiel: wie dessen eigene Bilder — Bau-Menü, Ladebildschirm,
-Verpackung —, NICHT wie moderne App-Icons). Überlege zuerst, wie die Bilder der Vorlage
-wirklich gemalt/gerendert sind, und beschreibe genau das.
-- medium: Malweise und Bildart der Vorlage.
-- palette: 3–5 Farben in Worten (keine Hex-Codes). Die Bilder gelten für ALLE Varianten,
-  deshalb neutrale, gedämpfte Grundtöne der Bildwelt (Metall, Erde, Licht) — die Farbe einer
-  Variante kommt später über den Rahmen, mische nicht die Leitfarben mehrerer Varianten.
-- materials: Oberflächen und Werkstoffe, die die Gegenstände tragen.
-- elements: 2–4 wiederkehrende Gestaltungsdetails (z. B. Nieten, Kanten, Leuchtteile).
-- lighting: Licht und Schatten.
-- background: was hinter jedem Gegenstand liegt — schlicht, dunkel, weich, einfarbig
-  (keine Farbblöcke, keine Kacheln), damit der Gegenstand freisteht.
-Keine Rahmen, Ränder, Kacheln, Knöpfe oder Schlagschatten — den Rahmen setzt der Motor
-selbst um jedes Bild.
-- folder: wie ALLE Ordner aussehen — ein Behälter der Bildwelt (z. B. Munitionskiste,
-  Aktenkassette, Holztruhe) mit glatter, freier Vorderseite.
-- sheet: wie ALLE Dateien aussehen — ein Blatt/eine Karte/Tafel der Bildwelt mit
-  umgeknickter Ecke und glatter, freier Fläche.
-Jedes Feld beschreibt nur, was man SIEHT (Form, Material, Farbe, Licht) — keine Sätze über
-Zweck, Wirkung oder darüber, was später dazukommt. Nie: Schrift, Buchstaben, Zahlen,
-Logos, Embleme, Schablonenschrift, Bildschirme mit Inhalt, Personen."""
+Write a style sheet, in ENGLISH, one short sentence per field, so that all icons look like a set
+from the model (for a game: like its own pictures — build menu, loading screen, box —, NOT like
+modern app icons). First consider how the model's pictures are really painted/rendered, and
+describe exactly that.
+- medium: the model's way of painting and kind of picture.
+- palette: 3–5 colours in words (no hex codes). The pictures serve ALL variants, hence
+  neutral, muted base tones of the imagery (metal, earth, light) — a variant's colour comes
+  later through the frame; do not mix the lead colours of several variants.
+- materials: surfaces and materials the objects carry.
+- elements: 2–4 recurring design details (e.g. rivets, edges, glowing parts).
+- lighting: light and shadow.
+- background: what lies behind each object — plain, dark, soft, of one colour
+  (no blocks of colour, no tiles), so the object stands free.
+No frames, borders, tiles, buttons or drop shadows — the engine itself puts the frame
+round every picture.
+- folder: what ALL folders look like — a container of the imagery (e.g. an ammunition box,
+  a file cassette, a wooden chest) with a smooth, empty front.
+- sheet: what ALL files look like — a sheet/card/tablet of the imagery with a
+  folded corner and a smooth, empty surface.
+Each field describes only what one SEES (shape, material, colour, light) — no sentences about
+purpose, effect or what gets added later. Never: lettering, letters, numbers, logos,
+emblems, stencilled lettering, screens with content, people."""
 
-STYLE_FIX = """Stilblatt für Icons zur Stilvorlage: {request}
-Feld „{field}“: {what}
-Bisher: {value}
-Fehler:
+STYLE_FIX = """Icon style sheet for the style model: {request}
+Field "{field}": {what}
+So far: {value}
+Errors:
 - {errors}
-Gib nur dieses Feld neu zurück: englisch, ein Satz, nur was man sieht (Form, Material, Farbe,
-Licht) — keine Sätze über Zweck oder was später dazukommt."""
+Return only this field anew: in English, one sentence, only what one sees (shape, material,
+colour, light) — no sentences about purpose or what gets added later."""
 
-STYLE_WHAT = {"medium": "Malweise und Bildart", "palette": "3–5 Farben in Worten",
-              "materials": "Oberflächen und Werkstoffe", "elements": "2–4 wiederkehrende Gestaltungsdetails",
-              "lighting": "Licht und Schatten", "background": "was hinter jedem Gegenstand liegt",
-              "folder": "wie alle Ordner aussehen: ein Behälter mit glatter, freier Vorderseite",
-              "sheet": "wie alle Dateien aussehen: ein Blatt/eine Karte mit umgeknickter Ecke und freier Fläche"}
+STYLE_WHAT = {"medium": "way of painting and kind of picture", "palette": "3–5 colours in words",
+              "materials": "surfaces and materials", "elements": "2–4 recurring design details",
+              "lighting": "light and shadow", "background": "what lies behind each object",
+              "folder": "what all folders look like: a container with a smooth, empty front",
+              "sheet": "what all files look like: a sheet/card with a folded corner and an empty surface"}
 
 STYLE_SCHEMA = {
     "type": "object", "additionalProperties": False,
@@ -390,8 +389,8 @@ TILE_WORDS = {"border", "borders", "frame", "frames", "framed", "tile", "tiles",
               "app", "badge", "badges", "outline", "outlines", "outlined"}
 
 
-# Gegenstände im Stil landen in JEDEM Icon: „Low-polygon models of the Grizzly
-# tank …“ unter medium ergab 108 Panzer-Icons (Lauf 24.10.2026).
+# Objects in the style end up in EVERY icon: "Low-polygon models of the Grizzly
+# tank …" under medium gave 108 tank icons (run of 24.10.2026).
 SUBJECTS = {"tank", "tanks", "aircraft", "airship", "airships", "airplane", "jet", "jets", "ship", "ships",
             "submarine", "helicopter", "generator", "generators", "silo", "silos", "soldier", "soldiers", "unit",
             "units", "vehicle", "vehicles", "robot", "robots", "car", "cars", "truck", "trucks", "building",
@@ -405,55 +404,55 @@ def check_style(obj, banned, subjects=()):
     for k in ("medium", "palette", "materials", "elements", "lighting", "background"):
         named = sorted({n for n in subjects if _name_in(n, obj[k])} | (_words(obj[k]) & SUBJECTS))
         if named:
-            errors.append(f"{k} nennt Gegenstände ({', '.join(named)}) — die malt das Bildmodell in JEDES Icon; "
-                          "beschreibe nur Malweise, Farbe, Oberfläche, Licht, ohne Gegenstände")
+            errors.append(f"{k} names objects ({', '.join(named)}) — the image model paints them into EVERY icon; "
+                          "describe only the way of painting, colour, surface, light, without objects")
     if re.search(r"#[0-9a-fA-F]{3,6}\b", obj["palette"]):
-        errors.append("palette enthält Hex-Codes — nenne die Farben in Worten")
+        errors.append("palette contains hex codes — name the colours in words")
     for k in ("medium", "elements", "background", "materials", "lighting"):
         low = re.sub(r"\b(no|without|never)\s+(any\s+|a\s+|an\s+)?[\w-]+(\s*(,|or|and)\s*[\w-]+)*", "",
                      obj[k].lower())
         hit = sorted(_words(low) & TILE_WORDS) + (["drop shadow"] if "drop shadow" in low else [])
         if hit:
-            errors.append(f"{k} nennt {', '.join(hit)} — das ergibt App-Kacheln; den Rahmen setzt der Motor, "
-                          "beschreibe nur den Gegenstand selbst")
+            errors.append(f"{k} names {', '.join(hit)} — that gives app tiles; the engine sets the frame, "
+                          "describe only the object itself")
     for k in ("folder", "sheet"):
         hit = sorted(_words(obj[k]) & {"emblem", "emblems", "stamp", "stamped", "insignia", "badge", "seal",
                                        "star", "marking", "markings", "tag", "tags"})
         if hit:
-            errors.append(f"{k} nennt {', '.join(hit)} — Ordner/Blatt bleiben ohne eigenes Zeichen, der Motor "
-                          "setzt je Icon eines darauf; beschreibe nur Form und Material")
+            errors.append(f"{k} names {', '.join(hit)} — folder/sheet stay without a sign of their own, the engine "
+                          "puts one on per icon; describe only shape and material")
     for k, v in obj.items():
         if _words(v) & GERMAN or re.search(r"[äöüß]", v.lower()):
-            errors.append(f"{k} ist deutsch — schreibe es englisch")
+            errors.append(f"{k} is not in English — write it in English")
         if re.search(r"(?i)\b(motor|engine|the system|added later|ready for|left blank for|placeholder)\b", v):
-            errors.append(f"{k} spricht über den Ablauf („ready for …“, „motor“) — beschreibe nur, was man sieht")
+            errors.append(f"{k} talks about the process (\"ready for …\", \"engine\") — describe only what one sees")
         low = re.sub(r"\b(no|without|never)\s+(any\s+|a\s+|an\s+)?[\w-]+(\s*(,|or|and)\s*[\w-]+)*", "", v.lower())
         low = re.sub(r"\bsigns? of\b", "", low)
         bad = sorted(_words(low) & STYLE_TRAPS)
         if bad:
-            errors.append(f"{k} nennt {', '.join(bad)} — das malt das Bildmodell auf jedes Icon; lass diese "
-                          "Wörter ersatzlos weg")
+            errors.append(f"{k} names {', '.join(bad)} — the image model paints that on every icon; leave these "
+                          "words out without replacement")
         errors += _mark_errors(k, v, banned)
     return errors
 
 
 def style_sheet(spec, private=False, log=print, seed=None, subjects=(), feedback=""):
     meta = spec.get("_meta", {})
-    colors = "; ".join(f"{v['name']}: Leitfarbe {v['lead']}, Fläche {v['colors']['surface']}" for v in spec["variants"])
+    colors = "; ".join(f"{v['name']}: lead colour {v['lead']}, surface {v['colors']['surface']}" for v in spec["variants"])
     user = STYLE_USER.format(request=meta.get("request", ""), brief=meta.get("brief", "")[:1500],
                              names_rule=_names_rule(private), colors=colors)
     if feedback:
         user += "\n\n" + feedback
     banned = _banned(spec, private)
     msgs = [{"role": "system", "content": STYLE_SYSTEM}, {"role": "user", "content": user}]
-    # Denkmodus: eine Anfrage bestimmt das Aussehen aller Icons — ohne ihn kam
-    # für Red Alert 2 „glossy 3D, thick borders“, also App-Icons (Test 24.10.2026).
+    # Thinking mode: one request decides the look of all icons — without it
+    # Red Alert 2 got "glossy 3D, thick borders", i.e. app icons (test 24.10.2026).
     text, info = llm.chat(msgs, schema=STYLE_SCHEMA, max_tokens=12000, temperature=0.6, seed=seed, think=True)
-    log(f"Icon-Stilblatt: {info['tokens']} Token in {info['seconds']} s")
+    log(f"icon style sheet: {info['tokens']} tokens in {info['seconds']} s")
     obj = json.loads(text)
     part = {"type": "object", "additionalProperties": False, "required": ["value"],
             "properties": {"value": {"type": "string", "minLength": 10, "maxLength": 220}}}
-    # Teilreparatur je Feld — das ganze Blatt gab das Modell viermal unverändert zurück.
+    # Partial repair per field — the model returned the whole sheet unchanged four times.
     for r in range(1, 5):
         errs = check_style(obj, banned, subjects)
         if not errs:
@@ -462,30 +461,30 @@ def style_sheet(spec, private=False, log=print, seed=None, subjects=(), feedback
             mine = [e for e in errs if e.startswith(k + " ")]
             if not mine:
                 continue
-            log(f"  Stilblatt {k}: „{obj[k][:110]}“ — {'; '.join(mine)[:120]}")
+            log(f"  style sheet {k}: \"{obj[k][:110]}\" — {'; '.join(mine)[:120]}")
             fix = STYLE_FIX.format(request=meta.get("request", ""), field=k, what=STYLE_WHAT[k], value=obj[k],
                                    errors="\n- ".join(mine))
             t, _ = llm.chat([{"role": "user", "content": fix}], schema=part, max_tokens=400, temperature=0.4,
                             seed=(seed or 0) + r)
             obj[k] = json.loads(t)["value"]
-    # Letzte Stufe ohne LLM: Satzteile mit Fallenwörtern streichen.
+    # Last stage without the LLM: strike clauses with trap words.
     def bad_field(k, text):
         return any(e.startswith(k + " ") for e in check_style(dict(obj, **{k: text}), banned, subjects))
     for k in [k for k in STYLE_SCHEMA["properties"] if bad_field(k, obj[k])]:
         parts = re.split(r"(,\s+|\s+and\s+|;\s+|\.\s+)", obj[k])
         keep = [p for p in parts[::2] if p.strip() and not bad_field(k, p)]
         if keep:
-            log(f"  Automatik: Stilblatt {k} gekürzt")
+            log(f"  auto: style sheet {k} shortened")
             obj[k] = ", ".join(x.strip(" .") for x in keep) + "."
             obj.setdefault("_auto", []).append(k)
     errs = check_style({k: v for k, v in obj.items() if k != "_auto"}, banned, subjects)
     if errs:
-        raise llm.LLMError(f"Icon-Stilblatt: noch Fehler: {errs}")
+        raise llm.LLMError(f"icon style sheet: still errors: {errs}")
     return obj, 5
 
 
 def compose(name, pic, style):
-    """Motiv aus Zeichen + Familie: Ordner und Dateien teilen die Grundform."""
+    """Motif from sign + family: folders and files share the basic shape."""
     fam = iconset.FAMILY[name]
     if fam == "folder":
         return style["folder"].rstrip(". ") + (f", with {pic} mounted large on its front" if pic else "")
@@ -500,7 +499,7 @@ def catalog_motifs(style):
 
 
 def icon_prompt(motif, style):
-    """Prompt für ein Katalog-Icon: Motiv + Stilblatt, feste Reihenfolge."""
+    """The prompt for a catalogue icon: motif + style sheet, in a fixed order."""
     nobody = "" if wants_person(motif) else "A single object only, no people, no faces, no hands. "
     return (f"{style['medium'].rstrip('. ')}, square icon picture, the subject fills the frame edge to edge: "
             f"{motif}. {nobody}Colours: {style['palette'].rstrip('. ')}. Materials: "
@@ -510,18 +509,22 @@ def icon_prompt(motif, style):
 
 
 def plan(spec, private=False, log=print, seed=None, themed_icons=False):
-    if not themed_icons:
-        return _plan_catalog(spec, private, log, seed)
-    return _plan_themed(spec, private, log, seed)
+    events.begin("art-plan", private=private, themed_icons=themed_icons)
+    result = _plan_themed(spec, private, log, seed) if themed_icons else _plan_catalog(spec, private, log, seed)
+    events.end("art-plan", rounds=result["rounds"], style=result.get("style"),
+               scenes={k: {"elements": [e["name"] for e in v["elements"]],
+                           "wallpapers": [w["title"] for w in v["wallpapers"]]}
+                       for k, v in result["variants"].items()})
+    return result
 
 
 def scene_subjects(result):
-    """Namen der Elemente aller Varianten — im Stilblatt verboten."""
+    """The names of all variants' elements — barred from the style sheet."""
     return sorted({e["name"] for v in result["variants"].values() for e in v["elements"]})
 
 
 def _plan_catalog(spec, private, log, seed):
-    """Standard: Szenen je Variante wie bisher, Icons aus Katalog + Stilblatt."""
+    """The default: scenes per variant as before, icons from catalogue + style sheet."""
     result = _scenes(spec, private, log, seed)
     style, r = style_sheet(spec, private, log, seed, subjects=scene_subjects(result))
     result["style"] = style
@@ -540,21 +543,21 @@ def _scenes(spec, private, log, seed):
     for v in spec["variants"]:
         anchor = next((a["name"] for a in meta.get("anchors", []) if a.get("lead") == v["lead"]), v["id"])
         voted = vote_elements(request, anchor, log=log) if private else []
-        vtext = ("   Abgestimmte Elemente (aus mehreren Befragungen, nimm diese): " + ", ".join(voted)
+        vtext = ("   Agreed elements (from several questions, take these): " + ", ".join(voted)
                  if voted else "")
         user = SCENES_USER.format(request=request, brief=brief, vname=v["name"], mode=v["mode"],
                                   lead=v["lead"], surface=v["colors"]["surface"], names_rule=rule, voted=vtext)
         others = others_all[v["id"]]
         obj, r = _ask(SCENES_SYSTEM, user, SCENE_SCHEMA,
                       lambda o, voted=voted, others=others: check_scenes(o, banned, private, voted, others),
-                      log, f"Szenen {v['id']}", seed=seed)
+                      log, f"scenes {v['id']}", seed=seed)
         result["variants"][v["id"]] = obj
         result["rounds"][f"scenes-{v['id']}"] = r
     return result
 
 
 def _plan_themed(spec, private, log, seed):
-    """Alternative (--themed-icons): das LLM erfindet je Icon ein Motiv aus der Bildwelt der Vorlage."""
+    """The alternative (--themed-icons): the LLM invents a motif per icon from the model's imagery."""
     meta = spec.get("_meta", {})
     request, brief = meta.get("request", ""), meta.get("brief", "")
     banned = _banned(spec, private)
@@ -566,17 +569,17 @@ def _plan_themed(spec, private, log, seed):
                              elements=elements)
     msgs = [{"role": "system", "content": ICONS_SYSTEM}, {"role": "user", "content": user}]
     text, info = llm.chat(msgs, schema=icon_schema(), max_tokens=10000, temperature=0.6, seed=seed)
-    log(f"Icon-Motive: {info['tokens']} Token in {info['seconds']} s")
+    log(f"icon motifs: {info['tokens']} tokens in {info['seconds']} s")
     motifs = json.loads(text)["motifs"]
-    # Je fehlerhaftes Icon eine kleine Anfrage — 35 Fehler in einem 70er-Objekt
-    # auf einmal hat das Modell nie behoben (Test 24.10.2026).
+    # One small request per faulty icon — 35 errors in an object of 70 at
+    # once the model never fixed (test 24.10.2026).
     item = icon_schema()["properties"]["motifs"]["properties"][iconset.PAINTED[0]]
     rounds = 0
     for rounds in range(1, 5):
         bad = check_icons(motifs, banned)
         if not bad:
             break
-        log(f"  Runde {rounds}: {len(bad)} Icon(s) zu reparieren")
+        log(f"  round {rounds}: {len(bad)} icon(s) to repair")
         for name, errs in bad.items():
             fix = ICON_FIX.format(request=request, names_rule=rule, name=name,
                                   meaning=iconset.ICONS[name][1],
@@ -593,29 +596,29 @@ def _plan_themed(spec, private, log, seed):
             motifs[name] = fixed
             auto.append(name)
     if auto:
-        log(f"  Automatik: Fallenwörter ersetzt in {', '.join(auto)}")
+        log(f"  auto: trap words replaced in {', '.join(auto)}")
         result["auto"] = auto
     bad = check_icons(motifs, banned)
     if bad:
-        raise llm.LLMError(f"Icon-Motive: noch Fehler: {bad}")
+        raise llm.LLMError(f"icon motifs: still errors: {bad}")
     result["icons"] = motifs
     result["rounds"]["icons"] = rounds
     return result
 
 
-CATALOG_FIX = """Icon „{name}“ für die Funktion: {meaning}.
-Bisher sollte es zeigen: {entry}
-Das Bildmodell hat daraus etwas Unbrauchbares gemacht:
+CATALOG_FIX = """Icon "{name}" for the function: {meaning}.
+So far it was meant to show: {entry}
+The image model made something unusable of it:
 - {errors}
-Wähle ein ANDERES, alltägliches, gegenständliches Bild für diese Funktion, das jeder sofort
-erkennt und das ein Bildmodell eindeutig malen kann: ein einzelner Gegenstand, englisch,
-3–12 Wörter, ohne Schrift und ohne Personen. Kein Bezug zur Stilvorlage nötig — den Stil
-setzt der Motor. source: „catalog“."""
+Choose a DIFFERENT, everyday, figurative picture for this function that everyone recognises
+at once and that an image model can paint unambiguously: a single object, in English,
+3–12 words, without lettering and without people. No reference to the style model needed —
+the engine sets the style. source: "catalog"."""
 
 
 def repair_icon(name, entry, errors, spec, private, seed=None, log=print, catalog=False):
-    """Ein Motiv neu formulieren lassen — nach einer Bildprüfung, die zeigte,
-    was das Bildmodell daraus gemacht hat. Neue Antwort muss check_icon bestehen."""
+    """Have a motif rewritten — after an image check that showed what the image
+    model made of it. The new answer must pass check_icon."""
     request = spec.get("_meta", {}).get("request", "")
     banned = _banned(spec, private)
     item = icon_schema()["properties"]["motifs"]["properties"][iconset.PAINTED[0]]
@@ -632,9 +635,9 @@ def repair_icon(name, entry, errors, spec, private, seed=None, log=print, catalo
         new = json.loads(t)
         left = check_icon(name, new, banned)
         if catalog and re.search(r"(?i)\b(background|backdrop|transparent)\b", new["motif"]):
-            left.append(f"{name}: motif nennt einen Hintergrund — nur den Gegenstand, den Hintergrund setzt das Stilblatt")
+            left.append(f"{name}: motif names a background — only the object, the style sheet sets the background")
         if new["motif"].strip().lower() == entry["motif"].strip().lower():
-            left.append(f"{name}: motif unverändert — es muss ein anderes Motiv sein")
+            left.append(f"{name}: motif unchanged — it must be a different motif")
         if not left:
             log(f"  {name}: {entry['motif'][:50]}… → {new['motif'][:70]}")
             return new
@@ -643,7 +646,7 @@ def repair_icon(name, entry, errors, spec, private, seed=None, log=print, catalo
     return fixed if not check_icon(name, fixed, banned) else None
 
 
-# Wörter, an denen der Motor erkennt, dass ein Motiv eine Person zeigen soll.
+# Words by which the engine recognises that a motif is meant to show a person.
 PEOPLE = {"officer", "soldier", "soldiers", "commander", "man", "woman", "engineer", "conscript", "conscripts",
           "portrait", "face", "pilot", "general", "agent", "spy", "scientist", "operator", "figure", "trooper",
           "troopers", "girl", "boy", "person", "crew", "sniper", "commando", "technician", "radioman", "operative",
@@ -655,17 +658,17 @@ def wants_person(motif):
 
 
 def strip_purpose(motif):
-    """„…, representing the reboot function“ beschreibt die Funktion, nicht das Bild."""
+    """"…, representing the reboot function" describes the function, not the picture."""
     return re.split(r"(?i)(,?\s+(representing|symbolizing|symbolising|to represent)|,\s+for)\b", motif)[0].strip(" .")
 
 
 def cameo_prompt(motif, request, private):
-    """Feste Stilformel für alle Icons — so wird der Satz einheitlich.
-    Erklärteile („…, representing PDF documents“) schneidet sie ab: sie
-    beschreiben die Funktion, nicht das Bild. „Portrait“ stand früher in der
-    Formel; Z-Image malte daraufhin auch zu Kartentisch und Schaltpult ein
-    Gesicht (24 von 69, Test 24.10.2026) — ohne Person im Motiv heißt es
-    jetzt ausdrücklich: keine Menschen."""
+    """A fixed style formula for all icons — that makes the set consistent.
+    It cuts off explanations ("…, representing PDF documents"): they describe
+    the function, not the picture. "Portrait" used to be in the formula;
+    Z-Image then painted a face even onto the map table and the switch panel
+    (24 of 69, test 24.10.2026) — without a person in the motif it now says
+    explicitly: no people."""
     motif = strip_purpose(motif)
     style = re.split(r"[(:]", request)[0].strip() if private else "a late-1990s real-time strategy game"
     nobody = "" if wants_person(motif) else "A single object only, no people, no faces, no hands. "
@@ -676,8 +679,8 @@ def cameo_prompt(motif, request, private):
 
 
 def wallpaper_prompt(scene, request, private):
-    """Stilformel davor, Schlussformel dahinter — der Satz bleibt einheitlich,
-    auch wenn das LLM in einer Szene „military photography“ schreibt."""
+    """The style formula in front, the closing formula behind — the set stays
+    consistent even when the LLM writes "military photography" in a scene."""
     scene = re.sub(r"(?i)^\s*(a\s+)?digital painting( in the style of [^,.:]*)?[,.:]?\s*", "", scene)
     scene = _body(scene).strip(" ,.")
     style = (re.split(r"[(:]", request)[0].strip() + " loading screens and box art") if private \

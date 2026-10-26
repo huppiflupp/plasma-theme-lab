@@ -1,9 +1,9 @@
-"""Vorschau aus den erzeugten Dateien — ohne VM, ohne laufendes Plasma.
+"""A preview from the generated files — without a VM, without a running Plasma.
 
-Setzt Plasma-Style- und Aurorae-SVGs per Element-ID zusammen (frames.py),
-legt Text mit PIL darauf und baut je Variante ein Bild: Desktop mit Panel,
-Fenster und Popup, darunter GRUB und Plymouth. Ersetzt den VM-Test nicht,
-zeigt aber in Sekunden, ob Farben und Formen zusammenpassen.
+Puts Plasma style and Aurorae SVGs together by element id (frames.py), lays
+text on them with PIL and builds one picture per variant: desktop with
+panel, window and popup, below them GRUB and Plymouth. It does not replace
+the VM test, but shows in seconds whether colours and shapes go together.
 """
 import os
 import re
@@ -69,7 +69,7 @@ def window(pkg, var, w, h, title, display_font, active=True):
 
 
 def _icon(pkg, var, name, size):
-    """Symbol aus dem erzeugten Icon-Theme, sonst None."""
+    """An icon from the generated icon theme, else None."""
     import glob
     hits = glob.glob(f"{pkg}/icons/{var.camel}Icons/{size}x{size}/*/{name}.png")
     return Image.open(hits[0]).convert("RGBA") if hits else None
@@ -81,7 +81,7 @@ def desktop(pkg, var, spec, display_font, W=1600, H=900):
     wall = Image.open(f"{pkg}/wallpapers/{var.id}/contents/images/1920x1080.jpg").convert("RGBA").resize((W, H))
     im = wall.copy()
     ui = _font(14)
-    # Panel unten
+    # panel at the bottom
     panel_h = 44
     panel = frames.frame(_svg(f"{dt}/widgets/panel-background.svg"), "south", W, panel_h)
     im.alpha_composite(panel, (0, H - panel_h))
@@ -100,8 +100,8 @@ def desktop(pkg, var, spec, display_font, W=1600, H=900):
             ic = _icon(pkg, var, app, 24)
             if ic:
                 im.alpha_composite(ic, (60 + i * 206 + 10, H - panel_h + 10))
-        for i, (name, label) in enumerate([("computer", "Computer"), ("user-home", "Persönlich"),
-                                           ("network-workgroup", "Netzwerk"), ("user-trash-full", "Papierkorb")]):
+        for i, (name, label) in enumerate([("computer", "Computer"), ("user-home", "Home"),
+                                           ("network-workgroup", "Network"), ("user-trash-full", "Trash")]):
             ic = _icon(pkg, var, name, 64)
             if ic:
                 im.alpha_composite(ic, (24, 120 + i * 100))
@@ -109,12 +109,12 @@ def desktop(pkg, var, spec, display_font, W=1600, H=900):
                        stroke_width=2, stroke_fill=(0, 0, 0))
     # Fenster
     ww, wh = 760, 470
-    win, th, border = window(pkg, var, ww, wh, "Dateien — Einsatzbefehle", display_font)
+    win, th, border = window(pkg, var, ww, wh, "Files — Mission Orders", display_font)
     wd = ImageDraw.Draw(win)
     view = frames.renderer(_svg(f"{dt}/widgets/viewitem.svg"))
     cx, cy, cw = border + 8, th + 10, ww - 2 * border - 16
     wd.rectangle([cx, cy, cx + cw, wh - border - 10], fill=rgb(P["window"]))
-    for i, name in enumerate(["Basis", "Kraftwerk", "Kaserne", "Radar", "Raffinerie", "Werft", "Labor"]):
+    for i, name in enumerate(["Base", "Power Plant", "Barracks", "Radar", "Refinery", "Shipyard", "Lab"]):
         y = cy + 6 + i * 30
         if i == 2:
             win.alpha_composite(frames.compose(frames.parts(view, "selected"), cw - 12, 28), (cx + 6, y))
@@ -127,13 +127,13 @@ def desktop(pkg, var, spec, display_font, W=1600, H=900):
         wd.text((cx + 18, y + 14), f"{name}", font=ui, fill=rgb(col), anchor="lm")
         wd.text((cx + cw - 20, y + 14), f"{(i + 3) * 117} KB", font=ui, fill=rgb(P["text2"] if i != 2 else col),
                 anchor="rm")
-    wd.text((cx + 18, cy + 240), "Link: einsatzplan.txt", font=ui, fill=rgb(P["link"]), anchor="lm")
+    wd.text((cx + 18, cy + 240), "Link: mission-plan.txt", font=ui, fill=rgb(P["link"]), anchor="lm")
     if _icon(pkg, var, "folder", 64):
         wd.rectangle([cx, cy, cx + cw, wh - border - 10], fill=rgb(P["window"]))
         grid = ["folder", "folder-documents", "folder-download", "folder-pictures", "folder-music",
                 "folder-videos", "application-pdf", "image-x-generic", "package-x-generic", "text-x-script"]
-        labels = ["Einsätze", "Dokumente", "Downloads", "Bilder", "Musik", "Videos", "befehl.pdf",
-                  "karte.png", "nachschub.zip", "start.sh"]
+        labels = ["Missions", "Documents", "Downloads", "Pictures", "Music", "Videos", "orders.pdf",
+                  "map.png", "supplies.zip", "start.sh"]
         for i, (n, lab) in enumerate(zip(grid, labels)):
             ic = _icon(pkg, var, n, 64)
             gx, gy = cx + 20 + (i % 5) * 140, cy + 14 + (i // 5) * 120
@@ -145,13 +145,13 @@ def desktop(pkg, var, spec, display_font, W=1600, H=900):
             wd.text((gx + 52, gy + 84), lab, font=ui, anchor="mm",
                     fill=rgb(P["selection_text"] if i == 1 else P["text"]))
     im.alpha_composite(win, (120, 90))
-    # Popup mit Knöpfen
+    # popup with buttons
     pw, ph = 380, 230
     pop = frames.frame(_svg(f"{dt}/dialogs/background.svg"), "", pw, ph)
     pd = ImageDraw.Draw(pop)
-    pd.text((20, 26), "Startmenü", font=_font(18, display_font), fill=rgb(P["text"]), anchor="lm")
+    pd.text((20, 26), "Start Menu", font=_font(18, display_font), fill=rgb(P["text"]), anchor="lm")
     btn = frames.renderer(_svg(f"{dt}/widgets/button.svg"))
-    for i, (state, label) in enumerate([("normal", "Normal"), ("hover", "Hover"), ("pressed", "Gedrückt")]):
+    for i, (state, label) in enumerate([("normal", "Normal"), ("hover", "Hover"), ("pressed", "Pressed")]):
         b = frames.compose(frames.parts(btn, state), 104, 34)
         pop.alpha_composite(b, (18 + i * 116, 60))
         pd.text((70 + i * 116, 77), label, font=ui, fill=rgb(P["text"]), anchor="mm")
@@ -167,7 +167,7 @@ def desktop(pkg, var, spec, display_font, W=1600, H=900):
 
 
 def grub(pkg, var, spec, W=960, H=540):
-    """GRUB-Ansicht: Hintergrund + 9-Patch-Menü mit drei Einträgen."""
+    """GRUB view: background + 9-patch menu with three entries."""
     base = f"{pkg}/system/grub/{var.camel}"
     bg = Image.open(f"{base}/background.png").convert("RGBA")
     theme = open(f"{base}/theme.txt").read()
@@ -185,7 +185,7 @@ def grub(pkg, var, spec, W=960, H=540):
     ttf = f"{pkg}/fonts/{spec['font']}.ttf"
     f = _font(22, ttf)
     pad = menu["topleft"].width
-    for i, entry in enumerate(["Nobara Linux (7.2.9)", "Nobara Linux (Rettungsmodus)", "UEFI-Einstellungen"]):
+    for i, entry in enumerate(["Nobara Linux (7.2.9)", "Nobara Linux (rescue mode)", "UEFI Firmware Settings"]):
         ey = y + pad + 6 + i * 42
         if i == 0:
             bg.alpha_composite(frames.compose(sel, w - 2 * pad, 38), (x + pad, ey))
@@ -214,7 +214,7 @@ def plymouth(pkg, var, W=960, H=540):
 
 
 def sheet(pkg, variants, spec, dst):
-    """Ein Bild je Variante: Desktop oben, GRUB und Plymouth darunter."""
+    """One picture per variant: desktop at the top, GRUB and Plymouth below."""
     ttf = f"{pkg}/fonts/{spec['font']}.ttf"
     rows = []
     for var in variants:

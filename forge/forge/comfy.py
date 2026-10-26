@@ -1,11 +1,11 @@
-"""ComfyUI-Client.
+"""ComfyUI client.
 
-Standard ist das lokale ComfyUI auf 245k (RTX 5080, 127.0.0.1:8189) mit
-Z-Image Turbo. Mit FORGE_COMFY=http://192.168.178.54:8188 geht es an ai395
-(Krea-2 Turbo, Basic Auth; Zugang aus ~/.config/comfyui/claude-zugang oder
-Umgebung). FORGE_IMAGE_MODEL=zimage|krea2 überschreibt die Wahl.
-Die API blockiert, solange ein großes Modell lädt — Timeouts beim
-Pollen sind normal und brechen den Lauf nicht ab.
+The default is the local ComfyUI on 245k (RTX 5080, 127.0.0.1:8189) with
+Z-Image Turbo. With FORGE_COMFY=http://192.168.178.54:8188 it goes to ai395
+(Krea-2 Turbo, basic auth; login from ~/.config/comfyui/claude-zugang or the
+environment). FORGE_IMAGE_MODEL=zimage|krea2 overrides the choice.
+The API blocks while a large model loads — timeouts while polling are normal
+and do not abort the run.
 """
 import base64
 import json
@@ -40,7 +40,7 @@ def _req(path, payload=None, timeout=60):
 
 
 def krea2(prompt, width, height, seed, prefix, steps=8):
-    """Krea-2 Turbo: fotorealistisch/gemalt, kein Text, kein negatives Prompt."""
+    """Krea-2 Turbo: photorealistic/painted, no text, no negative prompt."""
     return {
         "10": {"class_type": "UNETLoader",
                "inputs": {"unet_name": "krea2_turbo_fp8_scaled.safetensors", "weight_dtype": "default"}},
@@ -60,7 +60,7 @@ def krea2(prompt, width, height, seed, prefix, steps=8):
 
 
 def zimage(prompt, width, height, seed, prefix, steps=8):
-    """Z-Image Turbo (lokal, 16 GB): wie Krea-2 ohne negatives Prompt, cfg 1."""
+    """Z-Image Turbo (local, 16 GB): like Krea-2 without a negative prompt, cfg 1."""
     return {
         "10": {"class_type": "UNETLoader",
                "inputs": {"unet_name": "z_image_turbo_bf16.safetensors", "weight_dtype": "default"}},
@@ -81,7 +81,7 @@ def zimage(prompt, width, height, seed, prefix, steps=8):
 
 
 def generate(prompt, width, height, seed, dst, timeout=1800, log=print):
-    """Erzeugt ein Bild und schreibt es nach `dst` (PNG). Kantenlängen auf 16 runden."""
+    """Makes a picture and writes it to `dst` (PNG). Edge lengths rounded to 16."""
     from . import gpu
     gpu.need("images", log)
     width, height = width // 16 * 16, height // 16 * 16
@@ -92,14 +92,14 @@ def generate(prompt, width, height, seed, dst, timeout=1800, log=print):
     while pid is None:
         try:
             pid = json.loads(_req("/prompt", {"prompt": wf}, timeout=300))["prompt_id"]
-        except Exception as e:  # noqa: BLE001 - Kaltstart per Socket-Aktivierung
+        except Exception as e:  # noqa: BLE001 - cold start by socket activation
             if time.time() - t0 > 300:
-                raise RuntimeError(f"ComfyUI nimmt keinen Auftrag an: {e}") from e
+                raise RuntimeError(f"ComfyUI accepts no job: {e}") from e
             time.sleep(10)
     while time.time() - t0 < timeout:
         try:
             h = json.loads(_req(f"/history/{pid}", timeout=30))
-        except Exception:  # noqa: BLE001 - Server lädt noch
+        except Exception:  # noqa: BLE001 - the server is still loading
             time.sleep(10)
             continue
         if pid in h:
@@ -112,8 +112,8 @@ def generate(prompt, width, height, seed, dst, timeout=1800, log=print):
                     os.makedirs(os.path.dirname(dst) or ".", exist_ok=True)
                     with open(dst, "wb") as f:
                         f.write(data)
-                    log(f"  Bild {os.path.basename(dst)} {width}x{height} in {time.time() - t0:.0f} s")
+                    log(f"  picture {os.path.basename(dst)} {width}x{height} in {time.time() - t0:.0f} s")
                     return dst
-            raise RuntimeError("Auftrag fertig, aber ohne Bild")
+            raise RuntimeError("job finished, but without a picture")
         time.sleep(3)
-    raise TimeoutError("ComfyUI: Zeitüberschreitung")
+    raise TimeoutError("ComfyUI: timeout")

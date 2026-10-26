@@ -1,10 +1,10 @@
-"""Material: eine gemalte Metalloberfläche je Variante.
+"""Material: a painted metal surface per variant.
 
-ComfyUI malt ein Blech; tint() färbt es so ein, dass sein Mittelwert genau
-die Palettenfarbe trifft und nur die Maserung übrig bleibt. Damit gelten die
-Kontrastprüfungen der Palette weiter, obwohl Flächen jetzt Textur tragen.
-Eingebettet wird es als <image> mit data-URI — das kann QtSvg (Plasma,
-KWin); Muster (<pattern>) und Masken kann es nicht.
+ComfyUI paints a sheet of metal; tint() tints it so that its mean hits the
+palette colour exactly and only the grain remains. So the palette's contrast
+checks still hold although surfaces now carry texture. It is embedded as
+<image> with a data URI — QtSvg can do that (Plasma, KWin); patterns
+(<pattern>) and masks it cannot.
 """
 import base64
 import io
@@ -20,12 +20,12 @@ FALLBACK_SIZE = (1024, 256)
 
 
 def texture(prompt, dst, log=print):
-    """Rohes Blech (cached). Ohne ComfyUI: gebürstetes Rauschen."""
+    """Raw sheet metal (cached). Without ComfyUI: brushed noise."""
     if not os.path.exists(dst):
         try:
             comfy.generate(prompt, 1024, 256, zlib.crc32(prompt.encode()) % 10**6, dst, log=log)
         except Exception as e:  # noqa: BLE001
-            log(f"  ComfyUI nicht verfügbar ({str(e)[:120]}) — Textur prozedural")
+            log(f"  ComfyUI not available ({str(e)[:120]}) — procedural texture")
             noise = Image.effect_noise(FALLBACK_SIZE, 40).filter(ImageFilter.BoxBlur(0))
             noise = noise.resize((FALLBACK_SIZE[0] // 8, FALLBACK_SIZE[1])).resize(FALLBACK_SIZE)
             noise.convert("RGB").save(dst)
@@ -33,11 +33,11 @@ def texture(prompt, dst, log=print):
 
 
 def tint(tex, color, strength=0.16):
-    """Maserung von `tex` auf `color` übertragen; Mittelwert = color.
+    """Carry the grain of `tex` over to `color`; mean = color.
 
-    Auf die Streuung der Textur normiert: gebürstetes Blech streut nur um
-    ±18 Stufen — linear übertragen blieb davon 7 % übrig, die Fläche wirkte
-    einfarbig. Jetzt ist eine Standardabweichung `strength` (16 %) Helligkeit."""
+    Normalised to the texture's spread: brushed metal spreads only by ±18
+    steps — carried over linearly, 7 % of it remained and the area looked
+    plain. Now one standard deviation is `strength` (16 %) of lightness."""
     lum = ImageOps.grayscale(tex)
     hist = lum.histogram()
     n = max(1, sum(hist))
@@ -60,8 +60,8 @@ def data_uri(img, size=None, quality=None):
 
 
 def strip(img, w, h, vertical=False, offset=0):
-    """Ausschnitt in passender Richtung: Schleifspuren laufen entlang der
-    gestreckten Achse — dann sieht das Strecken durch KSvg nach Metall aus."""
+    """A crop in the fitting direction: grinding marks run along the
+    stretched axis — then KSvg's stretching looks like metal."""
     if vertical:
         img = img.rotate(90, expand=True)
     W, H = img.size

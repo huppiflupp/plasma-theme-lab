@@ -1,4 +1,4 @@
-"""Prüfungen am fertigen Paket — was ein Generator still falsch machen kann."""
+"""Checks on the finished package — what a generator can silently get wrong."""
 import json
 import os
 import re
@@ -20,12 +20,12 @@ def run(pkg, variants):
                           capture_output=True, text=True)
     if lint.returncode != 0:
         errors.append("lint-plasma-svg: " + (lint.stdout + lint.stderr).strip()[-1500:])
-    # Erzeugte Skripte: Syntax und keine Steuerzeichen (ein „\1“ in einer
-    # Python-Vorlage wurde einmal still zum Byte 0x01 — sed ersetzte dann falsch).
+    # Generated scripts: syntax and no control characters (a "\1" in a
+    # Python template once silently became the byte 0x01 — sed then replaced wrongly).
     for sh in ("install.sh", "uninstall.sh", "install-system.sh"):
         text = open(f"{pkg}/{sh}", encoding="utf-8").read()
         if any(ord(ch) < 32 and ch not in "\n\t" for ch in text):
-            errors.append(f"{sh}: enthält Steuerzeichen")
+            errors.append(f"{sh}: contains control characters")
         r = subprocess.run(["bash", "-n", f"{pkg}/{sh}"], capture_output=True, text=True)
         if r.returncode != 0:
             errors.append(f"{sh}: Syntaxfehler {r.stderr.strip()[:200]}")
@@ -35,7 +35,7 @@ def run(pkg, variants):
         r = frames.renderer(open(f"{base}/decoration.svg").read())
         missing = [i for i in DECO_IDS if not r.elementExists(i)]
         if missing:
-            errors.append(f"{v.id}: Aurorae-IDs fehlen: {missing}")
+            errors.append(f"{v.id}: Aurorae ids missing: {missing}")
         for b in aurorae.BUTTONS:
             rb = frames.renderer(open(f"{base}/{b}.svg").read())
             miss = [s for s in aurorae.BUTTON_STATES if not rb.elementExists(f"{s}-center")]
@@ -59,12 +59,12 @@ def run(pkg, variants):
         theme = open(f"{pkg}/system/grub/{v.camel}/theme.txt").read()
         for img in re.findall(r'"([\w*.-]+\.png)"', theme):
             if "*" not in img and not os.path.exists(f"{pkg}/system/grub/{v.camel}/{img}"):
-                errors.append(f"GRUB: Bild {img} fehlt")
+                errors.append(f"GRUB: picture {img} missing")
         if theme.count(".pf2") or not re.search(r'item_font = "[^"]+ \d+"', theme):
-            errors.append("GRUB: item_font-Name unplausibel")
-        # Kontraste auf der fertigen Palette (nach Ableitung)
-        # hart = Fehler, weich = Hinweis (Panel-Text kommt aus dem Farbschema
-        # und ist bei hellen Panels nicht immer die Textfarbe).
+            errors.append("GRUB: implausible item_font name")
+        # Contrasts on the finished palette (after derivation)
+        # hard = error, soft = note (panel text comes from the colour scheme
+        # and is not always the text colour on light panels).
         for fg, bg, need, hard in [("text", "surface", 4.5, True), ("text", "window", 4.5, True),
                                    ("selection_text", "selection", 4.5, True),
                                    ("title_active_text", "title_active", 4.5, True),
@@ -74,7 +74,7 @@ def run(pkg, variants):
             k = contrast(P[fg], P[bg])
             if k < need:
                 (errors if hard else notes).append(f"{v.id}: {fg} auf {bg} {k:.1f}:1 (Soll {need})")
-        # Icon-Theme vollständig? (nur wenn gebaut)
+        # icon theme complete? (only when built)
         ibase = f"{pkg}/icons/{v.camel}Icons"
         if os.path.isdir(ibase):
             from . import iconset
@@ -82,12 +82,12 @@ def run(pkg, variants):
                 for icon, (ctx, _, aliases) in iconset.ICONS.items():
                     for n in [icon] + aliases:
                         if not os.path.exists(f"{ibase}/{size}x{size}/{ctx}/{n}.png"):
-                            errors.append(f"{v.id}: Icon fehlt {size}x{size}/{ctx}/{n}.png")
+                            errors.append(f"{v.id}: icon missing {size}x{size}/{ctx}/{n}.png")
                             break
             if not os.path.exists(f"{ibase}/index.theme"):
-                errors.append(f"{v.id}: index.theme fehlt")
-        # Splash-QML grob prüfen: Klammern ausgeglichen
+                errors.append(f"{v.id}: index.theme missing")
+        # rough check of the splash QML: balanced braces
         qml = open(f"{pkg}/plasma/look-and-feel/{v.lnf}/contents/splash/Splash.qml").read()
         if qml.count("{") != qml.count("}"):
-            errors.append(f"{v.id}: Splash.qml Klammern unausgeglichen")
+            errors.append(f"{v.id}: Splash.qml braces unbalanced")
     return errors, notes

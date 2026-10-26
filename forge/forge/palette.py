@@ -1,8 +1,8 @@
-"""Farbrechnung: aus wenigen Grundfarben (vom LLM) die volle Palette.
+"""Colour arithmetic: the full palette from a few base colours (by the LLM).
 
-Das LLM wählt nur die Farben, die Charakter tragen. Kanten, Hover,
-Textvarianten und Signalfarben leitet dieser Code ab — dort macht ein
-Sprachmodell Fehler, die man nicht sieht, bis das Theme läuft.
+The LLM chooses only the colours that carry character. Edges, hover, text
+variants and signal colours this code derives — there a language model makes
+mistakes one does not see until the theme runs.
 """
 import colorsys
 
@@ -36,12 +36,12 @@ def contrast(a, b):
 
 
 def on(bg):
-    """Schwarz oder Weiß — was auf `bg` besser lesbar ist."""
+    """Black or white — whichever is more legible on `bg`."""
     return "#ffffff" if contrast(bg, "#ffffff") >= contrast(bg, "#000000") else "#000000"
 
 
 def shift(h, dl):
-    """Helligkeit in HLS verschieben (dl in -1..1)."""
+    """Shift the lightness in HLS (dl in -1..1)."""
     r, g, b = (v / 255 for v in rgb(h))
     hh, l, s = colorsys.rgb_to_hls(r, g, b)
     l = max(0.0, min(1.0, l + dl))
@@ -49,7 +49,7 @@ def shift(h, dl):
 
 
 def readable(fg, bg, minimum=4.5):
-    """`fg` so lange aufhellen/abdunkeln, bis er auf `bg` lesbar ist."""
+    """Lighten/darken `fg` until it is legible on `bg`."""
     if contrast(fg, bg) >= minimum:
         return fg
     direction = 1 if luminance(bg) < 0.18 else -1
@@ -62,8 +62,8 @@ def readable(fg, bg, minimum=4.5):
 
 
 def derive(c, mode):
-    """Grundfarben eines Variants → vollständige Palette (gemeinsame Schlüssel
-    der Lab-Generatoren: surface, window, panel, light, dark, border, …)."""
+    """A variant's base colours → the complete palette (the lab generators'
+    shared keys: surface, window, panel, light, dark, border, …)."""
     dark_mode = mode == "dark"
     surface = c["surface"]
     p = {
@@ -77,8 +77,8 @@ def derive(c, mode):
         "title_active": c["title_active"],
         "title_inactive": c["title_inactive"],
     }
-    # Bevel: im Dunkeln wirkt eine helle Kante schnell wie ein Rahmen —
-    # deshalb dort sanfter aufhellen, dafür kräftiger abdunkeln.
+    # Bevel: in the dark a light edge soon looks like a frame —
+    # hence lighten more gently there, and darken more strongly.
     p["light"] = shift(surface, 0.12 if dark_mode else 0.14)
     p["dark"] = shift(surface, -0.16 if dark_mode else -0.24)
     p["border"] = shift(surface, -0.30) if not dark_mode else hexc(
@@ -88,25 +88,27 @@ def derive(c, mode):
     p["selection"] = c["accent"]
     p["selection_text"] = on(c["accent"])
     p["active"] = c["accent"]
-    # Hover trägt Text (Listen, Taskleiste): so weit zur Fläche mischen, bis
-    # er lesbar ist — beim Pip-Boy-Test war grüner Text auf Petrol unlesbar.
+    # Hover carries text (lists, taskbar): mix towards the surface until it
+    # is legible — in the Pip-Boy test green text on petrol was illegible.
     for t in (0.45, 0.55, 0.65, 0.75, 0.85, 0.92):
         p["hover"] = mix(c["glow"], surface, t)
         if contrast(c["text"], p["hover"]) >= 4.5:
             break
     else:
-        # Leuchtfarbe und Text vertragen sich nicht: Hover als leicht
-        # veränderte Fläche — weniger farbig, aber lesbar.
+        # Glow colour and text do not go together: hover as a slightly
+        # changed surface — less colourful, but legible.
         for dl in (0.06, 0.04, 0.02, -0.02, -0.04):
             p["hover"] = shift(surface, dl if dark_mode else -dl)
             if contrast(c["text"], p["hover"]) >= 4.5:
                 break
     p["title_active_text"] = on(c["title_active"])
+    # 4.5:1 like all other text: at 3:1 the inactive title was illegible on
+    # the textured title bars (visual review, 26.10.2026).
     p["title_inactive_text"] = readable(mix(on(c["title_inactive"]), c["title_inactive"], 0.3),
-                                        c["title_inactive"], 3.0)
+                                        c["title_inactive"], 4.5)
     p["link"] = readable(c["glow"], c["window"])
     p["visited"] = readable(mix(c["glow"], "#8040c0", 0.5), c["window"])
-    # Signalfarben: feste Töne, nur auf Lesbarkeit gezogen
+    # Signal colours: fixed tones, only pulled to legibility
     p["error"] = readable("#d03030" if not dark_mode else "#ff5a4a", c["window"])
     p["warning"] = readable("#b06a00" if not dark_mode else "#f0a020", c["window"])
     p["positive"] = readable("#2a7a3a" if not dark_mode else "#50c060", c["window"])

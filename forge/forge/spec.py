@@ -1,10 +1,9 @@
-"""Die Theme-Spezifikation: JSON-Schema für das LLM und semantische Prüfung.
+"""The theme specification: JSON schema for the LLM and the semantic check.
 
-Das Schema wird dem Server als Grammatik mitgegeben (response_format), damit
-kommen nur syntaktisch gültige Antworten zurück. Was eine Grammatik nicht
-ausdrücken kann — Kontraste, Helligkeit passend zum Modus, Markennamen in
-Bild-Prompts — prüft validate() und meldet es in Sätzen, die das Modell
-direkt umsetzen kann.
+The schema goes to the server as a grammar (response_format), so only
+syntactically valid answers come back. What a grammar cannot express —
+contrasts, brightness fitting the mode, brand names in image prompts —
+validate() checks and reports in sentences the model can act on directly.
 """
 import re
 
@@ -13,15 +12,15 @@ from .palette import contrast, luminance, mix, on, readable, shift
 
 HEX = {"type": "string", "pattern": "^#[0-9a-f]{6}$"}
 COLOR_KEYS = {
-    "surface": "Fläche von Fenstern, Knöpfen, Panels-Inhalt (Hauptfarbe)",
-    "window": "Hintergrund von Listen, Textfeldern, Dokumenten",
-    "panel": "Taskleiste/Panel",
-    "text": "Normaler Text auf surface und window",
-    "accent": "Auswahl (markierte Einträge), muss mit Text darauf lesbar sein",
-    "glow": "Zweite Akzentfarbe für Hover, Links, leuchtende Kanten",
-    "title_active": "Titelleiste des aktiven Fensters",
-    "title_inactive": "Titelleiste inaktiver Fenster (gedämpft)",
-    "desktop": "Ersatz-Hintergrundfarbe hinter dem Hintergrundbild",
+    "surface": "surface of windows, buttons, panel contents (the main colour)",
+    "window": "background of lists, text fields, documents",
+    "panel": "taskbar/panel",
+    "text": "normal text on surface and window",
+    "accent": "selection (highlighted entries), text on it must be legible",
+    "glow": "second accent colour for hover, links, glowing edges",
+    "title_active": "title bar of the active window",
+    "title_inactive": "title bar of inactive windows (muted)",
+    "desktop": "fallback background colour behind the wallpaper",
 }
 EMBLEMS = ["star", "gear", "shield", "hexagon", "chevron", "diamond", "lightning",
            "crosshair", "wing", "circle"]
@@ -104,25 +103,24 @@ SCHEMA = {
     },
 }
 
-# Begriffe, die nicht in Bild-Prompts oder Namen landen dürfen: Marken der
-# Vorlage (Bildmodelle malen sonst Logos nach), dazu was der Nutzer per
-# --avoid ergänzt.
-# Nur eindeutige Namen: „windows“ oder „apple“ sind im Bild-Prompt meist
-# Fenster und Äpfel (erster Serienlauf: Fehlalarm bei „command tent windows“).
+# Terms that must not end up in image prompts or names: brands of the model
+# (image models paint logos otherwise), plus what the user adds with --avoid.
+# Unambiguous names only: "windows" or "apple" in an image prompt are mostly
+# windows and apples (first series run: a false alarm on "command tent windows").
 TRADEMARKS = ["red alert", "command & conquer", "command and conquer", "c&c",
               "westwood", "electronic arts", "microsoft", "macos", "star wars",
               "warhammer", "fallout", "nintendo", "playstation"]
 
 
-# Wörter, die das Bildmodell wörtlich nimmt: „icons“ malt Symbole ins Bild,
-# „sign“/„poster“/„map“ erzeugen Fantasieschrift. Gefunden im ersten RA2-Lauf.
+# Words the image model takes literally: "icons" paints symbols into the
+# picture, "sign"/"poster"/"map" make up lettering. Found in the first RA2 run.
 PROMPT_TRAPS = ["icon", "icons", "desktop", "interface", "ui", "screen", "screens", "monitor",
                 "sign", "signs", "signage", "poster", "posters", "label", "labels", "map", "maps",
                 "letter", "letters", "word", "words", "writing", "banner", "banners", "logo"]
 
 
 def _text_for(text, bgs):
-    """Ein Textton, der auf allen Hintergründen 4.5:1 schafft — als Vorschlag."""
+    """A text tone that reaches 4.5:1 on all backgrounds — as a suggestion."""
     for goal in (7.0, 4.5):
         c = text
         for _ in range(3):
@@ -158,10 +156,10 @@ def _lum_fix(col, dark):
 
 
 def names_from_request(request):
-    """Geschützte Namen aus der Anfrage selbst: der Titel (vor „(“ oder „:“)
-    als Ganzes und Kunstwörter darin (Bindestrich, Binnenmajuskel, z. B.
-    „Pip-Boy“, „StarCraft“). Gewöhnliche Wörter wie „Red“ allein bleiben
-    erlaubt — nur die ganze Wendung „Red Alert 2“ ist gesperrt."""
+    """Protected names from the request itself: the title (before "(" or ":")
+    as a whole and coined words in it (hyphen, inner capital, e.g. "Pip-Boy",
+    "StarCraft"). Ordinary words like "Red" alone stay allowed — only the
+    whole phrase "Red Alert 2" is barred."""
     title = re.split(r"[(:]", request)[0].strip()
     out = [title.lower()] if len(title) >= 3 else []
     for word in title.split():
@@ -171,7 +169,7 @@ def names_from_request(request):
 
 
 def fixed_buttons(d):
-    """Pflichtknöpfe ergänzen: I, A, X rechts, ohne Doppelte."""
+    """Add the required buttons: I, A, X on the right, without duplicates."""
     left = "".join(ch for ch in d["buttons_left"] if ch not in "IAX")
     right = "".join(ch for ch in d["buttons_right"].replace("_", "") if ch not in "IAX" and ch not in left)
     return {"buttons_left": left, "buttons_right": right[:3] + "IAX"}
@@ -190,8 +188,8 @@ def trap_sentences(prompt):
 
 
 def strip_traps(prompt):
-    """Letzte Stufe: Sätze mit Fallenwörtern streichen. Ein Satz weniger
-    schadet einem Bild-Prompt nicht; ein gemaltes Icon im Hintergrund schon."""
+    """The last stage: strike sentences with trap words. One sentence fewer
+    does an image prompt no harm; a painted icon in the background does."""
     keep = [s for s in _sentences(prompt) if s not in trap_sentences(prompt)]
     out = " ".join(keep)
     if "no text" not in out.lower():
@@ -200,12 +198,12 @@ def strip_traps(prompt):
 
 
 def validate(spec, avoid=()):
-    """Liefert eine Liste verständlicher Fehlermeldungen (leer = in Ordnung)."""
+    """Returns a list of understandable error messages (empty = fine)."""
     return [msg for _, msg in validate_paths(spec, avoid)]
 
 
 class _Errors(list):
-    """Fehlerliste, die zu jeder Meldung festhält, welcher Teil betroffen ist."""
+    """An error list that records for each message which part it concerns."""
     path = ()
 
     def append(self, msg):
@@ -213,8 +211,8 @@ class _Errors(list):
 
 
 def validate_paths(spec, avoid=()):
-    """Wie validate(), aber als (Pfad, Meldung). Pfad z. B. ("variants", 1, "colors")
-    — damit lässt sich gezielt nur dieser Teil vom LLM reparieren."""
+    """Like validate(), but as (path, message). A path is e.g. ("variants", 1, "colors"),
+    so that the LLM can repair just this part."""
     errors = _Errors()
     request = spec.get("_meta", {}).get("request", "")
     banned = [t.lower() for t in list(TRADEMARKS) + list(avoid) + names_from_request(request)]
@@ -223,8 +221,8 @@ def validate_paths(spec, avoid=()):
         low = text.lower()
         for t in banned:
             if re.search(r"(?<![a-z])" + re.escape(t) + r"(?![a-z])", low):
-                errors.append(f"{field} enthält den geschützten Namen „{t}“ — "
-                              "beschreibe den Stil stattdessen mit eigenen Worten")
+                errors.append(f"{field} contains the protected name \"{t}\" — "
+                              "describe the style in your own words instead")
 
     errors.path = ()
     no_marks("name", spec["name"])
@@ -234,36 +232,36 @@ def validate_paths(spec, avoid=()):
     sh = spec["shape"]
     errors.path = ("shape",)
     if sh["corner"] == "square" and sh["corner_size"] != 0:
-        errors.append("shape.corner ist square, dann muss shape.corner_size 0 sein")
+        errors.append("shape.corner is square, so shape.corner_size must be 0")
     if sh["corner"] != "square" and sh["corner_size"] < 2:
-        errors.append(f"shape.corner ist {sh['corner']}, dann muss corner_size mindestens 2 sein")
+        errors.append(f"shape.corner is {sh['corner']}, so corner_size must be at least 2")
     if sh["bevel"] == "flat" and sh["bevel_width"] != 0:
-        errors.append("shape.bevel ist flat, dann muss bevel_width 0 sein")
+        errors.append("shape.bevel is flat, so bevel_width must be 0")
     if sh["bevel"] == "raised" and sh["bevel_width"] == 0:
-        errors.append("shape.bevel ist raised, dann muss bevel_width mindestens 1 sein")
+        errors.append("shape.bevel is raised, so bevel_width must be at least 1")
 
     d = spec["decoration"]
     errors.path = ("decoration",)
     if d["button_size"] > d["title_height"] - 2:
-        errors.append(f"decoration.button_size ({d['button_size']}) muss mindestens 2 kleiner "
-                      f"sein als title_height ({d['title_height']})")
+        errors.append(f"decoration.button_size ({d['button_size']}) must be at least 2 smaller "
+                      f"than title_height ({d['title_height']})")
     used = d["buttons_left"] + d["buttons_right"]
     missing = [ch for ch in "IAX" if ch not in used]
     if missing:
         right = fixed_buttons(d)["buttons_right"]
-        errors.append(f"Knöpfe fehlen: {', '.join(missing)} (I Minimieren, A Maximieren, X Schließen "
-                      f"sind Pflicht) — setze buttons_right auf \"{right}\"")
+        errors.append(f"buttons missing: {', '.join(missing)} (I minimize, A maximize, X close "
+                      f"are required) — set buttons_right to \"{right}\"")
     dup = {ch for ch in used if ch != "_" and used.count(ch) > 1}
     if dup:
-        errors.append(f"Knöpfe doppelt: {''.join(sorted(dup))}")
+        errors.append(f"buttons twice: {''.join(sorted(dup))}")
 
     errors.path = ()
     ids = [v["id"] for v in spec["variants"]]
     if len(set(ids)) != len(ids):
-        errors.append("variants: die id-Werte müssen verschieden sein")
+        errors.append("variants: the id values must differ")
 
     for i, v in enumerate(spec["variants"]):
-        tag = f"Variante „{v['id']}“"
+        tag = f"variant \"{v['id']}\""
         c = v["colors"]
         errors.path = ("variants", i)
         no_marks(f"{tag}: name", v["name"])
@@ -273,40 +271,40 @@ def validate_paths(spec, avoid=()):
         body = wp.split("no text")[0]
         traps = sorted({w for w in re.findall(r"[a-z]+", body) if w in PROMPT_TRAPS})
         if traps:
-            quoted = " / ".join(f"„{t}“" for t in trap_sentences(v["wallpaper_prompt"]))
-            errors.append(f"{tag}: wallpaper_prompt enthält {', '.join(traps)} — das Bildmodell malt "
-                          f"das wörtlich (Symbole, Schrift). Schreibe diese Sätze ohne diese Wörter neu: "
-                          f"{quoted}. Statt Platz für Symbole: „ruhige, leere Fläche“.")
+            quoted = " / ".join(f"\"{t}\"" for t in trap_sentences(v["wallpaper_prompt"]))
+            errors.append(f"{tag}: wallpaper_prompt contains {', '.join(traps)} — the image model paints "
+                          f"that literally (symbols, lettering). Rewrite these sentences without these words: "
+                          f"{quoted}. Instead of room for symbols: \"calm, empty area\".")
         if "no text" not in wp:
-            errors.append(f"{tag}: wallpaper_prompt muss mit „no text, no logos“ enden")
+            errors.append(f"{tag}: wallpaper_prompt must end with \"no text, no logos\"")
         if len(wp.split()) < 25:
-            errors.append(f"{tag}: wallpaper_prompt ist zu kurz — ein ganzer Absatz mit "
-                          "Medium, Motiv, Licht, Farben und Bildaufbau")
+            errors.append(f"{tag}: wallpaper_prompt is too short — a whole paragraph with "
+                          "medium, motif, light, colours and composition")
         dark = v["mode"] == "dark"
         errors.path = ("variants", i, "colors")
-        # Fehlermeldungen mit konkretem Ersatzwert: kleine Modelle setzen
-        # „nimm #1c1c1c“ zuverlässig um, „wähle text dunkler“ oft nicht.
+        # Error messages with a concrete value: small models act on
+        # "take #1c1c1c" reliably, on "choose a darker text" often not.
         luma_ok = True
         for key in ("surface", "window"):
             lum = luminance(c[key])
             if (dark and lum > 0.18) or (not dark and lum < 0.35):
                 luma_ok = False
-                errors.append(f"{tag}: mode ist {v['mode']}, aber colors.{key} {c[key]} ist zu "
-                              f"{'hell' if dark else 'dunkel'} (Luminanz {lum:.2f}) — "
-                              f"setze colors.{key} auf {_lum_fix(c[key], dark)}")
+                errors.append(f"{tag}: mode is {v['mode']}, but colors.{key} {c[key]} is too "
+                              f"{'light' if dark else 'dark'} (luminance {lum:.2f}) — "
+                              f"set colors.{key} to {_lum_fix(c[key], dark)}")
         bad = [bg for bg in ("surface", "window", "panel") if contrast(c["text"], c[bg]) < 4.5]
         if bad and luma_ok:
             fix = _text_for(c["text"], [c[b] for b in ("surface", "window", "panel")])
             worst = ", ".join(f"{b} {c[b]} {contrast(c['text'], c[b]):.1f}:1" for b in bad)
             if fix:
-                errors.append(f"{tag}: colors.text {c['text']} ist nicht lesbar auf {worst} "
-                              f"(nötig 4.5:1) — setze colors.text auf {fix}")
+                errors.append(f"{tag}: colors.text {c['text']} is not legible on {worst} "
+                              f"(4.5:1 needed) — set colors.text to {fix}")
             else:
-                # Kein Text passt auf alle drei Flächen. Dann einen klaren
-                # Textton passend zum Modus vorschlagen und jede Fläche, die
-                # damit nicht reicht, konkret nachziehen — immer lösbar.
+                # No text fits all three surfaces. Then suggest a clear text
+                # tone fitting the mode and adjust each surface that is not
+                # enough with it, concretely — always solvable.
                 fix_text = "#ececec" if dark else "#161616"
-                fixes = [f"colors.text auf {fix_text}"]
+                fixes = [f"colors.text to {fix_text}"]
                 for b_ in ("surface", "window", "panel"):
                     col = c[b_]
                     for _ in range(40):
@@ -314,27 +312,27 @@ def validate_paths(spec, avoid=()):
                             break
                         col = shift(col, -0.02 if dark else 0.02)
                     if col != c[b_]:
-                        fixes.append(f"colors.{b_} auf {col}")
-                errors.append(f"{tag}: colors.text {c['text']} ist nicht lesbar auf {worst} "
-                              f"(nötig 4.5:1) — setze " + ", ".join(fixes))
-        # Die Leitfarbe, die das Modell selbst genannt hat, muss die Titelleiste
-        # tragen — das sichtbarste Element jedes Fensters (wie Petrol bei NT
-        # Legacy, Kupfer bei CDE). Ohne diese Regel erfüllte das Modell „lead
-        # kommt vor“ mit dem Akzent allein und ließ die Titel grau.
+                        fixes.append(f"colors.{b_} to {col}")
+                errors.append(f"{tag}: colors.text {c['text']} is not legible on {worst} "
+                              f"(4.5:1 needed) — set " + ", ".join(fixes))
+        # The lead colour the model named itself must be carried by the title
+        # bar — the most visible element of every window (like petrol in NT
+        # Legacy, copper in CDE). Without this rule the model met "lead
+        # appears" with the accent alone and left the titles grey.
         lead_h, lead_s = _hs(v["lead"])
         th, ts = _hs(c["title_active"])
         if lead_s >= 0.25 and (_hue_dist(th, lead_h) > 22 or ts < 0.2):
-            errors.append(f"{tag}: title_active {c['title_active']} trägt die Leitfarbe lead {v['lead']} "
-                          f"nicht — setze title_active auf {readable(v['lead'], on(v['lead']))}")
+            errors.append(f"{tag}: title_active {c['title_active']} does not carry the lead colour lead {v['lead']} "
+                          f"— set title_active to {readable(v['lead'], on(v['lead']))}")
         k = contrast(c["accent"], on(c["accent"]))
         if k < 4.5:
-            errors.append(f"{tag}: colors.accent {c['accent']} trägt weder schwarzen noch weißen "
-                          f"Text lesbar ({k:.1f}:1) — setze colors.accent z. B. auf "
+            errors.append(f"{tag}: colors.accent {c['accent']} carries neither black nor white "
+                          f"text legibly ({k:.1f}:1) — set colors.accent e.g. to "
                           f"{readable(c['accent'], on(c['accent']))}")
         k = contrast(c["title_active"], on(c["title_active"]))
         if k < 4.5:
-            errors.append(f"{tag}: colors.title_active {c['title_active']} trägt keinen lesbaren "
-                          f"Titeltext ({k:.1f}:1) — setze title_active z. B. auf "
+            errors.append(f"{tag}: colors.title_active {c['title_active']} carries no legible "
+                          f"title text ({k:.1f}:1) — set title_active e.g. to "
                           f"{readable(c['title_active'], on(c['title_active']))}")
         if contrast(c["accent"], c["window"]) < 1.4:
             fix = c["accent"]
@@ -343,10 +341,10 @@ def validate_paths(spec, avoid=()):
                 fix = shift(fix, step)
                 if contrast(fix, c["window"]) >= 1.6 and contrast(fix, on(fix)) >= 4.5:
                     break
-            errors.append(f"{tag}: colors.accent hebt sich kaum von colors.window ab "
-                          f"({contrast(c['accent'], c['window']):.2f}:1, nötig 1.4:1) — "
-                          f"setze colors.accent auf {fix}")
+            errors.append(f"{tag}: colors.accent hardly stands out from colors.window "
+                          f"({contrast(c['accent'], c['window']):.2f}:1, 1.4:1 needed) — "
+                          f"set colors.accent to {fix}")
         if contrast(c["title_active"], c["title_inactive"]) < 1.25 and \
                 c["title_active"] == c["title_inactive"]:
-            errors.append(f"{tag}: title_active und title_inactive müssen sich unterscheiden")
+            errors.append(f"{tag}: title_active and title_inactive must differ")
     return errors

@@ -1,5 +1,5 @@
-"""Theme Forge: ein lokales LLM entwirft aus einer Stilbeschreibung ein Plasma-Theme.
+"""Theme Forge: a local LLM designs a Plasma theme from a style description.
 
-Das LLM schreibt keine SVG/QML, sondern eine kompakte Spezifikation (spec.json),
-die deterministische Generatoren in diesem Paket umsetzen.
+The LLM writes no SVG/QML, but a compact specification (spec.json) that the
+deterministic generators in this package carry out.
 """

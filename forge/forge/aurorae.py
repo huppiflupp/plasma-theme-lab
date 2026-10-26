@@ -1,20 +1,20 @@
-"""Aurorae-Fensterdekoration aus einer Palette (nach tools/gen-aurorae.py).
+"""Aurorae window decoration from a palette (after tools/gen-aurorae.py).
 
-Eigene Fassung für Theme Forge: Palette, Eckform, Knopfform, Titel-
-ausrichtung und Beschreibung sind Parameter. Die Element-IDs sind der
-Vertrag mit KWin — fehlt eines, zeichnet KWin dort nichts, ohne Meldung.
+Theme Forge's own version: palette, corner shape, button shape, title
+alignment and description are parameters. The element ids are the contract
+with KWin — if one is missing, KWin draws nothing there, without a message.
 
-Zwei Regeln aus dem Lab (guide/01), die hier gelten:
-* Die center-Fläche ist NICHT transparent: stellt der Nutzer die
-  Rahmenbreite hoch, fällt die Differenz in center — transparent sähe man
-  dort den Desktop durchscheinen.
-* Knöpfe bestehen nur aus einem center-Element je Zustand, das Symbol
-  liegt darin (Aurorae unterstützt bei Knöpfen keine Ränder).
+Two rules from the lab (guide/01) that apply here:
+* The center area is NOT transparent: when the user turns the border width
+  up, the difference falls into center — transparent, one would see the
+  desktop shine through there.
+* Buttons consist of only one center element per state, the symbol lies
+  inside it (Aurorae supports no borders on buttons).
 """
 import math
 
 from . import material
-from .palette import luminance, mix, on, shift
+from .palette import readable, luminance, mix, on, shift
 from .plasmasvg import corner_polygons
 
 BUTTON_STATES = ["active", "inactive", "hover", "pressed", "deactivated"]
@@ -32,15 +32,15 @@ class Aurorae:
                  button_size=16, corner_style="square", radius=0, glow=0,
                  button_shape="square", title_align="left", textures=None):
         self.p = palette
-        # Materialmodus: {"title_active", "title_inactive", "frame"} → eingefärbte
-        # Bleche (PIL). Dann: Textur in den Feldern, Nieten, Titelkanal,
-        # Knöpfe als Metallplatten mit leuchtendem Symbol.
+        # Material mode: {"title_active", "title_inactive", "frame"} → tinted
+        # sheets (PIL). Then: texture in the fields, rivets, title channel,
+        # buttons as metal plates with a glowing symbol.
         self.tex = textures
         self.th = title_height
         self.cs = corner_style if radius > 0 else "square"
         self.radius = radius
         self.outer, self.bevel, self.glow = outer, bevel, glow
-        # Die Ecke muss in das Eckfeld passen: Fase/Rundung plus Linien.
+        # The corner must fit into the corner field: bevel/rounding plus lines.
         self.border = max(border, radius + 1) if self.cs != "square" else border
         self.bg = button_size
         self.button_shape = button_shape
@@ -99,8 +99,8 @@ class Aurorae:
                 textured(x, y, w, h, img, vertical=(not title_row and edges in ("l", "r")),
                          offset=int(x - ox) * 3)
                 if name == "top":
-                    # Vertiefter Kanal für den Titeltext, wie die Beschriftungs-
-                    # leisten im Spiel: dunkler bei hellem Text, heller bei dunklem.
+                    # A sunken channel for the title text, like the label strips
+                    # in the game: darker with light text, lighter with dark.
                     dl = -0.07 if luminance(on(ground)) > 0.5 else 0.07
                     ch_top, ch_bot = y + round(h * 0.24), y + h - round(h * 0.2)
                     t.append(f'    <rect x="{x:g}" y="{ch_top:g}" width="{w:g}" height="{ch_bot - ch_top:g}" '
@@ -172,7 +172,7 @@ class Aurorae:
                 + "\n".join(parts) + '\n</svg>\n')
 
     def _outline(self, ox, oy, size, inset):
-        """Knopfumriss als Polygon, um `inset` verkleinert (konvexe Formen)."""
+        """The button outline as a polygon, shrunk by `inset` (convex shapes)."""
         c = size / 2
         r = c - inset
         cx, cy = ox + c, oy + c
@@ -211,8 +211,8 @@ class Aurorae:
                 ground = mix(P["surface"], P["title_inactive"], 0.5)
             symbol = on(ground) if state == "hover" else P["text"]
             if self.tex:
-                # Metallplatte wie die Seitenleisten-Knöpfe im Spiel: Grund in
-                # Rahmenmetall, Symbol leuchtet in der Glow-Farbe.
+                # A metal plate like the sidebar buttons in the game: ground in
+                # frame metal, the symbol glows in the glow colour.
                 metal = mix(P["title_active"], P["surface"], 0.45)
                 ground = {"hover": shift(metal, 0.08), "pressed": shift(metal, -0.08)}.get(state, metal)
                 if state in ("inactive", "deactivated"):
@@ -221,13 +221,16 @@ class Aurorae:
                 if kind == "close" and state == "hover":
                     symbol = mix(P["error"], "#ffffff", 0.3)
                 if state in ("inactive", "deactivated"):
-                    symbol = mix(P["glow"], ground, 0.55)
+                    # Quieter than active, but at least 3:1 (WCAG for controls): mixed
+                    # 55 % into the ground, the inactive close button vanished
+                    # (visual review, 26.10.2026).
+                    symbol = readable(mix(P["glow"], ground, 0.45), ground, 3.0)
             if state == "deactivated":
                 symbol = mix(symbol, ground, 0.6)
             parts.append(f'  <g id="{state}-center">')
-            # Unsichtbares Rechteck über die ganze Zelle: so ist die Bounding
-            # Box des Elements immer g×g, auch bei Raute und Kreis — sonst
-            # streckt KWin die Form auf die Knopfgröße und verzerrt sie.
+            # An invisible rectangle over the whole cell: so the element's
+            # bounding box is always g×g, also for diamond and circle — else
+            # KWin stretches the shape to the button size and distorts it.
             parts.append(f'    <rect x="{ox}" y="{oy}" width="{g}" height="{g}" fill="{ground}" opacity="0.004"/>')
             parts.append(f'    <polygon points="{self._outline(ox, oy, g, 0)}" fill="{P["border"]}"/>')
             parts.append(f'    <polygon points="{self._outline(ox, oy, g, a)}" '
@@ -237,7 +240,7 @@ class Aurorae:
             s = (g - 2 * (a + b)) * (0.5 if self.button_shape in ("diamond", "round") else 0.62) / 2
             sw = max(1.5, g * 0.1)
             if self.tex and state not in ("inactive", "deactivated"):
-                # Lichthof: breitere, halbtransparente Kopie unter dem Symbol
+                # Halo: a wider, half-transparent copy under the symbol
                 parts.append('    <g opacity="0.35">')
                 parts.append(self._symbol(kind, ox + g / 2 + v, oy + g / 2 + v, s, sw * 2.4, symbol))
                 parts.append('    </g>')
@@ -325,8 +328,8 @@ PaddingRight=0
 
     @staticmethod
     def metadata(name, display_name, description, version):
-        # metadata.desktop ist bei Aurorae das vorgesehene Format; das Präfix
-        # __aurorae__svg__ plus Ordnername ist Pflicht.
+        # metadata.desktop is Aurorae's intended format; the prefix
+        # __aurorae__svg__ plus the folder name is required.
         return f"""[Desktop Entry]
 Name={display_name}
 Comment={description}

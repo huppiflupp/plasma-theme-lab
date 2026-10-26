@@ -1,211 +1,321 @@
-# Theme Forge — ein lokales LLM als Motor für Plasma-Themes
+# Theme Forge: a local LLM as the engine for Plasma themes
 
-Aus einer Stilbeschreibung („Red Alert 2“, „Fallout Pip-Boy“, „Jugendstil“)
-entsteht ein komplettes, installierbares Plasma-6-Theme: Farbschema, Plasma
-Style, Fensterdekoration, Look-and-Feel mit Startbildschirm, Hintergründe,
-Konsole-Farben, Plymouth und GRUB — in 2–4 Varianten, wenn die Vorlage welche
-hat.
+From a style description ("Red Alert 2", "Fallout Pip-Boy", "Art Nouveau")
+comes a complete, installable Plasma 6 theme: colour scheme, Plasma style,
+window decoration, look-and-feel with splash screen, wallpapers, Konsole
+colours, Plymouth and GRUB, in 2–4 variants when the model has them.
+Everything it writes (descriptions, READMEs, store texts) is in English.
 
 ```bash
-./forge.py all "Red Alert 2 (Echtzeitstrategie, Westwood 2000): Sowjets und Alliierte" -o out/ra2
-# → out/ra2/package/      installierbares Paket
-#   out/ra2/preview.jpg   Vorschau (Desktop, GRUB, Plymouth je Variante)
-#   out/ra2/spec.json     was das LLM entschieden hat
-#   out/ra2/report.json   Werkzeuge, Prüfergebnis, Laufzeit
+./forge.py all "Red Alert 2 (real-time strategy, Westwood 2000): Soviets and Allies" -o out/ra2
+# → out/ra2/package/      installable package
+#   out/ra2/preview.jpg   preview (desktop, GRUB, Plymouth per variant)
+#   out/ra2/spec.json     what the LLM decided
+#   out/ra2/report.json   tools, check result, run time
 
 cd out/ra2/package
-./install.sh --apply soviet         # nur ~/.local, kein sudo; rückgängig: ./uninstall.sh
-sudo ./install-system.sh soviet     # Plymouth + GRUB, mit Sicherung; rückgängig: --revert
+./install.sh --apply soviet         # ~/.local only, no sudo; undo: ./uninstall.sh
+sudo ./install-system.sh soviet     # Plymouth + GRUB, with a backup; undo: --revert
 ```
 
-Unabhängig von `nt-legacy/`, `CDE/` und `tools/`: Die Generatoren hier sind
-eigene Kopien (Projektregel in `../CLAUDE.md`).
+Independent of `nt-legacy/`, `CDE/` and `tools/`: the generators here are
+copies of their own (project rule in `../CLAUDE.md`).
 
-## Wie es arbeitet
+## Pipeline
 
-Das LLM schreibt **keine** SVG, QML oder Skripte. Es trifft Gestaltungs-
-entscheidungen in einer kleinen, prüfbaren Spezifikation; alles Technische
-erledigen deterministische Generatoren.
+The LLM writes **no** SVG, QML or scripts. It makes design decisions in a
+small, checkable specification; deterministic generators do everything
+technical; tools paint and render; checks look at the result, and what fails
+goes back to the LLM as a concrete repair order. `./forge.py all` runs it
+from top to bottom:
 
 ```
-Anfrage ─► 1 Leitfarben-Abstimmung   7 kurze Befragungen, Mehrheit je Variante   (LLM, ~4 s)
-        ─► 2 Design-Brief            Farben, Material, Formen, Motive            (LLM, Denkmodus, ~10 s)
-        ─► 3 Spezifikation           JSON, per Grammatik an das Schema gebunden  (LLM, ~4 s)
-        ─► 4 Prüfung + Reparatur     Fehler mit Pfad und konkretem Ersatzwert;
-                                     nur das kaputte Teilstück wird neu erzeugt  (LLM, je <1 s)
-        ─► 5 Bildplan                Szenen je Variante, Icon-Stilblatt          (LLM)
-        ─► 6 Malen + Sichtprüfung    ComfyUI lokal; das LLM sieht jedes Icon an,
-                                     misslungene werden neu gefasst und gemalt   (LLM + Bildmodell)
-        ─► 7 Generatoren             Plasma-SVG, Aurorae, Farben, L&F, Icons, Plymouth, GRUB
-        ─► 8 Paketprüfung + Vorschau Linter, Element-IDs, Kontraste, 9-Patch-Rendering
+request ─► 1 lead colour vote        7 short questions, majority per variant     (LLM, ~4 s)
+        ─► 2 design brief            colours, material, shapes, motifs           (LLM, thinking mode, ~10 s)
+        ─► 3 specification           JSON, bound to the schema by grammar        (LLM, ~4 s)
+        ─► 4 check + repair          errors with a path and a concrete value;
+                                     only the broken part is made again          (LLM, <1 s each)
+        ─► 5 art plan                scenes per variant, icon style sheet        (LLM)
+        ─► 6 build, stage by stage:
+             colors       colour scheme, Konsole colours                         (generator)
+             plasma-style panels, popups; painted metal texture                  (generator + ComfyUI)
+             decoration   Aurorae window frame                                   (generator)
+             wallpapers   three per variant                                      (ComfyUI)
+             icons        120 pictures, each looked at by the LLM; failures
+                          rewritten and painted again, up to 2 rounds           (ComfyUI + LLM)
+             splash-boot  look-and-feel, splash, Plymouth, GRUB; the emblem      (generator + Blender/Inkscape)
+        ─► 7 package check + preview linter, element ids, contrasts, 9-patch rendering
+        ─► 8 visual review (--review) the LLM looks at decoration, wallpapers and
+                                     the desktop in a lab VM; repairs, builds and
+                                     looks again, up to 2 rounds                (LLM with vision)
 ```
 
-| Datei | Aufgabe |
+In order, who does what:
+
+| Step | Decides | Checks | Iterates | Tools |
+|---|---|---|---|---|
+| 1 lead colours | LLM (7 votes) | majority, hue clusters | — | — |
+| 2 brief | LLM (thinking) | — | — | — |
+| 3–4 specification | LLM | `spec.py`: schema, contrasts, mode, brands, trap words | partial repair, 4 rounds, then a deterministic last stage | — |
+| 5 art plan | LLM | trap words, protected names, German, duplicates | per field/per icon, 4 rounds | — |
+| 6 build | generators | — | — | ComfyUI (Z-Image locally, Krea-2 on ai395), Blender (metal emblem), Inkscape (flat emblem), QtSvg |
+| 6 icons | catalogue + style sheet | faces (OpenCV), duplicates (hash), the LLM describes each picture blind and compares | rewrite + repaint, 2 rounds; the whole style sheet anew from 40 % failures | ComfyUI, LLM with vision |
+| 7 package check | — | linter, element ids, scripts, contrasts | — | `tools/lint-plasma-svg.py` |
+| 8 visual review | — | LLM with vision, measured title contrast | colours/frame by partial repair, wallpaper by a new prompt, 2 rounds | LLM with vision, lab VM |
+
+POV-Ray is not a tool of the forge yet. A fitting extension (proposal): the
+LLM chooses a raytraced scene as JSON — objects (spheres, polyhedra, a
+statue), materials (chrome, glass, gold, marble), floor (chessboard, grid),
+time of day — and a fixed generator writes the `.pov`, as Warp Legacy's
+`os2-warp/tools/raytracing-entwuerfe.py` does by hand; the visual review then
+judges the render like any other wallpaper.
+
+### Visual review (`forge/review.py`)
+
+`./forge.py review out/<x> [--review-vm fedora|ubuntu|artix] [--rounds 2]`,
+or `all … --review`. The vision model (`FORGE_VISION`, by default the same
+server: Qwen3.6 with its mmproj; any OpenAI-compatible endpoint with vision
+can be named) gets each picture with the style model, the variant's look
+and lead colour, and answers in a fixed JSON schema: ok, a score, and up to
+six issues, each with severity, target and a concrete fix.
+
+* **Decoration**: the active and the inactive title bar, rendered as KWin
+  draws them (`preview.window`), twice enlarged so the 13 px title is
+  readable. The engine measures the title text's contrast on the rendered
+  bar and gives the numbers to the model; claims of illegible text against
+  a measured 4.5:1 or more are downgraded (the model called a 7:1 inactive
+  title "nearly invisible").
+* **Wallpapers**: fit to the style, lettering and AI faults, a calm area for
+  icons.
+* **Desktop**: the vmtest screenshot after `install.sh --apply`: legibility
+  of icons and labels, the panel, rendering faults (garbled glyphs, Breeze
+  left over).
+
+Major issues are repaired where the engine can: title colours and text
+contrast through the specification's partial repair (rejected if the
+specification's own checks then fail), the frame likewise, a wallpaper by a
+rewritten prompt (only with ComfyUI). Then the package is built again and
+looked at anew. What has no repair path (icons, installer faults) stays in
+`review.json` under `left`.
+
+### Live run for a recording (`forge/live.py`, `forge/events.py`)
+
+`./forge.py all "<style>" -o out/<x> --live-vm fedora --review` (also
+`build out/<x> --live-vm …`): the VM is reverted to `clean`, switched to an
+English session, a Dolphin window opened, and after every build stage the
+package so far is copied in and just that part applied — colours, Plasma
+style, frame, wallpaper, icons, then the whole global theme and its splash.
+A screenshot per stage goes to `live-<n>-<stage>.png`.
+
+Every step also goes into `<out>/events.jsonl` (`--events` for another
+file): one JSON line with time, seconds since the start, stage and data —
+lead colours, the brief, the specification's decisions, the art plan,
+every ComfyUI prompt, each painted icon, check results, repairs, review
+verdicts, durations. `tail -f events.jsonl` or a small overlay script can
+show it beside the recording. While ComfyUI paints the icons,
+`assets/progress.png` is rewritten after each icon with the latest 32 (an
+image viewer that reloads on change shows the painting live); ComfyUI's own
+web page (`http://127.0.0.1:8189`) shows the queue and each step's preview
+as well, if a browser window beside the VM is wanted.
+
+| File | Purpose |
 |---|---|
-| `forge.py` | Kommandozeile: `design`, `build`, `all`, `bench` |
-| `forge/llm.py` | OpenAI-kompatibler Client (llama.cpp, Ollama, vLLM), `response_format: json_schema` |
-| `forge/designer.py` | Leitfarben-Abstimmung, Brief, Spezifikation, gezielte Reparatur |
-| `forge/spec.py` | Schema und semantische Prüfung (Kontraste, Modus, Leitfarbe, Marken, Bild-Prompt-Fallen) |
-| `forge/palette.py` | 9 Grundfarben → volle Palette (Bevel, Hover, Signalfarben, Lesbarkeit) |
-| `forge/plasmasvg.py` | Plasma-Style-SVGs (Kopie von `tools/gen-plasma-svg.py` + Fasen, Rundungen, Leuchtlinie) |
-| `forge/aurorae.py` | Fensterdekoration (Eckformen, vier Knopfformen) |
-| `forge/build.py` | Farbschema, Konsole, Look-and-Feel + Splash, Hintergrund-Paket |
-| `forge/boot.py` | Plymouth (3 Layouts, Passwortabfrage) und GRUB (2 Layouts, eigene Schrift) |
-| `forge/emblem.py` | Emblem aus einer Geometrie: Inkscape (flach) oder Blender (Metall, Cycles) |
-| `forge/artplan.py` | Bildplan: Szenen je Variante, Icon-Stilblatt (oder `--themed-icons`) |
-| `forge/iconset.py` | Icon-Katalog: 120 Bilder für 519 Namen, je Funktion + neutrales Bild + Familie |
-| `forge/icons.py` | Malen, Bildprüfung, Reparaturschleife, Metallrahmen, Icon-Theme |
-| `forge/imgcheck.py` | Sichtprüfung (LLM mit Bildverständnis), Gesichter, Doppelte |
-| `forge/gpu.py` | schaltet die Grafikkarte zwischen llama-server und ComfyUI um |
-| `forge/material.py` | Metalltextur für Dekoration und Panel |
-| `forge/comfy.py` | ComfyUI: lokal (Z-Image Turbo, Standard) oder ai395 (Krea-2 Turbo) |
-| `forge/frames.py` | 9-Patch-Rendering mit QtSvg, wie KSvg — für GRUB-Bilder und Vorschau |
-| `forge/check.py` | Paketprüfung |
+| `forge.py` | command line: `design`, `build`, `all`, `bench`, `bench-art`, `vmtest`, `review` |
+| `forge/llm.py` | OpenAI-compatible client (llama.cpp, Ollama, vLLM), `response_format: json_schema` |
+| `forge/designer.py` | lead colour vote, brief, specification, targeted repair |
+| `forge/spec.py` | schema and semantic check (contrasts, mode, lead colour, brands, image prompt traps) |
+| `forge/palette.py` | 9 base colours → full palette (bevel, hover, signal colours, legibility) |
+| `forge/plasmasvg.py` | Plasma style SVGs (a copy of `tools/gen-plasma-svg.py` + bevels, rounding, glow line) |
+| `forge/aurorae.py` | window decoration (corner shapes, four button shapes) |
+| `forge/build.py` | the build stage by stage: colour scheme, Konsole, Plasma style, frame, wallpapers, icons, look-and-feel + splash |
+| `forge/boot.py` | Plymouth (3 layouts, password prompt) and GRUB (2 layouts, own font) |
+| `forge/emblem.py` | emblem from a geometry: Inkscape (flat) or Blender (metal, Cycles) |
+| `forge/artplan.py` | art plan: scenes per variant, icon style sheet (or `--themed-icons`) |
+| `forge/iconset.py` | icon catalogue: 120 pictures for 519 names, each a function + neutral picture + family |
+| `forge/icons.py` | painting, image check, repair loop, metal frame, icon theme |
+| `forge/imgcheck.py` | visual check (LLM with vision), faces, duplicates |
+| `forge/gpu.py` | switches the graphics card between llama-server and ComfyUI |
+| `forge/material.py` | metal texture for decoration and panel |
+| `forge/comfy.py` | ComfyUI: local (Z-Image Turbo, default) or ai395 (Krea-2 Turbo) |
+| `forge/frames.py` | 9-patch rendering with QtSvg, as KSvg does, for GRUB pictures and the preview |
+| `forge/check.py` | package check |
 | `forge/installers.py` | `install.sh`, `uninstall.sh`, `install-system.sh` |
-| `tests/ra2.expect.json` | Stilerwartung für den Zuverlässigkeitstest |
-| `tests/build_many.py` | viele Spezifikationen bauen und prüfen (ohne ComfyUI) |
+| `forge/vmtest.py` | install/apply/uninstall in the lab VMs, in an English session |
+| `forge/review.py` | visual review of decoration, wallpapers and the VM desktop, with repairs |
+| `forge/live.py` | live run: each build stage played into a lab VM, a screenshot each |
+| `forge/events.py` | the event log (JSONL) for overlays in a recording |
+| `tests/ra2.expect.json` | style expectation for the reliability test |
+| `tests/build_many.py` | build and check many specifications (without ComfyUI) |
 
-### Was das LLM entscheidet
+### What the LLM decides
 
-Name, Beschreibung · Eckform (eckig/Fase/rund) und -größe · Bevel · Außenlinie ·
-Leuchtkante · Titelleiste, Rahmen, Knopfform, Knopfbelegung · Schrift (aus 13
-OFL-Schriften) · Emblemform und Werkzeug (Blender/Inkscape) · Boot-Layouts ·
-je Variante: Leitfarbe, 9 Grundfarben, hell/dunkel, Bild-Prompt.
+Name, description · corner shape (square/bevel/round) and size · bevel ·
+outline · glow edge · title bar, frame, button shape, button layout · font
+(from 13 OFL fonts) · emblem shape and tool (Blender/Inkscape) · boot
+layouts · per variant: lead colour, 9 base colours, light/dark, image
+prompt.
 
-### Warum es zuverlässig ist
+### Why it is reliable
 
-Gemessen auf der RTX 5080 (Qwen3.6-35B-A3B, IQ3, llama.cpp), Anfrage
-„Red Alert 2 … Sowjets und Alliierte“, Stilprüfung = Titelleiste der Sowjets
-rot auf dunklem Grund, der Alliierten blau:
+Measured on the RTX 5080 (Qwen3.6-35B-A3B, IQ3, llama.cpp), request
+"Red Alert 2 … Soviets and Allies", style check = the Soviets' title bar red
+on a dark ground, the Allies' blue:
 
-| Stand | gültig | stiltreu |
+| Stage | valid | true to style |
 |---|---|---|
-| erste Fassung (ganze Spezifikation neu bei Fehlern) | 7/10 | 4/10 |
-| + gezielte Teilreparatur, Fehlalarme behoben | 11/12 | 10/12 |
-| + Leitfarbe, Titelleiste trägt sie | 20/20 | 18/20 |
-| Bestätigung mit 30 Läufen | 27/30 | 23/30 |
-| + Leitfarben-Abstimmung, lösbare Vorschläge | 29/30 | 29/30 |
-| **Endstand** (`out/bench-final`) | **30/30** | **30/30** |
+| first version (whole specification anew on errors) | 7/10 | 4/10 |
+| + targeted partial repair, false alarms fixed | 11/12 | 10/12 |
+| + lead colour, the title bar carries it | 20/20 | 18/20 |
+| confirmation with 30 runs | 27/30 | 23/30 |
+| + lead colour vote, solvable suggestions | 29/30 | 29/30 |
+| **final** (`out/bench-final`) | **30/30** | **30/30** |
 
-Ø 18,7 s pro Spezifikation, höchstens 26 s. Andere Vorlagen (Tron, Mac OS 9,
-Pip-Boy, Bauhaus, Jugendstil): 20/20 gültig. 83 verschiedene Spezifikationen
-bauen alle fehlerfrei (`tests/build_many.py`). Ein kompletter Lauf mit zwei
-ComfyUI-Hintergründen dauert knapp 4 Minuten, davon 3½ Bildgenerierung.
+On average 18.7 s per specification, at most 26 s. Other models (Tron,
+Mac OS 9, Pip-Boy, Bauhaus, Art Nouveau): 20/20 valid. 83 different
+specifications all build without errors (`tests/build_many.py`). A complete
+run with two ComfyUI wallpapers takes just under 4 minutes, 3½ of them
+image generation.
 
-Was die Zuverlässigkeit gebracht hat, in der Reihenfolge der Wirkung:
+What brought the reliability, in order of effect:
 
-1. **Teilreparatur statt Neuschreiben.** Muss das Modell 900 Token
-   wiederholen, um ein Wort zu ersetzen, schleppt es den Fehler mit.
-   Bekommt es nur das kaputte Teilstück mit eigenem Teilschema, klappt es.
-2. **Konkrete Werte in Fehlermeldungen.** „Text dunkler wählen“ wird oft
-   ignoriert, „setze colors.text auf #161616“ fast nie.
-3. **Die eigene Aussage festnageln.** Erst `look` (ein Satz) und `lead`
-   (Leitfarbe) schreiben lassen, dann prüfen, ob die Titelleiste sie trägt.
-4. **Mehrheitsentscheid gegen Wissensschwankung.** Einzeln nannte das Modell
-   die Sowjets mal rot, mal schwarz, mal oliv; 7 kurze Befragungen
-   bündeln das zuverlässig.
-5. **Deterministische letzte Stufe** nur für Technik ohne Gestaltungswert
-   (Pflichtknöpfe, verbotene Wörter im Bild-Prompt) — sichtbar als
-   „Automatik“ im Protokoll, im Endstand 1 von 30.
+1. **Partial repair instead of rewriting.** When the model has to repeat
+   900 tokens to replace one word, it carries the error along. Given only
+   the broken part with a schema of its own, it works.
+2. **Concrete values in error messages.** "Choose a darker text" is often
+   ignored, "set colors.text to #161616" almost never.
+3. **Pin down its own statement.** Have it write `look` (one sentence) and
+   `lead` (the lead colour) first, then check that the title bar carries it.
+4. **Majority vote against wavering knowledge.** Asked once, the model
+   called the Soviets red, black or olive; 7 short questions settle it
+   reliably.
+5. **A deterministic last stage** only for technical matters without design
+   value (required buttons, forbidden words in the image prompt), visible as
+   "auto" in the log, 1 of 30 in the final stage.
 
-### Fallen, die die Prüfung abfängt
+### Traps the check catches
 
-* Bildmodelle malen jedes Wort: „Platz für Desktop-Symbole“ ergab gemalte
-  Icons, „warning signs“ Fantasieschrift. Solche Wörter sind im Bild-Prompt
-  gesperrt.
-* Marken: feste Liste plus der Titel der Anfrage selbst (`Red Alert 2`,
-  `Pip-Boy`); `--avoid` ergänzt weitere.
-* Plasma schreibt Panel-Text in der normalen Textfarbe → `text` muss auch
-  auf `panel` lesbar sein.
+* Image models paint every word: "room for desktop icons" gave painted
+  icons, "warning signs" made-up lettering. Such words are barred from the
+  image prompt.
+* Brands: a fixed list plus the title of the request itself (`Red Alert 2`,
+  `Pip-Boy`); `--avoid` adds more.
+* Plasma writes panel text in the normal text colour → `text` must also be
+  legible on `panel`.
 
-## In der VM geprüft (plasma-lab, Fedora 44, Plasma 6.7.4)
+## Tested in the VM (plasma-lab, Fedora 44, Plasma 6.7.4)
 
-Installieren → anwenden (Sowjets) → Neuanmeldung → Variante wechseln
-(Alliierte) → `install-system.sh` → Neustart mit GRUB, Plymouth, Splash →
-`--revert` + `uninstall.sh` → Neustart: Desktop wieder exakt wie vorher.
-Gefunden und behoben:
+Install → apply (Soviets) → log in again → change variant (Allies) →
+`install-system.sh` → reboot with GRUB, Plymouth, splash → `--revert` +
+`uninstall.sh` → reboot: the desktop exactly as before. Found and fixed:
 
-* Knopfreihenfolge, Titelschrift und Konsole-Profil setzt ein Global Theme
-  nicht — `install.sh --apply` schreibt sie ausdrücklich (mit Sicherung).
-* Fedora fehlt `plymouth-plugin-script`; der Installer brach mittendrin ab.
-  Jetzt Vorabprüfung, nichts wird geändert, solange etwas fehlt.
-* Unter Secure Boot lädt GRUB keine Schriftdateien (auch in `CDE/TESTING.md`
-  beschrieben) — erkannt, dann eingebaute Unifont.
-* Variable Schriften (Oxanium, Cinzel …) liefern ohne Angabe die dünnste
-  Instanz; für GRUB/Plymouth/Schriftzüge wird eine feste Instanz (600) erzeugt.
-* Der GRUB-Auswahlbalken ragte in den nächsten Eintrag (Ecken liegen außen).
-* Hinweis „splash fehlt“ war auf Fedora falsch (dort `rhgb`).
-* Über SSH zeigt `kreadconfig6` die Werte eines Global Themes nicht (sie liegen
-  in `~/.config/kdedefaults/`) — kein Fehler des Themes.
+* A global theme does not set the button order, title font and Konsole
+  profile; `install.sh --apply` writes them explicitly (with a backup).
+* Fedora lacks `plymouth-plugin-script`; the installer stopped halfway.
+  Now a check first: nothing changes while something is missing.
+* Under Secure Boot GRUB loads no font files (also described in
+  `CDE/TESTING.md`); detected, then the built-in Unifont.
+* Variable fonts (Oxanium, Cinzel …) give the thinnest instance unless told
+  otherwise; for GRUB, Plymouth and lettering a fixed instance (600) is made.
+* GRUB's selection bar reached into the next entry (the corners lie outside).
+* The note "splash missing" was wrong on Fedora (it uses `rhgb` there).
+* Over SSH `kreadconfig6` does not show a global theme's values (they are in
+  `~/.config/kdedefaults/`); not a fault of the theme.
 
-## VM-Test (drei Umgebungen)
+## VM test (three environments)
 
-`./forge.py vmtest out/<x> [--vm fedora,ubuntu,artix] [--variant <id>] [--no-reset]`
-setzt jede Test-VM auf ihren Snapshot `clean` zurück, überträgt das Paket,
-ruft `install.sh --apply` auf, macht ein Foto, ruft `uninstall.sh` auf und
-vergleicht die beobachteten Einstellungen vorher/nachher (`forge/vmtest.py`,
-Ergebnis in `vmtest.json`, Fotos `vm-<umgebung>-*.png`):
+`./forge.py vmtest out/<x> [--vm fedora,ubuntu,artix] [--variant <id>] [--lang en|de|keep] [--no-reset]`
+reverts each lab VM to its snapshot `clean`, switches the Plasma session to
+English (the default; `--lang keep` leaves the VM's own language) and logs
+in again by restarting the VM, copies the package, runs `install.sh
+--apply`, takes a screenshot, runs `uninstall.sh` and compares the watched
+settings before and after (`forge/vmtest.py`, result in `vmtest.json`,
+screenshots `vm-<environment>-*.png`):
 
-| Name | VM | Was sie abdeckt |
+| Name | VM | What it covers |
 |---|---|---|
 | fedora | plasma-lab (`vm/lab.env`) | Fedora 44, systemd, Plasma 6.7 |
-| ubuntu | ubuntu-lab (`vm/ubuntu.env`) | Ubuntu 26.04 LTS, ältere Plasma-Fassung |
-| artix | artix-lab (`vm/artix.env`) | Artix/OpenRC, **kein systemd**, Plasma 6.8 |
+| ubuntu | ubuntu-lab (`vm/ubuntu.env`) | Ubuntu 26.04 LTS, an older Plasma |
+| artix | artix-lab (`vm/artix.env`) | Artix/OpenRC, **no systemd**, Plasma 6.8 |
 
-## Systemschicht
+### An English session for good
 
-`install-system.sh` prüft vorab (Plymouth-Script-Plugin, GRUB-Werkzeuge),
-ändert erst dann, sichert `/etc/default/grub` und das vorige Plymouth-Theme
-nach `/var/lib/theme-forge/<id>/` und nimmt mit `--revert` alles zurück.
-`GRUB_TERMINAL_OUTPUT=console` (Fedora-Standard) wird auskommentiert, sonst
-bleibt das Menü im Textmodus. Fedora braucht `plymouth-plugin-script`.
+`~/.config/plasma-localerc` alone does not switch Plasma's language
+(plasma-lab, 26.10.2026): startplasma gets `LANG` from SDDM, SDDM from PID 1,
+and PID 1 reads `/etc/locale.conf` only at boot; the systemd user manager
+also keeps its environment (`LANG=de_DE…`) as long as SSH sessions keep it
+alive, and hands it on to the next Plasma session. `vmtest` therefore sets,
+in this order:
 
-## Grenzen
+1. the system locale: `sudo localectl set-locale LANG=en_US.UTF-8` (on OpenRC
+   `/etc/locale.conf`);
+2. `plasma-localerc`: `[Formats] LANG=en_US.UTF-8`, `[Translations] LANGUAGE=en_US`;
+3. `systemctl --user set-environment LANG=en_US.UTF-8 LANGUAGE=en_US` (systemd only);
+4. a reboot of the VM (restarting SDDM is not enough),
 
-* Die Stilprüfung misst Farbtreue, nicht Geschmack. Bildauswahl, Proportionen
-  und „wirkt es wie die Vorlage“ bleiben eine menschliche Prüfung — die
-  Vorschau ist dafür da.
-* Mauszeiger und kleine Status-/Aktionssymbole kommen aus Breeze; die
-  519 Namen des Katalogs malt der Motor selbst.
-* Die Login-Oberfläche (Plasma Login Manager) hat keine QML-Themes; nur der
-  Sperrbildschirm bekommt den Hintergrund.
-* Ohne ComfyUI gibt es prozedurale Hintergründe (`--no-comfy`).
-* GRUBs Terminalfenster („Booting …“) hat einen Rahmen im Theme-Stil, innen
-  bleibt es schwarz — die Farbe lässt sich per Theme nicht setzen.
-* Die Stilprüfung ist bisher nur für „Red Alert 2“ hinterlegt; für andere
-  Vorlagen wird nur Gültigkeit gemessen.
-* Generierte Bilder sind Dekoration, keine Wiedergabe der Vorlage; Namen
-  und Logos der Vorlage kommen bewusst nicht vor.
+and then checks the language plasmashell really runs with
+(`tr '\0' '\n' < /proc/$(pgrep -x plasmashell)/environ | grep LANG`); a
+session that did not switch is reported as an error. The keyboard layout
+stays as it is. The first available of en_US.UTF-8, en_GB.UTF-8, C.UTF-8 is
+taken. Since the snapshots `clean` are German, every run switches anew
+(about a minute per VM); a snapshot taken after the switch would save that.
 
-## Icons: Katalog + Stilblatt
+## System layer
 
-Was ein Icon zeigt, steht fest im Katalog (`forge/iconset.py`): Funktion und
-ein neutrales, gegenständliches Bild ohne Schrift. Ordner teilen einen
-Behälter, Dateitypen ein Blatt, nur das Zeichen darauf wechselt. Das LLM
-schreibt pro Theme nur ein **Stilblatt** (Malweise, Farben, Material,
-Details, Licht, Hintergrund, Ordner, Blatt). Geprüft wird, dass es keine
-Gegenstände nennt (sonst steht in jedem Icon ein Panzer), keine Rahmen oder
-Kacheln (den Rahmen setzt der Motor je Variante) und keine Hex-Codes.
+`install-system.sh` checks first (Plymouth script plugin, GRUB tools), only
+then changes anything, backs up `/etc/default/grub` and the previous
+Plymouth theme to `/var/lib/theme-forge/<id>/` and takes everything back
+with `--revert`. `GRUB_TERMINAL_OUTPUT=console` (Fedora's default) is
+commented out, otherwise the menu stays in text mode. Fedora needs
+`plymouth-plugin-script`.
 
-Nach dem Malen beschreibt das LLM jedes Bild, ohne zu wissen, was es zeigen
-soll, und vergleicht danach: Schrift, ungewollte Personen, leere Bilder,
-falsches Motiv. Einzelne Fehlbilder fasst es neu, ab 40 % Fehlern schreibt
-es das Stilblatt neu. Dafür braucht der llama-server `--mmproj` (Qwen3.6:
-`mmproj-F16.gguf`, mit `--no-mmproj-offload` auf der CPU — auf der GPU
-verdrängte es Modellteile, 176 → 50 tok/s). Ohne Bildverständnis prüft
-der Motor nur Gesichter (OpenCV) und Doppelte.
+## Limits
 
-## Grafikkarte teilen
+* The style check measures fidelity of colour, not taste. Choice of
+  pictures, proportions and "does it feel like the model" remain a human
+  check; the preview is there for that.
+* Mouse cursors and small status/action icons come from Breeze; the engine
+  paints the catalogue's 519 names itself.
+* The login screen (Plasma Login Manager) has no QML themes; only the lock
+  screen gets the wallpaper.
+* Without ComfyUI there are procedural wallpapers (`--no-comfy`).
+* GRUB's terminal window ("Booting …") has a frame in the theme's style,
+  inside it stays black; a theme cannot set that colour.
+* The style check is so far only defined for "Red Alert 2"; for other models
+  only validity is measured.
+* Generated pictures are decoration, not a reproduction of the model; the
+  model's names and logos are deliberately left out.
 
-LLM (~14 GB) und Z-Image passen nicht gleichzeitig in 16 GB. `forge/gpu.py`
-hält den LLM-Dienst (`FORGE_LLM_SERVICE`, Standard `llama-qwen36.service`)
-für Bildläufe an, startet ein lokales ComfyUI (`/data/ComfyUI`, Port 8189)
-und stellt am Ende den Ausgangszustand wieder her — auch bei Abbruch.
+## Icons: catalogue + style sheet
 
-## Umgebung
+What an icon shows is fixed in the catalogue (`forge/iconset.py`): a
+function and a neutral, figurative picture without lettering. Folders share
+a container, file types a sheet; only the sign on it changes. Per theme the
+LLM writes only a **style sheet** (way of painting, colours, material,
+details, light, background, folder, sheet). Checked: it names no objects
+(else every icon shows a tank), no frames or tiles (the engine sets the
+frame per variant) and no hex codes.
 
-`FORGE_LLM` (Standard `http://127.0.0.1:8090/v1`, der llama-server auf 245k),
-`FORGE_COMFY` (Standard lokal `http://127.0.0.1:8189`; ai395 mit
-`http://192.168.178.54:8188`, Zugang aus `~/.config/comfyui/claude-zugang`),
-`FORGE_IMAGE_MODEL` (`zimage`/`krea2`), `FORGE_LLM_SERVICE`, `FORGE_COMFY_DIR`. Python ≥ 3.11 mit Pillow und PySide6;
-`inkscape`, `blender`, `grub2-mkfont`.
+After painting, the LLM describes each picture without knowing what it is
+meant to show, then compares: lettering, unwanted people, empty pictures,
+wrong motif. Single failures it rewrites; from 40 % failures on it writes
+the style sheet anew. For that the llama-server needs `--mmproj` (Qwen3.6:
+`mmproj-F16.gguf`, with `--no-mmproj-offload` on the CPU; on the GPU it
+pushed model layers out, 176 → 50 tok/s). Without vision the engine checks
+only faces (OpenCV) and duplicates.
+
+## Sharing the graphics card
+
+The LLM (~14 GB) and Z-Image do not fit into 16 GB at the same time.
+`forge/gpu.py` stops the LLM service (`FORGE_LLM_SERVICE`, default
+`llama-qwen36.service`) for image runs, starts a local ComfyUI
+(`/data/ComfyUI`, port 8189) and restores the starting state at the end,
+also when a run is aborted.
+
+## Environment
+
+`FORGE_LLM` (default `http://127.0.0.1:8090/v1`, the llama-server on 245k),
+`FORGE_COMFY` (default local `http://127.0.0.1:8189`; ai395 with
+`http://192.168.178.54:8188`, login from `~/.config/comfyui/claude-zugang`),
+`FORGE_IMAGE_MODEL` (`zimage`/`krea2`), `FORGE_VISION` (the model that looks at
+pictures; default `FORGE_LLM`), `FORGE_LLM_SERVICE`, `FORGE_COMFY_DIR`.
+Python ≥ 3.11 with Pillow and PySide6; `inkscape`, `blender`, `grub2-mkfont`.

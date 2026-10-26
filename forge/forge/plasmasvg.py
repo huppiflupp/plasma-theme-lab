@@ -1,9 +1,9 @@
-"""Plasma-Style-SVGs aus Parametern (Kopie von tools/gen-plasma-svg.py).
+"""Plasma style SVGs from parameters (a copy of tools/gen-plasma-svg.py).
 
-Eigene Kopie für Theme Forge, damit Änderungen hier NT Legacy nicht
-berühren. Neu gegenüber dem Original: Eckformen (chamfer, round) als
-Polygone — QtSvg kennt keine Masken —, eine innere Leuchtlinie
-(edge_glow) und Widgets, die immer eckig bleiben (Panel am Bildschirmrand).
+Theme Forge's own copy, so that changes here do not touch NT Legacy. New
+compared with the original: corner shapes (chamfer, round) as polygons —
+QtSvg knows no masks —, an inner glow line (edge_glow) and widgets that
+always stay square (the panel at the screen edge).
 
 Original-Beschreibung:
 Generates Plasma style SVGs from parameters instead of by hand.
@@ -426,11 +426,11 @@ STYLESHEET_CLASSES = [
 
 
 def corner_profile(style, radius, d, fw, fh):
-    """Umriss eines Eckfelds (Lage oben links), um d nach innen versetzt.
+    """Outline of a corner field (top left position), offset inwards by d.
 
-    Liefert zwei Punktlisten: die senkrechte Seite (A) bis zur Mitte der
-    Ecke und von dort die waagrechte (B). Bänder zwischen zwei Versätzen
-    ergeben Rahmen- und Bevel-Linien, die der Ecke folgen."""
+    Returns two point lists: the vertical side (A) up to the middle of the
+    corner and from there the horizontal one (B). Bands between two offsets
+    give frame and bevel lines that follow the corner."""
     c = min(radius, fw - 1, fh - 1)
     if style == "chamfer":
         k = c + d * (math.sqrt(2) - 1)
@@ -446,11 +446,11 @@ def corner_profile(style, radius, d, fw, fh):
 
 
 def corner_polygons(style, radius, x, y, fw, fh, sides, fill_attrs, layers):
-    """Eckfeld mit Fase oder Rundung: Fläche als Polygon, Bänder darauf.
+    """A corner field with a bevel or rounding: the area as a polygon, bands on it.
 
-    sides: z. B. "tl" (waagrechte, senkrechte Außenkante).
-    layers: (Breite, Farbe der waagrechten Seite, Farbe der senkrechten),
-    von außen nach innen. Spiegelung statt vier Sonderfälle."""
+    sides: e.g. "tl" (horizontal, vertical outer edge).
+    layers: (width, colour of the horizontal side, colour of the vertical one),
+    from outside in. Mirroring instead of four special cases."""
     fx, fy = "r" in sides, "b" in sides
 
     def tr(pts):
@@ -475,11 +475,11 @@ class Generator:
                  cell=32, corner=6, gap=12, columns=4, outer_border=0,
                  corner_style="square", glow=0, textures=None):
         self.p = palette
-        # {Widget: PIL-Bild} — eingefärbtes Blech für Panel und Popups
+        # {widget: PIL image} — tinted sheet metal for panel and popups
         self.textures = textures or {}
         self._tex = None
         self.corner_style = corner_style   # square | chamfer | round
-        self.glow = glow                   # Breite der Leuchtlinie (0 = aus)
+        self.glow = glow                   # width of the glow line (0 = off)
         self._square = False
         self.outer_border = outer_border
         self._outer_override = None
@@ -626,8 +626,8 @@ class Generator:
                     f'      <rect x="{x:g}" y="{y:g}" width="{fw:g}" '
                     f'height="{fh:g}" fill="{surface}"/>')
             if self._tex is not None and not frame_only:
-                # Blech über der Fläche, in deren Farbe eingefärbt (Mittelwert
-                # = Palettenfarbe). Schleifspuren entlang der Streckachse.
+                # Sheet metal over the area, tinted in its colour (mean
+                # = the palette colour). Grinding marks along the stretch axis.
                 from . import material
                 vertical = part in ("left", "right")
                 piece = material.strip(self._tex, int(fh) if vertical else int(fw),
@@ -837,8 +837,8 @@ class Generator:
         self._outer_override = spec.get("outer_border")
         self._square = spec.get("square", False)
         self._tex = self.textures.get(name)
-        # Texturierte Widgets brauchen große Zellen, sonst wird ein 20-px-Stück
-        # über die ganze Leiste gestreckt oder sichtbar gekachelt.
+        # Textured widgets need large cells, else a 20 px piece is stretched
+        # over the whole bar or visibly tiled.
         self._cell_original = self.cell
         if self._tex is not None:
             self.cell = 256

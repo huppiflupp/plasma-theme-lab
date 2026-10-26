@@ -1,16 +1,17 @@
-"""Prüfung der gemalten Cameos — was das Bildmodell aus dem Motiv gemacht hat.
+"""Checking the painted cameos — what the image model made of the motif.
 
-Zwei Stufen:
-* ohne LLM: Gesicht im Bild, obwohl das Motiv keine Person nennt (OpenCV),
-  und fast gleiche Bilder (Differenz-Hash). Leere oder beschriftete Bilder
-  lassen sich mit Pixelstatistik nicht verlässlich erkennen (kalibriert am
-  24.10.2026: ein leeres rotes Feld lag zwischen guten Bildern mit ruhigem
-  Hintergrund; tesseract übersah Fantasieschrift und las „hee“ in Metall).
-* mit LLM, wenn der Server Bilder versteht (/props → modalities.vision):
-  das Modell beschreibt, was zu sehen ist, und meldet Schrift oder ein
-  leeres Bild.
+Two stages:
+* without the LLM: a face in the picture although the motif names no person
+  (OpenCV), and nearly identical pictures (difference hash). Empty or
+  lettered pictures cannot be recognised reliably by pixel statistics
+  (calibrated on 24.10.2026: an empty red field lay between good pictures
+  with a calm background; tesseract missed made-up lettering and read "hee"
+  in metal).
+* with the LLM, if the server understands images (/props → modalities.vision):
+  the model describes what is to be seen and reports lettering or an empty
+  picture.
 
-Liefert {icon: [Fehler]} — die Fehler gehen als Reparaturauftrag ans LLM.
+Returns {icon: [errors]} — the errors go to the LLM as a repair order.
 """
 import base64
 import io
@@ -24,7 +25,7 @@ from . import artplan, iconset, llm
 
 _cascade = None
 LAST_VISION = None
-SHOWS = {}          # icon → was die Sichtprüfung zuletzt gesehen hat
+SHOWS = {}          # icon → what the visual check saw last
 
 
 def _faces(path):
@@ -61,8 +62,8 @@ VISION_SCHEMA = {
     "properties": {"shows": {"type": "string", "maxLength": 160}, "text": {"type": "boolean"},
                    "person": {"type": "boolean"}, "clear": {"type": "boolean"}}}
 
-# Ohne das gewünschte Motiv gefragt: wer es kennt, sieht es auch in einem
-# leeren roten Feld („a large red switch, appearing off“, Test 24.10.2026).
+# Asked without the intended motif: whoever knows it sees it even in an
+# empty red field ("a large red switch, appearing off", test 24.10.2026).
 VISION_Q = ("Describe this small painted picture.\n"
             "shows: what it shows, in at most 15 English words; say \"nothing clear\" if there is no "
             "recognisable object.\n"
@@ -70,8 +71,8 @@ VISION_Q = ("Describe this small painted picture.\n"
             "person: true if a human, a face or hands are visible.\n"
             "clear: true if one main object is clearly recognisable at a glance.")
 
-# Erst die Art benennen, dann urteilen — direkt gefragt, hielt das Modell einen
-# Plastik- und einen Metall-Mülleimer für verschiedene Dinge.
+# Name the kind first, then judge — asked directly, the model took a plastic
+# and a metal waste bin for different things.
 MATCH_SCHEMA = {"type": "object", "additionalProperties": False, "required": ["meant_kind", "result_kind", "matches"],
                 "properties": {"meant_kind": {"type": "string", "maxLength": 40},
                                "result_kind": {"type": "string", "maxLength": 40},
@@ -98,58 +99,58 @@ def _vision(path, motif):
 
 
 def check(pictures, motifs, log=print, vision=None):
-    """pictures {icon: Pfad}, motifs {icon: {source, motif}} → {icon: [Fehler]}."""
+    """pictures {icon: path}, motifs {icon: {source, motif}} → {icon: [errors]}."""
     bad = {}
     for name, path in pictures.items():
         motif = motifs[name]["motif"]
         if not artplan.wants_person(motif) and _faces(path):
             bad.setdefault(name, []).append(
-                "das gemalte Bild zeigt eine Person/ein Gesicht, obwohl das Motiv keine nennt — das Bildmodell "
-                "ergänzt bei diesem Gegenstand einen Menschen; wähle einen Gegenstand, ein Fahrzeug oder Gebäude, "
-                "das allein für sich steht (keine Tische, Pulte oder Plätze, an die man jemanden setzen würde)")
+                "the painted picture shows a person/a face although the motif names none — the image model "
+                "adds a human to this object; choose an object, a vehicle or a building "
+                "that stands on its own (no tables, desks or seats where one would put somebody)")
     hashes = {n: dhash(p) for n, p in pictures.items()}
     names = list(pictures)
     for i, a in enumerate(names):
         for b in names[:i]:
-            same_family = iconset.FAMILY[a] == iconset.FAMILY[b] != "object"   # Ordner/Blatt gleichen sich gewollt
+            same_family = iconset.FAMILY[a] == iconset.FAMILY[b] != "object"   # folders/sheets are meant to look alike
             if bin(hashes[a] ^ hashes[b]).count("1") <= 6 and not same_family:
-                bad.setdefault(a, []).append(f"das gemalte Bild sieht fast genauso aus wie „{b}“ — wähle ein "
-                                             "deutlich anderes Motiv")
+                bad.setdefault(a, []).append(f"the painted picture looks almost exactly like \"{b}\" — choose a "
+                                             "clearly different motif")
                 break
     if vision is None:
-        # Erst die Grafikkarte zurück ans LLM: nach dem Malen ist es angehalten,
-        # und /props wäre dann „kein Bildverständnis“ (Lauf 24.10.2026: Sichtprüfung fiel aus).
+        # First the graphics card back to the LLM: after painting it is stopped,
+        # and /props would then say "no vision" (run of 24.10.2026: the visual check was skipped).
         from . import gpu
         try:
             gpu.need("llm", log)
         except RuntimeError as e:
-            log(f"  Sichtprüfung nicht möglich: {e}")
+            log(f"  visual check not possible: {e}")
         vision = vision_available()
     global LAST_VISION
     LAST_VISION = vision
     if not vision:
-        log("  Sichtprüfung: LLM versteht keine Bilder — nur Gesichter und Doppelte geprüft")
+        log("  visual check: the LLM does not understand images — only faces and duplicates checked")
     if vision:
         for name, path in pictures.items():
             try:
                 v = _vision(path, motifs[name]["motif"])
                 SHOWS[name] = v["shows"]
             except llm.LLMError as e:
-                log(f"  Sichtprüfung {name}: {e}")
+                log(f"  visual check {name}: {e}")
                 continue
             errs = []
             if not v["clear"]:
-                errs.append(f"das gemalte Bild zeigt nichts Klares (zu sehen: {v['shows']}) — wähle einen Gegenstand "
-                            "mit klarer, markanter Form")
+                errs.append(f"the painted picture shows nothing clear (seen: {v['shows']}) — choose an object "
+                            "with a clear, distinctive shape")
             if v["text"]:
-                errs.append(f"im gemalten Bild steht Schrift (zu sehen: {v['shows']}) — wähle einen Gegenstand, der "
-                            "nie beschriftet ist (keine Bücher, Schilder, Automaten, Verpackungen, Karten)")
+                errs.append(f"the painted picture has lettering (seen: {v['shows']}) — choose an object that "
+                            "never carries lettering (no books, signs, machines, packaging, maps)")
             if v["person"] and not artplan.wants_person(motifs[name]["motif"]) and name not in bad:
-                errs.append(f"das gemalte Bild zeigt einen Menschen (zu sehen: {v['shows']}), obwohl das Motiv "
-                            "keinen nennt — wähle einen Gegenstand, der allein für sich steht")
+                errs.append(f"the painted picture shows a human (seen: {v['shows']}) although the motif "
+                            "names none — choose an object that stands on its own")
             if not v["matches"] and v["clear"]:
-                errs.append(f"das gemalte Bild zeigt etwas anderes (zu sehen: {v['shows']}) — wähle ein Motiv, "
-                            "das ein Bildmodell eindeutig malen kann, und beschreibe sein Aussehen genauer")
+                errs.append(f"the painted picture shows something else (seen: {v['shows']}) — choose a motif "
+                            "an image model can paint unambiguously, and describe its look more precisely")
             if errs:
                 bad.setdefault(name, []).extend(errs)
     return bad

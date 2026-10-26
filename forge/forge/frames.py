@@ -1,9 +1,8 @@
-"""9-Patch-Rahmen aus Plasma-SVGs rastern — so wie KSvg es tut.
+"""Rasterise 9-patch frames from Plasma SVGs — the way KSvg does it.
 
-Plasma schneidet Elemente per ID aus dem SVG und streckt die Kanten.
-Dasselbe hier mit QtSvg (dem Renderer, den auch Plasma benutzt), damit
-GRUB-Bilder, Plymouth-Kästen und die Vorschau exakt die Formen des
-Plasma Styles tragen.
+Plasma cuts elements out of the SVG by id and stretches the edges. The same
+here with QtSvg (the renderer Plasma uses as well), so that GRUB pictures,
+Plymouth boxes and the preview carry exactly the Plasma style's shapes.
 """
 import os
 
@@ -28,7 +27,7 @@ def _to_pil(img):
 def renderer(svg_text):
     r = QSvgRenderer(QByteArray(svg_text.encode()))
     if not r.isValid():
-        raise ValueError("SVG ungültig")
+        raise ValueError("invalid SVG")
     return r
 
 
@@ -43,19 +42,19 @@ def element(r, eid, w, h, scale=1):
 
 
 def parts(r, prefix, scale=1):
-    """Die neun Elemente in natürlicher Größe (mal scale)."""
+    """The nine elements at natural size (times scale)."""
     out = {}
     for part in PARTS:
         eid = f"{prefix}-{part}" if prefix else part
         if not r.elementExists(eid):
-            raise KeyError(f"Element fehlt: {eid}")
+            raise KeyError(f"element missing: {eid}")
         b = r.boundsOnElement(eid)
         out[part] = element(r, eid, b.width(), b.height(), scale)
     return out
 
 
 def compose(p, w, h):
-    """9-Patch auf w×h zusammensetzen (Kanten und Mitte gestreckt)."""
+    """Put a 9-patch together at w×h (edges and middle stretched)."""
     lw, th = p["topleft"].size
     rw, bh = p["bottomright"].size
     im = Image.new("RGBA", (w, h), (0, 0, 0, 0))

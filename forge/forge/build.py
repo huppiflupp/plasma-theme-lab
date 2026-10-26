@@ -1,8 +1,8 @@
-"""Spezifikation → installierbares Paket.
+"""Specification → installable package.
 
-Alles hier ist deterministisch: dieselbe spec.json und dieselben Bilder
-ergeben byte-gleich dasselbe Paket. Nur die Werkzeuge (ComfyUI, Blender)
-erzeugen Bilder, und die werden in assets/ zwischengespeichert.
+Everything here is deterministic: the same spec.json and the same pictures
+give byte for byte the same package. Only the tools (ComfyUI, Blender) make
+pictures, and those are cached in assets/.
 """
 import json
 import os
@@ -13,13 +13,13 @@ from PIL import Image, ImageDraw, ImageFilter
 
 import zlib
 
-from . import artplan, aurorae, boot, comfy, emblem, fonts, icons, installers, material, plasmasvg
+from . import artplan, aurorae, boot, comfy, emblem, events, fonts, icons, installers, material, plasmasvg
 from .palette import derive, mix, on, readable, rgb, shift
 
 VERSION = "0.1.0"
 ICONS = {"dark": "breeze-dark", "light": "breeze"}
-# Was in der Spezifikation als Buchstaben steht, schreibt KWin genauso
-# in kwinrc (ButtonsOnLeft/Right) — die Kürzel sind KDE-eigen.
+# What the specification has as letters KWin writes just so into kwinrc
+# (ButtonsOnLeft/Right) — the letters are KDE's own.
 
 
 def camel(*parts):
@@ -78,8 +78,8 @@ def konsole(var, out):
     bg = P["window"]
     fg = P["text"]
     dark = var.mode == "dark"
-    # ANSI-Farben: feste Töne, an den Hintergrund angepasst; Blau und Cyan
-    # leiten sich von glow/accent ab, damit das Terminal zum Theme gehört.
+    # ANSI colours: fixed tones adapted to the background; blue and cyan
+    # derive from glow/accent, so the terminal belongs to the theme.
     base = ["#000000", "#cc3333", "#44aa44", "#cc9933", P["accent"], "#aa55aa", P["glow"], "#cccccc"]
     lines = [f"[General]\nDescription={var.name}\nOpacity=1\n"]
 
@@ -96,7 +96,7 @@ def konsole(var, out):
         entry(f"Color{i}", col)
         entry(f"Color{i}Intense", shift(col, 0.15 if dark else -0.1))
     write(f"{out}/konsole/{var.camel}.colorscheme", "\n".join(lines))
-    # Das Profil gehört dem Theme; Standard wird es erst durch install.sh --apply.
+    # The profile belongs to the theme; it becomes the default only through install.sh --apply.
     write(f"{out}/konsole/{var.camel}.profile",
           f"[Appearance]\nColorScheme={var.camel}\n\n[General]\nName={var.name}\nParent=FALLBACK/\n")
 
@@ -135,7 +135,7 @@ def decoration(var, out, spec, textures=None):
     sh, d = spec["shape"], spec["decoration"]
     th, border, bsize = d["title_height"], d["border"], d["button_size"]
     if textures:
-        # Materialmodus: wuchtige Bleche wie die Seitenleiste im Spiel
+        # Material mode: massive sheet metal like the sidebar in the game
         th, border = max(th, 32), max(border, 9)
         bsize = min(max(bsize, 20), th - 8)
     a = aurorae.Aurorae(var.P, title_height=th, border=border,
@@ -154,13 +154,13 @@ def decoration(var, out, spec, textures=None):
 
 
 def wallpaper(var, out, assets, spec, use_comfy=True, log=print, seed=None, prompt=None, index=0, title=None):
-    """Hintergrundbild: ComfyUI, sonst prozedural. Liefert den Pfad (1920×1080 JPEG)."""
+    """Wallpaper: ComfyUI, else procedural. Returns the path (1920×1080 JPEG)."""
     suffix = f"-{index + 1}" if index else ""
     raw = f"{assets}/wallpaper-{var.v['id']}{suffix}.png"
     prompt = prompt or var.v["wallpaper_prompt"]
     source = "cache"
-    # Der Cache gilt nur für denselben Prompt — sonst blieb nach neuem Art-Plan
-    # das alte Bild stehen. Prozedurale Bilder ersetzt ein späterer Lauf mit ComfyUI.
+    # The cache holds only for the same prompt — else the old picture stayed
+    # after a new art plan. A later run with ComfyUI replaces procedural pictures.
     stamp = raw[:-4] + ".prompt"
     old = open(stamp).read() if os.path.exists(stamp) else None
     if os.path.exists(raw) and (old != prompt or (old is None and use_comfy)):
@@ -173,7 +173,7 @@ def wallpaper(var, out, assets, spec, use_comfy=True, log=print, seed=None, prom
                 source = "comfyui"
                 write(stamp, prompt)
             except Exception as e:  # noqa: BLE001
-                log(f"  ComfyUI nicht verfügbar ({str(e)[:160]}) — prozeduraler Hintergrund")
+                log(f"  ComfyUI not available ({str(e)[:160]}) — procedural wallpaper")
         if not os.path.exists(raw):
             procedural_wallpaper(var.P, raw)
             source = "procedural"
@@ -191,7 +191,7 @@ def wallpaper(var, out, assets, spec, use_comfy=True, log=print, seed=None, prom
 
 
 def procedural_wallpaper(P, dst, w=1920, h=1088):
-    """Ersatz ohne Bildmodell: Verlauf, feines Raster in glow, Vignette."""
+    """The fallback without an image model: gradient, a fine grid in glow, vignette."""
     top, bottom = rgb(shift(P["desktop"], 0.06)), rgb(P["desktop"])
     im = Image.new("RGB", (w, h))
     d = ImageDraw.Draw(im)
@@ -223,9 +223,9 @@ def lookandfeel(var, out, spec, wall, emblem_png, font_family, icon_theme=None):
                         "Version": VERSION},
             "Keywords": "Desktop;Workspace;Appearance;Look and Feel;", "X-Plasma-APIVersion": "2"}
     write(f"{base}/metadata.json", json.dumps(meta, indent=2, ensure_ascii=False) + "\n")
-    # Jeder Schlüssel ausdrücklich — plasma-apply-lookandfeel schreibt nur,
-    # was hier steht; Werte eines vorher angewandten Themes blieben sonst.
-    # Dekoration: org.kde.kwin.aurorae, NICHT .v2 (bricht Plasma 6.0–6.5).
+    # Every key explicitly — plasma-apply-lookandfeel writes only what is
+    # here; values of a theme applied before stayed otherwise.
+    # Decoration: org.kde.kwin.aurorae, NOT .v2 (breaks Plasma 6.0–6.5).
     write(f"{base}/contents/defaults", f"""[kdeglobals][KDE]
 widgetStyle=Breeze
 
@@ -264,7 +264,7 @@ ButtonsOnRight={d['buttons_right'].replace('_', '')}
     P = var.P
     write(f"{sp}/Splash.qml", f"""import QtQuick
 
-// Generiert von Theme Forge. stage läuft von 1 bis 6.
+// Generated by Theme Forge. stage runs from 1 to 6.
 Rectangle {{
     id: root
     color: "{P['desktop']}"
@@ -312,8 +312,17 @@ Rectangle {{
     return base
 
 
-def build(spec, out, use_comfy=True, log=print, seed=None, plan=None):
-    """Baut das komplette Paket nach out/package. Liefert einen Bericht."""
+# The stages in the order the package grows — and the order a live run
+# (forge.py all --live-vm) shows them in the VM.
+STAGES = ["colors", "plasma-style", "decoration", "wallpapers", "icons", "splash-boot"]
+
+
+def build(spec, out, use_comfy=True, log=print, seed=None, plan=None, on_stage=None):
+    """Builds the complete package into out/package. Returns a report.
+
+    Stage by stage for all variants (STAGES). After each stage the installers
+    are written, so the package so far is installable, and on_stage(stage,
+    pkg, variants) is called (the live run plays the stage into a VM)."""
     assets = f"{out}/assets"
     pkg = f"{out}/package"
     if os.path.exists(pkg):
@@ -321,51 +330,98 @@ def build(spec, out, use_comfy=True, log=print, seed=None, plan=None):
     os.makedirs(assets, exist_ok=True)
     report = {"variants": {}, "tools": {}}
     family, ttf_var = fonts.fetch(spec["font"])
-    _, ttf = fonts.static(spec["font"])      # für alles Gerasterte (GRUB, Plymouth)
+    _, ttf = fonts.static(spec["font"])      # for everything rasterised (GRUB, Plymouth)
     os.makedirs(f"{pkg}/fonts", exist_ok=True)
     shutil.copy(ttf_var, f"{pkg}/fonts/{spec['font']}.ttf")
-    pictures = None
-    if plan and use_comfy:
-        pictures = icons.paint_checked(plan, spec, assets, plan.get("private", False), log=log)
-    for v in spec["variants"]:
-        var = Variant(spec, v)
-        log(f"Variante {var.name} ({var.mode})")
+    variants = [Variant(spec, v) for v in spec["variants"]]
+    vplans = {var.v["id"]: (plan or {}).get("variants", {}).get(var.v["id"]) for var in variants}
+
+    def done(stage, **info):
+        installers.write_all(spec, pkg, variants)
+        events.end(stage, **info)
+        if on_stage:
+            on_stage(stage, pkg, variants)
+
+    events.begin("colors", variants={var.v["id"]: {"lead": var.v["lead"], "mode": var.mode,
+                                                   "look": var.v["look"], "colors": var.v["colors"]}
+                                     for var in variants})
+    for var in variants:
+        log(f"variant {var.name} ({var.mode})")
         colors(var, pkg)
         konsole(var, pkg)
-        deco_tex = plasma_tex = None
-        vplan = (plan or {}).get("variants", {}).get(v["id"])
+    done("colors")
+
+    events.begin("plasma-style", shape=spec["shape"])
+    textures = {}
+    for var in variants:
+        vplan = vplans[var.v["id"]]
         if vplan:
-            raw = material.texture(vplan["texture"], f"{assets}/texture-{v['id']}.png", log=log) \
-                if use_comfy else material.texture("", f"{assets}/texture-{v['id']}-proc.png", log=log)
+            if use_comfy:
+                events.emit("plasma-style", "comfyui", variant=var.v["id"], prompt=vplan["texture"])
+            raw = material.texture(vplan["texture"], f"{assets}/texture-{var.v['id']}.png", log=log) \
+                if use_comfy else material.texture("", f"{assets}/texture-{var.v['id']}-proc.png", log=log)
             P = var.P
-            deco_tex = {"title_active": material.tint(raw, P["title_active"], 0.18),
-                        "title_inactive": material.tint(raw, P["title_inactive"], 0.12),
-                        "frame": material.tint(raw, mix(P["title_active"], P["surface"], 0.55), 0.18)}
-            plasma_tex = {"panel-background": material.tint(raw, P["panel"], 0.14),
-                          "background-dialog": material.tint(raw, P["surface"], 0.08)}
-        desktoptheme(var, pkg, spec, plasma_tex)
-        decoration(var, pkg, spec, deco_tex)
-        em = f"{assets}/emblem-{v['id']}.png"
+            textures[var.v["id"]] = (
+                {"title_active": material.tint(raw, P["title_active"], 0.18),
+                 "title_inactive": material.tint(raw, P["title_inactive"], 0.12),
+                 "frame": material.tint(raw, mix(P["title_active"], P["surface"], 0.55), 0.18)},
+                {"panel-background": material.tint(raw, P["panel"], 0.14),
+                 "background-dialog": material.tint(raw, P["surface"], 0.08)})
+        desktoptheme(var, pkg, spec, textures.get(var.v["id"], (None, None))[1])
+    done("plasma-style")
+
+    events.begin("decoration", decoration=spec["decoration"])
+    for var in variants:
+        decoration(var, pkg, spec, textures.get(var.v["id"], (None, None))[0])
+    done("decoration")
+
+    events.begin("wallpapers")
+    walls = {}
+    for var in variants:
+        vplan = vplans[var.v["id"]]
+        if vplan:
+            ws = []
+            for i, w in enumerate(vplan["wallpapers"]):
+                prompt = artplan.wallpaper_prompt(w["prompt"], spec.get("_meta", {}).get("request", ""),
+                                                  plan.get("private", False))
+                events.emit("wallpapers", "prompt", variant=var.v["id"], title=w["title"], prompt=prompt)
+                ws.append(wallpaper(var, pkg, assets, spec, use_comfy, log, seed, prompt=prompt, index=i,
+                                    title=w["title"]))
+            walls[var.v["id"]] = ws[0]
+        else:
+            events.emit("wallpapers", "prompt", variant=var.v["id"], prompt=var.v["wallpaper_prompt"])
+            walls[var.v["id"]] = wallpaper(var, pkg, assets, spec, use_comfy, log, seed)
+    done("wallpapers", sources={k: v[1] for k, v in walls.items()})
+
+    events.begin("icons", style=(plan or {}).get("style"))
+    emblems = {}
+    for var in variants:            # the emblem makes the start-here icon and the splash
+        em = f"{assets}/emblem-{var.v['id']}.png"
         if os.path.exists(em):
             tool = "cache"
         else:
             em, tool = emblem.render(spec["emblem"]["shape"], spec["emblem"]["render"], var.P, em, log=log)
-        if vplan:
-            walls = [wallpaper(var, pkg, assets, spec, use_comfy, log, seed,
-                               prompt=artplan.wallpaper_prompt(w["prompt"], spec.get("_meta", {}).get("request", ""),
-                                                               plan.get("private", False)),
-                               index=i, title=w["title"])
-                     for i, w in enumerate(vplan["wallpapers"])]
-            wall, wsrc = walls[0]
-        else:
-            wall, wsrc = wallpaper(var, pkg, assets, spec, use_comfy, log, seed)
-        icon_theme = icons.build_theme(var, pictures, em, pkg, "breeze-dark" if var.mode == "dark" else "breeze") \
+        emblems[var.v["id"]] = (em, tool)
+    pictures = None
+    if plan and use_comfy:
+        pictures = icons.paint_checked(plan, spec, assets, plan.get("private", False), log=log)
+    icon_themes = {}
+    for var in variants:
+        icon_themes[var.v["id"]] = icons.build_theme(var, pictures, emblems[var.v["id"]][0], pkg,
+                                                     "breeze-dark" if var.mode == "dark" else "breeze") \
             if pictures else None
-        lookandfeel(var, pkg, spec, wall, em, family, icon_theme)
+    done("icons", painted=bool(pictures), left=(plan or {}).get("image_check", {}).get("left"))
+
+    events.begin("splash-boot", plymouth=spec["boot"]["plymouth"], grub=spec["boot"]["grub"],
+                 font=spec["font"], emblem=spec["emblem"])
+    for var in variants:
+        wall, wsrc = walls[var.v["id"]]
+        em, tool = emblems[var.v["id"]]
+        lookandfeel(var, pkg, spec, wall, em, family, icon_themes[var.v["id"]])
         boot.plymouth(var, pkg, spec, wall, em, ttf)
         boot.grub(var, pkg, spec, wall, em, ttf)
-        report["variants"][v["id"]] = {"emblem": tool, "wallpaper": wsrc, "palette": var.P}
-    installers.write_all(spec, pkg, [Variant(spec, v) for v in spec["variants"]])
+        report["variants"][var.v["id"]] = {"emblem": tool, "wallpaper": wsrc, "palette": var.P}
     write(f"{pkg}/spec.json", json.dumps({k: v for k, v in spec.items() if k != "_meta"},
                                          indent=2, ensure_ascii=False) + "\n")
+    done("splash-boot")
     return report

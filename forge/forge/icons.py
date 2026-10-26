@@ -1,10 +1,9 @@
-"""Icon-Theme aus gemalten Cameos.
+"""Icon theme from painted cameos.
 
-Je Symbol ein Bild (ComfyUI, einmal für alle Varianten, zwischengespeichert),
-je Variante ein Rahmen in deren Metallfarbe: dunkle Außenkante, Bevel,
-Nieten, vertieftes Bildfeld. Bitmaps in allen Größen, die Dolphin und das
-Panel anfragen (Type=Fixed); was der Katalog nicht abdeckt, erbt das Theme
-von Breeze.
+One picture per icon (ComfyUI, once for all variants, cached), a frame per
+variant in its metal colour: dark outer edge, bevel, rivets, sunken picture
+field. Bitmaps in all the sizes Dolphin and the panel ask for (Type=Fixed);
+what the catalogue does not cover the theme inherits from Breeze.
 """
 import json
 import os
@@ -12,7 +11,7 @@ import zlib
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
-from . import artplan, comfy, iconset, imgcheck
+from . import artplan, comfy, events, iconset, imgcheck
 from .palette import mix, rgb, shift
 
 CONTEXT_DIR = {"places": "places", "devices": "devices", "apps": "apps", "categories": "categories",
@@ -22,10 +21,10 @@ CONTEXT_NAME = {"places": "Places", "devices": "Devices", "apps": "Applications"
 
 
 def paint_all(plan, request, assets, private, log=print):
-    """Alle Cameo-Bilder malen (fehlende nachholen). Liefert {icon: Pfad}.
+    """Paint all cameo pictures (the missing ones). Returns {icon: path}.
 
-    Neben jedem Bild liegt sein Prompt; ändert sich der (neues Motiv, neue
-    Stilformel), wird neu gemalt — sonst blieben alte Fehlbilder im Cache."""
+    Beside each picture lies its prompt; when that changes (a new motif, a new
+    style formula) it is painted again — else old failures stayed in the cache."""
     out = {}
     os.makedirs(f"{assets}/cameos", exist_ok=True)
     jobs = {}
@@ -40,7 +39,7 @@ def paint_all(plan, request, assets, private, log=print):
             jobs[name] = prompt
         out[name] = dst
     if jobs:
-        log(f"Cameos: {len(jobs)} von {len(iconset.PAINTED)} zu malen")
+        log(f"cameos: {len(jobs)} of {len(iconset.PAINTED)} to paint")
     for i, (name, prompt) in enumerate(jobs.items()):
         retry = plan["icons"][name].get("retry")
         key = name + (f"#{retry}" if retry else "")
@@ -49,15 +48,32 @@ def paint_all(plan, request, assets, private, log=print):
                        log=lambda m, i=i, name=name: log(f"  [{i + 1}/{len(jobs)}] {name}:{m.split(':', 1)[-1]}"))
         with open(dst[:-4] + ".prompt", "w") as f:
             f.write(prompt)
+        events.emit("icons", "painted", icon=name, prompt=prompt, n=i + 1, of=len(jobs))
+        progress_sheet([out[n] for n in list(jobs)[:i + 1]], f"{assets}/progress.png")
     return out
 
 
-def paint_checked(plan, spec, assets, private, log=print, rounds=2):
-    """Malen, prüfen, misslungene Motive vom LLM neu formulieren lassen, neu malen.
+def progress_sheet(paths, dst, cols=8, rows=4, cell=128):
+    """The latest painted icons as one picture (newest top left), for showing
+    beside a screen recording while ComfyUI paints; rewritten after each icon."""
+    sheet = Image.new("RGB", (cols * cell, rows * cell), (24, 24, 24))
+    for k, path in enumerate(reversed(paths[-cols * rows:])):
+        try:
+            im = Image.open(path).convert("RGB").resize((cell - 8, cell - 8))
+        except OSError:
+            continue
+        sheet.paste(im, ((k % cols) * cell + 4, (k // cols) * cell + 4))
+    tmp = dst + ".tmp.png"
+    sheet.save(tmp)
+    os.replace(tmp, dst)          # a viewer never sees a half-written file
 
-    Gesammelt je Runde: erst alle Bilder, dann alle Prüfungen und Reparaturen
-    (LLM), dann alle Neumalungen — so wechselt die Grafikkarte nur zweimal pro
-    Runde zwischen LLM und Bildmodell (gpu.py)."""
+
+def paint_checked(plan, spec, assets, private, log=print, rounds=2):
+    """Paint, check, have failed motifs rewritten by the LLM, paint again.
+
+    Collected per round: first all pictures, then all checks and repairs
+    (LLM), then all repaintings — so the graphics card switches between LLM
+    and image model only twice per round (gpu.py)."""
     request = spec.get("_meta", {}).get("request", "")
     pictures = paint_all(plan, request, assets, private, log)
     history = plan.setdefault("image_fixes", [])
@@ -67,13 +83,13 @@ def paint_checked(plan, spec, assets, private, log=print, rounds=2):
         if not bad:
             break
         if plan.get("style") and not restyled and len(bad) >= 0.4 * len(pictures):
-            # Systematisch: dann liegt es am gemeinsamen Stil, nicht an den Motiven.
+            # Systematic: then the shared style is to blame, not the motifs.
             restyled = True
             seen = [imgcheck.SHOWS[n] for n in bad if n in imgcheck.SHOWS][:12]
-            log(f"Bildprüfung: {len(bad)} von {len(pictures)} auffällig — Stilblatt wird neu geschrieben")
-            feedback = ("ACHTUNG: Mit dem letzten Stilblatt zeigten fast alle Icons dasselbe statt ihres Gegenstands, "
-                        "z. B.: " + " / ".join(seen) + "\nVorheriges Stilblatt: " + json.dumps(plan["style"])
-                        + "\nSchreibe ein Stilblatt, das nur Malweise, Farben, Oberflächen und Licht beschreibt.")
+            log(f"image check: {len(bad)} of {len(pictures)} flawed — rewriting the style sheet")
+            feedback = ("CAUTION: with the last style sheet almost all icons showed the same thing instead of their object, "
+                        "e.g.: " + " / ".join(seen) + "\nPrevious style sheet: " + json.dumps(plan["style"])
+                        + "\nWrite a style sheet that describes only the way of painting, colours, surfaces and light.")
             style, _ = artplan.style_sheet(spec, private, log, seed=8000,
                                            subjects=artplan.scene_subjects(plan), feedback=feedback)
             history.append({"round": r, "restyle": True, "old": plan["style"], "new": style, "seen": seen})
@@ -81,20 +97,20 @@ def paint_checked(plan, spec, assets, private, log=print, rounds=2):
             plan["icons"] = artplan.catalog_motifs(style)
             pictures = paint_all(plan, request, assets, private, log)
             continue
-        log(f"Bildprüfung Runde {r}: {len(bad)} Cameo(s) neu: {', '.join(bad)}")
+        log(f"image check round {r}: {len(bad)} cameo(s) anew: {', '.join(bad)}")
         for name, errs in bad.items():
             entry = plan["icons"][name]
             style = plan.get("style")
             if style and iconset.FAMILY[name] != "object":
-                # Katalog: nur das Zeichen auf Ordner/Blatt wird neu gefasst, die Grundform bleibt.
+                # Catalogue: only the sign on the folder/sheet is rewritten, the basic shape stays.
                 ask = {"source": "catalog", "motif": entry.get("picture") or iconset.PICTURE[name]}
-                errs = errs + ["beschreibe nur das Zeichen, das groß auf dem Ordner/Blatt sitzt (einen einzelnen "
-                               "Gegenstand, 3–12 Wörter), nicht den Ordner/das Blatt selbst"]
+                errs = errs + ["describe only the sign that sits large on the folder/sheet (a single "
+                               "object, 3–12 words), not the folder/sheet itself"]
             else:
                 ask = {"source": entry["source"], "motif": entry["motif"]}
             new = artplan.repair_icon(name, ask, errs, spec, private, seed=7000 + r, log=log, catalog=bool(style))
             if new is None:
-                log(f"  {name}: keine gültige Neufassung — Bild bleibt")
+                log(f"  {name}: no valid rewrite — the picture stays")
                 continue
             if style and iconset.FAMILY[name] != "object":
                 new = dict(new, picture=new["motif"], motif=artplan.compose(name, new["motif"], style))
@@ -105,29 +121,29 @@ def paint_checked(plan, spec, assets, private, log=print, rounds=2):
     else:
         bad = imgcheck.check(pictures, plan["icons"], log)
         if bad:
-            log(f"Bildprüfung: nach {rounds} Runden noch auffällig: {', '.join(bad)}")
+            log(f"image check: still flawed after {rounds} rounds: {', '.join(bad)}")
     plan["image_check"] = {"left": sorted(bad) if bad else [], "vision": imgcheck.LAST_VISION}
     return pictures
 
 
 def _metal(P):
-    """Rahmenfarben aus der Palette: Metall in der Titelfarbe, abgedunkelt."""
+    """Frame colours from the palette: metal in the title colour, darkened."""
     base = mix(P["title_active"], P["surface"], 0.35)
     return {"base": base, "light": shift(base, 0.16), "dark": shift(base, -0.18),
             "edge": mix(P["border"], "#000000", 0.4), "rivet": shift(base, 0.25), "glow": P["glow"]}
 
 
 def frame(picture, P, size):
-    """Ein Cameo in Rahmen, size×size Pixel. Bis 32 px schlicht, darüber mit Nieten."""
+    """A cameo in a frame, size×size pixels. Plain up to 32 px, with rivets above."""
     m = _metal(P)
-    S = size * 4 if size < 64 else size        # Überabtastung für saubere Kanten
+    S = size * 4 if size < 64 else size        # supersampling for clean edges
     im = Image.new("RGBA", (S, S), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     small = size <= 32
     edge = max(1, round(S * (0.03 if small else 0.02)))
     bevel = round(S * (0.07 if small else 0.085))
     d.rectangle([0, 0, S - 1, S - 1], fill=rgb(m["edge"]) + (255,))
-    # Metallplatte mit Licht oben links
+    # metal plate lit from the top left
     inner = [edge, edge, S - 1 - edge, S - 1 - edge]
     d.rectangle(inner, fill=rgb(m["base"]) + (255,))
     d.polygon([(edge, edge), (S - 1 - edge, edge), (S - 1 - edge - bevel, edge + bevel),
@@ -136,11 +152,11 @@ def frame(picture, P, size):
     d.polygon([(S - 1 - edge, S - 1 - edge), (edge, S - 1 - edge), (edge + bevel, S - 1 - edge - bevel),
                (S - 1 - edge - bevel, S - 1 - edge - bevel), (S - 1 - edge - bevel, edge + bevel),
                (S - 1 - edge, edge)], fill=rgb(m["dark"]) + (255,))
-    # Bildfeld, vertieft (dunkle Linie oben/links, helle unten/rechts)
+    # picture field, sunken (a dark line top/left, a light one bottom/right)
     o = edge + bevel
     w = S - 2 * o
     pic = Image.open(picture).convert("RGB")
-    if small:   # klein zählt nur das Motiv in der Mitte, nicht die Szene drumherum
+    if small:   # small, only the motif in the centre counts, not the scene round it
         W, H = pic.size
         pic = pic.crop((W // 8, H // 8, W - W // 8, H - H // 8))
     pic =ImageEnhance.Contrast(pic).enhance(1.08).resize((w, w), Image.LANCZOS)
@@ -162,7 +178,7 @@ def frame(picture, P, size):
 
 
 def build_theme(var, pictures, emblem_png, out, inherit):
-    """Icon-Theme für eine Variante nach out/icons/<Name>Icons."""
+    """The icon theme of a variant into out/icons/<Name>Icons."""
     name = f"{var.camel}Icons"
     base = f"{out}/icons/{name}"
     dirs = set()
@@ -175,7 +191,7 @@ def build_theme(var, pictures, emblem_png, out, inherit):
             os.makedirs(f"{base}/{d}", exist_ok=True)
             for n in [icon] + aliases:
                 img.save(f"{base}/{d}/{n}.png", optimize=True)
-    lines = ["[Icon Theme]", f"Name={var.name}", f"Comment=Cameo-Symbole, generiert von Theme Forge",
+    lines = ["[Icon Theme]", f"Name={var.name}", f"Comment=Cameo icons, generated by Theme Forge",
              f"Inherits={inherit},hicolor", "Example=folder",
              "Directories=" + ",".join(sorted(d for d, _, _ in dirs)), ""]
     for d, size, ctx in sorted(dirs):

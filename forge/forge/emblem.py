@@ -1,8 +1,8 @@
-"""Embleme: eine Geometrie, zwei Renderer.
+"""Emblems: one geometry, two renderers.
 
-Jede Form ist eine Liste einfacher Polygone ohne Löcher (Ringe werden aus
-Vierecken zusammengesetzt). Daraus entsteht entweder ein flaches SVG, das
-Inkscape rastert, oder ein extrudiertes Metallobjekt, das Blender rendert.
+Every shape is a list of simple polygons without holes (rings are put
+together from quadrilaterals). From it comes either a flat SVG that Inkscape
+rasterises, or an extruded metal object that Blender renders.
 """
 import json
 import math
@@ -30,7 +30,7 @@ def _regular(n, r, rot=-90):
 
 
 def shapes(kind):
-    """Polygone im Bereich -1..1, y nach unten."""
+    """Polygons in the range -1..1, y downwards."""
     if kind == "star":
         pts = []
         for i in range(10):
@@ -78,7 +78,7 @@ def shapes(kind):
 
 
 def svg(kind, palette, size=512):
-    """Flaches Emblem: Metallverlauf in Akzentfarbe, dunkle Kontur."""
+    """A flat emblem: a metal gradient in the accent colour, a dark outline."""
     base = palette["accent"]
     hi, lo = shift(base, 0.22), shift(base, -0.22)
     edge = mix(palette["border"], "#000000", 0.3)
@@ -159,7 +159,7 @@ bpy.ops.render.render(write_still=True)
 
 def render_blender(kind, palette, dst, size=512, samples=48):
     if not shutil.which("blender"):
-        raise RuntimeError("blender nicht gefunden")
+        raise RuntimeError("blender not found")
 
     def lin(h):
         from .palette import rgb
@@ -173,15 +173,15 @@ def render_blender(kind, palette, dst, size=512, samples=48):
         r = subprocess.run(["blender", "-b", "--factory-startup", "-P", script, "--", json.dumps(args)],
                            capture_output=True, text=True, timeout=600)
     if r.returncode != 0 or not os.path.exists(dst):
-        raise RuntimeError("Blender-Render fehlgeschlagen: " + (r.stderr or r.stdout)[-800:])
+        raise RuntimeError("Blender render failed: " + (r.stderr or r.stdout)[-800:])
     return dst
 
 
 def render(kind, how, palette, dst, log=print):
-    """Rendert mit dem gewünschten Werkzeug; fällt Blender aus, nimmt Inkscape."""
+    """Renders with the tool asked for; if Blender fails, takes Inkscape."""
     if how == "blender":
         try:
             return render_blender(kind, palette, dst), "blender"
         except Exception as e:  # noqa: BLE001
-            log(f"  Blender ging nicht ({str(e)[:200]}), nehme Inkscape")
+            log(f"  Blender did not work ({str(e)[:200]}), taking Inkscape")
     return render_inkscape(kind, palette, dst), "inkscape"
