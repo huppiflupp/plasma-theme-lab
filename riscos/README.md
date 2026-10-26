@@ -6,6 +6,8 @@ palettes. The iconbar along the bottom, the window frame with RISC OS's
 tools, the three mouse buttons Select, Menu and Adjust, and the command
 line with its star commands.
 
+![RISC Legacy: two Filer windows and the iconbar](screenshots/store/1-filer-iconbar.png)
+
 Not affiliated with RISC OS Open Ltd, RISC OS Developments or Acorn. The
 window tools of RISC OS 4 come from the RISC OS sources, which RISC OS Open
 published under the Apache License 2.0 (`vendor/riscos-open/`, with its
@@ -99,9 +101,20 @@ it alone and says so; the command line is then in the menu.
 
 ## Install
 
+From the release archive (`risc-legacy-<version>.tar.xz`, also the KDE
+Store entry), no Python and no build needed:
+
 ```bash
+tar xf risc-legacy-0.1.0.tar.xz
+cd risc-legacy-0.1.0
 ./install.sh --apply classic --layout   # or 4, 2026, 2026-dark, pi, iyonix, acorn, graphite
 ```
+
+From the sources, `install.sh` builds first (Python 3 with Pillow);
+`python3 package.py` makes the release archive in `dist/`. "Get New…" in
+System Settings › Global Theme installs the classic global theme only;
+`install.sh` in `~/.local/share/plasma/look-and-feel/org.risclegacy.desktop/`
+brings the rest.
 
 `--apply` switches to a variant and sets up the handling above; `--layout`
 also replaces the panels with the iconbar. Every setting it changes is

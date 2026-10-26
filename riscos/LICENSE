@@ -1,0 +1,27 @@
+SPDX-License-Identifier: GPL-2.0-or-later
+
+RISC Legacy source code, generated artwork (icons, wallpapers, window
+frames, the iconbar) and build scripts
+Copyright (C) 2026 RISC Legacy contributors.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+The full license is at https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
+
+Included works under their own licences:
+- The window tools, sprites and stone tiles of RISC OS (vendor/riscos-open):
+  Apache License 2.0, RISC OS Open Ltd, see vendor/riscos-open/LICENSE and
+  vendor/riscos-open/NOTICE.
+- TeX Gyre Heros (fonts/TeXGyreHeros): GUST Font License (LPPL 1.3c), see
+  fonts/TeXGyreHeros/LICENSE-LPPL-1.3c.txt.
+
+Not affiliated with RISC OS Open Ltd, RISC OS Developments or Acorn.
+"RISC OS" is a trademark of RISC OS Developments Ltd.
