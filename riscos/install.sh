@@ -61,6 +61,10 @@ done
 # The Kvantum themes' names before 25.10.2026 (now RiscOS, RiscOS4 …).
 rm -rf "$CONFIG"/Kvantum/RiscLegacy*
 mkdir -p "$CONFIG" && cp -a --remove-destination "$HERE/build/config/." "$CONFIG/"
+# cp -a keeps the source's directory dates; fontconfig judges a directory
+# by its date, so a reinstall could look unchanged to it. Fresh dates, a
+# forced rebuild.
+find "$DATA/fonts/risc-legacy" -type d -exec touch {} + 2>/dev/null || true
 fc-cache -f "$DATA/fonts/risc-legacy" >/dev/null 2>&1 || true
 # The command line's and Task Window's profiles start bash with the star
 # commands from here (build.py writes @DATA@).
@@ -204,4 +208,28 @@ if [ -n "$APPLY" ]; then
     fi
     dbus-send --session --type=method_call --dest=org.kde.KWin /KWin org.kde.KWin.reconfigure 2>/dev/null || true
     echo "Applied $LNF. Log out and back in for every part to take effect."
+fi
+
+# A running plasmashell read the font list once, at its start: fonts put in
+# or replaced under it fell back to Nimbus Sans, and after an uninstall and
+# install the iconbar's text came out as garbled glyphs (Fedora VM,
+# 26.10.2026). Restarted, it reads them afresh. KWin (title bars) takes
+# them at the next login.
+in_session() { [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; }
+if in_session; then
+    if [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private" ] && command -v systemctl >/dev/null 2>&1 \
+       && { systemctl --user -q is-active plasma-plasmashell 2>/dev/null \
+            || systemctl --user -q is-failed plasma-plasmashell 2>/dev/null; }; then
+        # Several restarts in a row (uninstall, then install) ran into
+        # systemd's start limit and left no shell at all (VM, 26.10.2026).
+        systemctl --user reset-failed plasma-plasmashell 2>/dev/null || true
+        systemctl --user restart plasma-plasmashell
+    elif pgrep -xu "$(id -u)" plasmashell >/dev/null 2>&1; then
+        kquitapp6 plasmashell >/dev/null 2>&1
+        for _ in 1 2 3 4 5 6 7 8 9 10; do
+            pgrep -xu "$(id -u)" plasmashell >/dev/null 2>&1 || break
+            sleep 0.5
+        done
+        setsid -f plasmashell >/dev/null 2>&1 </dev/null
+    fi
 fi

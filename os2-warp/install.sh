@@ -199,6 +199,9 @@ if [ -n "$APPLY" ]; then
     # IBM Plex Sans Condensed (fonts/), bold titles. Written here as well:
     # like the widget style, the global theme's fonts did not reach every
     # program from kdedefaults alone.
+    # cp -a keeps the source's directory dates, by which fontconfig judges
+    # a directory: fresh dates, a forced rebuild.
+    find "$DATA/fonts/WarpLegacy" -type d -exec touch {} + 2>/dev/null || true
     fc-cache -f "$DATA/fonts/WarpLegacy" >/dev/null 2>&1 || true
     UI_FONT="IBM Plex Sans Condensed,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
     for key in font menuFont toolBarFont; do
@@ -249,4 +252,28 @@ if [ -n "$APPLY" ]; then
     fi
     echo "Applied. Log out and back in for every part to take effect."
     echo "Firefox (optional): $DATA/warp-legacy/browser/firefox-apply.sh ${VARIANT:-classic}"
+fi
+
+# A running plasmashell read the font list once, at its start: fonts put in
+# or replaced under it came out as garbled glyphs in the taskbar or fell
+# back to another font (Fedora VM, 26.10.2026; after RISC Legacy's
+# install.sh, copied). Restarted, it reads them afresh. KWin (title bars)
+# takes them at the next login.
+in_session() { [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; }
+if in_session; then
+    if [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private" ] && command -v systemctl >/dev/null 2>&1 \
+       && { systemctl --user -q is-active plasma-plasmashell 2>/dev/null \
+            || systemctl --user -q is-failed plasma-plasmashell 2>/dev/null; }; then
+        # Several restarts in a row (uninstall, then install) ran into
+        # systemd's start limit and left no shell at all (VM, 26.10.2026).
+        systemctl --user reset-failed plasma-plasmashell 2>/dev/null || true
+        systemctl --user restart plasma-plasmashell
+    elif pgrep -xu "$(id -u)" plasmashell >/dev/null 2>&1; then
+        kquitapp6 plasmashell >/dev/null 2>&1
+        for _ in 1 2 3 4 5 6 7 8 9 10; do
+            pgrep -xu "$(id -u)" plasmashell >/dev/null 2>&1 || break
+            sleep 0.5
+        done
+        setsid -f plasmashell >/dev/null 2>&1 </dev/null
+    fi
 fi

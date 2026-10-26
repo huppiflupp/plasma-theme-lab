@@ -93,10 +93,8 @@ if [ -f "$STATE/appletsrc.before" ]; then
     fi
     cp -a "$STATE/appletsrc.before" "$CONFIG/plasma-org.kde.plasma.desktop-appletsrc"
     [ -f "$STATE/plasmashellrc.before" ] && cp -a "$STATE/plasmashellrc.before" "$CONFIG/plasmashellrc"
-    case "$running" in
-        systemd) systemctl --user start plasma-plasmashell ;;
-        plain) setsid -f plasmashell >/dev/null 2>&1 </dev/null ;;
-    esac
+    # Started again at the end, once the fonts are gone too: one restart
+    # instead of two.
 fi
 
 if [ -f "$STATE/kvantum.kvconfig.before" ]; then
@@ -165,5 +163,25 @@ done
 rm -f "$DATA/warp-legacy/followed"
 rmdir "$DATA/warp-legacy" 2>/dev/null || true
 rm -rf "$STATE"
+# The fonts are gone: fontconfig and a running plasmashell learn of it (the
+# shell reads the font list only at its start; install.sh).
+fc-cache -f >/dev/null 2>&1 || true
+case "${running:-}" in
+    systemd) systemctl --user reset-failed plasma-plasmashell 2>/dev/null || true
+             systemctl --user start plasma-plasmashell ;;
+    plain) setsid -f plasmashell >/dev/null 2>&1 </dev/null ;;
+esac
+if [ -z "${running:-}" ] && in_session; then
+    if [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private" ] && command -v systemctl >/dev/null 2>&1 \
+       && { systemctl --user -q is-active plasma-plasmashell 2>/dev/null \
+            || systemctl --user -q is-failed plasma-plasmashell 2>/dev/null; }; then
+        # Several restarts in a row (uninstall, then install) ran into
+        # systemd's start limit and left no shell at all (VM, 26.10.2026).
+        systemctl --user reset-failed plasma-plasmashell 2>/dev/null || true
+        systemctl --user restart plasma-plasmashell
+    elif pgrep -xu "$(id -u)" plasmashell >/dev/null 2>&1; then
+        kquitapp6 plasmashell >/dev/null 2>&1; sleep 2; setsid -f plasmashell >/dev/null 2>&1 </dev/null
+    fi
+fi
 command -v systemctl >/dev/null 2>&1 && systemctl --user daemon-reload 2>/dev/null || true
 echo "Warp Legacy removed. Log out and back in for every part to take effect."
