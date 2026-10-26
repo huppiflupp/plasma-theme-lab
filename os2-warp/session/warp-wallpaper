@@ -12,6 +12,12 @@ case "$current" in
     ""|*org.warplegacy.*) ;;
     *) exit 0 ;;
 esac
+# A picture with a night half of its own (images_dark: the raytracing
+# ones) fits both families: Plasma shows the half that suits the colours,
+# and Plasma's day/night switching must not replace it (26.10.2026).
+case "$current" in
+    file://*) [ -d "${current#file://}/contents/images_dark" ] && exit 0 ;;
+esac
 # Within Warp Legacy, keep a picture that already fits the variant, but
 # not another variant's default: from Neon to Neon Blue the violet streaks
 # stayed (VM, 21.10.2026).

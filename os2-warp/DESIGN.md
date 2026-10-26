@@ -266,6 +266,34 @@ crisp at 1× and scale at 2×.
 Wallpaper: our own blue swirl in the manner of Warp 4 (generated), and the
 plain teal of Warp 3.
 
+### Day and night (26.10.2026)
+
+The raytracing pictures (POV-Ray, `tools/raytracing-entwuerfe.py`) come in
+pairs, `images/` by day and `images_dark/` at night with the moon; Plasma
+shows the half that suits the Plasma style.
+
+Plasma's automatic day/night switching swaps global themes. `install.sh
+--apply` sets classic by day and Neon at night (`DefaultLightLookAndFeel`,
+`DefaultDarkLookAndFeel`) when both are installed; the store packages
+bring one family each, and a family alone stays itself day and night.
+The global themes' `[Wallpaper]` is not applied by a switch, and
+`session/warp-wallpaper` keeps a picture with a night half of its own
+instead of handing Neon its default.
+
+`session/warp-legacy-follow` (copied from RISC Legacy's `shell/follow`),
+started by `warp-legacy-follow.path` on every change of kdeglobals, runs
+`warp-legacy-sync` at once (Kvantum, icons and widget style for programs,
+Konsole, LibreOffice, System Monitor, button order) and nudges
+plasmashell: it showed every switch one step late at times (Plasma
+announces the change before kdedefaults is written), so once kdedefaults
+holds the new Plasma style the key is written and removed again in the
+user's plasmarc, both announced. Fedora VM, Plasma 6.7.5: classic ↔ Neon
+six times in a row, each within 2–4 s, the picture kept, no crash.
+
+Seen once and not again: after about ten quick switches in the shell that
+`install.sh --layout` had just started, the taskbar's window titles came
+out as garbled glyphs; restarting plasmashell cured it.
+
 ## 10. Open questions for the user
 
 - The published name (trademarks, §1).

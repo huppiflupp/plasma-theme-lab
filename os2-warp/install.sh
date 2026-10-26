@@ -80,6 +80,7 @@ done
 rm -rf "$CONFIG/Kvantum/WarpLegacy" "$CONFIG/Kvantum/WarpLegacyNeon"
 mkdir -p "$CONFIG" && cp -a --remove-destination "$HERE/build/config/." "$CONFIG/"
 sed -i "s|@SYNC@|$DATA/warp-legacy/warp-legacy-sync|" "$CONFIG/autostart/warp-legacy-sync.desktop"
+sed -i "s|@FOLLOW@|$DATA/warp-legacy/warp-legacy-follow|" "$CONFIG/systemd/user/warp-legacy-follow.service"
 echo "Installed $(cat "$STATE/files" "$STATE/config-files" | wc -l) files"
 if ! command -v kvantummanager >/dev/null 2>&1; then
     echo "Note: Kvantum is not installed; programs keep their own style (package: kvantum)." >&2
@@ -93,6 +94,8 @@ kdeglobals	General	fixed
 kdeglobals	WM	activeFont
 kdeglobals	KDE	widgetStyle
 kdeglobals	KDE	LookAndFeelPackage
+kdeglobals	KDE	DefaultLightLookAndFeel
+kdeglobals	KDE	DefaultDarkLookAndFeel
 kdeglobals	Icons	Theme
 kwinrc	org.kde.kdecoration2	library
 kwinrc	org.kde.kdecoration2	theme
@@ -120,13 +123,21 @@ record() {
     done <<< "$SETTINGS" > "$STATE/settings.before"
 }
 # A record from an older install lacks the keys added since: the cursor
-# theme (21.10.2026). Recorded now, unless it is already Warp Legacy's.
+# theme (21.10.2026), the day/night themes (26.10.2026). Recorded now,
+# unless they are already Warp Legacy's.
 complete_record() {
     [ -f "$STATE/settings.before" ] || return
-    grep -q $'^kcminputrc\tMouse\tcursorTheme\t' "$STATE/settings.before" && return
-    value=$(kreadconfig6 --file kcminputrc --group Mouse --key cursorTheme --default "$UNSET")
-    case "$value" in WarpLegacy*) value=$UNSET ;; esac
-    printf '%s\t%s\t%s\t%s\n' kcminputrc Mouse cursorTheme "$value" >> "$STATE/settings.before"
+    if ! grep -q $'^kcminputrc\tMouse\tcursorTheme\t' "$STATE/settings.before"; then
+        value=$(kreadconfig6 --file kcminputrc --group Mouse --key cursorTheme --default "$UNSET")
+        case "$value" in WarpLegacy*) value=$UNSET ;; esac
+        printf '%s\t%s\t%s\t%s\n' kcminputrc Mouse cursorTheme "$value" >> "$STATE/settings.before"
+    fi
+    for key in DefaultLightLookAndFeel DefaultDarkLookAndFeel; do
+        grep -q $'^kdeglobals\tKDE\t'"$key"$'\t' "$STATE/settings.before" && continue
+        value=$(kreadconfig6 --file kdeglobals --group KDE --key "$key" --default "$UNSET")
+        case "$value" in org.warplegacy.*) value=$UNSET ;; esac
+        printf '%s\t%s\t%s\t%s\n' kdeglobals KDE "$key" "$value" >> "$STATE/settings.before"
+    done
 }
 if [ -n "$APPLY" ]; then
     record
@@ -198,6 +209,24 @@ if [ -n "$APPLY" ]; then
     # The variant's wallpaper (session/warp-wallpaper): without --layout the
     # global theme left the other variant's picture in place.
     [ -z "$LAYOUT" ] && sh "$DATA/warp-legacy/warp-wallpaper" "$PICTURE"
+    # Day and night (DESIGN.md, day and night): Plasma's automatic
+    # switching goes from classic by day to Neon at night and back, when
+    # both are installed (the store packages bring one family each; alone,
+    # a variant stays itself day and night). The pictures with a night half
+    # (the raytracing ones) stay and show it; session/warp-legacy-follow
+    # completes each switch.
+    installed() { [ -d "$DATA/plasma/look-and-feel/$1" ]; }
+    case "$VARIANT" in
+        "") DAY=$LNF; NIGHT=$LNF; installed org.warplegacy.neon.desktop && NIGHT=org.warplegacy.neon.desktop ;;
+        *)  NIGHT=$LNF; DAY=$LNF; installed org.warplegacy.desktop && DAY=org.warplegacy.desktop ;;
+    esac
+    kwriteconfig6 --file kdeglobals --group KDE --key DefaultLightLookAndFeel "$DAY"
+    kwriteconfig6 --file kdeglobals --group KDE --key DefaultDarkLookAndFeel "$NIGHT"
+    printf '%s\n' "$LNF" > "$DATA/warp-legacy/followed"
+    if [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private" ] && command -v systemctl >/dev/null 2>&1; then
+        systemctl --user daemon-reload
+        systemctl --user enable --now warp-legacy-follow.path >/dev/null 2>&1 || true
+    fi
     # Four workspaces, as the Control Strip shows them; KWin ignores
     # [Desktops] Number from the global theme, so they are created here.
     count=$(dbus-send --session --print-reply --dest=org.kde.KWin /VirtualDesktopManager \

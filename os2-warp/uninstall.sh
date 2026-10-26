@@ -12,6 +12,11 @@ STATE="$DATA/warp-legacy-install"
 UNSET=$'\x01unset'
 [ -f "$STATE/files" ] || { echo "Warp Legacy is not installed." >&2; exit 1; }
 in_session() { [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] && [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; }
+# The day/night follower first, so that restoring the settings below does
+# not wake it.
+if [ -S "${XDG_RUNTIME_DIR:-/nonexistent}/systemd/private" ] && command -v systemctl >/dev/null 2>&1; then
+    systemctl --user disable --now warp-legacy-follow.path >/dev/null 2>&1 || true
+fi
 # LibreOffice's colours come out only while it is closed (it writes its
 # configuration back on exit), so nothing is touched before that.
 LO_APPLY="$DATA/warp-legacy/libreoffice/libreoffice-apply"
@@ -156,5 +161,9 @@ rmdir "$DATA/warp-legacy" 2>/dev/null || true
 for dir in "$DATA"/plasma/look-and-feel/org.warplegacy.*; do
     [ -d "$dir" ] && [ ! -f "$dir/metadata.json" ] && rm -rf -- "$dir"
 done
+# What the follower wrote while in use.
+rm -f "$DATA/warp-legacy/followed"
+rmdir "$DATA/warp-legacy" 2>/dev/null || true
 rm -rf "$STATE"
+command -v systemctl >/dev/null 2>&1 && systemctl --user daemon-reload 2>/dev/null || true
 echo "Warp Legacy removed. Log out and back in for every part to take effect."

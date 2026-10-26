@@ -425,6 +425,16 @@ def session():
     shutil.copy2(ROOT / "session/warp-wallpaper", target.parent / "warp-wallpaper")
     shutil.copy2(ROOT / "session/warp-legacy-sysmon", target.parent / "warp-legacy-sysmon")
     shutil.copy2(ROOT / "session/warp-legacy-switch", target.parent / "warp-legacy-switch")
+    # The follower (session/warp-legacy-follow): after Plasma's day/night
+    # switching, warp-legacy-sync at once and a nudge for plasmashell.
+    shutil.copy2(ROOT / "session/warp-legacy-follow", target.parent / "warp-legacy-follow")
+    write("config/systemd/user/warp-legacy-follow.path",
+          "[Unit]\nDescription=Warp Legacy: follow a change of the global theme\n\n"
+          "[Path]\nPathChanged=%h/.config/kdeglobals\n\n[Install]\nWantedBy=default.target\n")
+    write("config/systemd/user/warp-legacy-follow.service",
+          "[Unit]\nDescription=Warp Legacy: complete a switch of the global theme\n\n"
+          # The path is put in by install.sh, as for autostart.
+          "[Service]\nType=oneshot\nExecStart=@FOLLOW@\n")
     # One line per variant: the look-and-feel id, then the chart colours.
     write("warp-legacy/sysmon-colors",
           "".join(f"{ids(v)['lnf']} {' '.join(v['sysmon'])}\n" for v in VARIANTS))

@@ -1,0 +1,44 @@
+#!/bin/sh
+# Complete a switch of the global theme made by Plasma itself: its day/night
+# switching (install.sh sets classic by day and Neon at night when both are
+# installed) or System Settings › Global Theme. After RISC Legacy's
+# riscos/shell/follow (copied, 26.10.2026; nothing of riscos/ is used).
+#
+# Two things the switch leaves undone:
+#  - what warp-legacy-sync does at login (Kvantum, icons and widget style
+#    for programs, Konsole, LibreOffice, System Monitor, button order, the
+#    wallpaper): run it now, not only at the next login;
+#  - plasmashell (panels, the wallpaper's night half) showed the theme
+#    before the switch: Plasma announces the change before kdedefaults is
+#    written, so the shell reads the old values (Fedora VM, Plasma 6.7.5,
+#    26.10.2026). Once kdedefaults holds the new Plasma style, the key is
+#    written and removed again in the user's plasmarc, both announced: the
+#    shell re-reads, and no user key is left to override the next switch.
+#
+# Started by warp-legacy-follow.path whenever kdeglobals changes; does
+# nothing unless the global theme is a Warp Legacy one it has not followed
+# yet (warp-legacy-sync writes kdeglobals too and wakes it again).
+DATA="${XDG_DATA_HOME:-$HOME/.local/share}"
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
+DONE="$DATA/warp-legacy/followed"
+here=$(dirname "$0")
+
+lnf=$(kreadconfig6 --file kdeglobals --group KDE --key LookAndFeelPackage)
+case "$lnf" in
+    org.warplegacy.neon.desktop) style=warp-legacy-neon ;;
+    org.warplegacy.neon-blue.desktop) style=warp-legacy-neon-blue ;;
+    org.warplegacy.desktop) style=warp-legacy ;;
+    *) exit 0 ;;
+esac
+[ "$(cat "$DONE" 2>/dev/null)" = "$lnf" ] && exit 0
+printf '%s\n' "$lnf" > "$DONE"
+
+for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+    grep -qx "name=$style" "$CONFIG/kdedefaults/plasmarc" 2>/dev/null && break
+    sleep 0.5
+done
+sh "$here/warp-legacy-sync"
+sleep 1
+kwriteconfig6 --file plasmarc --group Theme --key name "$style" --notify
+kwriteconfig6 --file plasmarc --group Theme --key name --delete --notify
+exit 0
