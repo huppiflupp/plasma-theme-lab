@@ -20,8 +20,8 @@ import "launch.js" as Launch
 // brings its window forward or iconises it when it is in front; Menu
 // (middle) opens the program's menu, titled with its name (Info, New
 // window, Iconise, Quit); Adjust (right) opens another window, as Adjust
-// opens a second view. On Apps, Select opens the applications as a Filer
-// window (RISC OS's Apps directory), Menu the cascading menu.
+// opens a second view. On Apps, Select and Menu open the cascading menu,
+// Adjust the applications as a Filer window (RISC OS's Apps directory).
 PlasmoidItem {
     id: root
     preferredRepresentation: fullRepresentation
@@ -50,6 +50,13 @@ PlasmoidItem {
     }
     function run(shell) { runner.connectSource(Launch.detached(shell)); }
     function launch(command) { run(Launch.resolve(command, root.tr)); }
+    // A Filer window: every directory its own window, as in RISC OS; a
+    // running Dolphin would otherwise take it as a tab.
+    function filer(path) {
+        run("if [ \"$(xdg-mime query default inode/directory)\" = org.kde.dolphin.desktop ]"
+            + " && command -v dolphin >/dev/null 2>&1; then dolphin --new-window " + Launch.argument(path)
+            + "; else " + Launch.resolve("@files " + path, root.tr) + "; fi");
+    }
 
     TaskManager.VirtualDesktopInfo { id: desktops }
     TaskManager.ActivityInfo { id: activities }
@@ -109,13 +116,13 @@ PlasmoidItem {
                 iconName: "drive-harddisk"; text: root.tr("Discs")
                 size: bar.icon; labelHeight: bar.label
                 tip: root.tr("The root file system")
-                onSelect: root.launch("@files /")
+                onSelect: root.filer("/")
             }
             IconbarItem {
                 iconName: "user-home"; text: root.tr("Home")
                 size: bar.icon; labelHeight: bar.label
                 tip: root.tr("Your home folder")
-                onSelect: root.launch("@files ~")
+                onSelect: root.filer("~")
             }
             Repeater {
                 model: media
@@ -125,7 +132,7 @@ PlasmoidItem {
                     iconName: "drive-removable-media"; text: fileName
                     size: bar.icon; labelHeight: bar.label
                     visible: filePath.indexOf("/run/media/") === 0
-                    onSelect: root.launch("@files " + filePath)
+                    onSelect: root.filer(filePath)
                 }
             }
             IconbarItem {
@@ -134,11 +141,11 @@ PlasmoidItem {
                 iconName: "applications-all"; fallback: "applications-other"
                 text: root.tr("Apps")
                 size: bar.icon; labelHeight: bar.label
-                tip: root.tr("Select: the applications as a Filer window. Menu: programs, settings, folders; type to find a program")
+                tip: root.tr("Programs, settings, folders; type to find a program. Right button: the applications as a Filer window")
                 active: menu.visible
-                onSelect: root.launch("@files applications:/")
+                onSelect: menu.visible ? menu.close() : menu.open(apps)
                 onMenu: menu.visible ? menu.close() : menu.open(apps)
-                onAdjust: menu.visible ? menu.close() : menu.open(apps)
+                onAdjust: root.filer("applications:/")
             }
 
             Item { Layout.fillWidth: true }

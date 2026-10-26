@@ -155,7 +155,7 @@ What RISC Legacy takes over:
 | RISC OS | here |
 |---|---|
 | Select / Menu / Adjust on iconbar icons | open or iconise / the program's menu with its name as title (New window, Iconise, Quit) / another window |
-| Apps | Select: the applications as a Filer window (`applications:/`); Menu: the cascading menu |
+| Apps | Select and Menu: the cascading menu; Adjust: the applications as a Filer window (`applications:/`) |
 | Menu on the desktop (Pinboard) | the desktop's menu (`ActionPlugins/0 MiddleButton`) |
 | Menu on a title bar | the window's menu (`CommandActiveTitlebar2`) |
 | Filer: double-click, a window per directory | `SingleClick=false`, Dolphin opens folders from outside in a new window |

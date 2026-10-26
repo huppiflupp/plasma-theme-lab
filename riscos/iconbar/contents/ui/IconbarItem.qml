@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls as QQC2
+import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
 
 // One icon on the iconbar: the picture, its name below. RISC OS shows no
@@ -56,16 +56,20 @@ Item {
         font.family: Kirigami.Theme.defaultFont.family
         font.pixelSize: Math.max(9, Math.round(item.labelHeight * 0.78))
     }
-    MouseArea {
-        id: mouse
+    // Plasma's tooltip: a window of its own beside the panel. A QQC2
+    // tooltip stays inside the panel window, lies over the icons and
+    // swallows the next click.
+    PlasmaCore.ToolTipArea {
         anchors.fill: parent
-        // RISC OS's buttons: Select (left), Menu (middle), Adjust (right).
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-        hoverEnabled: true
-        onClicked: mouse => mouse.button === Qt.MiddleButton ? item.menu()
-                          : mouse.button === Qt.RightButton ? item.adjust() : item.select()
+        mainText: item.tip
+        active: item.tip !== ""
+        MouseArea {
+            id: mouse
+            anchors.fill: parent
+            // RISC OS's buttons: Select (left), Menu (middle), Adjust (right).
+            acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+            onClicked: mouse => mouse.button === Qt.MiddleButton ? item.menu()
+                              : mouse.button === Qt.RightButton ? item.adjust() : item.select()
+        }
     }
-    QQC2.ToolTip.visible: mouse.containsMouse && item.tip !== ""
-    QQC2.ToolTip.text: item.tip
-    QQC2.ToolTip.delay: 700
 }
