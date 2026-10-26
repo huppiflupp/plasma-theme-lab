@@ -21,6 +21,12 @@ set -euo pipefail
 APPLY=; VARIANT=classic; LAYOUT=
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 [ -d "$HERE/build" ] || python3 "$HERE/build.py"
+# The release archive carries the icons as one inner tar (package.py): the
+# store's "Get New…" copies a package file by file, and the 16,000 icon
+# files alone took it eight minutes (VM, 26.10.2026).
+if [ -f "$HERE/icons.tar" ] && [ ! -d "$HERE/build/icons" ]; then
+    tar -xf "$HERE/icons.tar" -C "$HERE/build"
+fi
 TABLE="$HERE/build/risc-legacy/variants"
 for arg in "$@"; do
     case "$arg" in

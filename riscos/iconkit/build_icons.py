@@ -105,31 +105,27 @@ def build(out, worlds=("ro4", "ro5"), report=True, only=None):
                 drawn += 1
                 prints[fingerprint(large)].append(name)
                 small_prints[fingerprint(small)].append(name)
-                for sub, svg in (("scalable", large), ("16", small), ("22", small)):
+                for sub, svg in (("scalable", large), ("16", small)):
                     d = base / sub / cat
                     d.mkdir(parents=True, exist_ok=True)
-                    if sub == "22":
-                        # The same small drawing as 16: a link, not a copy.
-                        target = d / f"{name}.svg"
-                        if not target.exists():
-                            target.symlink_to(f"../../16/{cat}/{name}.svg")
-                    else:
-                        (d / f"{name}.svg").write_text(svg)
+                    (d / f"{name}.svg").write_text(svg)
                     for s in synonyms:
                         link = d / f"{s}.svg"
                         if not link.exists():
                             link.symlink_to(f"{name}.svg")
-                # Fixed sizes as links to the scalable drawing: KIconLoader
-                # looks for an exact size through the whole theme chain
-                # before it takes a scalable folder, so Breeze's 32 px won
-                # over ours (Dolphin, VM 25.10.2026).
-                for size in LARGE_SIZES:
-                    d = base / str(size) / cat
-                    d.mkdir(parents=True, exist_ok=True)
-                    for n in [name] + synonyms:
-                        link = d / f"{n}.svg"
-                        if not link.exists():
-                            link.symlink_to(f"../../scalable/{cat}/{n}.svg")
+            # Fixed sizes as links to the scalable drawings: KIconLoader
+            # looks for an exact size through the whole theme chain before
+            # it takes a scalable folder, so Breeze's 32 px won over ours
+            # (Dolphin, VM 25.10.2026). 22 is the same small drawing as 16.
+            # One link per folder, not per file: 69,000 file links made
+            # kpackagetool (the store's "Get New…") take over a quarter of
+            # an hour to unpack the release archive (VM, 26.10.2026).
+            if drawn:
+                for size, to in [("22", "16")] + [(str(s), "scalable") for s in LARGE_SIZES]:
+                    d = base / size / cat
+                    d.parent.mkdir(parents=True, exist_ok=True)
+                    if not d.is_symlink():
+                        d.symlink_to(f"../{to}/{cat}")
             coverage[cat] = (drawn, len(meanings))
             if drawn:
                 dirs += [(f"16/{cat}", 16, "Fixed"), (f"22/{cat}", 22, "Fixed")]

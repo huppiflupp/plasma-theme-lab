@@ -7,7 +7,10 @@ the themes share no files).
 One archive, one KDE Store entry (STORE.md): the built theme with all
 eight variants, the wallpapers and the fonts, with install.sh and
 uninstall.sh. Unpacked, `./install.sh --apply classic --layout` needs
-neither Python nor a build. The sources (iconkit/, the wallpaper sources,
+neither Python nor a build. The icons go in as one inner tar, icons.tar,
+which install.sh unpacks into build/ the first time: "Get New…" copies a
+package file by file, syncing each, and the 16,000 icon files alone took
+it eight minutes in the VM (26.10.2026); without them it is ~1,000 files. The sources (iconkit/, the wallpaper sources,
 vendor/) stay in the repository, which is where a rebuild starts; the
 licences of what the build takes from them go into the archive.
 
@@ -19,6 +22,7 @@ its preview; install.sh in that folder brings the rest (Warp Legacy's
 package.py, NT Legacy 0.2.3).
 """
 import hashlib
+import io
 import subprocess
 import sys
 import tarfile
@@ -64,7 +68,15 @@ with tarfile.open(archive, "w:xz", preset=6, format=tarfile.GNU_FORMAT) as tar:
     theme = BUILD / "plasma/look-and-feel" / LNF
     tar.add(theme / "metadata.json", arcname=f"{top}/metadata.json", filter=keep)
     tar.add(theme / "contents", arcname=f"{top}/contents", filter=keep)
-    tar.add(BUILD, arcname=f"{top}/build", filter=keep)
+    tar.add(BUILD, arcname=f"{top}/build",
+            filter=lambda info: None if info.name.startswith(f"{top}/build/icons") else keep(info))
+    inner = io.BytesIO()
+    with tarfile.open(fileobj=inner, mode="w", format=tarfile.GNU_FORMAT) as icons:
+        icons.add(BUILD / "icons", arcname="icons", filter=keep)
+    info = tarfile.TarInfo(f"{top}/icons.tar")
+    info.size, info.mode, info.mtime = inner.tell(), 0o644, (BUILD / "icons").stat().st_mtime
+    inner.seek(0)
+    tar.addfile(keep(info), inner)
     for item in ITEMS:
         tar.add(ROOT / item, arcname=f"{top}/{item}", filter=keep)
     tar.add(ROOT / "previews/classic.png", arcname=f"{top}/preview.png", filter=keep)

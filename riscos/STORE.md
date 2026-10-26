@@ -1,6 +1,7 @@
 # KDE Store (draft)
 
-Not uploaded yet (26.10.2026). One entry, like Warp Legacy: the global
+Not uploaded yet (26.10.2026); sources and release on GitHub:
+https://github.com/huppiflupp/risc-legacy. One entry, like Warp Legacy: the global
 theme with install.sh beside it, all variants and wallpapers inside.
 
 | Entry | File | Category |
