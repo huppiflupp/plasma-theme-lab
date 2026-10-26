@@ -14,6 +14,8 @@ import importlib.util
 import json
 import shutil
 import sys
+
+from PIL import Image
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -298,6 +300,28 @@ PICTURES = (
     ("iyonix-glas", "Iyonix Glass", "Light through frosted glass, ice blue by day, deep blue by night"),
     ("eicheln", "Acorns", "Oak leaves and acorns on moss"),
     ("schiefer", "Slate", "Slate, silver grey by day, dark by night"),
+    # The ray-traced pictures (POV-Ray, the user's choice of 26.10.2026):
+    # copies of Warp Legacy's (os2-warp/wallpapers, made with
+    # os2-warp/tools/raytracing-drafts.py; nothing of os2-warp/ is used at
+    # build time). A change there is copied here deliberately.
+    ("raytracing-chrome", "Chrome Spheres", "Chrome spheres and glass pyramids on a chessboard"),
+    ("raytracing-chrome-morning", "Chrome Spheres, Morning", "The chrome spheres in the morning sun"),
+    ("raytracing-chrome-evening", "Chrome Spheres, Evening", "The chrome spheres at sunset, and by moonlight"),
+    ("raytracing-sphere-row", "Row of Spheres", "Chrome spheres growing smaller towards the horizon"),
+    ("raytracing-star-polyhedron", "Stellated Dodecahedron", "A chrome star polyhedron floating over the board"),
+    ("raytracing-solids", "Ray-Traced Solids", "Cube, cone, torus and a glass cylinder"),
+    ("raytracing-glass-pyramids", "Glass Pyramids", "A field of glass pyramids"),
+    ("raytracing-rings", "Linked Rings", "Two linked rings floating, chrome and gold"),
+    ("raytracing-lipizzaner-noon", "Lipizzaner, Noon", "A marble Lipizzaner in a levade on its plinth"),
+    ("raytracing-lipizzaner-evening", "Lipizzaner, Evening", "The marble Lipizzaner at sunset"),
+    ("raytracing-lipizzaner-moonlight", "Lipizzaner by Moonlight", "The marble Lipizzaner by moonlight, in the morning by day"),
+    ("raytracing-lipizzaner-spheres", "Lipizzaner with Spheres", "The Lipizzaner between two chrome spheres"),
+    ("raytracing-grid", "Green Grid", "Chrome spheres on a green wireframe grid"),
+    ("raytracing-grid-evening", "Green Grid, Evening", "Glass pyramids on the green grid at sunset"),
+    ("raytracing-ensemble", "Ensemble", "The Lipizzaner, polyhedra and a floating sphere"),
+    ("raytracing-singularity-phi", "Singularity with Phi", "The board runs into a singularity, a golden phi above it"),
+    ("raytracing-singularity-spheres", "Singularity with Spheres", "Spheres rolling into a deep singularity"),
+    ("raytracing-singularity", "Singularity", "Only the singularity and a chrome phi, a fine board"),
 )
 
 
@@ -308,9 +332,12 @@ def wallpapers():
         id_ = f"org.risclegacy.{stem}"
         write(f"wallpapers/{id_}/metadata.json", json.dumps(metadata(id_, name, description + ", light and dark"), indent=2))
         for sub, suffix in (("images", ""), ("images_dark", "-dark")):
-            target = OUT / f"wallpapers/{id_}/contents/{sub}/1920x1080.jpg"
+            source = ROOT / f"wallpapers/{stem}{suffix}.jpg"
+            with Image.open(source) as im:
+                size = f"{im.width}x{im.height}"   # Plasma picks by the name
+            target = OUT / f"wallpapers/{id_}/contents/{sub}/{size}.jpg"
             target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(ROOT / f"wallpapers/{stem}{suffix}.jpg", target)
+            shutil.copy2(source, target)
 
 
 def lookandfeel(v):

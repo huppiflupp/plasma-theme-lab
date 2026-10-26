@@ -1,0 +1,40 @@
+{
+  "renderer": "POV-Ray 3.7.0.10.unofficial",
+  "script": "os2-warp/tools/raytracing-drafts.py",
+  "draft": "39",
+  "scene": "Only the singularity, a large chrome phi behind on the right, a small sphere in front, a very fine board, noon (calm)",
+  "time_of_day": "noon",
+  "moon": null,
+  "floor": "funnel",
+  "floor_args": {
+    "depth": 1.4,
+    "cell": 0.4,
+    "at": [
+      0,
+      9
+    ]
+  },
+  "camera": {
+    "loc": [
+      0,
+      2.4,
+      -9
+    ],
+    "at": [
+      0,
+      0.8,
+      12
+    ],
+    "angle": 50
+  },
+  "size": [
+    3840,
+    2160
+  ],
+  "antialias": "+A0.02 +AM2 +R5 +J0.8",
+  "jpeg_quality": 88,
+  "seed": null,
+  "seconds": 25.7,
+  "host": "245k (Intel Core Ultra 5 245K, 14 threads, CPU)",
+  "source": "wallpaper/warp-legacy/raytracing/final/raytracing-singularity.pov"
+}

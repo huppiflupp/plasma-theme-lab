@@ -189,6 +189,14 @@ invent new veins), a scene graded and then worked over by the model at low
 denoise (the light in the sky), so the switch changes the light, not the
 place. Quiet surfaces only: the granite of 0.1 was too busy.
 
+Besides these, the 18 ray-traced pictures (POV-Ray: chrome spheres,
+polyhedra, the marble Lipizzaner, singularities, each with a moonlit
+night) are copies of Warp Legacy's (`os2-warp/wallpapers/raytracing-*`,
+made with `os2-warp/tools/raytracing-drafts.py`); a change there is
+copied here deliberately. The Lipizzaner is a scan from the Georgia Tech
+Large Geometric Models Archive, which states no terms (see the JSON
+records).
+
 Plasma's day/night switching swaps global themes; `install.sh --apply`
 sets the variant and its partner (`DefaultLightLookAndFeel`,
 `DefaultDarkLookAndFeel`): 2026 ↔ 2026 Dark, Graphite at night for the
