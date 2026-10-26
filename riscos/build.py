@@ -400,7 +400,7 @@ def shell():
     lays the command line along the bottom and the shortcuts."""
     shutil.copytree(ROOT / "shell", OUT / "risc-legacy/shell", dirs_exist_ok=True)
     # The follower (shell/follow, DESIGN.md §10): after Plasma's day/night
-    # switching, the parts the global theme leaves out. kdeglobals is
+    # switching, the Kvantum theme the global theme cannot set. kdeglobals is
     # written whenever the global theme changes.
     write("config/systemd/user/risclegacy-follow.path", """[Unit]
 Description=RISC Legacy: follow a change of the global theme

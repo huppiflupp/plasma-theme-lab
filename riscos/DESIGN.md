@@ -163,6 +163,8 @@ What RISC Legacy takes over:
 | Ctrl+F12 Task Window | Konsole profile "RISC Legacy Task Window", black on white; Plasma's "show desktop dashboard" gives Ctrl+F12 up |
 | star commands | `shell/starrc` on bash: only words with `*` are RISC OS commands (`*Cat` lists, `cat` stays Unix's), as aliases so a file named like a command is not globbed |
 
+The star commands for users, with where they come from: README.md.
+
 Not taken over: saving by dragging (every program's own save dialog
 would have to take part) and Menu inside other programs' windows (their
 own middle-button use). install.sh records every setting it changes;
@@ -193,8 +195,18 @@ sets the variant and its partner (`DefaultLightLookAndFeel`,
 other light variants, Classic by day for Graphite. The global themes
 carry no `[Wallpaper]`, so a switch keeps the desktop's picture. The
 follower (`shell/follow`, started by `risclegacy-follow.path` on every
-change of kdeglobals) puts in what the global theme leaves out: Kvantum,
-the frame, icons, Plasma style.
+change of kdeglobals) puts in what the global theme cannot reach: the
+Kvantum theme. Plasma 6.7 writes the rest of a global theme (colours,
+frame, icons, Plasma style) into `~/.config/kdedefaults` and removes the
+user's own keys for them. One more thing the follower does: plasmashell
+showed every switch one step late (Plasma announces the change before
+kdedefaults is written). Once kdedefaults holds the new Plasma style, the
+follower writes and removes that key in the user's plasmarc, both
+announced; the shell re-reads and the iconbar and the wallpaper's night
+half follow within two seconds (six switches in a row, 26.10.2026). Without
+the follower (no systemd user manager) the desktop lags one switch. Programs started outside the session's
+environment (over SSH) miss kdedefaults and look like Breeze — a test
+artefact, not a fault.
 
 Contrast: `tools/contrast-sheet.py` lays the desktop icons on every
 picture and measures how much of each icon's outline ring disappears.

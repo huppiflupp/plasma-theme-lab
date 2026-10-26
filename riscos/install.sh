@@ -168,7 +168,7 @@ if [ -n "$APPLY" ]; then
     # Day and night (DESIGN.md §10): Plasma's automatic switching (Quick
     # Settings or System Settings › Global Theme) swaps to the variant's
     # partner, the picture shows its night half by itself, and the
-    # follower puts in Kvantum, the frame and the icons after each switch.
+    # follower puts in the Kvantum theme after each switch.
     kwriteconfig6 --file kdeglobals --group KDE --key DefaultLightLookAndFeel "$DAY"
     kwriteconfig6 --file kdeglobals --group KDE --key DefaultDarkLookAndFeel "$NIGHT"
     printf '%s\n' "$LNF" > "$DATA/risc-legacy/followed"
@@ -176,7 +176,7 @@ if [ -n "$APPLY" ]; then
         systemctl --user daemon-reload
         systemctl --user enable --now risclegacy-follow.path >/dev/null 2>&1 || true
     else
-        echo "Note: without a systemd user manager the day/night switch changes the colours, not Kvantum and the frame." >&2
+        echo "Note: without a systemd user manager the day/night switch changes everything but the programs' Kvantum style." >&2
     fi
     # ---- RISC OS's handling (DESIGN.md §9) ---------------------------
     # Double-click opens, as in RISC OS's Filer, and every folder opened

@@ -2,11 +2,19 @@
 # RISC Legacy: complete a switch of the global theme (DESIGN.md §10).
 #
 # Plasma's day/night switching (and System Settings › Global Theme) applies
-# a global theme, but leaves out what RISC Legacy needs besides: the Kvantum
-# theme lives in Kvantum's own file, and the QML decoration, the icons and
-# the Plasma style did not always arrive from the theme's defaults (Fedora
-# VM, 25.10.2026; install.sh writes them for the same reason). This puts
-# them in after the switch, from the variant table.
+# a global theme: colours, frame, icons and Plasma style go into
+# ~/.config/kdedefaults, and the user's own keys for them are removed
+# (Plasma 6.7, Fedora VM, 26.10.2026). The Kvantum theme lives in Kvantum's
+# own file, out of the global theme's reach: this sets it to the variant's,
+# from the variant table.
+#
+# And plasmashell (iconbar, wallpaper) showed the theme before the switch:
+# Plasma announces the change before kdedefaults is written, so the shell
+# reads the old values — every switch showed the previous one (Fedora VM,
+# 26.10.2026). Once kdedefaults holds the variant's Plasma style, the key
+# is written and removed again in the user's plasmarc, both announced: two
+# changes the shell cannot miss (an unchanged value would announce
+# nothing), and no user key is left to override the next switch.
 #
 # Started by risclegacy-follow.path whenever kdeglobals changes; does
 # nothing unless the global theme is a RISC Legacy one that it has not
@@ -21,26 +29,19 @@ case "$lnf" in org.risclegacy.*) ;; *) exit 0 ;; esac
 [ "$(cat "$DONE" 2>/dev/null)" = "$lnf" ] && exit 0
 row=$(awk -F'\t' -v l="$lnf" '$2 == l' "$TABLE" 2>/dev/null)
 [ -n "$row" ] || exit 0
+kvantum=$(printf '%s\n' "$row" | cut -f3)
+style=$(printf '%s\n' "$row" | cut -f8)
 
-tab=$(printf '\t')
-IFS="$tab" read -r _ _ kvantum icons _ decoration scheme style _ _ <<EOF
-$row
-EOF
-# First, so that the writes below (kdeglobals again) end at the check above.
 printf '%s\n' "$lnf" > "$DONE"
 if [ -f "$CONFIG/Kvantum/kvantum.kvconfig" ] || command -v kvantummanager >/dev/null 2>&1; then
     mkdir -p "$CONFIG/Kvantum"
     kwriteconfig6 --file "$CONFIG/Kvantum/kvantum.kvconfig" --group General --key theme "$kvantum"
 fi
-kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key library org.kde.kwin.aurorae
-kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme "$decoration"
-[ "$(kreadconfig6 --file kdeglobals --group General --key ColorScheme)" = "$scheme" ] || \
-    plasma-apply-colorscheme "$scheme" >/dev/null 2>&1
-[ "$(kreadconfig6 --file kdeglobals --group Icons --key Theme)" = "$icons" ] || {
-    kwriteconfig6 --file kdeglobals --group Icons --key Theme "$icons"
-    dbus-send --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:0 2>/dev/null
-}
-[ "$(kreadconfig6 --file plasmarc --group Theme --key name)" = "$style" ] || \
-    plasma-apply-desktoptheme "$style" >/dev/null 2>&1
-dbus-send --session --type=method_call --dest=org.kde.KWin /KWin org.kde.KWin.reconfigure 2>/dev/null
+for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+    grep -qx "name=$style" "$CONFIG/kdedefaults/plasmarc" 2>/dev/null && break
+    sleep 0.5
+done
+sleep 1
+kwriteconfig6 --file plasmarc --group Theme --key name "$style" --notify
+kwriteconfig6 --file plasmarc --group Theme --key name --delete --notify
 exit 0
