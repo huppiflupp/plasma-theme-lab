@@ -1,12 +1,12 @@
 {
   "renderer": "POV-Ray 3.7.0.10.unofficial",
-  "script": "os2-warp/tools/raytracing-entwuerfe.py",
+  "script": "os2-warp/tools/raytracing-drafts.py",
   "draft": "30b",
-  "scene": "Alles zusammen: Lipizzaner, Polyeder, schwebende Kugel, Mittag (Pferd steht auf dem Sockel)",
-  "time_of_day": "nacht",
+  "scene": "All together: the Lipizzaner, polyhedra, a floating sphere, noon (the horse standing on the plinth)",
+  "time_of_day": "night",
   "moon": [
-    5,
-    -8
+    0.79,
+    3
   ],
   "floor": "board",
   "floor_args": {},
@@ -30,7 +30,7 @@
   "antialias": "+A0.02 +AM2 +R5 +J0.8",
   "jpeg_quality": 88,
   "seed": null,
-  "seconds": 7.6,
+  "seconds": 41.6,
   "host": "245k (Intel Core Ultra 5 245K, 14 threads, CPU)",
   "source": "wallpaper/warp-legacy/raytracing/final/raytracing-ensemble-dark.pov",
   "model": {
@@ -40,7 +40,7 @@
     "file": "https://sites.cc.gatech.edu/data_files/large_models/horse.ply.gz",
     "sha256_ply_gz": "f41803e587bf452da2c9c601d2ca4aca1532b1e045c37e37be50482ee3663d15",
     "origin": "originally a Cyberware scan (not stated on the page)",
-    "license": "keine Bedingungen genannt (no terms stated on the archive's pages)",
+    "license": "no terms stated on the archive's pages",
     "changes": "posed into a levade (render-raytracing.py: levade()), marble, on a plinth"
   }
 }

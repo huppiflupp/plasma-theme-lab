@@ -2,7 +2,7 @@
 """The shared parts of Warp Legacy's ray-traced backdrops (POV-Ray).
 
 The first series (five scenes, 26.10.2026) was replaced by the drafts the
-user chose from: tools/raytracing-entwuerfe.py renders those and puts them
+user chose from: tools/raytracing-drafts.py renders those and puts them
 into wallpapers/. What stays here, used by it: the materials (HEAD), the
 render settings, and the statue's mesh: the Georgia Tech horse read from
 its PLY and posed into a Lipizzaner's levade.
@@ -154,4 +154,4 @@ def horse_inc(pose="stand"):
 
 
 if __name__ == "__main__":
-    print("The backdrops are rendered by tools/raytracing-entwuerfe.py (--build).")
+    print("The backdrops are rendered by tools/raytracing-drafts.py (--build).")

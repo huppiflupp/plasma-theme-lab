@@ -1,9 +1,9 @@
 {
   "renderer": "POV-Ray 3.7.0.10.unofficial",
-  "script": "os2-warp/tools/raytracing-entwuerfe.py",
+  "script": "os2-warp/tools/raytracing-drafts.py",
   "draft": "30b",
-  "scene": "Alles zusammen: Lipizzaner, Polyeder, schwebende Kugel, Mittag (Pferd steht auf dem Sockel)",
-  "time_of_day": "mittag",
+  "scene": "All together: the Lipizzaner, polyhedra, a floating sphere, noon (the horse standing on the plinth)",
+  "time_of_day": "noon",
   "moon": null,
   "floor": "board",
   "floor_args": {},
@@ -37,7 +37,7 @@
     "file": "https://sites.cc.gatech.edu/data_files/large_models/horse.ply.gz",
     "sha256_ply_gz": "f41803e587bf452da2c9c601d2ca4aca1532b1e045c37e37be50482ee3663d15",
     "origin": "originally a Cyberware scan (not stated on the page)",
-    "license": "keine Bedingungen genannt (no terms stated on the archive's pages)",
+    "license": "no terms stated on the archive's pages",
     "changes": "posed into a levade (render-raytracing.py: levade()), marble, on a plinth"
   }
 }
