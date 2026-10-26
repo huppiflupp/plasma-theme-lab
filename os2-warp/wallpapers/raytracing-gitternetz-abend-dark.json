@@ -1,0 +1,36 @@
+{
+  "renderer": "POV-Ray 3.7.0.10.unofficial",
+  "script": "os2-warp/tools/raytracing-entwuerfe.py",
+  "draft": "28",
+  "scene": "Grünes Gitternetz, Abendhimmel, Glaspyramiden",
+  "time_of_day": "nacht",
+  "moon": [
+    5,
+    10
+  ],
+  "floor": "grid",
+  "floor_args": {},
+  "camera": {
+    "loc": [
+      0,
+      2.4,
+      -15
+    ],
+    "at": [
+      1.4,
+      1.5,
+      0
+    ],
+    "angle": 46
+  },
+  "size": [
+    3840,
+    2160
+  ],
+  "antialias": "+A0.02 +AM2 +R5 +J0.8",
+  "jpeg_quality": 88,
+  "seed": null,
+  "seconds": 13.4,
+  "host": "245k (Intel Core Ultra 5 245K, 14 threads, CPU)",
+  "source": "wallpaper/warp-legacy/raytracing/final/raytracing-gitternetz-abend-dark.pov"
+}

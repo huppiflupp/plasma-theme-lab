@@ -1,15 +1,36 @@
 {
   "renderer": "POV-Ray 3.7.0.10.unofficial",
-  "script": "os2-warp/tools/render-raytracing.py",
-  "scene": "chrom",
+  "script": "os2-warp/tools/raytracing-entwuerfe.py",
+  "draft": "01",
+  "scene": "Chromkugeln klassisch, Mittag (Stil des Originals, kleiner)",
   "time_of_day": "nacht",
-  "source": "wallpaper/warp-legacy/raytracing/chrom-nacht.pov",
+  "moon": [
+    7,
+    14
+  ],
+  "floor": "board",
+  "floor_args": {},
+  "camera": {
+    "loc": [
+      0,
+      2.4,
+      -15
+    ],
+    "at": [
+      1.4,
+      1.5,
+      0
+    ],
+    "angle": 46
+  },
   "size": [
     3840,
     2160
   ],
   "antialias": "+A0.02 +AM2 +R5 +J0.8",
+  "jpeg_quality": 88,
   "seed": null,
-  "seconds": 44.7,
-  "host": "245k (Intel Core Ultra 5 245K, 14 threads, CPU)"
+  "seconds": 7.2,
+  "host": "245k (Intel Core Ultra 5 245K, 14 threads, CPU)",
+  "source": "wallpaper/warp-legacy/raytracing/final/raytracing-chrom-dark.pov"
 }

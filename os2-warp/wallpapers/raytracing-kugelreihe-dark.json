@@ -1,0 +1,36 @@
+{
+  "renderer": "POV-Ray 3.7.0.10.unofficial",
+  "script": "os2-warp/tools/raytracing-entwuerfe.py",
+  "draft": "06",
+  "scene": "Kugelreihe zum Horizont, kleiner werdend, Abend",
+  "time_of_day": "nacht",
+  "moon": [
+    5,
+    18
+  ],
+  "floor": "board",
+  "floor_args": {},
+  "camera": {
+    "loc": [
+      -1,
+      1.9,
+      -14
+    ],
+    "at": [
+      2,
+      1.2,
+      4
+    ],
+    "angle": 44
+  },
+  "size": [
+    3840,
+    2160
+  ],
+  "antialias": "+A0.02 +AM2 +R5 +J0.8",
+  "jpeg_quality": 88,
+  "seed": null,
+  "seconds": 4.6,
+  "host": "245k (Intel Core Ultra 5 245K, 14 threads, CPU)",
+  "source": "wallpaper/warp-legacy/raytracing/final/raytracing-kugelreihe-dark.pov"
+}

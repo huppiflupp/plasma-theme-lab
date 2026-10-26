@@ -1,0 +1,46 @@
+{
+  "renderer": "POV-Ray 3.7.0.10.unofficial",
+  "script": "os2-warp/tools/raytracing-entwuerfe.py",
+  "draft": "18b",
+  "scene": "Lipizzaner-Levade, Nacht mit Mond (Pferd steht auf dem Sockel)",
+  "time_of_day": "nacht",
+  "moon": [
+    5,
+    3
+  ],
+  "floor": "board",
+  "floor_args": {},
+  "camera": {
+    "loc": [
+      0,
+      2.4,
+      -9.5
+    ],
+    "at": [
+      1.6,
+      2.2,
+      2.4
+    ],
+    "angle": 42
+  },
+  "size": [
+    3840,
+    2160
+  ],
+  "antialias": "+A0.02 +AM2 +R5 +J0.8",
+  "jpeg_quality": 88,
+  "seed": null,
+  "seconds": 7.8,
+  "host": "245k (Intel Core Ultra 5 245K, 14 threads, CPU)",
+  "source": "wallpaper/warp-legacy/raytracing/final/raytracing-lipizzaner-nacht-dark.pov",
+  "model": {
+    "name": "horse",
+    "source": "Georgia Tech Large Geometric Models Archive",
+    "url": "https://sites.cc.gatech.edu/projects/large_models/horse.html",
+    "file": "https://sites.cc.gatech.edu/data_files/large_models/horse.ply.gz",
+    "sha256_ply_gz": "f41803e587bf452da2c9c601d2ca4aca1532b1e045c37e37be50482ee3663d15",
+    "origin": "originally a Cyberware scan (not stated on the page)",
+    "license": "keine Bedingungen genannt (no terms stated on the archive's pages)",
+    "changes": "posed into a levade (render-raytracing.py: levade()), marble, on a plinth"
+  }
+}
