@@ -138,6 +138,20 @@ Gefunden und behoben:
 * Über SSH zeigt `kreadconfig6` die Werte eines Global Themes nicht (sie liegen
   in `~/.config/kdedefaults/`) — kein Fehler des Themes.
 
+## VM-Test (drei Umgebungen)
+
+`./forge.py vmtest out/<x> [--vm fedora,ubuntu,artix] [--variant <id>] [--no-reset]`
+setzt jede Test-VM auf ihren Snapshot `clean` zurück, überträgt das Paket,
+ruft `install.sh --apply` auf, macht ein Foto, ruft `uninstall.sh` auf und
+vergleicht die beobachteten Einstellungen vorher/nachher (`forge/vmtest.py`,
+Ergebnis in `vmtest.json`, Fotos `vm-<umgebung>-*.png`):
+
+| Name | VM | Was sie abdeckt |
+|---|---|---|
+| fedora | plasma-lab (`vm/lab.env`) | Fedora 44, systemd, Plasma 6.7 |
+| ubuntu | ubuntu-lab (`vm/ubuntu.env`) | Ubuntu 26.04 LTS, ältere Plasma-Fassung |
+| artix | artix-lab (`vm/artix.env`) | Artix/OpenRC, **kein systemd**, Plasma 6.8 |
+
 ## Systemschicht
 
 `install-system.sh` prüft vorab (Plymouth-Script-Plugin, GRUB-Werkzeuge),

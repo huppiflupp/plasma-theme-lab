@@ -10,6 +10,16 @@ to `/data`, as does `vm/lab.env (VM_DISK)`. Snapshots: `clean`, `icons-vorher`, 
 Since 07.10.2026 there is a third one: `ubuntu-lab` (`vm/ubuntu.env`, Ubuntu
 26.04 LTS + `kubuntu-desktop`, built from the cloud image via cloud-init with
 `vm/build-vm-ubuntu.sh`, unattended). Usage: `LAB_ENV=ubuntu.env ./vmctl.sh …`.
+Since 26.10.2026 there is a fourth one: `artix-lab` (`vm/artix.env`, Artix Linux with
+OpenRC and Plasma 6.8, **no systemd** - it is the test bed for the install scripts'
+non-systemd branches). Built unattended by `vm/build-vm-artix.sh` from the official
+base ISO (in `/data/vm/iso/artix/`); all packages come from Artix's dated archive
+(`ARTIX_ARCHIVE_DATE`), so a rebuild gives the same versions. Like the others it has
+no internet; the build reaches the archive through `vm/connect-proxy.py` and an SSH
+reverse tunnel. Without systemd the session bus is not at `/run/user/1000/bus`; the
+session writes its address to `/run/user/1000/bus-address`, which `vmctl.sh ssh`
+reads. Usage: `LAB_ENV=artix.env ./vmctl.sh …`; snapshot `clean`. Theme Forge
+tests in all three (Fedora, Ubuntu, Artix) with `forge.py vmtest out/<x>`.
 Please put new VM disks in `/data/vm/images/` as well, not on the
 root/home partition (it was 98 % full).
 

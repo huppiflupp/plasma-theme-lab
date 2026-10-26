@@ -20,6 +20,8 @@ VM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #
 #   ./vmctl.sh status                      # Fedora
 #   LAB_ENV=eos.env ./vmctl.sh status      # EndeavourOS
+#   LAB_ENV=ubuntu.env ./vmctl.sh status   # Ubuntu LTS (Kubuntu)
+#   LAB_ENV=artix.env ./vmctl.sh status    # Artix, OpenRC (no systemd)
 #
 # A second copy of this script would have been the obvious solution
 # - and the worse one: every fix would then have to be made in two
@@ -70,7 +72,8 @@ wait_ssh() {
 lab_quiet() {
     local ip
     ip=$(vm_ip) || return 0
-    ssh $SSH_OPTS "$VM_USER@$ip" 'export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+    ssh $SSH_OPTS "$VM_USER@$ip" 'export XDG_RUNTIME_DIR=/run/user/1000
+        export DBUS_SESSION_BUS_ADDRESS=$(cat /run/user/1000/bus-address 2>/dev/null || echo unix:path=/run/user/1000/bus)
         kwriteconfig6 --file kscreenlockerrc --group Daemon --key Autolock false
         kwriteconfig6 --file kscreenlockerrc --group Daemon --key LockOnResume false
         for p in AC Battery LowBattery; do
@@ -127,13 +130,19 @@ case "$cmd" in
       # useful message. That then looks like a theme bug.
       #
       # In this VM there is always exactly one session of uid 1000,
-      # which is why the values are fixed.
+      # which is why the values are fixed. Without systemd (artix-lab)
+      # there is no user bus at /run/user/1000/bus: the session runs under
+      # dbus-run-session and writes its address to bus-address
+      # (artix-install.sh). The Wayland socket is the session's, wayland-1
+      # where the login screen took wayland-0 (SDDM on Artix). LANG from the
+      # guest's locale.conf where sshd passes none (Artix).
       ip=$(vm_ip) || die "No IP."
       ENV_PREFIX='export XDG_RUNTIME_DIR=/run/user/1000
-export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
-export WAYLAND_DISPLAY=wayland-0
+export DBUS_SESSION_BUS_ADDRESS=$(cat /run/user/1000/bus-address 2>/dev/null || echo unix:path=/run/user/1000/bus)
+export WAYLAND_DISPLAY=$(cd /run/user/1000 2>/dev/null && ls -d wayland-[0-9] 2>/dev/null | tail -1 | grep . || echo wayland-0)
 export XDG_SESSION_TYPE=wayland
 export XDG_CURRENT_DESKTOP=KDE
+[ -n "$LANG" ] || export LANG=$(. /etc/locale.conf 2>/dev/null; echo "${LANG:-C.UTF-8}")
 '
       if [ $# -eq 0 ]; then
           exec ssh $SSH_OPTS "$VM_USER@$ip"

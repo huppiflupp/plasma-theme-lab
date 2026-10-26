@@ -11,6 +11,8 @@ vm/id_lab
 vm/id_lab.pub
 vm/.plasma-lab.rendered.ks
 vm/.ubuntu-lab.rendered.user-data
+# The Artix VM's generated test password (build-vm-artix.sh).
+vm/.artix-lab.password
 vm/*.log
 vm/console.log
 

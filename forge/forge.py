@@ -5,6 +5,7 @@
     ./forge.py design "Stil" -o out/x                 # nur spec.json (LLM)
     ./forge.py build out/x                            # Paket aus spec.json bauen
     ./forge.py bench "Stil" -n 5 -o out/bench         # Zuverlässigkeit messen (nur LLM-Teil)
+    ./forge.py vmtest out/x [--vm fedora,ubuntu,artix] # in den Test-VMs installieren/anwenden/entfernen
 
 Umgebung: FORGE_LLM (Standard http://127.0.0.1:8090/v1), FORGE_COMFY (Standard lokales
 ComfyUI 127.0.0.1:8189), FORGE_LLM_SERVICE (wird für Bildläufe angehalten, siehe forge/gpu.py).
@@ -17,7 +18,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from forge import artplan, build, check, designer, llm, preview, spec as specmod  # noqa: E402
+from forge import artplan, build, check, designer, llm, preview, spec as specmod, vmtest  # noqa: E402
 
 
 def log(msg):
@@ -163,9 +164,17 @@ def style_check(s, expect_path):
     return errs
 
 
+def cmd_vmtest(a):
+    """Das gebaute Paket in den Test-VMs (forge/vmtest.py): Fedora, Ubuntu, Artix/OpenRC."""
+    reports = vmtest.run(a.out, envs=a.vm.split(","), variant=a.variant, reset=a.reset, log=log)
+    bad = [r["env"] for r in reports if r["errors"]]
+    log(f"VM-Test: {len(reports) - len(bad)} von {len(reports)} ohne Fehler" + (f" (Fehler: {', '.join(bad)})" if bad else ""))
+    return 1 if bad else 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["design", "build", "all", "bench", "bench-art"])
+    ap.add_argument("command", choices=["design", "build", "all", "bench", "bench-art", "vmtest"])
     ap.add_argument("request", nargs="?", help="Stilbeschreibung (design/all/bench) oder Ausgabeordner (build)")
     ap.add_argument("-o", "--out")
     ap.add_argument("--avoid", action="append", default=[], help="zusätzliche verbotene Begriffe")
@@ -179,8 +188,15 @@ def main():
                     help="Icons als Motive aus der Bildwelt der Vorlage (LLM je Icon) statt Katalog + Stilblatt")
     ap.add_argument("--no-art", dest="art", action="store_false",
                     help="ohne Bildplan (keine Icons, Texturen, Szenen)")
+    ap.add_argument("--vm", default="fedora,ubuntu,artix", help="vmtest: Test-VMs, kommagetrennt")
+    ap.add_argument("--variant", help="vmtest: anzuwendende Variante (Standard: die erste)")
+    ap.add_argument("--no-reset", dest="reset", action="store_false",
+                    help="vmtest: Snapshot clean nicht zurücksetzen")
     a = ap.parse_args()
     a.no_art = not a.art
+    if a.command == "vmtest":
+        a.out = a.out or a.request
+        return cmd_vmtest(a)
     if a.command in ("build", "bench-art"):
         a.out = a.out or a.request
         return cmd_build(a) if a.command == "build" else cmd_bench_art(a)
