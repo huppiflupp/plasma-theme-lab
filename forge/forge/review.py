@@ -30,7 +30,7 @@ from . import designer, events, llm, spec as specmod
 
 TARGETS = {
     "decoration": ["title_colours", "title_text", "frame", "buttons", "other"],
-    "wallpaper": ["picture", "other"],
+    "wallpaper": ["lettering", "deformed", "colours", "icon_zone", "style", "composition", "other"],
     "desktop": ["wallpaper", "panel", "text_contrast", "icons", "decoration", "rendering", "other"],
 }
 
@@ -43,10 +43,12 @@ def schema(kind):
                 "summary": {"type": "string", "maxLength": 300},
                 "issues": {"type": "array", "maxItems": 6, "items": {
                     "type": "object", "additionalProperties": False,
-                    "required": ["what", "severity", "target", "fix"],
-                    "properties": {"what": {"type": "string", "maxLength": 220},
+                    # target first: the model files the kind before describing it
+                    # (in the other order it wrote the kind into "what").
+                    "required": ["target", "what", "severity", "fix"],
+                    "properties": {"target": {"enum": TARGETS[kind]},
+                                   "what": {"type": "string", "maxLength": 220},
                                    "severity": {"enum": ["minor", "major"]},
-                                   "target": {"enum": TARGETS[kind]},
                                    "fix": {"type": "string", "maxLength": 220}}}}}}
 
 
@@ -66,12 +68,23 @@ Judge as a demanding UI designer:
 ok: true only if there is no major issue. Each issue: what is wrong, severity, target
 (title_colours, title_text, frame, buttons, other) and a concrete fix (e.g. "make the
 inactive title bar clearly darker than the active one").""",
-    "wallpaper": """This is a desktop wallpaper of the theme. Judge:
-- Does it fit the style model and the variant (colours, mood, motif)?
-- Is there lettering, fake writing, logos, watermarks, distorted figures or other AI faults?
-- Is there a calm area where desktop icons stay legible (usually the top left)?
-ok: true only if there is no major issue. target: picture or other; fix: a concrete change to
-the picture (motif, composition, light, colours).""",
+    "wallpaper": """This is a desktop wallpaper of the theme. Judge it as a user choosing a wallpaper would,
+against the theme's brief — not against perfection, and not by your own taste.
+Report each fault with one target:
+- lettering: visible letters, words, numbers, fake writing, logos, watermarks, signatures;
+- deformed: a clearly malformed main subject (melted shapes, extra limbs, broken geometry);
+- colours: a colour world that contradicts the variant (e.g. bright pastel green for a dark red
+  variant) — a different shade of the same world is fine, and the variant's own lead colour
+  (red for a red variant, however bright) is never a contradiction;
+- icon_zone: the left column where desktop icons sit (about the left fifth, top three quarters) is
+  so busy with fine contrasty detail that white icon labels with a shadow would be hard to read;
+  a sky, fog, a plain wall, soft texture or a calm floor are calm enough;
+- style, composition, other: anything else (mood, framing, a subject you would have chosen
+  differently).
+Severity: major only for faults a user would reject the picture for — lettering of any kind,
+a deformed main subject, a contradicting colour world, a clearly busy icon zone. Everything about
+style, composition and taste is minor. A good, fitting picture gets ok true and no major issue.
+fix: a concrete change to the picture (motif, composition, light, colours).""",
     "desktop": """This is a screenshot of the whole desktop right after the theme was installed and applied.
 Judge as a demanding UI designer:
 - Are the desktop icons and their labels legible against the wallpaper (contrast)?
@@ -93,7 +106,7 @@ def _image_url(path_or_image, size=1024):
     return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
-def look(kind, picture, spec, v, log=print, size=1024, measured=None):
+def look(kind, picture, spec, v, log=print, size=1024, measured=None, metrics=None):
     """One structured verdict on one picture."""
     meta = spec.get("_meta", {})
     ctx = CONTEXT.format(request=meta.get("request", ""), name=spec["name"], description=spec["description"],
@@ -102,12 +115,21 @@ def look(kind, picture, spec, v, log=print, size=1024, measured=None):
         ctx += ("\nMeasured contrast of the title text to its title bar: "
                 + ", ".join(f"{k} {c}:1" for k, c in measured.items())
                 + " (4.5:1 and above is legible; trust these numbers over your impression).")
+    if kind == "wallpaper" and metrics is None and isinstance(picture, str):
+        metrics = wallpaper_metrics(picture)
+    if metrics:
+        ctx += (f"\nMeasured: edge density in the icon zone {metrics['icon_zone_edges']} (calm below {BUSY}); "
+                f"mean colour {metrics['mean_colour']}, mean lightness {metrics['mean_lightness']} "
+                "(trust these numbers over your impression).")
     msg = [{"role": "user", "content": [{"type": "image_url", "image_url": {"url": _image_url(picture, size)}},
                                         {"type": "text", "text": ctx + "\n\n" + QUESTIONS[kind]}]}]
     text, info = llm.chat(msg, schema=schema(kind), max_tokens=1200, temperature=0.2, base=llm.VISION)
     verdict = json.loads(text)
     if measured:
         verdict = filter_measured(verdict, measured)
+    if metrics:
+        verdict = filter_wallpaper(verdict, metrics)
+        verdict["metrics"] = metrics
     log(f"  review {kind} {v['id']}: score {verdict['score']}/10, "
         f"{'ok' if verdict['ok'] else 'issues'} ({info['seconds']} s) — {verdict['summary'][:120]}")
     events.emit("review", kind, variant=v["id"], score=verdict["score"], ok=verdict["ok"],
@@ -162,6 +184,54 @@ def filter_measured(verdict, measured):
             if measured.get(state, 0) >= 4.5:
                 i["severity"] = "minor"
                 i["what"] += f" [overruled: measured {measured[state]}:1]"
+    verdict["ok"] = not any(i["severity"] == "major" for i in verdict["issues"])
+    return verdict
+
+
+# The icon zone of a 1920×1080 wallpaper, measured at 960×540: the left column
+# where Plasma's folder view lays out desktop icons. Calibrated on the shipped
+# wallpapers (tests/review_bench.py): most good ones stay below 0.10 there, the
+# fine chessboard of raytracing-singularity reaches 0.144, confetti 0.16. The
+# measurement only overrules a claim of a busy zone, it never raises one: the
+# margin is too thin for that.
+ICON_ZONE = (0, 0, 210, 405)
+BUSY = 0.13
+WALLPAPER_MAJOR = {"lettering", "deformed", "colours", "icon_zone"}
+
+
+def wallpaper_metrics(path):
+    """Edge density and spread of lightness in the icon zone; mean colour and
+    lightness of the whole picture (for the colour world)."""
+    from PIL import ImageFilter, ImageStat
+    im = Image.open(path).convert("RGB").resize((960, 540))
+    zone = im.crop(ICON_ZONE).convert("L")
+    edges = ImageStat.Stat(zone.filter(ImageFilter.FIND_EDGES)).mean[0] / 255
+    mean = tuple(int(c) for c in ImageStat.Stat(im).mean)
+    return {"icon_zone_edges": round(edges, 3), "icon_zone_spread": round(ImageStat.Stat(zone).stddev[0], 1),
+            "mean_colour": "#%02x%02x%02x" % mean, "mean_lightness": round(sum(mean) / 3 / 255, 2)}
+
+
+def filter_wallpaper(verdict, metrics):
+    """Severity by rule: only lettering, a deformed subject, a contradicting
+    colour world and a measurably busy icon zone are major. The model called
+    nearly every picture "no calm area" or "style mismatch" (26.10.2026).
+    An issue that names lettering is lettering, whatever target the model
+    chose (it filed a watermark under "deformed")."""
+    import re
+    for i in verdict["issues"]:
+        if i["what"].strip().lower() in TARGETS["wallpaper"]:      # the kind written into "what"
+            i["target"] = i["what"].strip().lower()
+        elif re.search(r"(?i)lettering|\bletters\b|writing|\bwords\b|watermark|\blogos?\b|signature|caption",
+                       i["what"] + " " + i["fix"]):
+            i["target"] = "lettering"
+        if i["severity"] != "major":
+            continue
+        if i["target"] not in WALLPAPER_MAJOR:
+            i["severity"] = "minor"
+            i["what"] += " [minor by rule: a matter of taste]"
+        elif i["target"] == "icon_zone" and metrics["icon_zone_edges"] < BUSY:
+            i["severity"] = "minor"
+            i["what"] += f" [overruled: measured edge density {metrics['icon_zone_edges']} < {BUSY}]"
     verdict["ok"] = not any(i["severity"] == "major" for i in verdict["issues"])
     return verdict
 
@@ -243,8 +313,10 @@ def repair_wallpaper(spec, plan, vi, index, issues, log=print, seed=None):
         if not artplan._traps(artplan._body(new)) and "no text" in new.lower():
             break
     else:
-        log(f"  wallpaper prompt for {v['id']} not repaired (trap words remain)")
-        return False
+        new = artplan.replace_traps(new)        # the last stage without the LLM
+        if artplan._traps(artplan._body(new)) or "no text" not in new.lower():
+            log(f"  wallpaper prompt for {v['id']} not repaired (trap words remain)")
+            return False
     if vplan:
         vplan["wallpapers"][index]["prompt"] = new
     else:
@@ -278,7 +350,7 @@ def review(out, spec, plan=None, rounds=2, vm=None, lang="en", use_comfy=True, l
             if frame:
                 todo.append((repair_frame, (spec, frame)))
             for wi, w in enumerate(res["wallpapers"]):
-                bad = [i for i in w["issues"] if i["severity"] == "major" and i["target"] == "picture"]
+                bad = [i for i in w["issues"] if i["severity"] == "major" and i["target"] in WALLPAPER_MAJOR]
                 if bad and use_comfy:      # without an image model a repaint would be a procedural picture
                     todo.append((repair_wallpaper, (spec, plan, vi, wi, bad)))
         if vm:
@@ -306,7 +378,7 @@ def review(out, spec, plan=None, rounds=2, vm=None, lang="en", use_comfy=True, l
             done += bool(fn(*args, log=log, seed=seed))
         if not done:
             break
-        build.build(spec, out, use_comfy=use_comfy, log=log, plan=plan)
+        build.build(spec, out, use_comfy=use_comfy, log=log, plan=plan, icon_check=False)
         errors, _ = check.run(pkg, [build.Variant(spec, v) for v in spec["variants"]])
         if errors:
             log(f"  package check after the repair: {errors[:3]}")

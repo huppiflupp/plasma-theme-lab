@@ -317,7 +317,7 @@ Rectangle {{
 STAGES = ["colors", "plasma-style", "decoration", "wallpapers", "icons", "splash-boot"]
 
 
-def build(spec, out, use_comfy=True, log=print, seed=None, plan=None, on_stage=None):
+def build(spec, out, use_comfy=True, log=print, seed=None, plan=None, on_stage=None, icon_check=True):
     """Builds the complete package into out/package. Returns a report.
 
     Stage by stage for all variants (STAGES). After each stage the installers
@@ -404,7 +404,10 @@ def build(spec, out, use_comfy=True, log=print, seed=None, plan=None, on_stage=N
         emblems[var.v["id"]] = (em, tool)
     pictures = None
     if plan and use_comfy:
-        pictures = icons.paint_checked(plan, spec, assets, plan.get("private", False), log=log)
+        # icon_check=False (a rebuild after the visual review): the cameos from
+        # the cache, without checking and repainting them all over again.
+        pictures = icons.paint_checked(plan, spec, assets, plan.get("private", False), log=log) if icon_check \
+            else icons.paint_all(plan, spec.get("_meta", {}).get("request", ""), assets, plan.get("private", False), log)
     icon_themes = {}
     for var in variants:
         icon_themes[var.v["id"]] = icons.build_theme(var, pictures, emblems[var.v["id"]][0], pkg,

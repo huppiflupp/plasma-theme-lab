@@ -85,8 +85,14 @@ six issues, each with severity, target and a concrete fix.
   bar and gives the numbers to the model; claims of illegible text against
   a measured 4.5:1 or more are downgraded (the model called a 7:1 inactive
   title "nearly invisible").
-* **Wallpapers**: fit to the style, lettering and AI faults, a calm area for
-  icons.
+* **Wallpapers**: severity by rule, not by the model's taste. Only lettering
+  (also watermarks), a deformed main subject, a colour world contradicting
+  the variant, and a busy icon zone are major; style and composition are
+  minor. The icon zone (the left column where Plasma puts desktop icons) is
+  measured: below an edge density of 0.13 a claim of a busy zone is
+  overruled. The measurement never raises a fault itself — a good picture
+  with a fine chessboard reaches 0.144, confetti 0.16. Calibrated with
+  `tests/review_bench.py` (below).
 * **Desktop**: the vmtest screenshot after `install.sh --apply`: legibility
   of icons and labels, the panel, rendering faults (garbled glyphs, Breeze
   left over).
@@ -94,9 +100,28 @@ six issues, each with severity, target and a concrete fix.
 Major issues are repaired where the engine can: title colours and text
 contrast through the specification's partial repair (rejected if the
 specification's own checks then fail), the frame likewise, a wallpaper by a
-rewritten prompt (only with ComfyUI). Then the package is built again and
-looked at anew. What has no repair path (icons, installer faults) stays in
+rewritten prompt (only with ComfyUI; trap words the LLM keeps are replaced
+deterministically as a last stage). Then the package is built again — the
+icons from the cache, without checking and repainting them anew — and looked
+at anew. What has no repair path (icons, installer faults) stays in
 `review.json` under `left`.
+
+Calibration (`tests/review_bench.py -n 3`, 26.10.2026): shipped wallpapers
+that are plainly good must get no major issue; bad ones made with PIL must
+be caught as the right kind. Before the rules nearly every picture got "no
+calm area" or "style mismatch"; after them:
+
+| case | pictures | runs | as expected |
+|---|---|---|---|
+| good | kalkstein, marmor, schiefer-dark, fenland (RISC Legacy), raytracing-chrome, raytracing-singularity (Warp Legacy) | 18 | 18 (no major issue) |
+| bad: busy | confetti over the whole picture (edge density 0.16) | 3 | 3 (icon_zone) |
+| bad: lettering | large words on a calm gradient | 3 | 3 (lettering) |
+| bad: watermark | a good picture under a faint "© STOCKPHOTO" | 3 | 3 (lettering) |
+| bad: colours | candy pastels for a dark red variant | 3 | 3 (colours) |
+
+Two fixes it took: the issue schema asks for the target first (in the other
+order the model wrote the kind into "what" and chose a wrong target), and an
+issue that names lettering, a watermark or a logo counts as lettering.
 
 ### Live run for a recording (`forge/live.py`, `forge/events.py`)
 
@@ -146,6 +171,7 @@ as well, if a browser window beside the VM is wanted.
 | `forge/events.py` | the event log (JSONL) for overlays in a recording |
 | `tests/ra2.expect.json` | style expectation for the reliability test |
 | `tests/build_many.py` | build and check many specifications (without ComfyUI) |
+| `tests/review_bench.py` | calibration of the wallpaper review on good and deliberately bad pictures |
 
 ### What the LLM decides
 
@@ -256,8 +282,19 @@ and then checks the language plasmashell really runs with
 (`tr '\0' '\n' < /proc/$(pgrep -x plasmashell)/environ | grep LANG`); a
 session that did not switch is reported as an error. The keyboard layout
 stays as it is. The first available of en_US.UTF-8, en_GB.UTF-8, C.UTF-8 is
-taken. Since the snapshots `clean` are German, every run switches anew
-(about a minute per VM); a snapshot taken after the switch would save that.
+taken (on Ubuntu `locale-gen en_US.UTF-8` first, which needs no network).
+
+The home folders are switched as well, because the VMs were built German
+(Bilder, Schreibtisch, Vorlagen, Öffentlich …): `~/.config/user-dirs.dirs` is
+written in English by hand (Artix has no `xdg-user-dirs-update`), contents
+move into the English folders, empty German ones go, and Dolphin's places
+(`user-places.xbel`, which holds the old paths) are made anew by KDE. This
+runs before the restart and once more after it: the German plasmashell still
+running recreated "Schreibtisch" the moment it was gone.
+
+If a VM has a snapshot `clean-en` (clean with language and folders switched),
+`vmtest` and the live run revert to it and skip the switch and its restart;
+otherwise they revert to `clean` and switch (about a minute per VM).
 
 ## System layer
 
