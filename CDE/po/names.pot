@@ -1,0 +1,135 @@
+# Messages looked up by a variable, which xgettext cannot find: backdrop names
+# (backdrops.py) and picture titles (build.py). Add new ones here by hand.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Acoustic Foam"
+msgstr ""
+
+msgid "CDE Alps"
+msgstr ""
+
+msgid "CDE Aurora"
+msgstr ""
+
+msgid "CDE Black Forest"
+msgstr ""
+
+msgid "CDE Chip City"
+msgstr ""
+
+msgid "CDE Crystal"
+msgstr ""
+
+msgid "CDE Dolomites"
+msgstr ""
+
+msgid "CDE Dune"
+msgstr ""
+
+msgid "CDE Dune Left"
+msgstr ""
+
+msgid "CDE Dune Right"
+msgstr ""
+
+msgid "CDE Editing Suite"
+msgstr ""
+
+msgid "CDE Elbe Sandstone"
+msgstr ""
+
+msgid "CDE Flow"
+msgstr ""
+
+msgid "CDE Iceland"
+msgstr ""
+
+msgid "CDE MRI"
+msgstr ""
+
+msgid "CDE Marble"
+msgstr ""
+
+msgid "CDE Mixing Desk"
+msgstr ""
+
+msgid "CDE Molecule"
+msgstr ""
+
+msgid "CDE Prepress"
+msgstr ""
+
+msgid "CDE Reef"
+msgstr ""
+
+msgid "CDE Sequence"
+msgstr ""
+
+msgid "CDE Space Left"
+msgstr ""
+
+msgid "CDE Space Right"
+msgstr ""
+
+msgid "CDE Tuscany"
+msgstr ""
+
+msgid "CDE Vineyard"
+msgstr ""
+
+msgid "CDE Wadden Sea"
+msgstr ""
+
+msgid "CDE Watercolour"
+msgstr ""
+
+msgid "Copper Cascade"
+msgstr ""
+
+msgid "Copper River"
+msgstr ""
+
+msgid "Cork"
+msgstr ""
+
+msgid "Felt"
+msgstr ""
+
+msgid "Frost Flowers"
+msgstr ""
+
+msgid "Gravel"
+msgstr ""
+
+msgid "Handmade Paper"
+msgstr ""
+
+msgid "Knit"
+msgstr ""
+
+msgid "Leather"
+msgstr ""
+
+msgid "Linen"
+msgstr ""
+
+msgid "Moss"
+msgstr ""
+
+msgid "Perforated Metal"
+msgstr ""
+
+msgid "Slate"
+msgstr ""
+
+msgid "Travertine"
+msgstr ""
+
+msgid "Velour"
+msgstr ""
+
+msgid "Water"
+msgstr ""
+

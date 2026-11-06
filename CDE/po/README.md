@@ -1,23 +1,16 @@
 # CDE Copper translations
 
-All theme QML uses the gettext domain `cde-copper`. Run these commands from
-`CDE/` with GNU gettext installed to update the template and existing catalogs:
+All theme QML uses the gettext domain `cde-copper`. Run this from `CDE/` with GNU
+gettext installed to update the template and existing catalogs:
 
 ```sh
-xgettext -C --from-code=UTF-8 -k \
-  -ki18nd:2 -ki18ndc:2c,3 -ki18ndp:2,3 -kI18N_NOOP:1 \
-  --flag=i18nd:2:kde-format --flag=i18ndp:2:kde-format --flag=i18ndp:3:kde-format \
-  --package-name=cde-copper --package-version=1.1.3 \
-  -o po/cde-copper.pot \
-  frontpanel/contents/ui/*.qml frontpanel/contents/ui/launch.js \
-  frontpanel/contents/config/config.qml backdrop/contents/ui/config.qml \
-  lookandfeel/contents/splash/Splash.qml lookandfeel/contents/logout/Logout.qml \
-  shell/contents/lockscreen/LockScreen.qml stylemanager/contents/ui/*.qml
-for catalog in po/*.po; do
-  msgmerge --update --backup=none "$catalog" po/cde-copper.pot
-done
-msgfmt --check --statistics -o /tmp/cde-copper-de.mo po/de.po
+python3 po/update.py            # or --check: only report messages that would be lost
+msgfmt --check --statistics -o /dev/null po/de.po
 ```
+
+xgettext only finds literal `i18nd()` calls. Messages looked up by a variable, the
+backdrop names and picture titles, are kept by hand in `po/names.pot`; merging
+without them would drop their translations.
 
 Resolve new or fuzzy entries before shipping. Preserve `%1`, `%2`, and any
 accelerators; translate whole sentences, using `i18ndp` for plurals. Palette,
