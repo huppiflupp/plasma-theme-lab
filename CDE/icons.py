@@ -480,7 +480,8 @@ def more_icons(text, picture, home, globe, mail, trash, gear, lock, document, fo
     d["document-export"] = document(text) + badge(arrow_r, 30, 28, 0.55)
     d["document-import"] = document(text) + badge(f'<g transform="rotate(180 32 32)">{arrow_r}</g>', 30, 28, 0.55)
     d["document-send"] = path("M4 30L60 6L44 58L32 38Z", PAPER) + path("M32 38L60 6M32 38L30 56L38 46", "none") + path("M30 56L32 38L38 46Z", COPPER)
-    share = circle(16, 32, 8, COPPER) + circle(48, 14, 8, COPPER) + circle(48, 50, 8, COPPER) + path("M16 32L48 14M16 32L48 50", "none", INK, 4)
+    # An arrow leaving a tray: the three joined dots read as a smudge at menu size.
+    share = path("M6 32H18V48H46V32H58V60H6Z", PAPER) + path("M32 2L53 23H40V40H24V23H11Z", COPPER)
     d["document-share"] = share
     d["emblem-shared"] = share
     d["document-new"] = document(text) + badge(plus, 30, 30, 0.5)
@@ -950,6 +951,11 @@ def mark_share(p):
     p.fill(p.rect(9, 11.5, 3.5, 2), PAPER)
 
 
+def px_share(p):
+    p.shape(p.rect(1, 8, 3, 7) | p.rect(1, 12, 14, 3) | p.rect(12, 8, 3, 7), PALE, light=WHITE)
+    p.shape(p.poly([(8, 0), (13, 5), (10, 5), (10, 11), (6, 11), (6, 5), (3, 5)]), COPPER)
+
+
 def px_doc_with(mark):
     def draw(p):
         px_document(p, lines=False)
@@ -1140,6 +1146,8 @@ PIXEL = {
     "folder-videos": lambda p: px_folder(p, mark_videos),
     "folder-desktop": lambda p: px_folder(p, mark_desktop),
     "folder-publicshare": lambda p: px_folder(p, mark_share),
+    "document-share": px_share,
+    "emblem-shared": px_share,
     "folder-open": lambda p: (p.shape(p.rect(0, 2, 7, 4), COPPER), p.shape(p.rect(0, 4, 16, 11), TEAL),
                               p.shape(p.poly([(0, 15), (3, 7), (16, 7), (13, 15)]), PALE, light=WHITE)),
     "user-home": px_home,
