@@ -519,6 +519,22 @@ class Installer(unittest.TestCase):
             self.assertEqual(unrelated.read_text(), "keep")
             self.assertEqual((self.config / "kdeglobals").read_bytes(), before)
 
+    def test_reinstall_keeps_the_palette_in_use(self):
+        """Icons and the GTK theme come from build/ in Copper's colours."""
+        import palettes
+        self.env["DBUS_SESSION_BUS_ADDRESS"] = "unix:path=/nonexistent"
+        self.assertEqual(self.command("install").returncode, 0)
+        manifest = self.data / "cde-copper-install/manifest.json"
+        state = json.loads(manifest.read_text())
+        state["palette"] = "Indigo"
+        manifest.write_text(json.dumps(state))
+        result = self.command("install")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        colours = palettes.theme("Indigo")
+        self.assertIn(colours["selection"].lower(), (self.data / "icons/CDECopper/scalable/all/document-share.svg").read_text().lower())
+        self.assertIn(colours["surface"].lower(), (self.data / "themes/CDECopper/gtk-3.0/gtk.css").read_text().lower())
+        self.assertIn("Color=12,14,42", (self.data / "konsole/CDECopper.colorscheme").read_text())
+
     def test_upgrade_from_0_1_drops_the_svg_decoration(self):
         self.assertEqual(self.command("install").returncode, 0)
         manifest = self.data / "cde-copper-install/manifest.json"
@@ -1034,6 +1050,13 @@ assert.strictEqual(parseTileRef('middle:1'), null);
             self.assertIn('"%s"' % role, api, role)
         for prop in ("desktopIds", "desktopNames", "currentDesktop"):
             self.assertIn('name: "%s"' % prop, api, prop)
+
+
+class Translations(unittest.TestCase):
+    @unittest.skipUnless(shutil.which("xgettext") and shutil.which("msgcat"), "needs GNU gettext")
+    def test_updating_the_catalogs_loses_nothing(self):
+        result = subprocess.run([sys.executable, str(ROOT / "po/update.py"), "--check"], text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
 class Terminals(unittest.TestCase):

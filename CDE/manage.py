@@ -370,7 +370,10 @@ def install():
     if cursor_edge(manifest) != CURSOR_COLOURS["copper"]:
         install_cursors(manifest)
     if manifest.get("palette", "Copper") != "Copper":
+        # The copies from build/ are in Copper's colours.
         update_splash(manifest["palette"])
+        update_icons(manifest["palette"])
+        update_gtk(manifest["palette"])
     if manifest.get("palette", "Copper") == "Copper" and manifest.get("progress", "outlined") != "outlined":
         copper_kvantum(manifest["progress"])
     # The Konsole scheme from build/ is Copper's dark set.
@@ -979,7 +982,8 @@ def update_terminals(manifest, name):
     P = build.P if name == "Copper" else palettes.theme(name)
     for note in terminals.write_all(P, manifest.get("terminal", terminals.DEFAULT), DATA, CONFIG, HOME):
         print(note)
-    run("pkill", "-USR1", "-x", "kitty", check=False)
+    if shutil.which("pkill"):
+        run("pkill", "-USR1", "-x", "kitty", check=False)
 
 
 def remove_terminals():

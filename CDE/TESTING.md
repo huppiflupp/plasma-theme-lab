@@ -1458,3 +1458,11 @@ scheme cannot fix either.
   Flatpak terminals, the German dialog text on screen, any terminal in the field
   set beyond Konsole.
 
+
+## Reinstalling keeps the palette; translation update (06.11.2026, plasma-lab)
+
+`install.sh` over an applied Indigo: icons and GTK theme stay in Indigo's colours,
+as does Konsole's scheme (before, icons and GTK fell back to Copper until the next
+palette change). `po/update.py` replaces the documented commands, which dropped the
+43 backdrop and picture names from the catalog: they now live in `po/names.pot`,
+and all 410 translations came through unchanged.
