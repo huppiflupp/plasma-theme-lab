@@ -1484,3 +1484,19 @@ Copper, showed what fell through to Kvantum's built-in theme.
 - `list-add` and `list-remove` had the same flaw as `dialog-cancel`; same fix.
 - `install.sh` over a palette now also regenerates its controls and Plasma
   surfaces; these stayed at the older version until the next palette change.
+
+Release 1.2.0 (same day):
+- plasma-lab with Kvantum 1.1.6 installed (a first real run under it): install,
+  apply on Indigo with panel, console complete, no new plasmashell messages from
+  `org.cde.copper.*`. KWrite under Kvantum followed Indigo to Lilac with the window
+  open. KWrite's Open dialog looked right in Lilac.
+- ubuntu-lab: install, apply on Slate, uninstall; kdeglobals byte for byte as before.
+- Changed icons looked at on Summer, Lilac and Indigo at 16, 22 and 48.
+- Known: `apply.sh --palette X --panel --restart-shell` from a fresh install left the
+  desktop in Copper's teal on both VMs (already so with 1.1.3's code), until the next
+  palette change.
+- Not checked: X11, two screens, the console's positions and sizes (unchanged), a
+  GTK program (Firefox shows its own theme here, no other is installed), a Flatpak
+  terminal. `screenshots/icon-sheet-*` were not regenerated: no generator in the repo.
+  README's screenshots of the Style Manager, if any, predate the Terminal tile.
+

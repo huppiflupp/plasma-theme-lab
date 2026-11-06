@@ -28,7 +28,7 @@ CDE Copper is a complete Common Desktop Environment for Plasma 6: the front
 console with launchers, subpanels, a workspace switch and the window list,
 the Motif window frame, Motif controls in Qt programs (Kvantum), CDE's 37
 palettes with matching icons and backdrops, CDE's lock screen, saved window
-layouts, mouse cursors after the X11 cursor font, IBM Plex as the interface
+layouts, editor and terminal colours that follow the palette, mouse cursors after the X11 cursor font, IBM Plex as the interface
 font, and a day/night pair of global themes.
 
 INSTALL: this is not a package the store can install with "Install" or "Get
