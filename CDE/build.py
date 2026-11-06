@@ -487,6 +487,8 @@ def main():
     build_gtk(OUT, P)
     from freecadtheme import build_freecad
     build_freecad(OUT, P)
+    from katetheme import build_kate
+    build_kate(OUT, P)
     from systemparts import build_system
     build_system(OUT, P)
     from kvantum import build_kvantum

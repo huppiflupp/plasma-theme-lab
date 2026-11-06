@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Run in the lab VM after build.py; no changes to the active desktop."""
+import configparser
 import json
 import os
 import shutil
@@ -242,7 +243,7 @@ class Separation(unittest.TestCase):
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
             for item in ("tools", "frontpanel", "stylemanager", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "wallpapers", "screenshots",
-                         "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "freecadtheme.py", "systemparts.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
+                         "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "freecadtheme.py", "katetheme.py", "systemparts.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
                     shutil.copytree(source, copy / item, symlinks=True,
@@ -1033,6 +1034,75 @@ assert.strictEqual(parseTileRef('middle:1'), null);
             self.assertIn('"%s"' % role, api, role)
         for prop in ("desktopIds", "desktopNames", "currentDesktop"):
             self.assertIn('name: "%s"' % prop, api, prop)
+
+
+class Kate(unittest.TestCase):
+    """The editor's themes: KTextEditor finds them by colour (katetheme.py)."""
+    # KSyntaxHighlighting's default styles; a theme must set all of them.
+    STYLES = ("Normal", "Keyword", "Function", "Variable", "ControlFlow", "Operator", "BuiltIn", "Extension",
+              "Preprocessor", "Attribute", "Char", "SpecialChar", "String", "VerbatimString", "SpecialString",
+              "Import", "DataType", "DecVal", "BaseN", "Float", "Constant", "Comment", "Documentation",
+              "Annotation", "CommentVar", "RegionMarker", "Information", "Warning", "Alert", "Error", "Others")
+
+    @staticmethod
+    def palettes_with_copper():
+        sys.path.insert(0, str(ROOT))
+        import build
+        import palettes
+        return [("Copper", build.P)] + [(name, palettes.theme(name)) for name in palettes.names()]
+
+    def test_each_palette_has_a_theme_its_colour_scheme_selects(self):
+        """Repository::themeForPalette compares Base and Highlight exactly."""
+        for name, _ in self.palettes_with_copper():
+            theme = json.loads((ROOT / "build" / f"org.kde.syntax-highlighting/themes/CDE{name}.theme").read_text())
+            scheme = configparser.ConfigParser(interpolation=None)
+            scheme.optionxform = str
+            scheme.read(ROOT / "build" / f"color-schemes/CDE{name}.colors")
+            colour = lambda group: "#%02x%02x%02x" % tuple(int(v) for v in scheme[group]["BackgroundNormal"].split(","))
+            self.assertEqual(theme["editor-colors"]["BackgroundColor"], colour("Colors:View"), name)
+            self.assertEqual(theme["editor-colors"]["TextSelection"], colour("Colors:Selection"), name)
+            self.assertEqual(theme["metadata"]["name"], f"CDE {name}")
+
+    def test_palettes_sharing_the_colours_share_the_editor(self):
+        """themeForPalette returns the first match, so it must not matter which."""
+        import katetheme
+        seen = {}
+        for name, P in self.palettes_with_copper():
+            content = (katetheme.styles(P), katetheme.editor_colours(P))
+            first = seen.setdefault((P["window"], P["selection"]), (name, content))
+            self.assertEqual(first[1], content, f"{first[0]} and {name}")
+
+    def test_text_reads(self):
+        import katetheme
+        from palettes import contrast
+        for name, P in self.palettes_with_copper():
+            field, ink = P["window"], P["window_text"]
+            styles, editor = katetheme.styles(P), katetheme.editor_colours(P)
+            self.assertEqual(set(styles), set(self.STYLES), name)
+            for style, entry in styles.items():
+                behind = entry.get("background-color", field)
+                self.assertGreaterEqual(contrast(entry["text-color"], behind), 2.95, f"{name} {style}")
+                self.assertEqual(entry["selected-text-color"], P["selection_text"], f"{name} {style}")
+            self.assertGreaterEqual(contrast(editor["LineNumbers"], editor["IconBorder"]), 2.95, name)
+            for role in ("SearchHighlight", "ReplaceHighlight", "BracketMatching"):
+                self.assertGreaterEqual(contrast(ink, editor[role]), 3.5, f"{name} {role}")
+                self.assertNotEqual(editor[role], field, f"{name} {role}")
+
+    def test_styles_stay_apart(self):
+        """Even on a mid-tone field the kinds of token must differ visibly."""
+        import katetheme
+        def distance(a, b):
+            return sum(abs(int(a[i:i+2], 16) - int(b[i:i+2], 16)) for i in (1, 3, 5))
+        for name, P in self.palettes_with_copper():
+            styles = katetheme.styles(P)
+            colours = [styles[key]["text-color"] for key in ("Function", "Variable", "Preprocessor", "String", "DecVal")]
+            closest = min(distance(a, b) for i, a in enumerate(colours) for b in colours[i + 1:])
+            self.assertGreaterEqual(closest, 20, name)
+
+    def test_installed_and_removed_with_the_theme(self):
+        import manage
+        for name, _ in self.palettes_with_copper():
+            self.assertIn(f"org.kde.syntax-highlighting/themes/CDE{name}.theme", manage.TARGETS)
 
 
 class FreeCAD(unittest.TestCase):

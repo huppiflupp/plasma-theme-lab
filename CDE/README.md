@@ -164,6 +164,20 @@ languages can be added as `po/<language>.po`.
 
   ![FreeCAD in the Copper palette](screenshots/freecad-copper-1600.png)
   ![FreeCAD in CDE's Default palette](screenshots/freecad-default-1600.png)
+- Editor colours for Kate, KWrite and KDevelop: one KTextEditor colour theme
+  per palette (`~/.local/share/org.kde.syntax-highlighting/themes/CDE*.theme`),
+  with the palette's text field as background and its active colour as
+  selection. With KTextEditor's default "Automatic color theme selection" the
+  editor picks the matching theme by itself and follows a palette change at
+  once, also while it is open. An editor set to a fixed theme keeps it, and
+  all 48 themes show up in its theme list. The hues are moved until they read on the
+  field; mid-tone palettes leave little room, so there they reach about 3:1
+  (bold and italic still set keywords and comments apart). Uninstalling
+  removes the files, and the editor falls back to Breeze. A Flatpak Kate has
+  its own data folder and is not reached.
+
+  ![KWrite in the Copper palette](screenshots/kate-copper.png)
+  ![KWrite in the Slate palette](screenshots/kate-slate.png)
 - System parts, installed apart with `sudo python3 system.py install` (and
   undone with `uninstall`): a Plymouth boot splash (a Motif dialog with a
   meter on the backdrop, the passphrase prompt of an encrypted disk in it)

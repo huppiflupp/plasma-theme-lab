@@ -1401,3 +1401,25 @@ Release 1.1.2 (same day): `dist/cde-copper-1.1.2.tar.xz` unpacked in
 console up, volume in the tray's `extraItems` and `hiddenItems`, no QML
 errors in the journal. Not checked: `ubuntu-lab`, console edges, sizes and
 palettes (the change touches only the tray's lists).
+
+## Kate and KWrite follow the palette (06.11.2026, plasma-lab, kf6-syntax-highlighting 6.28, KWrite 26.04)
+
+KTextEditor selects by exact colour (Repository::themeForPalette: background
+== QPalette::Base, selection == QPalette::Highlight), checked in the KDE source
+and in `tests/verify.py` for all 48 palettes.
+
+- KWrite (auto selection, a fresh profile) opened in Lilac, then
+  `manage.py palette` to Slate, Charcoal, Darkroom and Tundra with the window
+  open: the text area changed with each one, no restart. Started anew in Copper:
+  right theme at once. Ctrl+A shows the palette's selection colour.
+- Darkroom stays red; Charcoal and Tundra (contrast of plain text under 5:1)
+  remain legible, with the hues at about 3:1.
+- The TODO marker keeps its dark brown background in every palette: the Alerts
+  syntax definition sets those colours itself, for every theme.
+- `manage.py uninstall`: no theme file left.
+- Kvantum is not in this VM. On a Plasma host with Kvantum and CDELilac, a Qt
+  probe (system PySide6, `python3 -s`; the pip one in ~/.local has its own Qt
+  without the plugin) reports style kvantum, Base #c3c3c9 and Highlight #d3d178,
+  the values of the theme. The editor itself did not run under Kvantum.
+- Not tested: Kate proper (not in the VM, same KTextEditor), KDevelop, Ubuntu and
+  Artix, a Flatpak Kate.

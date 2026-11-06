@@ -33,6 +33,9 @@ from build import PICTURES  # noqa: E402  (build.py is part of the tool copy too
 # Every CDE palette is installed as a colour scheme, so System Settings lists
 # them; the rest of a palette is generated when it is applied.
 SCHEMES = tuple(f"color-schemes/CDE{name}.colors" for name in palettes.names())
+# Kate's editor colours (katetheme.py), one theme per palette and all of them
+# installed: a running editor follows the palette only to themes it already knows.
+KATE_THEMES = tuple(f"org.kde.syntax-highlighting/themes/CDE{name}.theme" for name in ("Copper", *palettes.names()))
 TOOL = "cde-copper"
 # The material tiles' brightness, tinted per palette (backdrops.write_luma).
 LUMA_TILES = "plasma/wallpapers/org.cde.copper.backdrop/contents/images/luma"
@@ -49,7 +52,7 @@ TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "
            "plasma/shells/org.cde.copper.shell", "themes/CDECopper",
            # The translations (domain cde-copper); fixed, as the tool copy has no po/.
            *(f"locale/{lang}/LC_MESSAGES/cde-copper.mo" for lang in LANGUAGES),
-           "fonts/CDECopper", TOOL) + SCHEMES
+           "fonts/CDECopper", TOOL) + SCHEMES + KATE_THEMES
 # The tool copy: what applying a palette needs, so the console and System
 # Settings can switch palettes without the extracted archive.
 TOOL_SOURCES = ("manage.py", "build.py", "palettes.py", "backdrops.py", "kvantum.py", "icons.py", "cursors.py", "gtktheme.py", "freecadtheme.py",
