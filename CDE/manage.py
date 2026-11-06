@@ -370,7 +370,10 @@ def install():
     if cursor_edge(manifest) != CURSOR_COLOURS["copper"]:
         install_cursors(manifest)
     if manifest.get("palette", "Copper") != "Copper":
-        # The copies from build/ are in Copper's colours.
+        # The copies from build/ are in Copper's colours, and the palette's
+        # own controls and Plasma surfaces are those of the older version.
+        install_palette(manifest, manifest["palette"])
+        save_manifest(manifest)
         update_splash(manifest["palette"])
         update_icons(manifest["palette"])
         update_gtk(manifest["palette"])

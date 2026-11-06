@@ -231,6 +231,26 @@ def build_kvantum(out, P, name="CDECopper", comment="Motif workstation controls 
                             ("pressed", sunken, pressed_face), ("disabled", raised, face)):
         color = box_pixels(rings, fill, 16, 16)
         s.add(f"slidercursor-{st}", 16, 16, list(runs(color, 16, 16)) + [(4, 7, 8, 1, dark), (4, 8, 8, 1, light)])
+    # When a theme has neither, Kvantum draws its built-in glow beside the
+    # scroll bar's slider and its glossy dial: a soft blue blur and a rounded
+    # knob, in no palette's colours. So an empty glow (the groove's element
+    # with these suffixes), and a dial with Motif's bevel.
+    for side in ("topglow", "bottomglow"):
+        for state in ("normal", "normal-inactive"):
+            s.add(f"slider-{side}-{state}", CELL, CELL, [])
+    smooth = 'shape-rendering="geometricPrecision"'
+
+    def disc(r):
+        return f"M{32 - r} 32A{r} {r} 0 1 1 {32 + r} 32A{r} {r} 0 1 1 {32 - r} 32Z"
+    upper = "M9.4 54.6A32 32 0 0 1 54.6 9.4Z"
+    for suffix, top, bottom in (("", light, dark), ("-inactive", light, dark)):
+        s.add_path(f"dial{suffix}", 64, 64, [(disc(31), ink, smooth), (disc(29), bottom, smooth), (upper, top, smooth),
+                                             (disc(24), face, smooth), (disc(24), "none", f'{smooth} stroke="{ink}" stroke-width="1"')])
+    s.add("dial-handle", 8, 8, [(0, 0, 8, 8, ink), (1, 1, 6, 6, text)])
+    s.add("dial-handle-inactive", 8, 8, [(0, 0, 8, 8, ink), (1, 1, 6, 6, disabled)])
+    s.add("dial-notches", 8, 8, [])
+    s.add("dial-notches-inactive", 8, 8, [])
+    s.add_path("dial-focus", 64, 64, [(disc(30), "none", f'{smooth} stroke="{copper}" stroke-width="2"')])
     # Splitters, size grip, docks, MDI title bars.
     for st, fill in (("normal", face), ("focused", hover_face), ("pressed", pressed_face)):
         s.add(f"splitter-{st}", CELL, CELL, [(0, 0, CELL, CELL, fill)])

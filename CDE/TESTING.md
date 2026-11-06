@@ -1466,3 +1466,21 @@ as does Konsole's scheme (before, icons and GTK fell back to Copper until the ne
 palette change). `po/update.py` replaces the documented commands, which dropped the
 43 backdrop and picture names from the catalog: they now live in `po/names.pot`,
 and all 410 translations came through unchanged.
+
+## Controls gallery (06.11.2026, Kvantum 1.1.6)
+
+A gallery of Qt widgets, rendered under the Kvantum theme on Indigo, Lilac and
+Copper, showed what fell through to Kvantum's built-in theme.
+
+- Scroll bars: the blue blur beside the slider is `<groove>-topglow-normal` and
+  `-bottomglow-normal` (also `-normal-inactive`); now empty elements.
+- Dial: `dial`, `dial-handle`, `dial-notches` have no state suffix, only
+  `-inactive`; now Motif's bevel and a square handle.
+- `dialog-cancel` was ink only and vanished on dark palettes; now copper with an
+  ink edge, like `dialog-ok` readable on both.
+- Menu section titles (`QMenu::addSection`) stay plain separators: Kvantum draws
+  no text for separators (Kvantum.cpp, CE_MenuItem), so a theme cannot show them.
+- Not checked in a running session: only rendered off screen.
+- `list-add` and `list-remove` had the same flaw as `dialog-cancel`; same fix.
+- `install.sh` over a palette now also regenerates its controls and Plasma
+  surfaces; these stayed at the older version until the next palette change.

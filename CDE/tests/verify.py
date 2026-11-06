@@ -534,6 +534,7 @@ class Installer(unittest.TestCase):
         self.assertIn(colours["selection"].lower(), (self.data / "icons/CDECopper/scalable/all/document-share.svg").read_text().lower())
         self.assertIn(colours["surface"].lower(), (self.data / "themes/CDECopper/gtk-3.0/gtk.css").read_text().lower())
         self.assertIn("Color=12,14,42", (self.data / "konsole/CDECopper.colorscheme").read_text())
+        self.assertIn('id="dial"', (self.config / "Kvantum/CDEIndigo/CDEIndigo.svg").read_text())
 
     def test_upgrade_from_0_1_drops_the_svg_decoration(self):
         self.assertEqual(self.command("install").returncode, 0)
@@ -1050,6 +1051,17 @@ assert.strictEqual(parseTileRef('middle:1'), null);
             self.assertIn('"%s"' % role, api, role)
         for prop in ("desktopIds", "desktopNames", "currentDesktop"):
             self.assertIn('name: "%s"' % prop, api, prop)
+
+
+class ControlsOwnEverything(unittest.TestCase):
+    def test_no_kvantum_default_shows_through(self):
+        """What a theme lacks, Kvantum takes from its built-in theme: a blue
+        glow beside the scroll bar's slider and a glossy dial."""
+        svg = (ROOT / "build/Kvantum/CDECopper/CDECopper.svg").read_text()
+        for element in ("slider-topglow-normal", "slider-bottomglow-normal", "slider-topglow-normal-inactive",
+                        "slider-bottomglow-normal-inactive", "dial", "dial-inactive", "dial-handle", "dial-handle-inactive",
+                        "dial-notches", "dial-notches-inactive", "dial-focus"):
+            self.assertIn(f'id="{element}"', svg, element)
 
 
 class Translations(unittest.TestCase):
