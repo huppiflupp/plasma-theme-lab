@@ -1421,5 +1421,14 @@ and in `tests/verify.py` for all 48 palettes.
   probe (system PySide6, `python3 -s`; the pip one in ~/.local has its own Qt
   without the plugin) reports style kvantum, Base #c3c3c9 and Highlight #d3d178,
   the values of the theme. The editor itself did not run under Kvantum.
-- Not tested: Kate proper (not in the VM, same KTextEditor), KDevelop, Ubuntu and
-  Artix, a Flatpak Kate.
+- Kate 25.12.3 on ubuntu-lab (Plasma 6.6, Windows style as Kvantum is absent):
+  opened in Lilac, `manage.py palette` to Slate with the window open, the text
+  area followed.
+- Not tested: KDevelop, Artix, a Flatpak Kate.
+
+Release 1.1.3 (same day): plasma-lab and ubuntu-lab through install, apply with
+panel, no new plasmashell messages from `org.cde.copper.*`, console complete in
+the screenshot, uninstall. On ubuntu-lab the colour scheme setting is gone again.
+plasma-lab still named CDECopper afterwards, its backup having been taken after an
+earlier `manage.py palette` without apply had set it (no theme file left).
+Not checked: X11, two screens, the console's positions and sizes (unchanged).
