@@ -1053,6 +1053,17 @@ assert.strictEqual(parseTileRef('middle:1'), null);
             self.assertIn('name: "%s"' % prop, api, prop)
 
 
+class Versions(unittest.TestCase):
+    def test_every_package_names_the_release(self):
+        sys.path.insert(0, str(ROOT))
+        from build import VERSION
+        found = {str(path.relative_to(ROOT)): json.loads(path.read_text()).get("KPlugin", {}).get("Version")
+                 for path in (ROOT / "build").rglob("metadata.json")}
+        wrong = {path: version for path, version in found.items() if version and version != VERSION}
+        self.assertEqual(wrong, {})
+        self.assertIn(f"This is version {VERSION}.", (ROOT / "README.md").read_text())
+
+
 class ControlsOwnEverything(unittest.TestCase):
     def test_no_kvantum_default_shows_through(self):
         """What a theme lacks, Kvantum takes from its built-in theme: a blue

@@ -16,7 +16,7 @@ the log; this list is the test plan.
       nothing cut off, no empty space
 - [ ] Triggered the changed function by hand (click, keyboard, popup closes with Esc)
 - [ ] No private names/addresses in the product (test `test_no_private_hosts_in_product`)
-- [ ] Version bumped in `build.py`/`po/README.md`, README and TESTING.md updated
+- [ ] Version bumped in `build.py`, `frontpanel/metadata.json`, `stylemanager/metadata.json`, README; TESTING.md updated
 
 ## For changes to the console (frontpanel/)
 
