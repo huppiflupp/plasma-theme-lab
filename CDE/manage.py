@@ -55,7 +55,7 @@ TARGETS = ("color-schemes/CDECopper.colors", "kwin/decorations/" + DECORATION, "
            "fonts/CDECopper", TOOL) + SCHEMES + KATE_THEMES
 # The tool copy: what applying a palette needs, so the console and System
 # Settings can switch palettes without the extracted archive.
-TOOL_SOURCES = ("manage.py", "build.py", "palettes.py", "backdrops.py", "kvantum.py", "icons.py", "cursors.py", "gtktheme.py", "freecadtheme.py",
+TOOL_SOURCES = ("manage.py", "build.py", "palettes.py", "backdrops.py", "kvantum.py", "icons.py", "cursors.py", "gtktheme.py", "freecadtheme.py", "terminals.py",
                 "layout.js", "tools", "palettes", "backdrops")
 # Owned by older installations and removed when they are upgraded.
 LEGACY_TARGETS = ("aurorae/themes/CDECopper", "wallpapers/CDEBackdrops", "wallpapers/org.cde.copper.backdrop")
@@ -373,6 +373,8 @@ def install():
         update_splash(manifest["palette"])
     if manifest.get("palette", "Copper") == "Copper" and manifest.get("progress", "outlined") != "outlined":
         copper_kvantum(manifest["progress"])
+    # The Konsole scheme from build/ is Copper's dark set.
+    update_terminals(manifest, manifest.get("palette", "Copper"))
     run("kbuildsycoca6", check=False)
     if shutil.which("fc-cache"):
         run("fc-cache", "-f", str(DATA / "fonts/CDECopper"), check=False)
@@ -673,6 +675,7 @@ def set_palette(manifest, name):
     update_icons(name)
     update_gtk(name)
     update_freecad(name)
+    update_terminals(manifest, name)
     save_manifest(manifest)
     return theme
 
@@ -966,6 +969,24 @@ def update_freecad(name):
         freecadtheme.write(folder, build.P if name == "Copper" else palettes.theme(name))
 
 
+def update_terminals(manifest, name):
+    """The terminals' colours in the palette (terminals.py). Konsole and kitty
+    are told; Alacritty and WezTerm watch their files; xterm and foot read
+    theirs when they start."""
+    sys.path.insert(0, str(ROOT))
+    import build
+    import terminals
+    P = build.P if name == "Copper" else palettes.theme(name)
+    for note in terminals.write_all(P, manifest.get("terminal", terminals.DEFAULT), DATA, CONFIG, HOME):
+        print(note)
+    run("pkill", "-USR1", "-x", "kitty", check=False)
+
+
+def remove_terminals():
+    import terminals
+    terminals.remove_all(CONFIG, HOME)
+
+
 def remove_freecad():
     """Our files only; a FreeCAD that still names the theme falls back to
     its built-in look (no style sheet) at its next start."""
@@ -1039,7 +1060,7 @@ def set_window_shadow(manifest, on):
 
 
 def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=False, progress=None, cursor=None, lockscreen=None,
-                   window_shadow=None, pattern_colour=None):
+                   window_shadow=None, pattern_colour=None, terminal=None):
     """Switch palette (and backdrop) of an applied installation; with follow,
     take the palette from the colour scheme chosen in System Settings."""
     if not session_ready():
@@ -1068,6 +1089,10 @@ def palette_action(name=None, backdrop=None, scale=None, follow=False, notify=Fa
         if cursor:
             manifest["cursor"] = cursor
             install_cursors(manifest)
+            save_manifest(manifest)
+        if terminal:
+            manifest["terminal"] = terminal
+            update_terminals(manifest, manifest.get("palette", "Copper"))
             save_manifest(manifest)
         if pattern_colour and pattern_colour != manifest.get("pattern_colour", "cde"):
             # The patterns are drawn when a palette is applied: draw again.
@@ -1229,6 +1254,7 @@ def uninstall():
         remove(cache)
     remove_xfile_integration()
     remove_freecad()
+    remove_terminals()
     if manifest["applied"]:
         dbus("org.kde.KWin", "/KWin", "reconfigure")
         start_shell()
@@ -1257,6 +1283,8 @@ def main():
     parser.add_argument("--cursor", type=lambda v: v if v in ("copper", "palette", "white") or re.fullmatch(r"#[0-9a-fA-F]{6}", v) else parser.error(f"--cursor: {v!r}"),
                         help="palette: rim of the cursors: copper, palette (its accent), white or #rrggbb")
     parser.add_argument("--window-shadow", choices=("on", "off"), help="palette: the window frame's short hard shadow")
+    parser.add_argument("--terminal", choices=("dark", "field"),
+                        help="palette: terminal colours (dark, tinted with the palette; field, the palette's text field)")
     parser.add_argument("--pattern-colour", choices=("cde", "palette"),
                         help="palette: CDE's patterns in white (or black) as in CDE, or on dark palettes in a colour of the palette")
     parser.add_argument("--lockscreen", choices=("cde", "plasma"), help="palette: CDE's lock screen (a shell package of its own) or Plasma's")
@@ -1297,7 +1325,7 @@ def main():
         follow_theme()
     elif args.action == "palette":
         palette_action(args.palette, args.backdrop, args.backdrop_scale, args.follow_scheme, args.notify, args.progress, args.cursor, args.lockscreen,
-                       None if args.window_shadow is None else args.window_shadow == "on", args.pattern_colour)
+                       None if args.window_shadow is None else args.window_shadow == "on", args.pattern_colour, args.terminal)
     else:
         uninstall()
 

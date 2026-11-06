@@ -5,79 +5,91 @@ Blur=false
 Wallpaper=
 
 [Background]
-Color=6,28,34
+Color=3,36,41
+
+[BackgroundIntense]
+Color=3,36,41
+
+[BackgroundFaint]
+Color=3,36,41
 
 [Foreground]
-Color=196,210,208
+Color=208,219,217
+
+[ForegroundIntense]
+Color=208,219,217
+
+[ForegroundFaint]
+Color=146,164,164
 
 [Color0]
-Color=16,38,43
+Color=38,67,71
 
 [Color0Intense]
-Color=16,38,43
+Color=109,128,131
 
 [Color0Faint]
-Color=16,38,43
+Color=28,58,62
 
 [Color1]
-Color=226,131,117
+Color=229,120,115
 
 [Color1Intense]
-Color=226,131,117
+Color=246,208,206
 
 [Color1Faint]
-Color=226,131,117
+Color=161,95,93
 
 [Color2]
-Color=149,189,152
+Color=108,191,114
 
 [Color2Intense]
-Color=149,189,152
+Color=183,224,186
 
 [Color2Faint]
-Color=149,189,152
+Color=76,144,92
 
 [Color3]
-Color=240,177,132
+Color=216,178,74
 
 [Color3Intense]
-Color=240,177,132
+Color=233,212,153
 
 [Color3Faint]
-Color=240,177,132
+Color=152,135,64
 
 [Color4]
-Color=110,171,191
+Color=63,120,204
 
 [Color4Intense]
-Color=110,171,191
+Color=204,219,241
 
 [Color4Faint]
-Color=110,171,191
+Color=45,95,155
 
 [Color5]
-Color=184,163,196
+Color=185,138,223
 
 [Color5Intense]
-Color=184,163,196
+Color=226,206,242
 
 [Color5Faint]
-Color=184,163,196
+Color=130,107,168
 
 [Color6]
-Color=61,181,195
+Color=63,184,198
 
 [Color6Intense]
-Color=61,181,195
+Color=175,225,231
 
 [Color6Faint]
-Color=61,181,195
+Color=45,140,151
 
 [Color7]
-Color=196,210,208
+Color=208,219,217
 
 [Color7Intense]
-Color=196,210,208
+Color=255,255,255
 
 [Color7Faint]
-Color=196,210,208
+Color=146,164,164

@@ -180,6 +180,7 @@ PlasmoidItem {
         {key: "palette", text: i18nd("cde-copper", "Palette"), icon: "preferences-desktop-color", dialog: paletteDialog},
         {key: "backdrop", text: i18nd("cde-copper", "Backdrop"), icon: "preferences-desktop-wallpaper", dialog: backdropDialog},
         {key: "window", text: i18nd("cde-copper", "Window"), icon: "preferences-desktop-theme-windowdecorations", dialog: windowDialog},
+        {key: "terminal", text: i18nd("cde-copper", "Terminal"), icon: "utilities-terminal", dialog: terminalDialog},
         {key: "pointer", text: i18nd("cde-copper", "Pointer"), icon: "preferences-desktop-cursors", dialog: pointerDialog},
         {key: "lock", text: i18ndc("cde-copper", "style manager part", "Lock Screen"), icon: "system-lock-screen", dialog: lockDialog},
         {key: "controls", text: i18nd("cde-copper", "Controls"), icon: "preferences-desktop-theme-applications", dialog: controlsDialog}]
@@ -296,6 +297,7 @@ PlasmoidItem {
     PaletteDialog { id: paletteDialog; manager: root }
     BackdropDialog { id: backdropDialog; manager: root }
     WindowDialog { id: windowDialog; manager: root }
+    TerminalDialog { id: terminalDialog; manager: root }
     PointerDialog { id: pointerDialog; manager: root }
     LockDialog { id: lockDialog; manager: root }
     ControlsDialog { id: controlsDialog; manager: root }

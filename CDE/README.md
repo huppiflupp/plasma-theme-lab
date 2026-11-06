@@ -164,6 +164,18 @@ languages can be added as `po/<language>.po`.
 
   ![FreeCAD in the Copper palette](screenshots/freecad-copper-1600.png)
   ![FreeCAD in CDE's Default palette](screenshots/freecad-default-1600.png)
+- Terminal colours that follow the palette, in the Style Manager's Terminal
+  dialog (or `manage.py palette --terminal dark|field`). "Dark" is the default:
+  a background darkened from the workspace colour, so programs that assume a
+  dark terminal stay legible. "Field" uses the palette's text field; programs
+  with surfaces of their own, such as Midnight Commander, suffer there. Written
+  for Konsole (its CDE Copper profile; Yakuake uses it as the default profile),
+  xterm, uxterm, Alacritty, kitty, foot and WezTerm, where the program or its
+  configuration folder exists. A configuration of your own is left alone, and
+  the tool prints the one line to add. Alacritty, kitty and WezTerm follow at
+  once; Konsole, xterm and foot from their next window (Konsole's D-Bus call to
+  reload a profile is disabled by default as security sensitive). Uninstalling
+  removes our files only.
 - Editor colours for Kate, KWrite and KDevelop: one KTextEditor colour theme
   per palette (`~/.local/share/org.kde.syntax-highlighting/themes/CDE*.theme`),
   with the palette's text field as background and its active colour as

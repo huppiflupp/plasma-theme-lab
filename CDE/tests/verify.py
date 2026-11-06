@@ -243,7 +243,7 @@ class Separation(unittest.TestCase):
             copy = Path(temp) / "island/CDE"
             copy.mkdir(parents=True)
             for item in ("tools", "frontpanel", "stylemanager", "decoration", "arrange", "backdrop", "fonts", "palettes", "backdrops", "wallpapers", "screenshots",
-                         "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "freecadtheme.py", "katetheme.py", "systemparts.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
+                         "lookandfeel", "shell", "tabbox", "po", "i18n.py", "build.py", "icons.py", "cursors.py", "gtktheme.py", "freecadtheme.py", "katetheme.py", "terminals.py", "systemparts.py", "kvantum.py", "palettes.py", "backdrops.py", "layout.js"):
                 source = ROOT / item
                 if source.is_dir():
                     shutil.copytree(source, copy / item, symlinks=True,
@@ -1034,6 +1034,90 @@ assert.strictEqual(parseTileRef('middle:1'), null);
             self.assertIn('"%s"' % role, api, role)
         for prop in ("desktopIds", "desktopNames", "currentDesktop"):
             self.assertIn('name: "%s"' % prop, api, prop)
+
+
+class Terminals(unittest.TestCase):
+    """The terminals' colours follow the palette (terminals.py)."""
+
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, str(ROOT))
+
+    @staticmethod
+    def palettes_with_copper():
+        sys.path.insert(0, str(ROOT))
+        import build
+        import palettes
+        return [("Copper", build.P)] + [(name, palettes.theme(name)) for name in palettes.names()]
+
+    def test_every_palette_reads_in_both_sets(self):
+        import terminals
+        from palettes import contrast
+        for name, P in self.palettes_with_copper():
+            for kind in terminals.KINDS:
+                C = terminals.colours(P, kind)
+                self.assertEqual(len(C["ansi"]), 16)
+                self.assertGreaterEqual(contrast(C["background"], C["foreground"]), 4.5, f"{name} {kind}")
+                for i in (*range(1, 7), *range(9, 15)):
+                    self.assertGreaterEqual(contrast(C["ansi"][i], C["background"]), 2.95, f"{name} {kind} colour {i}")
+            # The dark set stays dark, and its blue carries white text (Midnight Commander).
+            dark = terminals.colours(P, "dark")
+            self.assertGreaterEqual(contrast(dark["background"], "#ffffff"), 12, name)
+            self.assertGreaterEqual(contrast(dark["ansi"][4], "#ffffff"), 4, name)
+            self.assertEqual(terminals.colours(P, "field")["background"], P["window"], name)
+
+    def test_only_our_files_are_written_and_removed(self):
+        from unittest.mock import patch
+        import terminals
+        P = self.palettes_with_copper()[1][1]
+        with tempfile.TemporaryDirectory(prefix="cde-terminals-") as temp:
+            root = Path(temp)
+            data, config, home = root / "data", root / "config", root / "home"
+            home.mkdir()
+            # Present: an alacritty folder without a configuration, a kitty
+            # with the user's own, a foot whose fragment name is taken.
+            (config / "alacritty").mkdir(parents=True)
+            (config / "kitty").mkdir()
+            (config / "kitty/kitty.conf").write_text("font_size 14\n")
+            (config / "foot").mkdir()
+            (config / "foot/cde-copper.ini").write_text("[main]\n")
+            with patch.object(shutil, "which", lambda program: None):
+                notes = terminals.write_all(P, "dark", data, config, home)
+            self.assertIn("[Background]", (data / "konsole/CDECopper.colorscheme").read_text())
+            self.assertIn("cde-copper.toml", (config / "alacritty/alacritty.toml").read_text())
+            self.assertIn("background", (config / "alacritty/cde-copper.toml").read_text())
+            self.assertEqual((config / "kitty/kitty.conf").read_text(), "font_size 14\n")
+            self.assertTrue((config / "kitty/cde-copper.conf").exists())
+            self.assertEqual((config / "foot/cde-copper.ini").read_text(), "[main]\n")
+            self.assertFalse((config / "wezterm").exists(), "no folder, no program: nothing")
+            self.assertFalse((home / "XTerm").exists())
+            joined = "\n".join(notes)
+            self.assertIn("include cde-copper.conf", joined)
+            self.assertIn("foot", joined)
+            terminals.remove_all(config, home)
+            self.assertFalse((config / "alacritty/alacritty.toml").exists())
+            self.assertFalse((config / "kitty/cde-copper.conf").exists())
+            self.assertEqual((config / "kitty/kitty.conf").read_text(), "font_size 14\n")
+            self.assertEqual((config / "foot/cde-copper.ini").read_text(), "[main]\n")
+
+    def test_xterm_file_of_the_user_stays(self):
+        from unittest.mock import patch
+        import terminals
+        P = self.palettes_with_copper()[1][1]
+        with tempfile.TemporaryDirectory(prefix="cde-terminals-") as temp:
+            root = Path(temp)
+            home = root / "home"
+            home.mkdir()
+            (home / "XTerm").write_text("XTerm*background: red\n")
+            with patch.object(shutil, "which", lambda program: "/usr/bin/" + program if program == "xterm" else None):
+                notes = terminals.write_all(P, "field", root / "data", root / "config", home)
+            self.assertEqual((home / "XTerm").read_text(), "XTerm*background: red\n")
+            self.assertIn("keeps its colours", "\n".join(notes))
+
+    def test_style_manager_offers_the_choice(self):
+        dialog = (ROOT / "stylemanager/contents/ui/TerminalDialog.qml").read_text()
+        self.assertIn('"--terminal "', dialog)
+        self.assertIn("terminalDialog", (ROOT / "stylemanager/contents/ui/main.qml").read_text())
 
 
 class Kate(unittest.TestCase):

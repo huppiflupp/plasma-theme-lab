@@ -1432,3 +1432,29 @@ the screenshot, uninstall. On ubuntu-lab the colour scheme setting is gone again
 plasma-lab still named CDECopper afterwards, its backup having been taken after an
 earlier `manage.py palette` without apply had set it (no theme file left).
 Not checked: X11, two screens, the console's positions and sizes (unchanged).
+
+## Terminals follow the palette; share icon (06.11.2026, plasma-lab)
+
+Dark and field sets (`terminals.py`), compared with ls, git, grep, htop, mc, vim,
+bat and btop on Lilac and Summer before choosing dark as the default. In the
+field set mc is close to unreadable and btop stays a black block; a terminal
+scheme cannot fix either.
+
+- Konsole, xterm, Alacritty, kitty, foot: started in Lilac, `manage.py palette`
+  to Summer with the window open, then a new window. Alacritty and kitty followed
+  at once; Konsole, xterm and foot kept the colours until the new window.
+  Konsole's `Session.setProfile` answers "Security sensitive DBus API is disabled
+  in the settings", so it is not used.
+- Yakuake 26.08: takes the dark set through Konsole's default profile (it keeps
+  its own Breeze-like skin).
+- mc on the dark set: after lowering blue, file names and bright colours read.
+- Style Manager: Terminal tile, dialog, choosing the field set and OK wrote the
+  manifest, Konsole's scheme and xterm's app-defaults.
+- Install writes only for terminals present; `uninstall.sh` removed our files.
+- Share icon (`document-share`, `emblem-shared`): an arrow leaving a tray, checked
+  in Dolphin's context menu at menu size.
+- Not checked: WezTerm (no Fedora package), foot, Alacritty and kitty with
+  an existing configuration in a real session (covered by tests only), Kvantum,
+  Flatpak terminals, the German dialog text on screen, any terminal in the field
+  set beyond Konsole.
+

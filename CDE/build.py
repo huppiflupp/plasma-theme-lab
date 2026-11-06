@@ -367,12 +367,8 @@ Image=org.cde.copper
 """)
     write("wallpapers/org.cde.copper/metadata.json", json.dumps(metadata("org.cde.copper", "Copper / Teal", "Quiet workstation teal"), indent=2))
     write("wallpapers/org.cde.copper/contents/images/3840x2160.svg", '''<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160"><rect width="3840" height="2160" fill="#086875"/></svg>''')
-    lines = ["[General]", "Description=CDE Copper", "Opacity=1", "Blur=false", "Wallpaper=", "", "[Background]", "Color=6,28,34", "", "[Foreground]", "Color=196,210,208"]
-    for i, c in enumerate(("#10262b", "#e28375", "#95bd98", "#f0b184", "#6eabbf", "#b8a3c4", "#3db5c3", "#c4d2d0")):
-        rgb = ",".join(str(int(c[j:j+2], 16)) for j in (1, 3, 5))
-        for suffix in ("", "Intense", "Faint"):
-            lines += ["", f"[Color{i}{suffix}]", f"Color={rgb}"]
-    write("konsole/CDECopper.colorscheme", "\n".join(lines) + "\n")
+    import terminals
+    write("konsole/CDECopper.colorscheme", terminals.konsole(terminals.colours(P)))
     write("konsole/CDE Copper.profile", "[General]\nName=CDE Copper\nParent=FALLBACK/\n[Appearance]\nColorScheme=CDECopper\nFont=" + KONSOLE_FONT + "\n[Scrolling]\nHistoryMode=1\nHistorySize=10000\n")
     # System Settings › Application Style lists Qt style plugins by key and
     # takes names from kstyle/themes/*.themerc. Kvantum brings none, so its

@@ -1943,3 +1943,28 @@ msgstr "CDE Toskana"
 #. Material tile or picture name, from backdrops.py TILES or build.py PICTURES
 msgid "CDE Wadden Sea"
 msgstr "CDE Watt"
+
+#: stylemanager/contents/ui/TerminalDialog.qml:13
+msgid "Dark, tinted with the palette"
+msgstr "Dunkel, im Farbton der Palette"
+
+#: stylemanager/contents/ui/TerminalDialog.qml:14
+msgid "Like the palette's text fields"
+msgstr "Wie die Textfelder der Palette"
+
+#: stylemanager/contents/ui/TerminalDialog.qml:17
+#, kde-format
+msgid "Terminal: %1"
+msgstr "Terminal: %1"
+
+#: stylemanager/contents/ui/TerminalDialog.qml:40
+msgid ""
+"Both follow the palette. Programs that paint their own surfaces, such as "
+"Midnight Commander, are hard to read on light text fields. New terminal "
+"windows take the colours; of the open ones only Alacritty, kitty and WezTerm "
+"follow at once."
+msgstr ""
+"Beide Varianten folgen der Palette. Programme mit eigenen Farbflächen, etwa "
+"Midnight Commander, sind auf hellen Textfeldern schwer lesbar. Neue "
+"Terminalfenster übernehmen die Farben; von den offenen ziehen nur Alacritty, "
+"kitty und WezTerm sofort mit."
