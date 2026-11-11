@@ -10,7 +10,8 @@ import "motif.js" as Motif
 // The session block: an arrow strip like the launchers' over square
 // quarter buttons, two to a column. The arrow opens the tray's hidden
 // icons; which quarters there are is a setting (smallButtons), and how
-// they look another (smallStyle):
+// they look another (smallStyle); the graphics processor's meter draws
+// itself as gpuStyle says (GpuGauge):
 //   family       all quarters alike, the meters among the keys
 //   instruments  the same, the meters sunken in the clock's colours
 //   led          the meters as one LED field over a row of keys
@@ -32,18 +33,27 @@ GridLayout {
         if (["instruments", "led", "panel"].indexOf(wanted) < 0) return "family";
         return session.root.vertical && wanted !== "instruments" ? "instruments" : wanted;
     }
-    readonly property var meters: session.root.smallButtons.filter(k => k === "load" || k === "llm")
-    readonly property var keys: session.root.smallButtons.filter(k => k !== "load" && k !== "llm")
+    readonly property var allMeters: session.root.smallButtons.filter(k => k === "load" || k === "llm" || k === "gpu")
+    readonly property var keys: session.root.smallButtons.filter(k => k !== "load" && k !== "llm" && k !== "gpu")
+    // The graphics processor joins the cluster's reading (gpuStyle "llm"):
+    // the small LLM meter, except in the bar panel, or the LLM tile. Then it
+    // has no place of its own in the block.
+    readonly property bool gpuJoined: session.root.gpuWithLlm && allMeters.indexOf("llm") >= 0 && style !== "panel"
+    readonly property bool gpuOwn: allMeters.indexOf("gpu") >= 0
+        && !(session.root.gpuWithLlm && (allMeters.indexOf("llm") < 0 || style !== "panel"))
+    readonly property var meters: allMeters.filter(k => k !== "gpu" || gpuOwn)
     // The LED field and the panel gather the meters; without any, keys only.
     readonly property bool grouped: (style === "led" || style === "panel") && meters.length > 0
     readonly property bool ledRow: grouped && style === "led"
-    readonly property var gridKinds: grouped ? keys : session.root.smallButtons
+    readonly property var gridKinds: grouped ? keys : session.root.smallButtons.filter(k => k !== "gpu" || gpuOwn)
     readonly property int pairs: Math.max(1, Math.ceil(gridKinds.length / 2))
     // The LED field: about two quarters for each meter's digits.
-    readonly property int ledColumns: Math.max(gridKinds.length, 2 * meters.length + (battery ? 1 : 0))
+    readonly property int ledColumns: Math.max(gridKinds.length, Math.ceil(2 * meters.filter(k => k !== "gpu").length + (battery ? 1 : 0)
+        + (gpuOwn ? {bars: 1.5, trace: 3, dial: 2, ladder: 3}[session.root.gpuGauge] : 0) + (gpuJoined ? 1 : 0)))
     // The panel: a bar per reading (the cluster's, the processor's, the memory's).
     readonly property bool battery: meters.indexOf("load") >= 0 && session.root.batteryShown
-    readonly property int barCount: (meters.indexOf("llm") >= 0 ? 1 : 0) + (meters.indexOf("load") >= 0 ? 2 : 0) + (battery ? 1 : 0)
+    readonly property real barCount: (meters.indexOf("llm") >= 0 ? 1 : 0) + (meters.indexOf("load") >= 0 ? 2 : 0) + (battery ? 1 : 0)
+        + (gpuOwn ? {bars: 1.5, trace: 2.5, dial: 2.5, ladder: 1}[session.root.gpuGauge] : 0)
     readonly property int panelWidth: grouped && style === "panel" ? Math.round(quarter * (0.35 + 0.45 * barCount)) : 0
     readonly property int blockWidth: ledRow ? ledColumns * quarter + ledColumns - 1
         : (panelWidth > 0 ? panelWidth + (gridKinds.length > 0 ? 1 : 0) : 0)
@@ -77,7 +87,7 @@ GridLayout {
             visible: active
             Layout.fillHeight: true
             Layout.preferredWidth: session.panelWidth
-            sourceComponent: Instruments { root: session.root; colors: session.colors; bars: true; kinds: session.meters }
+            sourceComponent: Instruments { root: session.root; colors: session.colors; bars: true; kinds: session.meters; gpuJoined: false }
         }
         ColumnLayout {
             Layout.fillWidth: true; Layout.fillHeight: true
@@ -89,7 +99,7 @@ GridLayout {
                 // Without keys below the field takes the whole height.
                 Layout.fillHeight: session.gridKinds.length === 0
                 Layout.preferredHeight: session.quarter
-                sourceComponent: Instruments { root: session.root; colors: session.colors; bars: false; kinds: session.meters }
+                sourceComponent: Instruments { root: session.root; colors: session.colors; bars: false; kinds: session.meters; gpuJoined: session.gpuJoined }
             }
             GridLayout {
                 visible: session.gridKinds.length > 0
@@ -111,7 +121,8 @@ GridLayout {
                         Layout.columnSpan: stretched && session.root.vertical ? 2 : 1
                         Layout.fillWidth: true; Layout.fillHeight: true
                         Layout.preferredWidth: 1; Layout.preferredHeight: 1
-                        sourceComponent: modelData === "load" ? loadMeter : modelData === "llm" ? llmMeterComponent : quarterButton
+                        sourceComponent: modelData === "load" ? loadMeter : modelData === "llm" ? llmMeterComponent
+                                       : modelData === "gpu" ? gpuMeterComponent : quarterButton
                         onLoaded: {
                             if (item.kind !== undefined) item.kind = modelData;
                             else item.well = Qt.binding(() => session.style === "instruments");
@@ -121,7 +132,8 @@ GridLayout {
             }
         }
     }
-    Component { id: llmMeterComponent; LlmMeter { root: session.root; colors: session.colors } }
+    Component { id: llmMeterComponent; LlmMeter { root: session.root; colors: session.colors; gpu: session.gpuJoined } }
+    Component { id: gpuMeterComponent; GpuMeter { root: session.root; colors: session.colors } }
     Component { id: loadMeter; LoadMeter { root: session.root; colors: session.colors } }
     Component { id: quarterButton; QuarterButton { root: session.root } }
 
@@ -178,9 +190,12 @@ GridLayout {
         // The console (main.qml) and its colours: given, never looked up.
         required property var root
         required property var colors
+        // The graphics processor joined (gpuStyle "llm"): its load as a stripe.
+        property bool gpu: false
         implicitWidth: 0; implicitHeight: 0
         padding: 0; text: ""
         Accessible.name: i18nd("cde-copper", "LLM cluster: %1 t/s", Math.round(llmMeter.root.llmTotal))
+                         + (gpu ? ", " + llmMeter.root.gpuText : "")
         Binding { target: llmMeter.root; property: "llmSmallVisible"; value: llmMeter.visible && llmMeter.Window.window !== null && llmMeter.Window.window.visible; restoreMode: Binding.RestoreBindingOrValue }
         // As an instrument (smallStyle): sunken, the clock's colours.
         surface: llmMeter.well ? llmMeter.colors.window : llmMeter.colors.panel
@@ -204,6 +219,49 @@ GridLayout {
                 horizontalAlignment: Text.AlignHCenter
                 color: llmMeter.ink; font.family: llmMeter.colors.font
                 font.pixelSize: Math.max(6, Math.round(parent.side * 0.2))
+            }
+            Item {
+                visible: llmMeter.gpu
+                x: Math.max(1, Math.round(parent.width * 0.1)); width: parent.width - 2 * x
+                height: Math.max(2, Math.round(parent.side * 0.07))
+                y: parent.height - height - Math.max(1, Math.round(parent.side * 0.02))
+                Rectangle { anchors.fill: parent; color: Qt.rgba(llmMeter.ink.r, llmMeter.ink.g, llmMeter.ink.b, 0.15) }
+                Rectangle {
+                    width: Math.round(parent.width * Math.min(100, llmMeter.root.gpuLoad) / 100); height: parent.height
+                    color: llmMeter.selected ? llmMeter.colors.highlightText : llmMeter.colors.highlight
+                }
+            }
+        }
+    }
+
+    // The graphics processor as a quarter, drawn in the style chosen
+    // (gpuStyle); a click opens the system monitor.
+    component GpuMeter: ConsoleButton {
+        id: gpuMeter
+        // The console (main.qml) and its colours: given, never looked up.
+        required property var root
+        required property var colors
+        Layout.fillWidth: true; Layout.fillHeight: true
+        Layout.preferredWidth: 1; Layout.preferredHeight: 1
+        implicitWidth: 0; implicitHeight: 0
+        padding: 0; text: ""
+        Accessible.name: gpuMeter.root.gpuText
+        onClicked: gpuMeter.root.run("plasma-systemmonitor || ksysguard")
+        // As an instrument (smallStyle): sunken, the clock's colours.
+        surface: gpuMeter.well ? gpuMeter.colors.window : gpuMeter.colors.panel
+        contentItem: Item {
+            readonly property int side: Math.min(width, height)
+            GpuGauge {
+                anchors.fill: parent
+                anchors.margins: Math.max(2, Math.round(parent.side * 0.12))
+                style: gpuMeter.root.gpuGauge
+                load: gpuMeter.root.gpuLoad; memory: gpuMeter.root.gpuMemory
+                peak: gpuMeter.root.gpuPeak; history: gpuMeter.root.gpuHistory
+                lit: gpuMeter.colors.highlight
+                ink: gpuMeter.well ? gpuMeter.colors.windowText : gpuMeter.colors.panelText
+                well: gpuMeter.well ? Motif.shades(gpuMeter.colors.window).bottom : gpuMeter.colors.field
+                label: "G"; labelSize: Math.max(6, Math.round(parent.side * 0.2))
+                font: gpuMeter.colors.font
             }
         }
     }

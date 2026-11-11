@@ -19,6 +19,7 @@ ConfigPage {
     property var cfg_smallButtons: []
     property string cfg_smallStyle: "family"
     property string cfg_batteryMeter: "auto"
+    property string cfg_gpuStyle: "bars"
     property alias cfg_llmHosts: llmHosts.text
     property bool cfg_hideTrayIcons: true
     property alias cfg_hideTrayVolume: hideVolume.checked
@@ -33,6 +34,7 @@ ConfigPage {
         {kind: "lock", text: i18nd("cde-copper", "Lock screen")},
         {kind: "desktop", text: i18nd("cde-copper", "Show desktop")},
         {kind: "load", text: i18nd("cde-copper", "Load meter"), tip: i18nd("cde-copper", "Processor and memory")},
+        {kind: "gpu", text: i18nd("cde-copper", "Graphics processor"), tip: i18nd("cde-copper", "Load of the busiest graphics processor")},
         {kind: "llm", text: i18nd("cde-copper", "LLM cluster"), tip: i18nd("cde-copper", "Tokens per second of llama.cpp servers")},
         {kind: "volume", text: i18nd("cde-copper", "Volume"), tip: i18nd("cde-copper", "Without it the volume sits in the strip's row")},
         {kind: "network", text: i18nd("cde-copper", "Network"), tip: i18nd("cde-copper", "WLAN or cable")},
@@ -324,6 +326,22 @@ ConfigPage {
                 currentIndex: Math.max(0, values.indexOf(page.cfg_batteryMeter))
                 onActivated: index => page.cfg_batteryMeter = values[index]
                 ToolTip.text: i18nd("cde-copper", "Only on computers with a battery; needs the load meter")
+                ToolTip.visible: hovered
+            }
+            // How the graphics processor's meter draws its load (GpuGauge).
+            ComboBox {
+                wheelEnabled: false
+                Kirigami.FormData.label: i18nd("cde-copper", "Graphics processor:")
+                enabled: (page.cfg_smallButtons || []).indexOf("gpu") >= 0
+                readonly property var values: ["bars", "trace", "dial", "ladder", "llm"]
+                model: [i18nd("cde-copper", "Load and memory as two bars"),
+                        i18nd("cde-copper", "Curve of the last minute"),
+                        i18nd("cde-copper", "Needle instrument"),
+                        i18nd("cde-copper", "Ten segments with the peak held"),
+                        i18nd("cde-copper", "Stripe on the LLM cluster's reading")]
+                currentIndex: Math.max(0, values.indexOf(page.cfg_gpuStyle))
+                onActivated: index => page.cfg_gpuStyle = values[index]
+                ToolTip.text: i18nd("cde-copper", "Needs the graphics processor among the small buttons. On a computer whose graphics share the main memory (an APU) the memory shown is the shared GTT.")
                 ToolTip.visible: hovered
             }
             RowLayout {

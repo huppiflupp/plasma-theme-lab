@@ -1500,3 +1500,21 @@ Release 1.2.0 (same day):
   terminal. `screenshots/icon-sheet-*` were not regenerated: no generator in the repo.
   README's screenshots of the Style Manager, if any, predate the Terminal tile.
 
+
+Graphics processor meter (2026-11-11, unreleased):
+- `tests/verify.py`: 60 tests pass. `po/de.po` complete, `msgfmt --check` clean.
+- GpuGauge rendered off screen (PySide6) in its four drawings, as a family
+  quarter, a sunken quarter, an LED cell and a panel cell, on Copper,
+  CopperNight, Default, Summer, Charcoal and Obsidian. First pass: the memory
+  bar in the text colour vanished in the near-black well of light palettes, and
+  the needle in the highlight was faint on Charcoal; now the memory and grid
+  take black or white towards the well, the needle the text colour.
+- plasma-lab (Copper): all 20 combinations of the four small-button styles and
+  the five GPU styles switched live, with load, memory and tokens injected into
+  the installed copy (the VM's virtio GPU reports no load); no plasmashell
+  messages from the console after a fix to a teardown warning in GpuGauge.
+- Real hardware, sensors only: 245k (Intel iGPU plus RTX 5080, `gpu/all/usage`
+  51 % while gpu0 read 24 %: hence the busiest), ai395 (Strix Halo: VRAM
+  0.5 GiB, GTT 96.7 of 128.8 GB in use, read by the console's sysfs command).
+- Not checked: the meter running in a session on real hardware, the upright
+  console, two screens.

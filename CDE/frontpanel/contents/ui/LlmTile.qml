@@ -44,6 +44,7 @@ GridLayout {
         text: ""
         labelled: Plasmoid.configuration.launcherLabels
         Accessible.name: i18nd("cde-copper", "LLM cluster: %1 t/s", Math.round(tile.root.llmTotal))
+                         + (tile.root.gpuWithLlm ? ", " + tile.root.gpuText : "")
         selected: tile.popupSelected
         onClicked: tile.root.toggleLlm(launcher, tile)
         contentItem: Item {
@@ -71,6 +72,19 @@ GridLayout {
                 color: launcher.selected ? launcher.accentText : tile.colors.panelText
                 font.family: tile.colors.font; font.pixelSize: tile.root.u(11); font.weight: tile.colors.weight
                 horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+            }
+            // The graphics processor joined (gpuStyle "llm"): its load as a
+            // stripe between the digits and the label.
+            Item {
+                visible: tile.root.gpuWithLlm
+                x: tile.root.u(6); width: parent.width - 2 * x
+                height: Math.max(2, tile.root.u(3))
+                y: Math.round(parent.height * (launcher.labelled ? 0.77 : 1)) - height - tile.root.u(1)
+                Rectangle { anchors.fill: parent; color: Qt.rgba(tile.colors.panelText.r, tile.colors.panelText.g, tile.colors.panelText.b, 0.15) }
+                Rectangle {
+                    width: Math.round(parent.width * Math.min(100, tile.root.gpuLoad) / 100); height: parent.height
+                    color: launcher.selected ? launcher.accentText : tile.colors.highlight
+                }
             }
         }
     }

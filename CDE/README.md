@@ -55,7 +55,16 @@ languages can be added as `po/<language>.po`.
   Settings' gear), lock screen, show desktop, a load meter (processor and
   memory from Plasma's own sensors; a click opens the system monitor; on a
   laptop the battery joins it as a third reading, by default only while
-  running on the battery, or always, or never, under Tiles › Battery), volume
+  running on the battery, or always, or never, under Tiles › Battery), a
+  graphics processor meter (the load of the busiest GPU, since Plasma's
+  `gpu/all` averages a working card with an idle integrated chip, and the
+  graphics memory; on an APU, whose models live in the shared GTT rather than
+  in its token VRAM, the GTT share from sysfs; drawn under Tiles › Graphics
+  processor as two bars for load and memory, a curve of the last minute, a
+  needle instrument, ten segments with the peak held, or a stripe under the
+  LLM cluster's tokens, on the small button, in the LED field and on the
+  cluster's tile; in the bar panel, or with no cluster reading, it falls back
+  to the two bars; a click opens the system monitor), volume
   (click for the slider, wheel to change it; unchosen it sits in the strip's
   row), network (WLAN signal, cable or offline; a click opens a list of the WLANs
   around: one click joins a network, Plasma asking for a new one's passphrase,

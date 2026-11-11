@@ -8,6 +8,7 @@ import org.kde.plasma.plasma5support as P5Support
 import org.kde.kirigami as Kirigami
 import org.kde.taskmanager as TaskManager
 import org.kde.plasma.private.kicker as Kicker
+import org.kde.ksysguard.sensors as Sensors
 import "launch.js" as Launch
 import "windows.js" as Windows
 import "motif.js" as Motif
@@ -86,7 +87,7 @@ PlasmoidItem {
         : networkSignal >= 75 ? "network-wireless-signal-excellent" : networkSignal >= 50 ? "network-wireless-signal-good"
         : networkSignal >= 25 ? "network-wireless-signal-ok" : "network-wireless-signal-weak"
     // The session block's small buttons, the known ones in the chosen order.
-    readonly property var smallKinds: ["configure", "lock", "desktop", "load", "llm", "volume", "network", "logout"]
+    readonly property var smallKinds: ["configure", "lock", "desktop", "load", "gpu", "llm", "volume", "network", "logout"]
     readonly property var smallButtons: {
         const chosen = (Plasmoid.configuration.smallButtons || []).filter(k => smallKinds.indexOf(k) >= 0);
         return chosen.length ? chosen : ["configure"];
@@ -807,6 +808,78 @@ PlasmoidItem {
                 root.llmTotal = result.total;
                 for (const node of result.nodes) root.llmPeak = Math.max(root.llmPeak, node.tokens_per_second);
             } catch (e) { root.llmNodes = []; root.llmTotal = 0; }
+        }
+    }
+    // The graphics processors (Plasma's sensors, ksystemstats): the load of
+    // the busiest one, since gpu/all averages a working card with an idle
+    // integrated chip; the memory of the one with the most. An APU (amdgpu
+    // with a token VRAM, Strix Halo has 0.5 GiB) keeps its models in GTT,
+    // so there the GTT share from sysfs stands for the memory.
+    readonly property bool gpuShown: smallButtons.indexOf("gpu") >= 0
+    readonly property string gpuStyle: ["bars", "trace", "dial", "ladder", "llm"].indexOf(Plasmoid.configuration.gpuStyle) >= 0
+        ? Plasmoid.configuration.gpuStyle : "bars"
+    // Joined with the cluster's reading (gpuStyle "llm") where there is one,
+    // the small LLM meter or the LLM tile; without either, channels of its own.
+    readonly property bool llmPlaced: smallButtons.indexOf("llm") >= 0 || leftSlots.concat(rightSlots).some(s => s.command === "@llm")
+    readonly property bool gpuWithLlm: gpuShown && gpuStyle === "llm" && llmPlaced
+    readonly property string gpuGauge: gpuStyle === "llm" ? "bars" : gpuStyle
+    property real gpuLoad: 0
+    property real gpuMemory: -1
+    property real gpuPeak: 0
+    property var gpuHistory: []
+    property real gttShare: -1
+    property bool gttProbe: true
+    readonly property string gpuText: gpuMemory >= 0
+        ? i18nd("cde-copper", "Graphics processor %1 %, memory %2 %", Math.round(gpuLoad), Math.round(gpuMemory * 100))
+        : i18nd("cde-copper", "Graphics processor %1 %", Math.round(gpuLoad))
+    Instantiator {
+        id: gpuSensors
+        active: root.gpuShown
+        model: [0, 1, 2, 3].reduce((all, n) => all.concat(["usage", "usedVram", "totalVram"].map(k => "gpu/gpu" + n + "/" + k)), [])
+        delegate: Sensors.Sensor {
+            required property string modelData
+            sensorId: modelData
+            updateRateLimit: 2000
+        }
+    }
+    function sampleGpu() {
+        let load = 0, used = 0, total = 0;
+        for (let n = 0; n < 4; n++) {
+            const at = k => { const o = gpuSensors.objectAt(n * 3 + k); return o ? Number(o.value) || 0 : 0; };
+            load = Math.max(load, at(0));
+            if (at(2) > total) { total = at(2); used = at(1); }
+        }
+        gpuLoad = Math.max(0, Math.min(100, load));
+        gpuMemory = total > 2 * 1073741824 ? Math.min(1, used / total)
+                  : gttShare >= 0 ? gttShare
+                  : total > 0 ? Math.min(1, used / total) : -1;
+        gpuPeak = Math.max(gpuLoad, gpuPeak - 4);
+        gpuHistory = gpuHistory.concat([gpuLoad]).slice(-30);
+    }
+    readonly property string gttCommand: "for c in /sys/class/drm/card[0-9] /sys/class/drm/card[0-9][0-9]; do d=$c/device;"
+        + " [ -r $d/mem_info_gtt_used ] && echo $(cat $d/mem_info_vram_total $d/mem_info_gtt_used $d/mem_info_gtt_total); done; true"
+    Timer {
+        interval: 2000; repeat: true; triggeredOnStart: true
+        running: root.gpuShown
+        onTriggered: {
+            root.sampleGpu();
+            if (root.gttProbe) gttSource.connectSource(root.gttCommand);
+        }
+    }
+    P5Support.DataSource {
+        id: gttSource
+        engine: "executable"
+        connectedSources: []
+        onNewData: function(sourceName, data) {
+            disconnectSource(sourceName);
+            let share = -1;
+            for (const line of (data.stdout || "").trim().split("\n")) {
+                const v = line.trim().split(/\s+/).map(Number);
+                if (v.length === 3 && v[0] <= 2 * 1073741824 && v[2] > 0) share = Math.max(share, v[1] / v[2]);
+            }
+            root.gttShare = share;
+            // No amdgpu with GTT: nothing to look at again.
+            if (!(data.stdout || "").trim()) root.gttProbe = false;
         }
     }
     // Opens the system tray's popup (hidden icons) the way a click on it does.

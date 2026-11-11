@@ -24,6 +24,7 @@ KCM.SimpleKCM {
     property var cfg_consoleScaleDefault
     property var cfg_smallButtonsDefault
     property var cfg_smallStyleDefault
+    property var cfg_gpuStyleDefault
     property var cfg_batteryMeterDefault
     property var cfg_llmTileDefault
     property var cfg_llmHostsDefault
