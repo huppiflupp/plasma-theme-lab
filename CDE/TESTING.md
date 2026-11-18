@@ -1501,7 +1501,7 @@ Release 1.2.0 (same day):
   README's screenshots of the Style Manager, if any, predate the Terminal tile.
 
 
-Graphics processor meter (2026-11-11, unreleased):
+Graphics processor meter (2026-11-11, released in 1.3.0):
 - `tests/verify.py`: 60 tests pass. `po/de.po` complete, `msgfmt --check` clean.
 - GpuGauge rendered off screen (PySide6) in its four drawings, as a family
   quarter, a sunken quarter, an LED cell and a panel cell, on Copper,
@@ -1518,3 +1518,20 @@ Graphics processor meter (2026-11-11, unreleased):
   0.5 GiB, GTT 96.7 of 128.8 GB in use, read by the console's sysfs command).
 - Not checked: the meter running in a session on real hardware, the upright
   console, two screens.
+
+Release 1.3.0 (2026-11-18): the graphics processor meter above, and the console's
+mirror to `cdecopperrc` writes only what changed:
+- Found on 245k: each status icon coming or going in the tray (the microphone
+  while dictating) made the tray sync write `trayHiddenByConsole` through the
+  scripting API; Plasma then reloaded the applet's configuration, reported every
+  key as changed, and the console started one `kwriteconfig6` per key (39 at a
+  time, twice a minute while dictating).
+- Now the last written value per key is remembered and changes are gathered for
+  500 ms into one command. On 245k (Plasma restarted with the new `main.qml`):
+  one write of `trayHiddenByConsole` injected through `evaluateScript` gave one
+  process with that key alone; a change and its reversal within 500 ms gave none;
+  the start of the console still mirrors everything once.
+- `python3 build.py`, `tests/verify.py`, `msgfmt --check` on `po/de.po`.
+- Not checked: plasma-lab and ubuntu-lab, a screenshot of the console, positions
+  and sizes, the settings dialog by hand (the change is in the mirror only),
+  X11, two screens.

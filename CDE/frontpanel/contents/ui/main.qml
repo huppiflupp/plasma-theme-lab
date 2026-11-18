@@ -43,12 +43,45 @@ PlasmoidItem {
     // [Console-<screen>], read over [Console]: a second console set up
     // differently must not hand its settings to the first.
     readonly property string mirrorGroup: Plasmoid.containment.screen > 0 ? "Console-" + Plasmoid.containment.screen : "Console"
+    // What was last written per "group/key", and what waits to be written.
+    // When the tray sync writes trayHiddenByConsole through the scripting
+    // API, Plasma reloads the applet's configuration and reports every key
+    // as changed (one status icon coming or going: some 40 kwriteconfig6
+    // processes). Only values that really differ are written, gathered for
+    // a moment into one command.
+    property var mirrored: ({})
+    property var mirrorPending: ({})
+    function mirrorText(value) {
+        return Array.isArray(value) ? value.join(",") : String(value);
+    }
+    function mirrorCommand(group, key, text) {
+        return "kwriteconfig6 --file cdecopperrc --group " + group + " --key " + key + " " + Launch.quote(text);
+    }
+    Timer {
+        id: mirrorTimer
+        interval: 500
+        onTriggered: {
+            const writes = [];
+            for (const id in root.mirrorPending) {
+                const entry = root.mirrorPending[id];
+                if (root.mirrored[id] === entry.text) continue;
+                root.mirrored[id] = entry.text;
+                writes.push(root.mirrorCommand(entry.group, entry.key, entry.text));
+            }
+            root.mirrorPending = {};
+            if (writes.length) root.run(writes.join("; "));
+        }
+    }
     Connections {
         target: Plasmoid.configuration
         function onValueChanged(key, value) {
             if (key === "everyScreen" || Plasmoid.containment.screen < 0) return;   // AllScreens: placeConsoles; no screen yet: no group
-            const text = Array.isArray(value) ? value.join(",") : String(value);
-            root.run("kwriteconfig6 --file cdecopperrc --group " + root.mirrorGroup + " --key " + key + " " + Launch.quote(text));
+            const group = root.mirrorGroup;
+            const text = root.mirrorText(value);
+            const id = group + "/" + key;
+            if (root.mirrored[id] === text && !(id in root.mirrorPending)) return;
+            root.mirrorPending[id] = { group: group, key: key, text: text };
+            mirrorTimer.restart();
         }
     }
     // At start the whole configuration, defaults included: it mends a
@@ -56,10 +89,11 @@ PlasmoidItem {
     function mirrorAll() {
         if (Plasmoid.containment.screen < 0) return;
         const config = Plasmoid.configuration;
+        const group = root.mirrorGroup;
         const writes = config.keys().filter(key => key !== "everyScreen" && !key.endsWith("Default")).map(key => {
-            const value = config[key];
-            const text = Array.isArray(value) ? value.join(",") : String(value);
-            return "kwriteconfig6 --file cdecopperrc --group " + root.mirrorGroup + " --key " + key + " " + Launch.quote(text);
+            const text = root.mirrorText(config[key]);
+            root.mirrored[group + "/" + key] = text;
+            return root.mirrorCommand(group, key, text);
         });
         root.run(writes.join("; "));
     }
