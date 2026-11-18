@@ -234,6 +234,17 @@ const PALETTES = [
   ]
  },
  {
+  "name": "Ember",
+  "colours": [
+   "#120e08",
+   "#16110a",
+   "#0e0b07",
+   "#b47d45",
+   "#3f2d19",
+   "#0a0805"
+  ]
+ },
+ {
   "name": "Golden",
   "colours": [
    "#b1705f",
@@ -388,6 +399,17 @@ const PALETTES = [
   ]
  },
  {
+  "name": "Phosphor",
+  "colours": [
+   "#08100a",
+   "#0a140c",
+   "#070d08",
+   "#42b05e",
+   "#1d3f26",
+   "#050906"
+  ]
+ },
+ {
   "name": "Plum",
   "colours": [
    "#2a1c30",
@@ -396,6 +418,17 @@ const PALETTES = [
    "#d98acb",
    "#4a3250",
    "#1a0f1e"
+  ]
+ },
+ {
+  "name": "RedAlert",
+  "colours": [
+   "#120808",
+   "#160909",
+   "#0e0707",
+   "#b8342a",
+   "#3f1a17",
+   "#0a0505"
   ]
  },
  {

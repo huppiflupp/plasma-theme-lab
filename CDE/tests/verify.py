@@ -287,7 +287,7 @@ class Palettes(unittest.TestCase):
     def test_every_text_colour_is_readable(self):
         sys.path.insert(0, str(ROOT))
         import palettes
-        self.assertEqual(len(palettes.names()), 47)   # 37 from CDE, 10 of our own
+        self.assertEqual(len(palettes.names()), 50)   # 37 from CDE, 13 of our own
         pairs = [("text", "surface"), ("text2", "surface"), ("link", "surface"), ("window_text", "window"),
                  ("selection_text", "selection"), ("title_active_text", "title_active"),
                  ("title_inactive_text", "title_inactive"), ("panel_text", "panel")]
@@ -504,7 +504,7 @@ class Installer(unittest.TestCase):
             self.assertTrue((self.data / "kwin/scripts/cde-copper-arrange/contents/code/main.js").is_file())
             self.assertTrue((self.data / "plasma/plasmoids/org.cde.copper.stylemanager/contents/ui/main.qml").is_file())
             self.assertTrue((self.data / "plasma/wallpapers/org.cde.copper.backdrop/contents/images/Copper/Pebbles.png").is_file())
-            self.assertEqual(len(list((self.data / "color-schemes").glob("CDE*.colors"))), 48)
+            self.assertEqual(len(list((self.data / "color-schemes").glob("CDE*.colors"))), 51)
             # The palette tool runs from the profile, without the archive.
             tool = self.data / "cde-copper/tool/manage.py"
             listing = subprocess.run([sys.executable, str(tool), "palettes"], env=self.env, text=True, capture_output=True)

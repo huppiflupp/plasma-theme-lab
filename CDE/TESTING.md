@@ -1535,3 +1535,21 @@ mirror to `cdecopperrc` writes only what changed:
 - Not checked: plasma-lab and ubuntu-lab, a screenshot of the console, positions
   and sizes, the settings dialog by hand (the change is in the mirror only),
   X11, two screens.
+
+Release 1.4.0 (2026-11-18): three dark palettes of our own after monochrome
+terminals, each with a text colour of its own (`fg=` in the .dp file):
+- Ember (amber `#d29556` on near-black, after an amber btop theme), Phosphor
+  (green `#52d273`, an old P1 screen), RedAlert (red `#e5503f`, brighter than
+  Darkroom). Text reads at 6.9-10.3:1 on their surfaces (RedAlert 4.9-5.4:1, a
+  pure red cannot get lighter without turning orange or pink); the active frame
+  is a shade darker than the text, its own text at 4.6:1 or more.
+- `terminals.py`: a light text colour of its own pulled the dark set's blue so
+  far up that Midnight Commander's white text no longer read on it (Ember 3.2:1).
+  Blue is now darkened back to 4:1 on white, only when it falls below; the other
+  47 palettes give byte-identical terminal colours (compared with the old module).
+- `python3 build.py`, `tests/verify.py` (palette counts raised to 50 and 51),
+  `msgfmt --check` on `po/de.po`, `manage.py check`.
+- On 245k: installed, each palette applied with `manage.py palette`; after a
+  Plasma restart Ember appeared in the Style Manager (seen by the user).
+- Not checked: plasma-lab and ubuntu-lab, icon sheets, a Qt and a GTK dialog
+  under the new palettes, X11, two screens.

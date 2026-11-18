@@ -57,6 +57,9 @@ def dark(P):
     # Blue is also a surface: Midnight Commander puts white text on it, so it
     # cannot rise like the others; it only has to read as text at all.
     base[BLUE] = legible(hues[BLUE], background, WHITE, 3)
+    # A light text colour of its own (Ember's amber) pulls blue so far up
+    # that white no longer reads on it: darken it back, only then.
+    base[BLUE] = legible(base[BLUE], WHITE, BLACK, 4)
     bright = [legible(mix(hue, WHITE, 0.3), background, WHITE, 7) for hue in hues]
     # Bright colours must also read on that blue surface.
     bright = [legible(colour, base[BLUE], WHITE, 3) for colour in bright]

@@ -332,7 +332,7 @@ the overview and the logo (TESTING.md, "Store pictures").
 
 ### CDE palettes and backdrops
 
-The 37 palettes of CDE and the ten of our own are listed in **System Settings › Colours** as
+The 37 palettes of CDE and the thirteen of our own are listed in **System Settings › Colours** as
 "CDE Alpine" … "CDE Wheat", beside "CDE Copper". Choosing one there is enough:
 the console notices the new colours and brings the rest along, the Plasma
 surfaces, the Kvantum controls and the backdrop. Applications that are already
@@ -670,7 +670,7 @@ project's `plasma-lab` VM. See [TESTING.md](TESTING.md).
 
 ## Scope
 
-This is version 1.3.0. The application style is a Kvantum theme, not a
+This is version 1.4.0. The application style is a Kvantum theme, not a
 compiled Qt style, so it needs Kvantum at run time. Third-party applications
 can supply their own controls or client-side decorations. The icon set covers
 the installed applications, the menu categories and the common action,
