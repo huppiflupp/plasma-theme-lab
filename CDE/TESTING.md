@@ -1553,3 +1553,15 @@ terminals, each with a text colour of its own (`fg=` in the .dp file):
   Plasma restart Ember appeared in the Style Manager (seen by the user).
 - Not checked: plasma-lab and ubuntu-lab, icon sheets, a Qt and a GTK dialog
   under the new palettes, X11, two screens.
+
+Unreleased: two palettes after SGI IRIX 6.5 schemes, IndigoMagic (the default)
+and Gotham (dark), values from wlRIX's transcription at gamma 1.7 (mapping in
+`palettes/copper/README.md`):
+- Text reads at 4.6-14.4:1 (IndigoMagic, black lightened to `#cccccc` on the
+  workspace only) and 4.9-17.2:1 (Gotham).
+- `python3 build.py`, `tests/verify.py` (palette counts raised to 52 and 53),
+  `msgfmt --check` on `po/de.po`.
+- On 245k: installed; both colour schemes and Style Manager entries present
+  (seen in the files, not applied by hand).
+- Not checked: plasma-lab and ubuntu-lab, icon sheets, Qt and GTK dialogs,
+  X11, two screens.

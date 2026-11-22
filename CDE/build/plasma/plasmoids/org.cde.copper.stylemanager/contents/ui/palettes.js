@@ -256,6 +256,17 @@ const PALETTES = [
   ]
  },
  {
+  "name": "Gotham",
+  "colours": [
+   "#494949",
+   "#2a2a2a",
+   "#3c283c",
+   "#817b5c",
+   "#5c5c5c",
+   "#1b1b1b"
+  ]
+ },
+ {
   "name": "Graphite",
   "colours": [
    "#303030",
@@ -297,6 +308,17 @@ const PALETTES = [
    "#8fa8ff",
    "#2a2f5a",
    "#0c0e2a"
+  ]
+ },
+ {
+  "name": "IndigoMagic",
+  "colours": [
+   "#999999",
+   "#c1c1c1",
+   "#b98e8e",
+   "#a59f80",
+   "#808080",
+   "#555555"
   ]
  },
  {

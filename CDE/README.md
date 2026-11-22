@@ -8,8 +8,8 @@ The handoff's teal and copper palette meets a more traditional CDE silhouette:
 a compact bottom front console, mwm window frames, square Motif controls,
 hard bevels and original vector workstation icons. Copper identifies the active
 window, selected workspace and focused controls. The desktop stays quiet teal,
-or takes any of CDE's own 37 palettes and backdrops, or one of ten dark
-palettes of our own.
+or takes any of CDE's own 37 palettes and backdrops, one of thirteen dark
+palettes of our own, or one of two IRIX schemes.
 
 The console, its settings, the start-up, lock and logout screens speak
 German where the system does (gettext domain `cde-copper`, `po/`); other
@@ -114,8 +114,9 @@ languages can be added as `po/<language>.po`.
   than they need, under the short title "Status"; each name goes to its
   tooltip. By default the console stands by
   itself; the panel's own frame around it can be switched on.
-- CDE's 37 colour palettes and ten dark ones of our own (`palettes/copper/`,
-  among them Graphite in greys and Darkroom with red text), shaded with
+- CDE's 37 colour palettes, thirteen dark ones of our own (`palettes/copper/`,
+  among them Graphite in greys and Darkroom with red text) and two after SGI
+  IRIX 6.5 (IndigoMagic, IRIX's default, and the dark Gotham), shaded with
   Motif's algorithm, and CDE's 25 desktop
   backdrops, coloured with the chosen palette.
 - A window arrangement around the console: terminals left and right, the main
