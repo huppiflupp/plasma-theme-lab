@@ -1565,3 +1565,107 @@ and Gotham (dark), values from wlRIX's transcription at gamma 1.7 (mapping in
   (seen in the files, not applied by hand).
 - Not checked: plasma-lab and ubuntu-lab, icon sheets, Qt and GTK dialogs,
   X11, two screens.
+
+## The dark terminal set carries the palette's accent (24.11.2026, 245k)
+
+Reported: changing the palette left the Konsole colours the same. Two causes:
+- Not ours to fix: Konsole reads the colour scheme when its process starts and
+  watches neither the scheme nor the profile (`ColorSchemeManager` keeps a
+  weak_ptr cache, `ProfileManager` has no watcher, `Session::setProfile` only
+  offers the profiles loaded at start-up), so a window that is already open
+  keeps its colours until Konsole is restarted. The files themselves were
+  current: `~/.local/share/konsole/CDECopper.colorscheme` rewritten at each
+  palette change, the theme profile naming it.
+- Ours: `terminals.py` darkened every palette's workspace colour to a luminance
+  of 0.016 or less and took the sixteen colours from the same constants. Copper
+  and Wheat gave 13 of the 16 colours identically and backgrounds 19 apart (of
+  765); across all palettes, 608 of the 1326 pairs shared twelve of the sixteen,
+  whatever their accent.
+- `terminals.toward()` draws the accent along the hues: at most 0.03 of hue — a
+  whole step towards the accent turns cyan green and blue violet — and the rest
+  of the way in saturation. Distance between the six base colours: median
+  25 -> 131, tenth percentile 8 -> 69; Copper and Wheat 20 -> 50, still the
+  closest pair because both accents are warm. The floors hold (text 6.4-16.1:1,
+  colours 5.5:1 or more, blue 3:1 as a surface and 4:1 on white); only palettes
+  that share an accent can agree on twelve colours again.
+- `tests/verify.py`: two new tests — no two accents give the same twelve
+  colours, and the pull leaves every colour itself (its hue moves by at most
+  0.02). The suite added `ROOT` to `sys.path` inside single tests only, so a
+  class asked for on the command line failed with `ModuleNotFoundError`; it is
+  added once at the top now.
+- `python3 build.py` (only `konsole/CDECopper.colorscheme` changed),
+  `screenshots/terminals-palettes.png`: the sixteen colours before and after,
+  one row per palette.
+- Not checked: a live palette change in an open Konsole (it cannot follow
+  without a restart), the other five terminals, the "field" set, plasma-lab and
+  ubuntu-lab.
+
+## A light terminal set, and the accent pull the right way round (25.11.2026, 245k)
+
+Asked for a light terminal for the light palettes: a background of the palette
+and text that really contrasts. Proof first (`screenshots/terminals-light-proof.png`,
+eleven palettes, the "field" set beside the new one with the sixteen colours and
+the measured contrasts under each), then built in.
+
+- `terminals.light()`: the palette's text field lifted to a luminance of 0.72
+  (never darkened, so white only where the palette already is), its text
+  darkened to 8:1 so it keeps the palette's tint instead of turning neutral
+  black, colours 1–6 pulled along the accent and held at 4.5:1, blue dark
+  enough for the white text Midnight Commander puts on it (3:1), and the eight
+  bright ones mixed *toward* the text to 6.5:1: on a light field "bright" goes
+  deeper, and the dark set's rule that bright colours must read on the blue
+  surface would have lightened all eight of them away.
+- Over the eleven palettes of the sheet: text 11.7–21.0:1 where "field" gives
+  4.9–21.0, colours ≥4.5:1 where "field" falls to 3.1 on Tundra, bold ≥6.5:1
+  where "field" gives 3.1–6.7. The set computes for every palette -- 27 of the
+  53 have a light text field to begin with -- so it is offered for all of them:
+  third radio in the Style Manager, `--terminal light`.
+- `terminals.toward()` handed `hls_to_rgb()` the saturation for the lightness:
+  `h, s, l = rgb_to_hls(...)` answers (h, l, s). Where the two are close
+  (`ON_DARK`) that is a mild distortion; on the dark colours of `ON_LIGHT` it
+  lightens everything and yellow `#8f6f00` came out `#ffffff`. Corrected, with
+  the dark set moving with it: its six base colours shift by a median of 50
+  (32–95 of 765) per palette, Copper's green from `#4aae48` to `#5ad358`.
+  Palettes stay further apart than before, not closer: the distance between two
+  palettes' six colours has median 27 -> 50 and tenth percentile 12 -> 17.
+- What the correction does take away: three pairs whose accents agree in hue
+  *and* saturation (Chocolate/Orchid, Graphite/GrayScale, Clay/Summer) now give
+  identical colours where the wrong-way-round pull happened to separate them.
+  An accent's lightness cannot reach a near-black field through the contrast
+  floors at all -- every colour is normalised to the same contrast there -- so
+  the test exempts hue-and-saturation twins (41 of the 1378 pairs) instead of
+  identical accents, and none of the rest agrees on twelve of the sixteen.
+- Two new tests: the pull leaves lightness alone (the regression), and the
+  light set stays light (field lifted and never darkened, text 8:1, colours
+  4.5:1, bright ones ≥6.5:1 and not lighter than their base).
+- `python3 build.py` (the Konsole scheme follows the corrected pull),
+  `po/update.py`, `msgfmt --check` on `po/de.po`, `tests/verify.py Terminals`.
+- Not checked: xterm, Alacritty, kitty, foot and WezTerm (none installed
+  here), the Style Manager dialog with three radios on screen, plasma-lab and
+  ubuntu-lab, X11, two screens.
+
+### Live: the light set in a Konsole (25.11.2026, 245k)
+
+`manage.py palette --terminal light` on the installed theme (palette Wheat,
+backdrop `picture:weltraum-links`), then a freshly started Konsole with the CDE
+Copper profile and a screenshot measured with PIL.
+
+- Manifest `terminal: light`; `~/.local/share/konsole/CDECopper.colorscheme`
+  matches `terminals.colours(Wheat, "light")` in all sixteen colours plus
+  background and foreground, and the profile still names `CDECopper`.
+- Wheat's text field is `#bfc0c5` (luminance 0.53), the set lifts it to
+  `#dfe0e2`; text `#000000` at 15.9:1, the six colours 4.7–5.8:1.
+- In the window's interior (1100×1260 px) 99.7% of the pixels are the field
+  colour, black text and the set's red, yellow and blue are there, and nothing
+  of the old dark field `#162126` remains. The cyan tones elsewhere in the
+  screenshot are the wallpaper, outside the window.
+- **What the live run exposes:** the rule that blue stays dark enough for white
+  text (7.7:1 against `#ffffff`) is not what Konsole paints. It substitutes
+  colour 7 for "white", and on a light field that is a grey -- grey on blue
+  measures 2.8:1, and a bold white, which arrives as colour 7 intense and is
+  the ink here, 2.7:1. No blue can serve both: the grey wants a dark surface,
+  the black wants a light one. So Midnight Commander's panels stay hard to read
+  on any light set, which is what the dialog's own help text says; the comment
+  in `light()` and the test now name the pair they actually measure.
+- Konsole follows only for windows started after the change, as before.
+- Not checked here: the other terminals (not installed), the dialog on screen.

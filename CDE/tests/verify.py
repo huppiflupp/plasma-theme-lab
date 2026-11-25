@@ -13,6 +13,9 @@ import unittest
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
+# The modules under test live beside the lab's root, not in this folder: a
+# single test class asked for on the command line must find them too.
+sys.path.insert(0, str(ROOT))
 
 
 class LlmVerbund(unittest.TestCase):
@@ -1096,7 +1099,7 @@ class Terminals(unittest.TestCase):
         import palettes
         return [("Copper", build.P)] + [(name, palettes.theme(name)) for name in palettes.names()]
 
-    def test_every_palette_reads_in_both_sets(self):
+    def test_every_palette_reads_in_every_set(self):
         import terminals
         from palettes import contrast
         for name, P in self.palettes_with_copper():
@@ -1111,6 +1114,89 @@ class Terminals(unittest.TestCase):
             self.assertGreaterEqual(contrast(dark["background"], "#ffffff"), 12, name)
             self.assertGreaterEqual(contrast(dark["ansi"][4], "#ffffff"), 4, name)
             self.assertEqual(terminals.colours(P, "field")["background"], P["window"], name)
+
+    def test_the_dark_set_carries_the_palettes_accent(self):
+        """Palettes differ in the terminal as well: on their own the sixteen
+        colours came from the same constants and, lightened to the same
+        contrast on a near-black field, 608 of the 1326 pairs shared twelve of
+        them -- whatever their accent. What reaches the terminal through that
+        contrast floor is the accent's hue and saturation; its lightness is
+        replaced by the floor, so palettes whose accents agree in both still
+        give the same terminal and no rule about colours can change that."""
+        import itertools
+        from colorsys import rgb_to_hls
+        import terminals
+        schemes = {name: (terminals.dark(P)["ansi"], P["selection"])
+                   for name, P in self.palettes_with_copper()}
+
+        def tint(colour):
+            h, _, s = rgb_to_hls(*(int(colour[i:i+2], 16) / 255 for i in (1, 3, 5)))
+            return h, s
+
+        for a, b in itertools.combinations(sorted(schemes), 2):
+            ha, sa = tint(schemes[a][1])
+            hb, sb = tint(schemes[b][1])
+            if max(min(abs(ha - hb), 1 - abs(ha - hb)), abs(sa - sb)) < 0.05:
+                continue    # one accent in hue and saturation, under two names
+            agreed = sum(1 for x, y in zip(schemes[a][0], schemes[b][0]) if x == y)
+            self.assertLess(agreed, 12, f"{a} and {b} agree on {agreed} of 16 with accents "
+                                        f"{schemes[a][1]} and {schemes[b][1]}")
+
+    def test_the_accent_pull_leaves_every_colour_itself(self):
+        """The pull towards the accent is a shade, not a new colour: cyan may
+        not turn green, blue may not turn violet."""
+        from colorsys import rgb_to_hls
+        import terminals
+
+        def hue(colour):
+            return rgb_to_hls(*(int(colour[i:i+2], 16) / 255 for i in (1, 3, 5)))[0]
+
+        for accent in ("#e8874f", "#9a9a9a", "#52d273", "#e5503f", "#1457b8", "#ffffff"):
+            for before, after in zip(terminals.ON_DARK, terminals.toward(terminals.ON_DARK, accent)):
+                apart = abs(hue(after) - hue(before))
+                self.assertLessEqual(min(apart, 1 - apart), 0.02, f"{accent} turned {before} into {after}")
+
+    def test_the_accent_pull_leaves_lightness_alone(self):
+        """The pull moves hue and saturation, never lightness. rgb_to_hls()
+        answers (h, l, s); read as (h, s, l) it hands hls_to_rgb() the
+        saturation for the lightness, which lightens every dark colour instead
+        of saturating it -- ON_LIGHT's yellow came out #ffffff, and no light
+        field can be built from colours that are no longer there."""
+        from colorsys import rgb_to_hls
+        import terminals
+
+        def lightness(colour):
+            return rgb_to_hls(*(int(colour[i:i+2], 16) / 255 for i in (1, 3, 5)))[1]
+
+        for hues in (terminals.ON_DARK, terminals.ON_LIGHT):
+            for before, after in zip(hues, terminals.toward(hues, "#e8874f")):
+                self.assertAlmostEqual(lightness(before), lightness(after), places=2, msg=f"{before} -> {after}")
+
+    def test_the_light_set_stays_light(self):
+        """The light terminal of the palette's own: its field lifted to a
+        luminance of 0.72 and never darkened, text at AAA, colours at AA, and
+        "bright" deeper rather than lighter -- on a light field the dark set's
+        rule for the blue surface would fade all eight of them away."""
+        import terminals
+        from palettes import contrast, luminance
+        for name, P in self.palettes_with_copper():
+            C = terminals.colours(P, "light")
+            self.assertGreaterEqual(luminance(C["background"]), 0.72, name)
+            self.assertGreaterEqual(luminance(C["background"]), luminance(P["window"]), name)
+            self.assertGreaterEqual(contrast(C["background"], C["foreground"]), 8, name)
+            for i in (*range(1, 7), *range(9, 15)):
+                self.assertGreaterEqual(contrast(C["ansi"][i], C["background"]), 4.5, f"{name} colour {i}")
+            for i in range(6):
+                self.assertGreaterEqual(contrast(C["ansi"][9 + i], C["background"]), 6.5, f"{name} bright {i}")
+                # Deeper than its base colour, not lighter; the eight-bit
+                # rounding of the mix costs at most a hair of luminance.
+                self.assertLessEqual(luminance(C["ansi"][9 + i]), luminance(C["ansi"][1 + i]) + 0.004,
+                                     f"{name} bright {i} reads lighter than its base")
+            # A truecolour white; Konsole puts colour 7 on blue instead, and
+            # that grey cannot read on a dark blue and on the light field at
+            # once. TESTING.md has the measured numbers.
+            self.assertGreaterEqual(contrast(C["ansi"][4], "#ffffff"), 3, f"{name} white on blue")
+            self.assertNotEqual(C["ansi"][7], C["background"], name)
 
     def test_only_our_files_are_written_and_removed(self):
         from unittest.mock import patch

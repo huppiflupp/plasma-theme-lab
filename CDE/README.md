@@ -175,10 +175,18 @@ languages can be added as `po/<language>.po`.
   ![FreeCAD in the Copper palette](screenshots/freecad-copper-1600.png)
   ![FreeCAD in CDE's Default palette](screenshots/freecad-default-1600.png)
 - Terminal colours that follow the palette, in the Style Manager's Terminal
-  dialog (or `manage.py palette --terminal dark|field`). "Dark" is the default:
-  a background darkened from the workspace colour, so programs that assume a
-  dark terminal stay legible. "Field" uses the palette's text field; programs
-  with surfaces of their own, such as Midnight Commander, suffer there. Written
+  dialog (or `manage.py palette --terminal dark|field|light`). "Dark" is the
+  default: a background darkened from the workspace colour, so programs that
+  assume a dark terminal stay legible; its sixteen colours carry the palette's
+  accent, a few degrees of hue and the rest of the way in saturation. Only hue
+  and saturation survive the contrast floors, not the accent's lightness, so
+  palettes whose accents agree in both do give the same terminal. "Field" uses
+  the palette's text field; programs with surfaces of their own, such as
+  Midnight Commander, suffer there. "Light" is a light terminal of the
+  palette's own: its text field lifted to a luminance of 0.72 (text 8:1 or
+  more, the sixteen colours at 4.5:1, the bright ones deeper rather than
+  lighter), which reads far better on a light palette than the text field
+  alone does. Written
   for Konsole (its CDE Copper profile; Yakuake uses it as the default profile),
   xterm, uxterm, Alacritty, kitty, foot and WezTerm, where the program or its
   configuration folder exists. A configuration of your own is left alone, and

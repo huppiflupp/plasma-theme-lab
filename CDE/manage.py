@@ -1290,8 +1290,8 @@ def main():
     parser.add_argument("--cursor", type=lambda v: v if v in ("copper", "palette", "white") or re.fullmatch(r"#[0-9a-fA-F]{6}", v) else parser.error(f"--cursor: {v!r}"),
                         help="palette: rim of the cursors: copper, palette (its accent), white or #rrggbb")
     parser.add_argument("--window-shadow", choices=("on", "off"), help="palette: the window frame's short hard shadow")
-    parser.add_argument("--terminal", choices=("dark", "field"),
-                        help="palette: terminal colours (dark, tinted with the palette; field, the palette's text field)")
+    parser.add_argument("--terminal", choices=("dark", "field", "light"),
+                        help="palette: terminal colours (dark, tinted with the palette; field, the palette's text field; light, a light field of the palette)")
     parser.add_argument("--pattern-colour", choices=("cde", "palette"),
                         help="palette: CDE's patterns in white (or black) as in CDE, or on dark palettes in a colour of the palette")
     parser.add_argument("--lockscreen", choices=("cde", "plasma"), help="palette: CDE's lock screen (a shell package of its own) or Plasma's")

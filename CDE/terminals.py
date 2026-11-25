@@ -1,12 +1,17 @@
 """Terminal colours for CDE Copper, generated from a palette.
 
 Terminals keep sixteen colours and a background of their own, out of reach of
-the colour scheme. There are two sets, chosen in the Style Manager:
+the colour scheme. There are three sets, chosen in the Style Manager:
 
     dark    the default: a background darkened from the workspace colour, so
-            programs that assume a dark terminal stay legible
+            programs that assume a dark terminal stay legible; its sixteen
+            colours carry the palette's accent
     field   the palette's text field, like the editors; programs that paint
             their own surfaces suffer (Midnight Commander's blue panels)
+    light   a light terminal of the palette's own: its text field lifted to a
+            luminance of 0.72, its text darkened to 8:1, the sixteen colours
+            held at 4.5:1 on the light field and the bright ones deeper rather
+            than lighter. Works for every palette, light or dark
 
 The set is written for each terminal in its own format at every palette
 change: Konsole's colour scheme (its theme profile names it; Yakuake takes
@@ -14,14 +19,17 @@ Konsole's default profile), xterm's and uxterm's app-defaults in the home
 folder, and for Alacritty, kitty, foot and WezTerm a fragment beside their
 configuration. A configuration that does not exist yet is created to load the
 fragment. One that does exist is the user's: it is left alone and the user is
-told the one line to add.
+told the one line to add. A terminal reads these files when it starts and keeps
+its colours until it is restarted: Konsole watches neither the scheme nor the
+profile, and its D-Bus interface only offers the profiles it loaded at start-up.
 """
 from pathlib import Path
 import shutil
+from colorsys import hls_to_rgb, rgb_to_hls
 
 from palettes import contrast, legible, luminance, mix
 
-KINDS = ("dark", "field")
+KINDS = ("dark", "field", "light")
 DEFAULT = "dark"
 MARK = "Written by CDE Copper; delete this line to keep your own settings."
 FONT = "IBM Plex Mono"
@@ -41,6 +49,32 @@ def tinted(ink, hues):
     return [mix(hue, ink, pull) for hue in hues]
 
 
+def _hls(colour):
+    return rgb_to_hls(*(int(colour[i:i+2], 16) / 255 for i in (1, 3, 5)))
+
+
+def toward(hues, accent, amount=0.5, max_hue=0.03):
+    """The palette's accent draws the sixteen colours along: a few degrees of
+    hue, the rest of the way in saturation, the lightness untouched. A whole
+    step towards the accent would turn cyan green and blue violet, so the hue
+    is capped. The plain ON_DARK hues, lightened to the same contrast on a
+    near-black field, gave every palette the same colours: 608 of the 1326 pairs
+    shared twelve of the sixteen. Only hue and saturation get through those
+    contrast floors -- an accent's lightness is replaced by the floor -- so the
+    pairs that still agree on twelve are the ones whose accents agree in both.
+    rgb_to_hls() answers (h, l, s), not (h, s, l): read the wrong way round,
+    hls_to_rgb() gets the saturation for the lightness and lightens every dark
+    colour instead of saturating it -- ON_LIGHT's yellow came out white."""
+    ah, _, asat = _hls(accent)
+    moved = []
+    for hue in hues:
+        h, l, s = _hls(hue)
+        step = max(-max_hue, min(max_hue, ((ah - h + 0.5) % 1.0) - 0.5))
+        rgb = hls_to_rgb((h + step * amount) % 1.0, l, s + (asat - s) * amount)
+        moved.append("#%02x%02x%02x" % tuple(round(v * 255) for v in rgb))
+    return moved
+
+
 def dark(P):
     background = P["desktop"]
     for step in range(21):
@@ -52,7 +86,7 @@ def dark(P):
         foreground = ink
     else:
         foreground = legible(mix(P["window"], WHITE, 0.2), background, WHITE, 10)
-    hues = tinted(foreground, ON_DARK)
+    hues = toward(tinted(foreground, ON_DARK), P["selection"])
     base = [legible(hue, background, WHITE, 5.5) for hue in hues]
     # Blue is also a surface: Midnight Commander puts white text on it, so it
     # cannot rise like the others; it only has to read as text at all.
@@ -82,9 +116,41 @@ def field(P):
                       legible(mix(ink, background, 0.45), background, ink, min(3.5, target)), *bright, ink])
 
 
+def light(P):
+    """A light terminal that is not the plain text field: that one reads at
+    4.9:1 on Tundra and 7.3:1 on IndigoMagic, too little for a whole window of
+    text. The field is lifted to a luminance of 0.72 -- pale, never grey, and
+    white only where the palette already is -- and the text darkened to 8:1 so
+    it keeps the palette's tint instead of turning neutral black."""
+    background = P["window"]
+    for step in range(21):
+        background = mix(P["window"], WHITE, step / 20)
+        if luminance(background) >= 0.72:
+            break
+    ink = legible(P["window_text"], background, BLACK, 8)
+    hues = toward(tinted(ink, ON_LIGHT), P["selection"])
+    base = [legible(hue, background, ink, 4.5) for hue in hues]
+    # Dark enough for light text on a blue surface -- for programs that ask for
+    # a real white. Konsole substitutes colour 7 for "white", and that is a grey
+    # here, so Midnight Commander's panels stay hard to read on any light set;
+    # the dialog says so. No blue fixes both at once: the grey wants a dark
+    # surface, the black of a bold white wants a light one.
+    base[BLUE] = legible(base[BLUE], WHITE, BLACK, 3)
+    # On a light field "bright" cannot mean lighter; it goes deeper, so bold
+    # text gains weight instead of vanishing. The dark set's rule that the
+    # bright colours read on the blue surface is deliberately not reused: on a
+    # light field it would lighten all eight of them.
+    bright = [legible(mix(hue, ink, 0.3), background, ink, 6.5) for hue in hues]
+    # "White" must not vanish on a light field, so it follows the text; the
+    # grey between them carries what programs paint as bright black.
+    return dict(background=background, foreground=ink,
+                ansi=[ink, *base, legible(mix(background, ink, 0.3), background, ink, 2),
+                      legible(mix(ink, background, 0.45), background, ink, 3.5), *bright, ink])
+
+
 def colours(P, kind=DEFAULT):
     """Background, foreground, the sixteen colours and the palette's selection."""
-    return {**(field(P) if kind == "field" else dark(P)),
+    return {**{"field": field, "light": light}.get(kind, dark)(P),
             "selection": P["selection"], "selection_text": P["selection_text"]}
 
 

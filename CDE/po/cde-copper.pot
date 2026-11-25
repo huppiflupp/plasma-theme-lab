@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: cde-copper 1.2.0\n"
+"Project-Id-Version: cde-copper 1.4.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-11 15:31+0100\n"
+"POT-Creation-Date: 2026-11-25 10:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -243,7 +243,7 @@ msgid "Configure Front Console"
 msgstr ""
 
 #: frontpanel/contents/ui/SessionButtons.qml:160
-#: frontpanel/contents/ui/main.qml:286
+#: frontpanel/contents/ui/main.qml:320
 msgid "Lock Screen"
 msgstr ""
 
@@ -256,7 +256,7 @@ msgid "Volume %1"
 msgstr ""
 
 #: frontpanel/contents/ui/SessionButtons.qml:164
-#: frontpanel/contents/ui/main.qml:287
+#: frontpanel/contents/ui/main.qml:321
 msgid "Leave Session..."
 msgstr ""
 
@@ -676,7 +676,7 @@ msgid "Without it the volume sits in the strip's row"
 msgstr ""
 
 #: frontpanel/contents/ui/configLaunchers.qml:40
-#: frontpanel/contents/ui/main.qml:77 frontpanel/contents/ui/main.qml:283
+#: frontpanel/contents/ui/main.qml:111 frontpanel/contents/ui/main.qml:317
 msgid "Network"
 msgstr ""
 
@@ -951,19 +951,19 @@ msgstr ""
 msgid "Web"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:428 frontpanel/contents/ui/main.qml:221
+#: frontpanel/contents/ui/launch.js:428 frontpanel/contents/ui/main.qml:255
 msgid "Mail"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:429 frontpanel/contents/ui/main.qml:219
+#: frontpanel/contents/ui/launch.js:429 frontpanel/contents/ui/main.qml:253
 msgid "System"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:430 frontpanel/contents/ui/main.qml:220
+#: frontpanel/contents/ui/launch.js:430 frontpanel/contents/ui/main.qml:254
 msgid "Help"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:431 frontpanel/contents/ui/main.qml:276
+#: frontpanel/contents/ui/launch.js:431 frontpanel/contents/ui/main.qml:310
 msgid "Trash"
 msgstr ""
 
@@ -995,12 +995,12 @@ msgstr ""
 msgid "Calendar"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:439 frontpanel/contents/ui/main.qml:279
+#: frontpanel/contents/ui/launch.js:439 frontpanel/contents/ui/main.qml:313
 msgid "System Settings"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:440 frontpanel/contents/ui/main.qml:285
-#: frontpanel/contents/ui/main.qml:351
+#: frontpanel/contents/ui/launch.js:440 frontpanel/contents/ui/main.qml:319
+#: frontpanel/contents/ui/main.qml:385
 msgid "Help Center"
 msgstr ""
 
@@ -1024,15 +1024,15 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:447 frontpanel/contents/ui/main.qml:218
+#: frontpanel/contents/ui/launch.js:447 frontpanel/contents/ui/main.qml:252
 msgid "Places"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:448 frontpanel/contents/ui/main.qml:224
+#: frontpanel/contents/ui/launch.js:448 frontpanel/contents/ui/main.qml:258
 msgid "Bookmarks"
 msgstr ""
 
-#: frontpanel/contents/ui/launch.js:449 frontpanel/contents/ui/main.qml:223
+#: frontpanel/contents/ui/launch.js:449 frontpanel/contents/ui/main.qml:257
 msgid "Terminals"
 msgstr ""
 
@@ -1089,165 +1089,165 @@ msgstr ""
 msgid "The application %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:106
+#: frontpanel/contents/ui/main.qml:140
 msgid "Battery %1 %, charging"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:107
+#: frontpanel/contents/ui/main.qml:141
 msgid "Battery %1 %, full"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:108
+#: frontpanel/contents/ui/main.qml:142
 msgid "Battery %1 %"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:109
+#: frontpanel/contents/ui/main.qml:143
 msgid "Battery %1 %, discharging"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:110 frontpanel/contents/ui/main.qml:282
-#: frontpanel/contents/ui/main.qml:538
+#: frontpanel/contents/ui/main.qml:144 frontpanel/contents/ui/main.qml:316
+#: frontpanel/contents/ui/main.qml:572
 msgid "Audio"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:225
+#: frontpanel/contents/ui/main.qml:259
 msgid "Recent Files"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:246
+#: frontpanel/contents/ui/main.qml:280
 msgid "No bookmarks found"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:246
+#: frontpanel/contents/ui/main.qml:280
 msgid "No recent files"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:271
+#: frontpanel/contents/ui/main.qml:305
 msgid "Home"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:272
+#: frontpanel/contents/ui/main.qml:306
 msgid "Documents"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:273
+#: frontpanel/contents/ui/main.qml:307
 msgid "Downloads"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:274
+#: frontpanel/contents/ui/main.qml:308
 msgid "Pictures"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:275
+#: frontpanel/contents/ui/main.qml:309
 msgid "File System"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:280
+#: frontpanel/contents/ui/main.qml:314
 msgid "Style Manager…"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:281
+#: frontpanel/contents/ui/main.qml:315
 msgid "Arrange Windows"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:284
+#: frontpanel/contents/ui/main.qml:318
 #: lookandfeel/contents/splash/Splash.qml:24
 msgid "Display"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:288
+#: frontpanel/contents/ui/main.qml:322
 msgid "Restart..."
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:289
+#: frontpanel/contents/ui/main.qml:323
 msgid "Shut Down..."
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:295
+#: frontpanel/contents/ui/main.qml:329
 msgid "New Message"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:296
+#: frontpanel/contents/ui/main.qml:330
 msgid "Open Mail"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:297
+#: frontpanel/contents/ui/main.qml:331
 msgid "Appointments"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:298
+#: frontpanel/contents/ui/main.qml:332
 msgid "Address Book"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:303
+#: frontpanel/contents/ui/main.qml:337
 msgid "New Terminal"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:304
+#: frontpanel/contents/ui/main.qml:338
 msgid "Three Terminals Around the Console"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:306
+#: frontpanel/contents/ui/main.qml:340
 msgid "Four Terminals on the Other Screen"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:307
+#: frontpanel/contents/ui/main.qml:341
 msgid "Seven Terminals on Both Screens"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:309
+#: frontpanel/contents/ui/main.qml:343
 msgid "Four Terminals"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:327
+#: frontpanel/contents/ui/main.qml:361
 msgid "Save Layout"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:328
+#: frontpanel/contents/ui/main.qml:362
 msgid "Name of the layout:"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:352
+#: frontpanel/contents/ui/main.qml:386
 msgid "Keyboard Shortcuts"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:353
+#: frontpanel/contents/ui/main.qml:387
 msgid "System Information"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:354
+#: frontpanel/contents/ui/main.qml:388
 msgid "About CDE Copper"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:494 frontpanel/contents/ui/main.qml:538
+#: frontpanel/contents/ui/main.qml:528 frontpanel/contents/ui/main.qml:572
 msgid "Muted"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:518
+#: frontpanel/contents/ui/main.qml:552
 msgid "Offline"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:519
+#: frontpanel/contents/ui/main.qml:553
 msgid "WLAN %1, %2 %"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:519
+#: frontpanel/contents/ui/main.qml:553
 msgid "Cable %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:556
+#: frontpanel/contents/ui/main.qml:590
 msgid "Workspace %1"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:556
+#: frontpanel/contents/ui/main.qml:590
 msgid "Workspace %1: %2"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:833
+#: frontpanel/contents/ui/main.qml:867
 msgid "Graphics processor %1 %, memory %2 %"
 msgstr ""
 
-#: frontpanel/contents/ui/main.qml:834
+#: frontpanel/contents/ui/main.qml:868
 msgid "Graphics processor %1 %"
 msgstr ""
 
@@ -1556,14 +1556,18 @@ msgstr ""
 msgid "Like the palette's text fields"
 msgstr ""
 
-#: stylemanager/contents/ui/TerminalDialog.qml:17
+#: stylemanager/contents/ui/TerminalDialog.qml:15
+msgid "Light, of the palette"
+msgstr ""
+
+#: stylemanager/contents/ui/TerminalDialog.qml:18
 msgid "Terminal: %1"
 msgstr ""
 
-#: stylemanager/contents/ui/TerminalDialog.qml:37
+#: stylemanager/contents/ui/TerminalDialog.qml:38
 msgid ""
-"Both follow the palette. Programs that paint their own surfaces, such as "
-"Midnight Commander, are hard to read on light text fields. New terminal "
+"All three follow the palette. Programs that paint their own surfaces, such "
+"as Midnight Commander, are hard to read on the light sets. New terminal "
 "windows take the colours; of the open ones only Alacritty, kitty and WezTerm "
 "follow at once."
 msgstr ""

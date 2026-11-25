@@ -11,7 +11,8 @@ StyleDialog {
     property string chosen: "dark"
     readonly property var styles: [
         {value: "dark", text: i18nd("cde-copper", "Dark, tinted with the palette")},
-        {value: "field", text: i18nd("cde-copper", "Like the palette's text fields")}]
+        {value: "field", text: i18nd("cde-copper", "Like the palette's text fields")},
+        {value: "light", text: i18nd("cde-copper", "Light, of the palette")}]
     onLoad: { chosen = manager.installed.terminal || "dark"; mark(); }
     onApply: if (chosen !== (manager.installed.terminal || "dark"))
         manager.apply("--terminal " + chosen, i18nd("cde-copper", "Terminal: %1", styles.find(s => s.value === chosen).text), false)
@@ -34,6 +35,6 @@ StyleDialog {
     Label {
         Layout.fillWidth: true; Layout.maximumWidth: 460
         wrapMode: Text.Wrap; opacity: 0.8
-        text: i18nd("cde-copper", "Both follow the palette. Programs that paint their own surfaces, such as Midnight Commander, are hard to read on light text fields. New terminal windows take the colours; of the open ones only Alacritty, kitty and WezTerm follow at once.")
+        text: i18nd("cde-copper", "All three follow the palette. Programs that paint their own surfaces, such as Midnight Commander, are hard to read on the light sets. New terminal windows take the colours; of the open ones only Alacritty, kitty and WezTerm follow at once.")
     }
 }
